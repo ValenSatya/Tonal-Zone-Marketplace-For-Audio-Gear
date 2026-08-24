@@ -39,3 +39,18 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+/src/generated/prisma
+
+# temporary & scratch files
+scratch/
+scratch.*
+replace_*.js
+replace_*.py
+fix-newlines.js
+patch-translations.js
+restore.js
+.agents/
+.claude/
+.windsurf/
+
