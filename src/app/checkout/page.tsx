@@ -230,7 +230,8 @@ export default function CheckoutPage() {
       const data = await res.json();
       const finalOrderId = (data.success && data.orderId) ? data.orderId : `TZ-${Date.now().toString().slice(-4)}`;
       const demoParam = isDemoRp1 ? "&isDemo=1" : "";
-      router.push(`/checkout/payment?orderId=${finalOrderId}&method=${paymentMethod}${demoParam}`);
+      const snapParam = data.snapToken ? `&snapToken=${encodeURIComponent(data.snapToken)}` : "";
+      router.push(`/checkout/payment?orderId=${finalOrderId}&method=${paymentMethod}${demoParam}${snapParam}`);
     } catch (err) {
       console.error("Error creating order:", err);
       const demoParam = isDemoRp1 ? "&isDemo=1" : "";
