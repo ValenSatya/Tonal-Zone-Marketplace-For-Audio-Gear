@@ -49,48 +49,74 @@ export async function createMidtransSnapTransaction(
 ): Promise<{ success: boolean; snapToken: string; redirectUrl: string; error?: string }> {
   try {
     // 1. Build Item Details breakdown for Midtrans popup
-    const itemDetails: MidtransItemDetail[] = [];
+    let itemDetails: MidtransItemDetail[] = [];
 
-    for (const sub of parentOrder.subOrders) {
-      for (const item of sub.items) {
-        itemDetails.push({
-          id: item.productId.substring(0, 50),
-          price: item.priceIDR,
-          quantity: item.quantity,
-          name: `${item.productName.substring(0, 35)} (${sub.storeName.substring(0, 10)})`,
-          merchant_name: sub.storeName,
-        });
-      }
-
-      // Add Shipping per Store
-      if (sub.shippingFeeIDR > 0) {
-        itemDetails.push({
-          id: `SHP-${sub.id.substring(0, 20)}`,
-          price: sub.shippingFeeIDR,
+    if (parentOrder.totalGrossAmountIDR <= 10) {
+      itemDetails = [
+        {
+          id: "DEMO-ORDER-1RP",
+          price: parentOrder.totalGrossAmountIDR || 1,
           quantity: 1,
-          name: `Shipping: ${sub.courierCode} (${sub.storeName.substring(0, 15)})`,
-        });
+          name: "TonalZone Audiophile Demo Order",
+          merchant_name: "TonalZone Official",
+        },
+      ];
+    } else {
+      for (const sub of parentOrder.subOrders) {
+        for (const item of sub.items) {
+          itemDetails.push({
+            id: item.productId.substring(0, 50),
+            price: item.priceIDR,
+            quantity: item.quantity,
+            name: `${item.productName.substring(0, 35)} (${sub.storeName.substring(0, 10)})`,
+            merchant_name: sub.storeName,
+          });
+        }
+
+        // Add Shipping per Store
+        if (sub.shippingFeeIDR > 0) {
+          itemDetails.push({
+            id: `SHP-${sub.id.substring(0, 20)}`,
+            price: sub.shippingFeeIDR,
+            quantity: 1,
+            name: `Shipping: ${sub.courierCode} (${sub.storeName.substring(0, 15)})`,
+          });
+        }
+
+        // Add Insurance per Store
+        if (sub.insuranceFeeIDR > 0) {
+          itemDetails.push({
+            id: `INS-${sub.id.substring(0, 20)}`,
+            price: sub.insuranceFeeIDR,
+            quantity: 1,
+            name: `Cargo Insurance (${sub.storeName.substring(0, 15)})`,
+          });
+        }
       }
 
-      // Add Insurance per Store
-      if (sub.insuranceFeeIDR > 0) {
+      // Payment Gateway admin fee item
+      if (parentOrder.paymentGatewayFeeIDR > 0) {
         itemDetails.push({
-          id: `INS-${sub.id.substring(0, 20)}`,
-          price: sub.insuranceFeeIDR,
+          id: "GATEWAY-ADMIN",
+          price: parentOrder.paymentGatewayFeeIDR,
           quantity: 1,
-          name: `Cargo Insurance (${sub.storeName.substring(0, 15)})`,
+          name: "Midtrans Processing Fee",
         });
       }
-    }
 
-    // Payment Gateway admin fee item
-    if (parentOrder.paymentGatewayFeeIDR > 0) {
-      itemDetails.push({
-        id: "GATEWAY-ADMIN",
-        price: parentOrder.paymentGatewayFeeIDR,
-        quantity: 1,
-        name: "Midtrans Processing Fee",
-      });
+      // Reconcile total sum with parentOrder.totalGrossAmountIDR to prevent Midtrans reject
+      const calculatedSum = itemDetails.reduce((sum, it) => sum + it.price * it.quantity, 0);
+      if (calculatedSum !== parentOrder.totalGrossAmountIDR) {
+        itemDetails = [
+          {
+            id: parentOrder.id.substring(0, 50),
+            price: parentOrder.totalGrossAmountIDR,
+            quantity: 1,
+            name: "TonalZone Audiophile Gear Order",
+            merchant_name: "TonalZone",
+          },
+        ];
+      }
     }
 
     // 2. Snap Payload Structure
@@ -101,27 +127,27 @@ export async function createMidtransSnapTransaction(
       },
       item_details: itemDetails,
       customer_details: {
-        first_name: parentOrder.buyerName,
-        email: parentOrder.buyerEmail,
-        phone: parentOrder.buyerPhone,
+        first_name: parentOrder.buyerName || "Audiophile",
+        email: parentOrder.buyerEmail || "buyer@tonalzone.com",
+        phone: parentOrder.buyerPhone || "08123456789",
         shipping_address: {
-          first_name: parentOrder.buyerName,
-          email: parentOrder.buyerEmail,
-          phone: parentOrder.buyerPhone,
-          address: parentOrder.destinationAddress,
-          city: parentOrder.destinationCity,
-          postal_code: parentOrder.destinationPostalCode,
+          first_name: parentOrder.buyerName || "Audiophile",
+          email: parentOrder.buyerEmail || "buyer@tonalzone.com",
+          phone: parentOrder.buyerPhone || "08123456789",
+          address: parentOrder.destinationAddress || "Jl. Sudirman No. 1",
+          city: parentOrder.destinationCity || "Jakarta Selatan",
+          postal_code: parentOrder.destinationPostalCode || "12190",
           country_code: "IDN",
         },
       },
       enabled_payments: [
         "qris",
+        "gopay",
+        "shopeepay",
         "bca_va",
         "bni_va",
         "bri_va",
         "mandiri_clickpay",
-        "gopay",
-        "shopeepay",
         "credit_card",
       ],
       credit_card: {
@@ -152,6 +178,9 @@ export async function createMidtransSnapTransaction(
         snapToken: data.token,
         redirectUrl: data.redirect_url,
       };
+    } else {
+      const errBody = await res.text();
+      console.error("[Midtrans Snap API Error Status]:", res.status, errBody);
     }
 
     // If server key is in sandbox demo mode and fetch fails
