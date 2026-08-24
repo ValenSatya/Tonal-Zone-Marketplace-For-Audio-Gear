@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import Script from "next/script";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Navbar from "@/components/Navbar";
@@ -77,7 +78,7 @@ export default function CheckoutPage() {
   const router = useRouter();
   const { t } = useLanguage();
   const { formatPrice } = useLocation();
-  const { items, subtotal: cartSubtotal } = useCart();
+  const { items, subtotal: cartSubtotal, clearCart } = useCart();
   const [country, setCountry] = useState("Indonesia");
   const [province, setProvince] = useState("DKI Jakarta");
   const [city, setCity] = useState("Jakarta Selatan (Kebayoran, Senopati, SCBD)");
@@ -178,6 +179,12 @@ export default function CheckoutPage() {
   const discountAmount = isDemoRp1 ? subtotal - 0.0000625 : subtotal * discountRate;
   const total = isDemoRp1 ? 0.0000625 : Math.max(0, subtotal - discountAmount + shippingFee);
 
+  const isProd = process.env.NEXT_PUBLIC_MIDTRANS_IS_PRODUCTION === "true";
+  const clientKey = process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY || "Mid-client-fg6vrckoZjVlNofV";
+  const snapScriptUrl = isProd
+    ? "https://app.midtrans.com/snap/snap.js"
+    : "https://app.sandbox.midtrans.com/snap/snap.js";
+
   const handleCheckoutSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -229,20 +236,59 @@ export default function CheckoutPage() {
 
       const data = await res.json();
       const finalOrderId = (data.success && data.orderId) ? data.orderId : `TZ-${Date.now().toString().slice(-4)}`;
-      const demoParam = isDemoRp1 ? "&isDemo=1" : "";
-      const snapParam = data.snapToken ? `&snapToken=${encodeURIComponent(data.snapToken)}` : "";
-      router.push(`/checkout/payment?orderId=${finalOrderId}&method=${paymentMethod}${demoParam}${snapParam}`);
+
+      // DIRECT MIDTRANS POPUP LAUNCH (Standard Seamless E-Commerce UX)
+      if (typeof window !== "undefined" && window.snap && data.snapToken) {
+        window.snap.pay(data.snapToken, {
+          onSuccess: async (result: any) => {
+            console.log("Midtrans payment success:", result);
+            try {
+              await fetch(`/api/orders/${finalOrderId}/pay`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+              });
+            } catch (e) {}
+            clearCart();
+            router.push(`/checkout/success?orderId=${finalOrderId}`);
+          },
+          onPending: async (result: any) => {
+            console.log("Midtrans payment pending:", result);
+            clearCart();
+            router.push(`/checkout/success?orderId=${finalOrderId}`);
+          },
+          onError: (error: any) => {
+            console.error("Midtrans payment error:", error);
+            alert("Pembayaran belum berhasil diselesaikan. Silakan coba kembali.");
+            setIsSubmitting(false);
+          },
+          onClose: () => {
+            console.log("User closed Midtrans Snap without completing payment");
+            setIsSubmitting(false);
+          },
+        });
+      } else {
+        // Fallback to payment page if Snap script is still loading
+        const demoParam = isDemoRp1 ? "&isDemo=1" : "";
+        const snapParam = data.snapToken ? `&snapToken=${encodeURIComponent(data.snapToken)}` : "";
+        router.push(`/checkout/payment?orderId=${finalOrderId}&method=${paymentMethod}${demoParam}${snapParam}`);
+      }
     } catch (err) {
       console.error("Error creating order:", err);
+      setIsSubmitting(false);
       const demoParam = isDemoRp1 ? "&isDemo=1" : "";
       router.push(`/checkout/payment?orderId=TZ-${Date.now().toString().slice(-4)}&method=${paymentMethod}${demoParam}`);
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
   return (
     <div className="min-h-screen bg-[#080808] text-[#FAF9F6] font-sans selection:bg-[#D4FF00] selection:text-[#0e0e0e] flex flex-col relative">
+      {/* Official Midtrans Snap Script directly in Checkout */}
+      <Script
+        src={snapScriptUrl}
+        data-client-key={clientKey}
+        strategy="afterInteractive"
+      />
+
       <Navbar />
 
       <main className="flex-grow pt-28 pb-20 max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 w-full relative z-10">
@@ -396,9 +442,9 @@ export default function CheckoutPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {[
-                  { id: "qr", name: "QRIS Instant", desc: "BCA, GoPay, OVO, Dana, ShopeePay" },
-                  { id: "va", name: "Virtual Account", desc: "BCA, Mandiri, BNI, BRI Transfer" },
-                  { id: "card", name: "Kartu Kredit / Debit", desc: "Visa, Mastercard, JCB" },
+                  { id: "qr", name: "QRIS & E-Wallet", desc: "GoPay, ShopeePay, BCA, Mandiri, OVO, Dana" },
+                  { id: "va", name: "Virtual Account", desc: "BCA, Mandiri, BNI, BRI Transfer Otomatis" },
+                  { id: "card", name: "Kartu Kredit / Debit", desc: "Visa, Mastercard, JCB Secure" },
                 ].map((pm) => {
                   const isSelected = paymentMethod === pm.id;
                   return (
@@ -517,13 +563,25 @@ export default function CheckoutPage() {
                 </div>
               </div>
 
-              {/* CTA Submit Button */}
+              {/* Seamless Midtrans Checkout Button */}
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full py-4 bg-[#D4FF00] hover:bg-white text-black font-mono text-xs font-bold uppercase tracking-widest transition-all cursor-pointer shadow-sm mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full py-4 bg-[#D4FF00] hover:bg-white text-black font-mono text-xs font-bold uppercase tracking-widest transition-all cursor-pointer shadow-sm mt-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                {isSubmitting ? "MEMPROSES TRANSAKSI..." : isDemoRp1 ? "BAYAR RP 1 SEKARANG →" : "BAYAR SEKARANG →"}
+                {isSubmitting ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>MEMBUKA PEMBAYARAN MIDTRANS...</span>
+                  </>
+                ) : isDemoRp1 ? (
+                  "BAYAR RP 1 SEKARANG (MIDTRANS) →"
+                ) : (
+                  "BAYAR SEKARANG (MIDTRANS) →"
+                )}
               </button>
             </div>
           </div>

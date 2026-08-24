@@ -8,23 +8,6 @@ import { motion } from "framer-motion";
 import { useCart } from "@/context/CartContext";
 import { useLocation } from "@/context/LocationContext";
 
-declare global {
-  interface Window {
-    snap?: {
-      pay: (
-        token: string,
-        options?: {
-          onSuccess?: (result: any) => void;
-          onPending?: (result: any) => void;
-          onError?: (result: any) => void;
-          onClose?: () => void;
-        }
-      ) => void;
-      embed: (token: string, options: { embedId: string }) => void;
-    };
-  }
-}
-
 function PaymentGatewayContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
