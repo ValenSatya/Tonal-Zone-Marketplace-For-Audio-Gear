@@ -155,6 +155,8 @@ export async function createMidtransSnapTransaction(
       },
       callbacks: {
         finish: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/checkout/success?order_id=${parentOrder.id}`,
+        unfinish: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/checkout/failed?orderId=${parentOrder.id}&status=unfinish`,
+        error: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/checkout/failed?orderId=${parentOrder.id}&status=error`,
       },
     };
 
