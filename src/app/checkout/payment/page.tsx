@@ -143,10 +143,11 @@ function PaymentGatewayContent() {
     }
   };
 
-  const clientKey = process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY || "Mid-client-wMmtl31JPFRo8XHd";
-  const snapScriptUrl = clientKey.startsWith("SB-")
-    ? "https://app.sandbox.midtrans.com/snap/snap.js"
-    : "https://app.midtrans.com/snap/snap.js";
+  const isProd = process.env.NEXT_PUBLIC_MIDTRANS_IS_PRODUCTION === "true";
+  const clientKey = process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY || "Mid-client-fg6vrckoZjVlNofV";
+  const snapScriptUrl = isProd
+    ? "https://app.midtrans.com/snap/snap.js"
+    : "https://app.sandbox.midtrans.com/snap/snap.js";
 
   return (
     <div className="min-h-[100svh] bg-[#080808] text-[#FAF9F6] font-sans flex flex-col items-center justify-center p-4 selection:bg-[#D4FF00] selection:text-[#0e0e0e]">
