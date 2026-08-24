@@ -38,11 +38,17 @@ export default function ProductCard({
 }: ProductCardProps) {
   const { formatPrice } = useLocation();
 
+  // Dynamic marketplace tag (e.g. NEW ARRIVAL, BEST SELLER, FLAGSHIP, TOP RATED)
   const displayBadge =
     badgeText ||
-    (product.category === "IN-EAR MONITORS"
-      ? "[ 2-PIN 0.78MM ]"
-      : `[ ${product.brand} ]`);
+    product.badge ||
+    (product.price >= 1200
+      ? "FLAGSHIP"
+      : product.reviews >= 100
+      ? "BEST SELLER"
+      : product.rating >= 4.9
+      ? "TOP RATED"
+      : "NEW ARRIVAL");
 
   const formattedTitle = formatProductTitle(product.name);
 
@@ -59,10 +65,12 @@ export default function ProductCard({
           className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
         />
 
-        {/* Top-Right Badge */}
-        <div className="absolute top-3 right-3 bg-black/90 px-2.5 py-1 text-[10px] font-mono text-[#777777] border border-[#222222] z-10 uppercase tracking-wider group-hover:border-[#444444] group-hover:text-white transition-colors">
-          {displayBadge}
-        </div>
+        {/* Top-Right Tag Badge */}
+        {displayBadge && (
+          <div className="absolute top-3 right-3 bg-black/90 px-2.5 py-1 text-[10px] font-mono text-[#CCCCCC] border border-[#222222] z-10 uppercase tracking-wider group-hover:border-[#444444] group-hover:text-white transition-colors">
+            {displayBadge}
+          </div>
+        )}
       </div>
 
       {/* 2. Crystal-Clear Visual Hierarchy & Title Case */}
