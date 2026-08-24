@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -86,6 +86,11 @@ export default function CheckoutPage() {
   const [courier, setCourier] = useState("express");
   const [paymentMethod, setPaymentMethod] = useState("qr");
 
+  // Promo code & voucher state
+  const [promoCodeInput, setPromoCodeInput] = useState("");
+  const [appliedPromo, setAppliedPromo] = useState("");
+  const [promoMessage, setPromoMessage] = useState<string | null>(null);
+
   // Auth state
   const [userSession, setUserSession] = useState<{ name: string; email: string } | null>(null);
   const [isAuthChecked, setIsAuthChecked] = useState(false);
@@ -96,9 +101,47 @@ export default function CheckoutPage() {
       if (stored) {
         setUserSession(JSON.parse(stored));
       }
+      const savedPromo = localStorage.getItem("tonalzone_applied_promo");
+      if (savedPromo) {
+        setAppliedPromo(savedPromo);
+        setPromoCodeInput(savedPromo);
+        if (["DEMO1RP", "RP1", "DEMO", "TONAL1RP"].includes(savedPromo.toUpperCase())) {
+          setPromoMessage("[BERHASIL] VOUCHER DEMO AKTIF: TOTAL JADI RP 1!");
+        } else {
+          setPromoMessage("[BERHASIL] KODE PROMO AKTIF");
+        }
+      }
     } catch (e) {}
     setIsAuthChecked(true);
   }, []);
+
+  const isDemoRp1 = ["DEMO1RP", "RP1", "DEMO", "TONAL1RP"].includes(appliedPromo.toUpperCase());
+
+  const handleApplyPromo = (e: React.FormEvent) => {
+    e.preventDefault();
+    const cleanCode = promoCodeInput.trim().toUpperCase();
+    if (["DEMO1RP", "RP1", "DEMO", "TONAL1RP"].includes(cleanCode)) {
+      setAppliedPromo(cleanCode);
+      setPromoMessage("[BERHASIL] VOUCHER DEMO AKTIF: TOTAL JADI RP 1!");
+      try { localStorage.setItem("tonalzone_applied_promo", cleanCode); } catch (e) {}
+    } else if (cleanCode === "TONAL10" || cleanCode === "AUDIOPHILE") {
+      setAppliedPromo(cleanCode);
+      setPromoMessage("[BERHASIL] PROMO DITERAPKAN: DISKON 10%");
+      try { localStorage.setItem("tonalzone_applied_promo", cleanCode); } catch (e) {}
+    } else if (cleanCode === "TONAL50") {
+      setAppliedPromo(cleanCode);
+      setPromoMessage("[BERHASIL] PROMO DITERAPKAN: DISKON 50%");
+      try { localStorage.setItem("tonalzone_applied_promo", cleanCode); } catch (e) {}
+    } else if (cleanCode !== "") {
+      setAppliedPromo(cleanCode);
+      setPromoMessage("[BERHASIL] BONUS MEMBER: DISKON 5%");
+      try { localStorage.setItem("tonalzone_applied_promo", cleanCode); } catch (e) {}
+    } else {
+      setAppliedPromo("");
+      setPromoMessage("[GAGAL] KODE TIDAK VALID");
+      try { localStorage.removeItem("tonalzone_applied_promo"); } catch (e) {}
+    }
+  };
 
   // Update province and city when country changes
   const handleCountryChange = (newCountry: string) => {
@@ -129,10 +172,11 @@ export default function CheckoutPage() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const shippingFee = courier === "instant" ? 12 : courier === "express" ? 15 : 0;
+  const shippingFee = isDemoRp1 ? 0 : courier === "instant" ? 12 : courier === "express" ? 15 : 0;
   const subtotal = items.length > 0 ? cartSubtotal : 1448;
-  const discount = subtotal * 0.1;
-  const total = subtotal - discount + shippingFee;
+  const discountRate = isDemoRp1 ? 0 : appliedPromo === "TONAL50" ? 0.5 : appliedPromo === "TONAL10" ? 0.1 : 0.1;
+  const discountAmount = isDemoRp1 ? subtotal - 0.0000625 : subtotal * discountRate;
+  const total = isDemoRp1 ? 0.0000625 : Math.max(0, subtotal - discountAmount + shippingFee);
 
   const handleCheckoutSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -178,18 +222,19 @@ export default function CheckoutPage() {
           destinationPostalCode: postalCode,
           paymentMethod: paymentMethod === "qr" ? "MIDTRANS_QRIS" : paymentMethod === "va" ? "BCA_VA" : "CREDIT_CARD",
           cartItems: checkoutItems,
+          promoCode: appliedPromo,
+          isDemoRp1,
         }),
       });
 
       const data = await res.json();
-      if (data.success && data.orderId) {
-        router.push(`/checkout/payment?orderId=${data.orderId}&method=${paymentMethod}`);
-      } else {
-        router.push(`/checkout/payment?orderId=TZ-${Date.now().toString().slice(-4)}&method=${paymentMethod}`);
-      }
+      const finalOrderId = (data.success && data.orderId) ? data.orderId : `TZ-${Date.now().toString().slice(-4)}`;
+      const demoParam = isDemoRp1 ? "&isDemo=1" : "";
+      router.push(`/checkout/payment?orderId=${finalOrderId}&method=${paymentMethod}${demoParam}`);
     } catch (err) {
       console.error("Error creating order:", err);
-      router.push(`/checkout/payment?orderId=TZ-${Date.now().toString().slice(-4)}&method=${paymentMethod}`);
+      const demoParam = isDemoRp1 ? "&isDemo=1" : "";
+      router.push(`/checkout/payment?orderId=TZ-${Date.now().toString().slice(-4)}&method=${paymentMethod}${demoParam}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -389,7 +434,7 @@ export default function CheckoutPage() {
               </h3>
 
               {/* Cart Items Preview */}
-              <div className="space-y-3.5 max-h-56 overflow-y-auto pr-1">
+              <div className="space-y-3.5 max-h-48 overflow-y-auto pr-1">
                 {(items.length > 0 ? items : [
                   { id: "mock-1", name: "Sennheiser IE 900", brand: "SENNHEISER", price: 1299.00, image: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800", variant: "4.4mm Pentaconn", quantity: 1 },
                 ]).map((item, idx) => (
@@ -412,35 +457,72 @@ export default function CheckoutPage() {
                 ))}
               </div>
 
+              {/* Promo Code Box in Checkout */}
+              <div className="border-t border-[#1c1c1c] pt-4 space-y-2">
+                <label className="block text-[10px] font-mono uppercase tracking-widest text-[#888888] font-bold">
+                  Kode Promo / Voucher Demo
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={promoCodeInput}
+                    onChange={(e) => setPromoCodeInput(e.target.value)}
+                    placeholder="Contoh: DEMO1RP atau TONAL10"
+                    className="bg-[#141414] border border-[#262626] focus:border-white text-xs font-mono text-white uppercase px-3 py-2 flex-1 outline-none transition-colors"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleApplyPromo}
+                    className="bg-[#1c1c1c] hover:bg-[#282828] text-white border border-[#2a2a2a] text-xs font-mono font-bold uppercase px-3.5 py-2 transition-colors cursor-pointer"
+                  >
+                    Terapkan
+                  </button>
+                </div>
+                {promoMessage && (
+                  <p className={`text-[10px] font-mono ${promoMessage.includes("BERHASIL") ? "text-emerald-400" : "text-red-400"}`}>
+                    {promoMessage}
+                  </p>
+                )}
+              </div>
+
               {/* Price Breakdown */}
               <div className="space-y-2 border-t border-[#1c1c1c] pt-4 font-mono text-xs text-[#888888]">
                 <div className="flex justify-between">
                   <span>{t("cart.subtotal")}</span>
                   <span className="font-semibold text-white">{formatPrice(subtotal)}</span>
                 </div>
-                <div className="flex justify-between text-emerald-400">
-                  <span>Diskon Member (10%)</span>
-                  <span className="font-semibold">-{formatPrice(discount)}</span>
-                </div>
+
+                {isDemoRp1 ? (
+                  <div className="flex justify-between text-emerald-400">
+                    <span>Voucher Demo Khusus</span>
+                    <span className="font-bold">Potongan Sisa Jadi Rp 1</span>
+                  </div>
+                ) : (
+                  <div className="flex justify-between text-emerald-400">
+                    <span>Diskon Member ({discountRate * 100}%)</span>
+                    <span className="font-semibold">-{formatPrice(discountAmount)}</span>
+                  </div>
+                )}
+
                 <div className="flex justify-between">
                   <span>Ongkos Kirim ({courier.toUpperCase()})</span>
                   <span className="font-semibold text-white">{shippingFee === 0 ? "GRATIS" : formatPrice(shippingFee)}</span>
                 </div>
                 <div className="flex justify-between items-center border-t border-[#1c1c1c] pt-3 text-sm font-sans">
                   <span className="font-bold text-white uppercase">{t("cart.total")}</span>
-                  <span className="font-mono text-xl font-bold text-white">
-                    {formatPrice(total)}
+                  <span className="font-mono text-xl font-bold text-[#D4FF00]">
+                    {isDemoRp1 ? "Rp 1" : formatPrice(total)}
                   </span>
                 </div>
               </div>
 
-              {/* CTA Submit Button with Diagonal Wipe */}
+              {/* CTA Submit Button */}
               <button
                 type="submit"
                 disabled={isSubmitting}
                 className="w-full py-4 bg-[#D4FF00] hover:bg-white text-black font-mono text-xs font-bold uppercase tracking-widest transition-all cursor-pointer shadow-sm mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isSubmitting ? "MEMPROSES TRANSAKSI..." : "BAYAR SEKARANG →"}
+                {isSubmitting ? "MEMPROSES TRANSAKSI..." : isDemoRp1 ? "BAYAR RP 1 SEKARANG →" : "BAYAR SEKARANG →"}
               </button>
             </div>
           </div>

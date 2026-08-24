@@ -47,6 +47,16 @@ export async function POST(request: Request) {
       storeCourierSelections,
     });
 
+    const isDemoPromo = Boolean(body.isDemoRp1) || ["DEMO1RP", "RP1", "DEMO", "TONAL1RP"].includes(String(body.promoCode || "").toUpperCase());
+    if (isDemoPromo) {
+      parentOrder.totalGrossAmountIDR = 1;
+      parentOrder.totalGrossAmountUSD = 0.0000625;
+      for (const sub of parentOrder.subOrders) {
+        sub.grossAmountIDR = 1;
+        sub.grossAmountUSD = 0.0000625;
+      }
+    }
+
     // 2. Persist each subOrder in orderRepo
     for (const sub of parentOrder.subOrders) {
       await orderRepo.create({

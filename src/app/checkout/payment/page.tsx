@@ -76,6 +76,9 @@ function PaymentGatewayContent() {
     }
   };
 
+  const isDemoParam = searchParams?.get("isDemo") === "1" || searchParams?.get("demo") === "1";
+  const isDemoOrder = isDemoParam || (orderDetails?.totalAmount !== undefined && orderDetails?.totalAmount <= 0.001);
+
   return (
     <div className="min-h-[100svh] bg-[#080808] text-[#FAF9F6] font-sans flex flex-col items-center justify-center p-4 selection:bg-[#D4FF00] selection:text-[#0e0e0e]">
       
@@ -169,7 +172,9 @@ function PaymentGatewayContent() {
 
         <div className="flex justify-between items-center text-xs font-mono border-t border-[#222] pt-5 mb-6">
           <span className="text-[#888] uppercase tracking-wider">TOTAL TAGIHAN</span>
-          <span className="text-xl font-bold text-white">{formatPrice(calculatedTotal)}</span>
+          <span className="text-xl font-bold text-[#D4FF00]">
+            {isDemoOrder ? "Rp 1" : formatPrice(calculatedTotal)}
+          </span>
         </div>
 
         <button 
@@ -177,7 +182,7 @@ function PaymentGatewayContent() {
           disabled={isProcessing}
           className="w-full py-4 bg-[#D4FF00] hover:bg-white text-[#080808] font-mono font-bold text-xs uppercase tracking-widest transition-colors cursor-pointer disabled:opacity-50"
         >
-          {isProcessing ? "MEMPROSES PEMBAYARAN..." : "SAYA SUDAH MEMBAYAR (SIMULASI)"}
+          {isProcessing ? "MEMPROSES PEMBAYARAN..." : isDemoOrder ? "KONFIRMASI BAYAR RP 1 (DEMO) →" : "SAYA SUDAH MEMBAYAR (SIMULASI)"}
         </button>
 
         <div className="text-center mt-5">

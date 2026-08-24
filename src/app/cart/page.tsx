@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -18,19 +18,56 @@ export default function CartPage() {
   
   const [promoCode, setPromoCode] = useState("");
   const [discount, setDiscount] = useState(0);
+  const [isDemoRp1, setIsDemoRp1] = useState(false);
   const [promoMessage, setPromoMessage] = useState<string | null>(null);
+
+  // Load previously saved promo from storage if any
+  useEffect(() => {
+    try {
+      const savedPromo = localStorage.getItem("tonalzone_applied_promo");
+      if (savedPromo) {
+        setPromoCode(savedPromo);
+        if (["DEMO1RP", "RP1", "DEMO", "TONAL1RP"].includes(savedPromo.toUpperCase())) {
+          setIsDemoRp1(true);
+          setDiscount(0);
+          setPromoMessage("[BERHASIL] VOUCHER DEMO AKTIF: TOTAL PEMBAYARAN MENJADI RP 1!");
+        } else if (["TONAL10", "AUDIOPHILE"].includes(savedPromo.toUpperCase())) {
+          setDiscount(0.1);
+          setPromoMessage("[BERHASIL] KODE PROMO DITERAPKAN: DISKON 10%");
+        }
+      }
+    } catch (e) {}
+  }, []);
 
   // Handle Apply Promo
   const handleApplyPromo = (e: React.FormEvent) => {
     e.preventDefault();
-    if (promoCode.trim().toUpperCase() === "TONAL10" || promoCode.trim().toUpperCase() === "AUDIOPHILE") {
+    const cleanCode = promoCode.trim().toUpperCase();
+    if (["DEMO1RP", "RP1", "DEMO", "TONAL1RP"].includes(cleanCode)) {
+      setIsDemoRp1(true);
+      setDiscount(0);
+      setPromoMessage("[BERHASIL] VOUCHER DEMO AKTIF: TOTAL PEMBAYARAN MENJADI RP 1!");
+      try { localStorage.setItem("tonalzone_applied_promo", cleanCode); } catch (e) {}
+    } else if (cleanCode === "TONAL10" || cleanCode === "AUDIOPHILE") {
+      setIsDemoRp1(false);
       setDiscount(0.1); // 10% off
       setPromoMessage("[BERHASIL] KODE PROMO DITERAPKAN: DISKON 10%");
-    } else if (promoCode.trim() !== "") {
+      try { localStorage.setItem("tonalzone_applied_promo", cleanCode); } catch (e) {}
+    } else if (cleanCode === "TONAL50") {
+      setIsDemoRp1(false);
+      setDiscount(0.5); // 50% off
+      setPromoMessage("[BERHASIL] KODE PROMO DITERAPKAN: DISKON 50%");
+      try { localStorage.setItem("tonalzone_applied_promo", cleanCode); } catch (e) {}
+    } else if (cleanCode !== "") {
+      setIsDemoRp1(false);
       setDiscount(0.05); // 5% off courtesy
       setPromoMessage("[BERHASIL] BONUS MEMBER: DISKON 5%");
+      try { localStorage.setItem("tonalzone_applied_promo", cleanCode); } catch (e) {}
     } else {
+      setIsDemoRp1(false);
+      setDiscount(0);
       setPromoMessage("[GAGAL] SILAKAN MASUKKAN KODE YANG VALID");
+      try { localStorage.removeItem("tonalzone_applied_promo"); } catch (e) {}
     }
   };
 
@@ -40,13 +77,15 @@ export default function CartPage() {
   }, [items]);
 
   const discountAmount = useMemo(() => {
+    if (isDemoRp1) return subtotal - 0.0000625; // Leaving 1 IDR equivalent
     return subtotal * discount;
-  }, [subtotal, discount]);
+  }, [subtotal, discount, isDemoRp1]);
 
   const shipping = 0; // Free Insured Delivery
   const total = useMemo(() => {
+    if (isDemoRp1) return 0.0000625; // Special Rp 1
     return Math.max(0, subtotal - discountAmount + shipping);
-  }, [subtotal, discountAmount, shipping]);
+  }, [subtotal, discountAmount, shipping, isDemoRp1]);
 
   return (
     <div className="flex flex-col min-h-screen bg-[#080808] text-[#FAF9F6] font-sans selection:bg-[#D4FF00] selection:text-[#0e0e0e]">
@@ -250,12 +289,17 @@ export default function CartPage() {
                       <span className="text-white font-bold">{formatPrice(subtotal)}</span>
                     </div>
 
-                    {discount > 0 && (
+                    {isDemoRp1 ? (
+                      <div className="flex justify-between text-emerald-400">
+                        <span>Voucher Demo Khusus</span>
+                        <span className="font-bold">Potongan Sisa Jadi Rp 1</span>
+                      </div>
+                    ) : discount > 0 ? (
                       <div className="flex justify-between text-emerald-400">
                         <span>Diskon ({discount * 100}%)</span>
                         <span className="font-bold">-{formatPrice(discountAmount)}</span>
                       </div>
-                    )}
+                    ) : null}
 
                     <div className="flex justify-between text-[#888888]">
                       <span>{t("cart.shipping")}</span>
@@ -264,8 +308,8 @@ export default function CartPage() {
 
                     <div className="flex justify-between items-center border-t border-[#1c1c1c] pt-4 text-sm font-sans">
                       <span className="font-bold text-white uppercase">{t("cart.total")}</span>
-                      <span className="font-mono text-xl font-bold text-white">
-                        {formatPrice(total)}
+                      <span className="font-mono text-xl font-bold text-[#D4FF00]">
+                        {isDemoRp1 ? "Rp 1" : formatPrice(total)}
                       </span>
                     </div>
                   </div>
