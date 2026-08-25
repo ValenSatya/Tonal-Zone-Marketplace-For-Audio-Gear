@@ -48,7 +48,7 @@ interface ReviewItem {
 export default function OrdersPage() {
   const { t } = useLanguage();
   const { formatPrice } = useLocation();
-  const [activeTab, setActiveTab] = useState<"all" | "TO_SHIP" | "IN_TRANSIT" | "DELIVERED" | "COMPLETED" | "reviews">("all");
+  const [activeTab, setActiveTab] = useState<"TO_SHIP" | "IN_TRANSIT" | "DELIVERED" | "COMPLETED" | "reviews">("IN_TRANSIT");
   const [saveMessage, setSaveMessage] = useState("");
   const [isLoading, setIsLoading] = useState(true);
 
@@ -249,24 +249,8 @@ export default function OrdersPage() {
           </p>
         </div>
 
-        {/* Tab Selector */}
+        {/* Tab Selector (Focused on Status Milestones) */}
         <div className="flex items-center gap-2 sm:gap-6 border-b border-[#1c1c1c] mb-8 overflow-x-auto no-scrollbar">
-          <button
-            type="button"
-            onClick={() => setActiveTab("all")}
-            className={`pb-3.5 px-2 text-xs font-mono uppercase tracking-wider transition-all whitespace-nowrap relative cursor-pointer flex items-center gap-2 ${
-              activeTab === "all" ? "text-white font-bold" : "text-[#666666] hover:text-[#FAF9F6]"
-            }`}
-          >
-            Semua Pesanan
-            <span className="bg-[#141414] border border-[#222222] text-[#888888] text-[10px] px-2 py-0.5 font-bold">
-              {orders.length}
-            </span>
-            {activeTab === "all" && (
-              <motion.div layoutId="orderTabIndicator" className="absolute bottom-0 left-0 right-0 h-0.5 bg-white" />
-            )}
-          </button>
-
           <button
             type="button"
             onClick={() => setActiveTab("TO_SHIP")}
@@ -371,9 +355,7 @@ export default function OrdersPage() {
                 Memuat data pesanan...
               </div>
             ) : (() => {
-              const filtered = activeTab === "all"
-                ? orders
-                : activeTab === "TO_SHIP"
+              const filtered = activeTab === "TO_SHIP"
                 ? orders.filter(o => o.status === "HELD_IN_ESCROW" || o.status === "PAYMENT_PENDING")
                 : activeTab === "IN_TRANSIT"
                 ? orders.filter(o => o.status === "IN_TRANSIT")
