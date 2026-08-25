@@ -475,49 +475,49 @@ export default function OrdersPage() {
                           </span>
                         </div>
 
-                        {/* Timeline Steps */}
-                        <div className="space-y-1">
+                        {/* Timeline Steps with Continuous Dashed Connector */}
+                        <div className="relative pl-7 space-y-5 pt-1">
+                          {/* Continuous Vertical Dashed Line from Pin 1 to Pin 2 */}
+                          <div className="absolute left-[9px] top-4 bottom-5 w-0 border-l border-dashed border-[#3a3a3a]" />
+
                           {/* Step 1: Di Kemas */}
-                          <div className="flex items-start gap-3">
-                            <div className="w-5 h-5 flex items-center justify-center shrink-0 mt-0.5 text-[#666666]">
+                          <div className="relative">
+                            {/* Pin Icon 1 */}
+                            <div className="absolute -left-7 top-0 w-5 h-5 flex items-center justify-center text-[#666666] bg-[#0a0a0a]">
                               <MapPin className="w-4 h-4" />
                             </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center justify-between gap-3">
-                                <span className="text-sm font-sans font-medium text-[#CCCCCC]">
-                                  Paket Sedang Di Kemas
-                                </span>
-                                <span className="text-xs font-mono text-[#666666]">
-                                  16.10
-                                </span>
-                              </div>
-                              <p className="text-xs font-sans text-[#666666] mt-0.5">
-                                Penjual sedang menyiapkan dan mengemas barang sesuai standar audiophile.
-                              </p>
+
+                            <div className="flex items-center justify-between gap-3">
+                              <span className="text-sm font-sans font-medium text-[#CCCCCC]">
+                                Paket Sedang Di Kemas
+                              </span>
+                              <span className="text-xs font-mono text-[#666666]">
+                                16.10
+                              </span>
                             </div>
+                            <p className="text-xs font-sans text-[#666666] mt-0.5">
+                              Penjual sedang menyiapkan dan mengemas barang sesuai standar audiophile.
+                            </p>
                           </div>
 
-                          {/* Line Connector */}
-                          <div className="w-px h-5 bg-[#262626] ml-2.5 my-0.5" />
-
                           {/* Step 2: Di Jemput (Active) */}
-                          <div className="flex items-start gap-3">
-                            <div className="w-5 h-5 flex items-center justify-center shrink-0 mt-0.5 text-[#D4FF00]">
+                          <div className="relative">
+                            {/* Pin Icon 2 (Active Highlight) */}
+                            <div className="absolute -left-7 top-0 w-5 h-5 flex items-center justify-center text-[#D4FF00] bg-[#0a0a0a]">
                               <MapPin className="w-4 h-4" />
                             </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center justify-between gap-3">
-                                <span className="text-sm font-sans font-semibold text-white">
-                                  Paket Telah Di jemput
-                                </span>
-                                <span className="text-xs font-mono text-[#D4FF00] font-bold">
-                                  18.20
-                                </span>
-                              </div>
-                              <p className="text-xs font-sans text-[#A0A0A5] mt-0.5">
-                                Kurir telah mengambil paket dan dalam proses pengiriman ke kota tujuan.
-                              </p>
+
+                            <div className="flex items-center justify-between gap-3">
+                              <span className="text-sm font-sans font-semibold text-white">
+                                Paket Telah Di jemput
+                              </span>
+                              <span className="text-xs font-mono text-[#D4FF00] font-bold">
+                                18.20
+                              </span>
                             </div>
+                            <p className="text-xs font-sans text-[#A0A0A5] mt-0.5">
+                              Kurir telah mengambil paket dan dalam proses pengiriman ke kota tujuan.
+                            </p>
                           </div>
                         </div>
                       </div>
