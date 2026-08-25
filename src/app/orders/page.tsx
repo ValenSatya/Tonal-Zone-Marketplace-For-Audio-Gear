@@ -399,7 +399,7 @@ export default function OrdersPage() {
 
               return filtered.map((order) => {
                 // =========================================================================
-                // 🎨 SPECIAL FIGMA GROUP 2 CARD IMPLEMENTATION FOR IN_TRANSIT ORDERS
+                // 🎨 SPECIAL FIGMA GROUP 2 CARD (HARMONIZED & SCALED COMPACT PROPORTIONS)
                 // =========================================================================
                 if (order.status === "IN_TRANSIT") {
                   return (
@@ -407,123 +407,134 @@ export default function OrdersPage() {
                       key={order.id}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="bg-[#141414] border border-[#2a2a2a] p-6 sm:p-7 shadow-2xl relative overflow-hidden transition-all hover:border-[#383838]"
+                      className="bg-[#0f0f0f] border border-[#262626] p-5 sm:p-6 hover:border-[#383838] transition-all space-y-4 shadow-xl"
                     >
-                      {/* Top Row: Product Details & Merchant Info */}
-                      <div className="flex flex-col sm:flex-row justify-between items-start gap-4 pb-4">
-                        <div className="flex items-start gap-4 sm:gap-5 flex-1 min-w-0">
-                          {/* Image Box */}
-                          <div className="relative w-24 h-24 sm:w-28 sm:h-28 bg-[#1c1c1c] border border-[#262626] shrink-0 overflow-hidden">
-                            <Image
-                              src={order.image || "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800"}
-                              alt={order.productName}
-                              fill
-                              className="object-cover"
-                            />
-                          </div>
+                      {/* Top Bar: Order ID, Date, Merchant & Status */}
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3.5 border-b border-[#1c1c1c]">
+                        <div className="flex items-center gap-3">
+                          <span className="text-xs font-mono font-bold text-white bg-[#141414] border border-[#222222] px-2.5 py-1">
+                            #{order.orderNumber}
+                          </span>
+                          <span className="text-xs font-mono text-[#666666]">{order.date}</span>
+                        </div>
 
-                          {/* Product Info */}
-                          <div className="space-y-1 min-w-0">
-                            <span className="text-xs sm:text-sm font-sans font-medium text-white/80 block">
-                              {order.storeName}
-                            </span>
-                            <h3 className="text-lg sm:text-2xl font-sans font-semibold text-white tracking-tight truncate leading-tight">
-                              {order.productName}
-                            </h3>
-                            <p className="text-lg sm:text-2xl font-sans font-semibold text-white tracking-tight font-mono pt-1">
+                        <div className="flex items-center gap-3">
+                          <span className="text-xs font-mono text-[#888888]">{order.storeName}</span>
+                          <span className="text-[#333333]">•</span>
+                          <span className="inline-flex items-center gap-2 text-xs font-mono text-white bg-[#181818] border border-[#2a2a2a] px-3 py-1 font-medium">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#D4FF00]" />
+                            Dikirim ({order.quantity ? `${order.quantity}x` : "1x"})
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Product Row */}
+                      <div className="flex items-start gap-4">
+                        {/* Thumbnail Image */}
+                        <div className="relative w-16 h-16 sm:w-20 sm:h-20 bg-[#161616] border border-[#262626] shrink-0 overflow-hidden">
+                          <Image
+                            src={order.image || "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800"}
+                            alt={order.productName}
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
+
+                        {/* Product Title & Pricing */}
+                        <div className="flex-1 min-w-0">
+                          <span className="text-[10px] font-mono uppercase tracking-wider text-[#666666] block">
+                            {order.brand}
+                          </span>
+                          <h3 className="text-sm sm:text-base font-sans font-medium text-[#FAF9F6] tracking-tight truncate leading-snug">
+                            {order.productName}
+                          </h3>
+                          <div className="flex flex-wrap items-center gap-3 mt-1">
+                            <span className="text-sm sm:text-base font-sans font-bold text-white">
                               {formatPrice(order.price)}
-                            </p>
+                            </span>
+                            {order.waybillNumber && (
+                              <span className="text-[11px] font-mono text-[#8E8E93] bg-[#141414] px-2 py-0.5 border border-[#222222]">
+                                Resi: {order.waybillNumber} ({order.courierCode || "JNE Express"})
+                              </span>
+                            )}
                           </div>
                         </div>
-
-                        {/* Status & Quantity (Right Side) */}
-                        <div className="text-right shrink-0 self-start sm:self-auto">
-                          <span className="text-xs sm:text-sm font-sans font-medium text-white/80 block">
-                            Dikirim
-                          </span>
-                          <span className="text-lg sm:text-2xl font-sans font-semibold text-white block mt-1">
-                            {order.quantity ? `${order.quantity}x` : "1x"}
-                          </span>
-                        </div>
                       </div>
 
-                      {/* Delivery ETA & Logistics Bar */}
-                      <div className="flex flex-wrap items-center gap-4 sm:gap-6 pt-3 pb-5 border-t border-[#222222] text-xs sm:text-sm text-white/80">
-                        <span className="font-sans text-white text-sm sm:text-base font-normal">
-                          Akan Tiba Dalam {order.etaDays || 3} Hari
-                        </span>
-                        <div className="flex items-center gap-2 text-white/80 font-sans font-medium">
-                          <Truck className="w-4 h-4 text-white/90 shrink-0" />
-                          <span>Ekspedisi Pengiriman ({order.courierCode || "JNE Express"}{order.waybillNumber ? ` - Resi: ${order.waybillNumber}` : ""})</span>
+                      {/* Logistics & Live Timeline Box */}
+                      <div className="bg-[#080808] border border-[#1c1c1c] p-4 space-y-3">
+                        {/* ETA & Courier Header */}
+                        <div className="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-[#181818] text-xs">
+                          <span className="text-white font-medium flex items-center gap-2">
+                            <Truck className="w-3.5 h-3.5 text-[#D4FF00]" />
+                            Akan Tiba Dalam {order.etaDays || 3} Hari
+                          </span>
+                          <span className="text-[11px] font-mono text-[#777777]">
+                            Ekspedisi: {order.courierCode || "JNE Express"}
+                          </span>
                         </div>
-                      </div>
 
-                      {/* Middle Row: Live Status Tracking Timeline */}
-                      <div className="bg-[#0e0e0e] border border-[#1f1f1f] p-5 sm:p-6 mb-6">
-                        <h4 className="text-sm sm:text-base font-sans font-semibold text-white mb-4">
-                          Status
-                        </h4>
-
-                        <div className="space-y-1 relative pl-1">
-                          {/* Step 1: Paket Sedang Di Kemas */}
-                          <div className="flex items-start gap-3 relative">
-                            <div className="w-6 h-6 flex items-center justify-center shrink-0 mt-0.5">
-                              <MapPin className="w-4 h-4 text-white/80" />
+                        {/* Timeline Steps */}
+                        <div className="space-y-1 pl-0.5">
+                          {/* Step 1 */}
+                          <div className="flex items-start gap-2.5">
+                            <div className="w-4 h-4 flex items-center justify-center shrink-0 mt-0.5">
+                              <MapPin className="w-3.5 h-3.5 text-white/70" />
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center justify-between gap-2">
-                                <span className="text-sm sm:text-base font-sans font-medium text-white/85">
+                                <span className="text-xs font-sans font-medium text-white/85">
                                   Paket Sedang Di Kemas
                                 </span>
-                                <span className="text-[10px] font-mono font-medium text-white/80 shrink-0">
+                                <span className="text-[10px] font-mono text-[#777777]">
                                   16.10
                                 </span>
                               </div>
-                              <p className="text-xs font-sans text-white/70 mt-0.5">
-                                Penjual telah memverifikasi produk dan mengemas paket sesuai standar proteksi audiophile.
+                              <p className="text-[11px] font-sans text-[#777777] mt-0.5">
+                                Penjual sedang menyiapkan dan mengemas barang sesuai standar audiophile.
                               </p>
                             </div>
                           </div>
 
-                          {/* Vertical Connector Line */}
-                          <div className="w-px h-8 bg-white/40 ml-3 my-0.5" />
+                          {/* Connector */}
+                          <div className="w-px h-3.5 bg-white/20 ml-2 my-0.5" />
 
-                          {/* Step 2: Paket Telah Di jemput */}
-                          <div className="flex items-start gap-3 relative">
-                            <div className="w-6 h-6 flex items-center justify-center shrink-0 mt-0.5">
-                              <MapPin className="w-4 h-4 text-[#D4FF00]" />
+                          {/* Step 2 (Active) */}
+                          <div className="flex items-start gap-2.5">
+                            <div className="w-4 h-4 flex items-center justify-center shrink-0 mt-0.5">
+                              <MapPin className="w-3.5 h-3.5 text-[#D4FF00]" />
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center justify-between gap-2">
-                                <span className="text-sm sm:text-base font-sans font-medium text-white">
+                                <span className="text-xs font-sans font-medium text-white">
                                   Paket Telah Di jemput
                                 </span>
-                                <span className="text-[10px] font-mono font-medium text-white/80 shrink-0">
+                                <span className="text-[10px] font-mono text-[#D4FF00]">
                                   18.20
                                 </span>
                               </div>
-                              <p className="text-xs font-sans text-white/70 mt-0.5">
-                                Kurir ekspedisi telah mengambil paket dari hub Jakarta Selatan dan dalam proses pengiriman ke kota tujuan.
+                              <p className="text-[11px] font-sans text-white/70 mt-0.5">
+                                Kurir telah mengambil paket dan dalam proses pengiriman ke kota tujuan.
                               </p>
                             </div>
                           </div>
                         </div>
                       </div>
 
-                      {/* Bottom Row: Action Buttons from Figma (Chat Penjual & Detail) */}
-                      <div className="flex flex-wrap items-center justify-end gap-3 pt-2">
+                      {/* Action Buttons */}
+                      <div className="flex flex-wrap items-center justify-end gap-2.5 pt-2 border-t border-[#1c1c1c]">
                         <Link
                           href={`/messages?store=${encodeURIComponent(order.storeName)}`}
-                          className="px-6 py-2.5 bg-transparent hover:bg-white/10 text-[#e7e7e7] border border-[#f0f0f0] font-sans font-semibold text-sm sm:text-base transition-colors cursor-pointer flex items-center gap-2"
+                          className="px-4 py-2 bg-transparent hover:bg-white/10 text-white border border-[#2a2a2a] hover:border-white font-mono text-xs uppercase tracking-wider transition-colors cursor-pointer flex items-center gap-2"
                         >
-                          <MessageSquare className="w-4 h-4" />
+                          <MessageSquare className="w-3.5 h-3.5" />
                           <span>Chat Penjual</span>
                         </Link>
 
                         <button
                           type="button"
                           onClick={() => setSelectedOrderDetails(order)}
-                          className="px-7 py-2.5 bg-[#f0f0f0] hover:bg-white text-[#171515] font-sans font-semibold text-sm sm:text-base transition-colors cursor-pointer flex items-center gap-2"
+                          className="px-5 py-2 bg-white hover:bg-[#e0e0e0] text-black font-mono text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer flex items-center gap-2"
                         >
                           <span>Detail</span>
                         </button>
