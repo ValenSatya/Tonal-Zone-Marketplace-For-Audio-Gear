@@ -522,23 +522,15 @@ export default function OrdersPage() {
                         </div>
                       </div>
 
-                      {/* Action Buttons */}
-                      <div className="flex flex-wrap items-center justify-end gap-3 pt-3 border-t border-[#1a1a1a]">
+                      {/* Single Prominent Action Button: Chat Penjual */}
+                      <div className="flex items-center justify-end pt-3 border-t border-[#1a1a1a]">
                         <Link
                           href={`/messages?store=${encodeURIComponent(order.storeName)}`}
-                          className="px-4 py-2 bg-[#141414] hover:bg-[#222222] text-[#888888] hover:text-white border border-[#262626] font-mono text-xs uppercase tracking-wider transition-colors cursor-pointer flex items-center gap-2"
+                          className="px-5 py-2.5 bg-[#FAF9F6] hover:bg-white text-[#0e0e0e] font-mono text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer flex items-center gap-2"
                         >
-                          <MessageSquare className="w-3.5 h-3.5" />
+                          <MessageSquare className="w-4 h-4" />
                           <span>Chat Penjual</span>
                         </Link>
-
-                        <button
-                          type="button"
-                          onClick={() => setSelectedOrderDetails(order)}
-                          className="px-5 py-2 bg-white hover:bg-[#e0e0e0] text-black font-mono text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer flex items-center gap-2"
-                        >
-                          <span>Detail</span>
-                        </button>
                       </div>
                     </motion.div>
                   );
