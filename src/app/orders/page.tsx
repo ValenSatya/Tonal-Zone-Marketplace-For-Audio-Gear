@@ -461,10 +461,10 @@ export default function OrdersPage() {
                         </div>
                       </div>
 
-                      {/* Logistics & Live Timeline Box (Clean Audiophile Noir) */}
-                      <div className="bg-[#111111] border border-[#1c1c1c] p-4 sm:p-5 space-y-4">
+                      {/* Logistics & Live Timeline (Seamless / No Box Background) */}
+                      <div className="pt-2 pb-1 space-y-4 border-t border-[#1c1c1c]">
                         {/* ETA & Courier Header */}
-                        <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-[#1c1c1c] text-xs">
+                        <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-[#181818] text-xs">
                           <span className="text-white font-medium flex items-center gap-2">
                             <Truck className="w-4 h-4 text-[#D4FF00]" />
                             <span>Akan Tiba Dalam {order.etaDays || 3} Hari</span>
