@@ -381,7 +381,7 @@ export default function OrdersPage() {
 
               return filtered.map((order) => {
                 // =========================================================================
-                // 🎨 SPECIAL FIGMA GROUP 2 CARD (UNIFIED BG & CLEAN TIMELINE LAYOUT)
+                // 🎨 SPECIAL FIGMA GROUP 2 CARD (CLEAN & MINIMALIST - NO CLUTTERED LINES)
                 // =========================================================================
                 if (order.status === "IN_TRANSIT") {
                   return (
@@ -389,10 +389,10 @@ export default function OrdersPage() {
                       key={order.id}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="bg-[#0a0a0a] border border-[#1c1c1c] hover:border-[#2a2a2a] p-6 transition-colors space-y-5"
+                      className="bg-[#0a0a0a] border border-[#1c1c1c] hover:border-[#2a2a2a] p-6 sm:p-7 transition-colors space-y-6"
                     >
-                      {/* Top Bar: Order ID & Date */}
-                      <div className="flex items-center justify-between gap-4 pb-3.5 border-b border-[#1a1a1a]">
+                      {/* Top Bar: Order ID, Date & Tracking Resi */}
+                      <div className="flex flex-wrap items-center justify-between gap-4">
                         <div className="flex items-center gap-3">
                           <span className="text-xs font-mono font-bold text-white bg-[#141414] border border-[#222222] px-2.5 py-1">
                             #{order.orderNumber}
@@ -407,7 +407,7 @@ export default function OrdersPage() {
                       </div>
 
                       {/* Product Row (Exact Figma Frame 7 & Frame 9 Layout) */}
-                      <div className="flex items-start justify-between gap-4 pt-1">
+                      <div className="flex items-start justify-between gap-4">
                         <div className="flex items-start gap-4 sm:gap-5 min-w-0 flex-1">
                           {/* Thumbnail Image */}
                           <div className="relative w-16 h-16 sm:w-20 sm:h-20 bg-[#141414] border border-[#222222] shrink-0 overflow-hidden">
@@ -444,68 +444,65 @@ export default function OrdersPage() {
                         </div>
                       </div>
 
-                      {/* Logistics & Live Timeline (Seamless & Perfectly Spaced) */}
-                      <div className="pt-4 space-y-4 border-t border-[#1a1a1a]">
-                        {/* ETA & Courier Header */}
-                        <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-[#181818] text-xs">
-                          <span className="text-white font-medium flex items-center gap-2 text-sm">
-                            <Truck className="w-4 h-4 text-[#D4FF00]" />
-                            <span>Akan Tiba Dalam {order.etaDays || 3} Hari</span>
-                          </span>
-                          <span className="text-xs font-mono text-[#888888]">
-                            Ekspedisi: <span className="text-white font-medium">{order.courierCode || "JNE Express"}</span>
-                          </span>
+                      {/* Logistics Info Bar */}
+                      <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+                        <span className="text-white font-medium flex items-center gap-2 text-sm">
+                          <Truck className="w-4 h-4 text-[#D4FF00]" />
+                          <span>Akan Tiba Dalam {order.etaDays || 3} Hari</span>
+                        </span>
+                        <span className="text-xs font-mono text-[#888888]">
+                          Ekspedisi: <span className="text-white font-medium">{order.courierCode || "JNE Express"}</span>
+                        </span>
+                      </div>
+
+                      {/* Timeline Steps with Continuous Dashed Connector */}
+                      <div className="relative pl-8 space-y-6 pt-1 pb-1">
+                        {/* Continuous Vertical Dashed Line from Pin 1 to Pin 2 */}
+                        <div className="absolute left-[10px] top-4 bottom-5 w-0 border-l border-dashed border-[#333333]" />
+
+                        {/* Step 1: Di Kemas */}
+                        <div className="relative">
+                          {/* Pin Icon 1 */}
+                          <div className="absolute -left-8 top-0.5 w-5 h-5 flex items-center justify-center text-[#777777] bg-[#0a0a0a]">
+                            <MapPin className="w-4 h-4" />
+                          </div>
+
+                          <div className="flex items-center justify-between gap-4">
+                            <span className="text-sm font-sans font-medium text-[#CCCCCC]">
+                              Paket Sedang Di Kemas
+                            </span>
+                            <span className="text-xs font-mono text-[#777777]">
+                              16.10
+                            </span>
+                          </div>
+                          <p className="text-xs font-sans text-[#666666] mt-1 leading-relaxed max-w-xl">
+                            Penjual sedang menyiapkan dan mengemas barang sesuai standar audiophile.
+                          </p>
                         </div>
 
-                        {/* Timeline Steps with Continuous Dashed Connector */}
-                        <div className="relative pl-8 space-y-6 pt-2 pb-1">
-                          {/* Continuous Vertical Dashed Line from Pin 1 to Pin 2 */}
-                          <div className="absolute left-[10px] top-4 bottom-5 w-0 border-l border-dashed border-[#333333]" />
-
-                          {/* Step 1: Di Kemas */}
-                          <div className="relative">
-                            {/* Pin Icon 1 */}
-                            <div className="absolute -left-8 top-0.5 w-5 h-5 flex items-center justify-center text-[#777777] bg-[#0a0a0a]">
-                              <MapPin className="w-4 h-4" />
-                            </div>
-
-                            <div className="flex items-center justify-between gap-4">
-                              <span className="text-sm font-sans font-medium text-[#CCCCCC]">
-                                Paket Sedang Di Kemas
-                              </span>
-                              <span className="text-xs font-mono text-[#777777]">
-                                16.10
-                              </span>
-                            </div>
-                            <p className="text-xs font-sans text-[#777777] mt-1 leading-relaxed max-w-xl">
-                              Penjual sedang menyiapkan dan mengemas barang sesuai standar audiophile.
-                            </p>
+                        {/* Step 2: Di Jemput (Active) */}
+                        <div className="relative">
+                          {/* Pin Icon 2 (Active Highlight) */}
+                          <div className="absolute -left-8 top-0.5 w-5 h-5 flex items-center justify-center text-[#D4FF00] bg-[#0a0a0a]">
+                            <MapPin className="w-4 h-4" />
                           </div>
 
-                          {/* Step 2: Di Jemput (Active) */}
-                          <div className="relative">
-                            {/* Pin Icon 2 (Active Highlight) */}
-                            <div className="absolute -left-8 top-0.5 w-5 h-5 flex items-center justify-center text-[#D4FF00] bg-[#0a0a0a]">
-                              <MapPin className="w-4 h-4" />
-                            </div>
-
-                            <div className="flex items-center justify-between gap-4">
-                              <span className="text-sm font-sans font-semibold text-white">
-                                Paket Telah Di jemput
-                              </span>
-                              <span className="text-xs font-mono text-[#D4FF00] font-bold">
-                                18.20
-                              </span>
-                            </div>
-                            <p className="text-xs font-sans text-[#A0A0A5] mt-1 leading-relaxed max-w-xl">
-                              Kurir telah mengambil paket dan dalam proses pengiriman ke kota tujuan.
-                            </p>
+                          <div className="flex items-center justify-between gap-4">
+                            <span className="text-sm font-sans font-semibold text-white">
+                              Paket Telah Di jemput
+                            </span>
+                            <span className="text-xs font-mono text-[#D4FF00] font-bold">
+                              18.20
+                            </span>
                           </div>
+                          <p className="text-xs font-sans text-[#A0A0A5] mt-1 leading-relaxed max-w-xl">
+                            Kurir telah mengambil paket dan dalam proses pengiriman ke kota tujuan.
+                          </p>
                         </div>
                       </div>
 
                       {/* Single Prominent Action Button: Chat Penjual */}
-                      <div className="flex items-center justify-end pt-3 border-t border-[#1a1a1a]">
+                      <div className="flex items-center justify-end pt-2">
                         <Link
                           href={`/messages?store=${encodeURIComponent(order.storeName)}`}
                           className="px-5 py-2.5 bg-[#FAF9F6] hover:bg-white text-[#0e0e0e] font-mono text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer flex items-center gap-2"
