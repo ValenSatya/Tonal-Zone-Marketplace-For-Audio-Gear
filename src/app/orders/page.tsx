@@ -399,7 +399,7 @@ export default function OrdersPage() {
 
               return filtered.map((order) => {
                 // =========================================================================
-                // 🎨 SPECIAL FIGMA GROUP 2 CARD (HARMONIZED & SCALED COMPACT PROPORTIONS)
+                // 🎨 SPECIAL FIGMA GROUP 2 CARD (UNIFIED BG & CLEAN TIMELINE LAYOUT)
                 // =========================================================================
                 if (order.status === "IN_TRANSIT") {
                   return (
@@ -407,10 +407,10 @@ export default function OrdersPage() {
                       key={order.id}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="bg-[#0f0f0f] border border-[#262626] p-5 sm:p-6 hover:border-[#383838] transition-all space-y-4 shadow-xl"
+                      className="bg-[#0a0a0a] border border-[#1c1c1c] hover:border-[#2a2a2a] p-6 transition-colors space-y-5"
                     >
                       {/* Top Bar: Order ID, Date, Merchant & Status */}
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3.5 border-b border-[#1c1c1c]">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#1c1c1c]">
                         <div className="flex items-center gap-3">
                           <span className="text-xs font-mono font-bold text-white bg-[#141414] border border-[#222222] px-2.5 py-1">
                             #{order.orderNumber}
@@ -419,19 +419,19 @@ export default function OrdersPage() {
                         </div>
 
                         <div className="flex items-center gap-3">
-                          <span className="text-xs font-mono text-[#888888]">{order.storeName}</span>
+                          <span className="text-xs font-mono text-[#777777]">{order.storeName}</span>
                           <span className="text-[#333333]">•</span>
-                          <span className="inline-flex items-center gap-2 text-xs font-mono text-white bg-[#181818] border border-[#2a2a2a] px-3 py-1 font-medium">
+                          <span className="inline-flex items-center gap-2 text-xs font-mono text-white bg-[#121212] border border-[#222222] px-3 py-1 font-medium">
                             <span className="w-1.5 h-1.5 rounded-full bg-[#D4FF00]" />
                             Dikirim ({order.quantity ? `${order.quantity}x` : "1x"})
                           </span>
                         </div>
                       </div>
 
-                      {/* Product Row */}
+                      {/* Product Info Row */}
                       <div className="flex items-start gap-4">
                         {/* Thumbnail Image */}
-                        <div className="relative w-16 h-16 sm:w-20 sm:h-20 bg-[#161616] border border-[#262626] shrink-0 overflow-hidden">
+                        <div className="relative w-16 h-16 sm:w-20 sm:h-20 bg-[#141414] border border-[#222222] shrink-0 overflow-hidden">
                           <Image
                             src={order.image || "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800"}
                             alt={order.productName}
@@ -442,18 +442,18 @@ export default function OrdersPage() {
 
                         {/* Product Title & Pricing */}
                         <div className="flex-1 min-w-0">
-                          <span className="text-[10px] font-mono uppercase tracking-wider text-[#666666] block">
+                          <span className="text-[10px] font-mono uppercase tracking-wider text-[#666666] block mb-0.5">
                             {order.brand}
                           </span>
-                          <h3 className="text-sm sm:text-base font-sans font-medium text-[#FAF9F6] tracking-tight truncate leading-snug">
+                          <h3 className="text-base font-sans font-medium text-[#FAF9F6] tracking-tight truncate">
                             {order.productName}
                           </h3>
-                          <div className="flex flex-wrap items-center gap-3 mt-1">
-                            <span className="text-sm sm:text-base font-sans font-bold text-white">
+                          <div className="flex flex-wrap items-center gap-3 mt-1.5">
+                            <span className="text-sm font-sans font-bold text-white">
                               {formatPrice(order.price)}
                             </span>
                             {order.waybillNumber && (
-                              <span className="text-[11px] font-mono text-[#8E8E93] bg-[#141414] px-2 py-0.5 border border-[#222222]">
+                              <span className="text-xs font-mono text-[#8E8E93] bg-[#141414] px-2 py-0.5 border border-[#222222]">
                                 Resi: {order.waybillNumber} ({order.courierCode || "JNE Express"})
                               </span>
                             )}
@@ -461,59 +461,59 @@ export default function OrdersPage() {
                         </div>
                       </div>
 
-                      {/* Logistics & Live Timeline Box */}
-                      <div className="bg-[#080808] border border-[#1c1c1c] p-4 space-y-3">
+                      {/* Logistics & Live Timeline Box (Clean Audiophile Noir) */}
+                      <div className="bg-[#111111] border border-[#1c1c1c] p-4 sm:p-5 space-y-4">
                         {/* ETA & Courier Header */}
-                        <div className="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-[#181818] text-xs">
+                        <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-[#1c1c1c] text-xs">
                           <span className="text-white font-medium flex items-center gap-2">
-                            <Truck className="w-3.5 h-3.5 text-[#D4FF00]" />
-                            Akan Tiba Dalam {order.etaDays || 3} Hari
+                            <Truck className="w-4 h-4 text-[#D4FF00]" />
+                            <span>Akan Tiba Dalam {order.etaDays || 3} Hari</span>
                           </span>
-                          <span className="text-[11px] font-mono text-[#777777]">
-                            Ekspedisi: {order.courierCode || "JNE Express"}
+                          <span className="text-xs font-mono text-[#888888]">
+                            Ekspedisi: <span className="text-white font-medium">{order.courierCode || "JNE Express"}</span>
                           </span>
                         </div>
 
                         {/* Timeline Steps */}
-                        <div className="space-y-1 pl-0.5">
-                          {/* Step 1 */}
-                          <div className="flex items-start gap-2.5">
-                            <div className="w-4 h-4 flex items-center justify-center shrink-0 mt-0.5">
-                              <MapPin className="w-3.5 h-3.5 text-white/70" />
+                        <div className="space-y-1">
+                          {/* Step 1: Di Kemas */}
+                          <div className="flex items-start gap-3">
+                            <div className="w-5 h-5 flex items-center justify-center shrink-0 mt-0.5 text-[#666666]">
+                              <MapPin className="w-4 h-4" />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <div className="flex items-center justify-between gap-2">
-                                <span className="text-xs font-sans font-medium text-white/85">
+                              <div className="flex items-center justify-between gap-3">
+                                <span className="text-sm font-sans font-medium text-[#CCCCCC]">
                                   Paket Sedang Di Kemas
                                 </span>
-                                <span className="text-[10px] font-mono text-[#777777]">
+                                <span className="text-xs font-mono text-[#666666]">
                                   16.10
                                 </span>
                               </div>
-                              <p className="text-[11px] font-sans text-[#777777] mt-0.5">
+                              <p className="text-xs font-sans text-[#666666] mt-0.5">
                                 Penjual sedang menyiapkan dan mengemas barang sesuai standar audiophile.
                               </p>
                             </div>
                           </div>
 
-                          {/* Connector */}
-                          <div className="w-px h-3.5 bg-white/20 ml-2 my-0.5" />
+                          {/* Line Connector */}
+                          <div className="w-px h-5 bg-[#262626] ml-2.5 my-0.5" />
 
-                          {/* Step 2 (Active) */}
-                          <div className="flex items-start gap-2.5">
-                            <div className="w-4 h-4 flex items-center justify-center shrink-0 mt-0.5">
-                              <MapPin className="w-3.5 h-3.5 text-[#D4FF00]" />
+                          {/* Step 2: Di Jemput (Active) */}
+                          <div className="flex items-start gap-3">
+                            <div className="w-5 h-5 flex items-center justify-center shrink-0 mt-0.5 text-[#D4FF00]">
+                              <MapPin className="w-4 h-4" />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <div className="flex items-center justify-between gap-2">
-                                <span className="text-xs font-sans font-medium text-white">
+                              <div className="flex items-center justify-between gap-3">
+                                <span className="text-sm font-sans font-semibold text-white">
                                   Paket Telah Di jemput
                                 </span>
-                                <span className="text-[10px] font-mono text-[#D4FF00]">
+                                <span className="text-xs font-mono text-[#D4FF00] font-bold">
                                   18.20
                                 </span>
                               </div>
-                              <p className="text-[11px] font-sans text-white/70 mt-0.5">
+                              <p className="text-xs font-sans text-[#A0A0A5] mt-0.5">
                                 Kurir telah mengambil paket dan dalam proses pengiriman ke kota tujuan.
                               </p>
                             </div>
@@ -522,10 +522,10 @@ export default function OrdersPage() {
                       </div>
 
                       {/* Action Buttons */}
-                      <div className="flex flex-wrap items-center justify-end gap-2.5 pt-2 border-t border-[#1c1c1c]">
+                      <div className="flex flex-wrap items-center justify-end gap-3 pt-1">
                         <Link
                           href={`/messages?store=${encodeURIComponent(order.storeName)}`}
-                          className="px-4 py-2 bg-transparent hover:bg-white/10 text-white border border-[#2a2a2a] hover:border-white font-mono text-xs uppercase tracking-wider transition-colors cursor-pointer flex items-center gap-2"
+                          className="px-4 py-2 bg-[#141414] hover:bg-[#222222] text-[#888888] hover:text-white border border-[#262626] font-mono text-xs uppercase tracking-wider transition-colors cursor-pointer flex items-center gap-2"
                         >
                           <MessageSquare className="w-3.5 h-3.5" />
                           <span>Chat Penjual</span>
