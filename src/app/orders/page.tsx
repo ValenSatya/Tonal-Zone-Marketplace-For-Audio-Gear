@@ -409,55 +409,56 @@ export default function OrdersPage() {
                       animate={{ opacity: 1, y: 0 }}
                       className="bg-[#0a0a0a] border border-[#1c1c1c] hover:border-[#2a2a2a] p-6 transition-colors space-y-5"
                     >
-                      {/* Top Bar: Order ID, Date, Merchant & Status */}
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#1c1c1c]">
+                      {/* Top Bar: Order ID & Date */}
+                      <div className="flex items-center justify-between gap-3 pb-3 border-b border-[#1c1c1c]">
                         <div className="flex items-center gap-3">
-                          <span className="text-xs font-mono font-bold text-white bg-[#141414] border border-[#222222] px-2.5 py-1">
+                          <span className="text-xs font-mono font-bold text-white bg-[#141414] border border-[#222222] px-2.5 py-0.5">
                             #{order.orderNumber}
                           </span>
                           <span className="text-xs font-mono text-[#666666]">{order.date}</span>
                         </div>
-
-                        <div className="flex items-center gap-3">
-                          <span className="text-xs font-mono text-[#777777]">{order.storeName}</span>
-                          <span className="text-[#333333]">•</span>
-                          <span className="inline-flex items-center gap-2 text-xs font-mono text-white bg-[#121212] border border-[#222222] px-3 py-1 font-medium">
-                            <span className="w-1.5 h-1.5 rounded-full bg-[#D4FF00]" />
-                            Dikirim ({order.quantity ? `${order.quantity}x` : "1x"})
+                        {order.waybillNumber && (
+                          <span className="text-[11px] font-mono text-[#888888]">
+                            Resi: {order.waybillNumber} ({order.courierCode || "JNE Express"})
                           </span>
-                        </div>
+                        )}
                       </div>
 
-                      {/* Product Info Row */}
-                      <div className="flex items-start gap-4">
-                        {/* Thumbnail Image */}
-                        <div className="relative w-16 h-16 sm:w-20 sm:h-20 bg-[#141414] border border-[#222222] shrink-0 overflow-hidden">
-                          <Image
-                            src={order.image || "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800"}
-                            alt={order.productName}
-                            fill
-                            className="object-cover"
-                          />
+                      {/* Product Row (Exact Figma Frame 7 & Frame 9 Layout) */}
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex items-start gap-4 min-w-0 flex-1">
+                          {/* Thumbnail Image */}
+                          <div className="relative w-16 h-16 sm:w-20 sm:h-20 bg-[#141414] border border-[#222222] shrink-0 overflow-hidden">
+                            <Image
+                              src={order.image || "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800"}
+                              alt={order.productName}
+                              fill
+                              className="object-cover"
+                            />
+                          </div>
+
+                          {/* Product Info (Figma Frame 7: Store, Product, Price) */}
+                          <div className="space-y-0.5 min-w-0 flex-1">
+                            <span className="text-xs sm:text-sm font-sans font-medium text-white/80 block">
+                              {order.storeName}
+                            </span>
+                            <h3 className="text-base sm:text-lg font-sans font-semibold text-white tracking-tight truncate leading-snug">
+                              {order.productName}
+                            </h3>
+                            <p className="text-base sm:text-lg font-sans font-semibold text-white tracking-tight pt-0.5 font-mono">
+                              {formatPrice(order.price)}
+                            </p>
+                          </div>
                         </div>
 
-                        {/* Product Title & Pricing */}
-                        <div className="flex-1 min-w-0">
-                          <span className="text-[10px] font-mono uppercase tracking-wider text-[#666666] block mb-0.5">
-                            {order.brand}
+                        {/* Status & Quantity (Figma Frame 9: Dikirim & 2x) */}
+                        <div className="text-right shrink-0">
+                          <span className="text-xs sm:text-sm font-sans font-medium text-white/80 block">
+                            Dikirim
                           </span>
-                          <h3 className="text-base font-sans font-medium text-[#FAF9F6] tracking-tight truncate">
-                            {order.productName}
-                          </h3>
-                          <div className="flex flex-wrap items-center gap-3 mt-1.5">
-                            <span className="text-sm font-sans font-bold text-white">
-                              {formatPrice(order.price)}
-                            </span>
-                            {order.waybillNumber && (
-                              <span className="text-xs font-mono text-[#8E8E93] bg-[#141414] px-2 py-0.5 border border-[#222222]">
-                                Resi: {order.waybillNumber} ({order.courierCode || "JNE Express"})
-                              </span>
-                            )}
-                          </div>
+                          <span className="text-base sm:text-lg font-sans font-semibold text-white block mt-0.5">
+                            {order.quantity ? `${order.quantity}x` : "1x"}
+                          </span>
                         </div>
                       </div>
 
