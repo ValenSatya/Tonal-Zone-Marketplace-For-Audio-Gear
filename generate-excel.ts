@@ -804,7 +804,7 @@ export const MASTER_PRODUCTS = [
     Condition: "Brand New Sealed",
     ExperienceLevel: "BEGINNER",
     SoundSignature: "NEUTRAL",
-    Images: "https://cdn.shopify.com/s/files/1/0040/7201/3924/files/3_1_3131f003-c9bc-4489-b36c-c39a9593e677.jpg?v=1708683816"
+    Images: "https://www.headphonezone.in/cdn/shop/files/Headphone-zone-ooopusX-Op-22-Gallary-030.jpg?v=1785913287&width=800"
   },
   {
     StoreName: "Truthear Official Store",
