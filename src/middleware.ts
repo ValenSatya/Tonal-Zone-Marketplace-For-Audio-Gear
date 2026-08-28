@@ -5,11 +5,11 @@ import { evaluateRouteAccess, UserSessionPayload } from "@/lib/auth/roles";
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // 1. Skip all static files, Next internals, assets, and webhook APIs
+  // 1. Skip all static files, Next internals, assets, and all API endpoints
   if (
     pathname.startsWith("/_next") ||
-    pathname.startsWith("/api/webhooks") ||
-    pathname.startsWith("/api/public") ||
+    pathname.startsWith("/api") ||
+    pathname.startsWith("/icon") ||
     pathname.match(/\.(svg|png|jpg|jpeg|webp|ico|css|js|woff2|ttf|txt|csv|xlsx)$/)
   ) {
     return NextResponse.next();

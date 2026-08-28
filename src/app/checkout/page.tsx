@@ -234,7 +234,13 @@ export default function CheckoutPage() {
         }),
       });
 
-      const data = await res.json();
+      const text = await res.text();
+      let data: any = {};
+      try {
+        data = JSON.parse(text);
+      } catch (parseErr) {
+        console.warn("[Checkout] Non-JSON response received:", text.slice(0, 100));
+      }
       const finalOrderId = (data.success && data.orderId) ? data.orderId : `TZ-${Date.now().toString().slice(-4)}`;
 
       // DIRECT MIDTRANS POPUP LAUNCH (Standard Seamless E-Commerce UX)

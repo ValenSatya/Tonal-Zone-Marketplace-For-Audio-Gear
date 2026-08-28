@@ -101,8 +101,20 @@ export default function OrdersPage() {
     try {
       setIsLoading(true);
       const res = await fetch("/api/orders");
-      const data = await res.json();
-      if (data.success && Array.isArray(data.orders) && data.orders.length > 0) {
+      if (!res.ok) {
+        setIsLoading(false);
+        return;
+      }
+      const text = await res.text();
+      let data: any = null;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        setIsLoading(false);
+        return;
+      }
+
+      if (data && data.success && Array.isArray(data.orders) && data.orders.length > 0) {
         const mapped: OrderItem[] = data.orders.map((o: any) => ({
           id: o.id,
           orderNumber: o.id,
@@ -173,7 +185,9 @@ export default function OrdersPage() {
       const res = await fetch(`/api/orders/${orderId}/accept`, {
         method: "POST",
       });
-      const data = await res.json();
+      const text = await res.text();
+      let data: any = {};
+      try { data = JSON.parse(text); } catch {}
       if (data.success) {
         triggerNotification("Pesanan selesai! Terima kasih telah berbelanja.");
         fetchOrders();
@@ -219,7 +233,9 @@ export default function OrdersPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ reason: disputeReason }),
       });
-      const data = await res.json();
+      const text = await res.text();
+      let data: any = {};
+      try { data = JSON.parse(text); } catch {}
       if (data.success) {
         triggerNotification("Komplain berhasil diajukan. Tim TonalZone Escrow akan menahan dana penjual untuk mediasi.");
         setDisputeOrder(null);
