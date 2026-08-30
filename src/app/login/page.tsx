@@ -1,19 +1,21 @@
-"use client";
+﻿"use client";
 
-import React, { useState } from "react";
+import React, { useState, Suspense } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useLanguage } from "@/context/LanguageContext";
 import { signUpUser, signInUser } from "@/app/actions/auth";
-import { motion, AnimatePresence } from "framer-motion";
-import PixelBlast from "@/components/PixelBlast";
+import { Eye, EyeOff, ArrowLeft, Check, Sparkles } from "lucide-react";
 
 function LoginContent({ initialTab = "login" }: { initialTab?: "login" | "signup" }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectUrl = searchParams?.get("redirect") || "/";
   const { t } = useLanguage();
+
   const [tab, setTab] = useState<"login" | "signup">(initialTab);
+  const [showPassword, setShowPassword] = useState(false);
 
   // Login Form States
   const [loginEmail, setLoginEmail] = useState("");
@@ -23,64 +25,12 @@ function LoginContent({ initialTab = "login" }: { initialTab?: "login" | "signup
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  // Sign Up Stepping States
-  const [step, setStep] = useState(1);
+  // Sign Up Form States
   const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [location, setLocation] = useState("Indonesia");
-  const [language, setLanguage] = useState("id");
+  const [signupEmail, setSignupEmail] = useState("");
+  const [signupPassword, setSignupPassword] = useState("");
   const [selectedTuning, setSelectedTuning] = useState("Reference / Neutral");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const completeAuthAndRedirect = async (skipBackend = false) => {
-    setErrorMessage(null);
-    setSuccessMessage(null);
-
-    if (!skipBackend && email && password) {
-      setIsSubmitting(true);
-      try {
-        const res = await signUpUser({
-          fullName,
-          email,
-          passwordRaw: password,
-          location,
-          language,
-          tuningPreference: selectedTuning,
-        });
-
-        if (!res.success) {
-          setErrorMessage(res.error || "Gagal mendaftar. Silakan periksa data Anda.");
-          setIsSubmitting(false);
-          return;
-        }
-
-        // Success
-        localStorage.setItem("tonalzone_user", JSON.stringify(res.user));
-        setSuccessMessage("Akun berhasil dibuat! Mengalihkan...");
-      } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : "Terjadi kesalahan saat mendaftar.";
-        setErrorMessage(msg);
-        setIsSubmitting(false);
-        return;
-      }
-    } else {
-      const userObj = {
-        name: fullName.trim() || "Alex Rivera",
-        email: email.trim() || "alex.rivera@audiophile.io",
-        avatar: "/placeholder.svg",
-        role: "VIP AUDIOPHILE",
-        tuning: selectedTuning,
-        gear: "Dedicated DAC/AMP",
-      };
-      localStorage.setItem("tonalzone_user", JSON.stringify(userObj));
-    }
-
-    window.dispatchEvent(new Event("userLoginChange"));
-    setTimeout(() => {
-      router.push(redirectUrl);
-    }, 250);
-  };
+  const [isSignupSubmitting, setIsSignupSubmitting] = useState(false);
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -100,464 +50,405 @@ function LoginContent({ initialTab = "login" }: { initialTab?: "login" | "signup
         return;
       }
 
-      // Success
       localStorage.setItem("tonalzone_user", JSON.stringify(res.user));
-      setSuccessMessage("Login berhasil! Mengalihkan...");
+      setSuccessMessage("Autentikasi berhasil! Mengalihkan...");
       window.dispatchEvent(new Event("userLoginChange"));
 
       setTimeout(() => {
         router.push(redirectUrl);
-      }, 250);
+      }, 350);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Terjadi kesalahan koneksi saat login.";
+      const msg = err instanceof Error ? err.message : "Terjadi kesalahan saat masuk.";
       setErrorMessage(msg);
       setIsLoginSubmitting(false);
     }
   };
 
-  const handleStep1Submit = (e: React.FormEvent) => {
+  const handleSignupSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
-    if (!email || !password) {
-      setErrorMessage("Email dan kata sandi wajib diisi.");
-      return;
+    setSuccessMessage(null);
+    setIsSignupSubmitting(true);
+
+    try {
+      const res = await signUpUser({
+        fullName,
+        email: signupEmail,
+        passwordRaw: signupPassword,
+        location: "Indonesia",
+        language: "id",
+        tuningPreference: selectedTuning,
+      });
+
+      if (!res.success) {
+        setErrorMessage(res.error || "Gagal mendaftar. Silakan periksa data Anda.");
+        setIsSignupSubmitting(false);
+        return;
+      }
+
+      localStorage.setItem("tonalzone_user", JSON.stringify(res.user));
+      setSuccessMessage("Akun berhasil dibuat! Mengalihkan...");
+      window.dispatchEvent(new Event("userLoginChange"));
+
+      setTimeout(() => {
+        router.push(redirectUrl);
+      }, 350);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Terjadi kesalahan saat mendaftar.";
+      setErrorMessage(msg);
+      setIsSignupSubmitting(false);
     }
-    if (password.length < 6) {
-      setErrorMessage("Kata sandi minimal 6 karakter.");
-      return;
-    }
-    setStep(2);
+  };
+
+  const handleDemoLogin = (role: "buyer" | "seller") => {
+    setErrorMessage(null);
+    setSuccessMessage(null);
+
+    const userObj = role === "seller"
+      ? {
+          name: "Soundstage ID",
+          email: "seller@soundstage.id",
+          avatar: "/placeholder.svg",
+          role: "SELLER",
+          isSeller: true,
+          sellerStatus: "APPROVED",
+          tuning: "Harman Target 2019",
+          gear: "Topping DX7 Pro+",
+        }
+      : {
+          name: "Alex Rivera",
+          email: "alex.rivera@audiophile.io",
+          avatar: "/placeholder.svg",
+          role: "VIP AUDIOPHILE",
+          isSeller: false,
+          tuning: "Reference / Neutral",
+          gear: "Moondrop Dawn Pro",
+        };
+
+    localStorage.setItem("tonalzone_user", JSON.stringify(userObj));
+    setSuccessMessage(`Masuk sebagai ${role === "seller" ? "Seller Store" : "Audiophile Member"}! Mengalihkan...`);
+    window.dispatchEvent(new Event("userLoginChange"));
+
+    setTimeout(() => {
+      router.push(role === "seller" ? "/seller" : redirectUrl);
+    }, 350);
   };
 
   return (
-    <div className="w-full h-screen bg-[#0a0a0a] text-[#FAF9F6] font-sans selection:bg-[#D4FF00] selection:text-[#0e0e0e] flex flex-col lg:flex-row overflow-hidden relative">
+    <div className="min-h-screen w-full bg-[#0a0a0a] text-[#FAF9F6] font-sans flex flex-col lg:flex-row selection:bg-[#D4FF00] selection:text-[#0a0a0a]">
+      {/* LEFT PANEL: Editorial Brand Showcase */}
+      <div className="w-full lg:w-[48%] bg-[#0e0e0e] p-8 sm:p-12 lg:p-20 flex flex-col justify-between relative overflow-hidden border-b lg:border-b-0 lg:border-r border-[#1a1a1a]">
+        {/* Subtle Ambient Depth */}
+        <div className="absolute top-0 left-0 w-full h-full bg-radial from-[#D4FF00]/[0.03] via-transparent to-transparent pointer-events-none" />
 
-      {/* 60% LEFT SIDE: ULTRA-CLEAN, MINIMAL & BREATHABLE */}
-      <div className="w-full lg:w-[60%] h-1/3 lg:h-full bg-[#FAF9F6] relative overflow-hidden flex flex-col justify-between p-8 sm:p-12 lg:p-16 border-b lg:border-b-0 lg:border-r border-[#1a1a1a]">
-
-        {/* PixelBlast Interactive Background */}
-        <div className="absolute inset-x-0 bottom-0 top-32 z-0 bg-[#FAF9F6] [mask-image:linear-gradient(to_bottom,transparent,black_15%)]">
-          <PixelBlast
-            variant="square"
-            pixelSize={3}
-            color="#353839"
-            patternScale={3}
-            patternDensity={0.65}
-            pixelSizeJitter={0.5}
-            enableRipples={true}
-            rippleSpeed={0.4}
-            rippleThickness={0.12}
-            rippleIntensityScale={1.5}
-            liquid={false}
-            liquidStrength={0.12}
-            liquidRadius={1.2}
-            liquidWobbleSpeed={5}
-            speed={0.6}
-            edgeFade={0.25}
-            transparent={true}
-            style={{ width: "100%", height: "100%" }}
-          />
-        </div>
-
-        {/* Top Content */}
-        <div className="relative z-10 flex flex-col sm:flex-row sm:items-start justify-between gap-8 w-full">
-          <div className="pointer-events-none">
-            <h1 className="font-heading text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-[#0e0e0e] leading-[1.1] mb-2">
-              Precision Acoustics.
-            </h1>
-            <p className="font-sans text-xs text-[#0e0e0e]/60 leading-relaxed max-w-xs hidden sm:block">
-              Curated gear for discerning listeners.
-            </p>
-          </div>
+        {/* Top Header */}
+        <div className="relative z-10 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-3 group">
+            <div className="w-8 h-8 flex items-center justify-center">
+              <Image
+                src="/logo.svg"
+                alt="Tonalzone Logo"
+                width={32}
+                height={32}
+                className="w-full h-full object-contain group-hover:rotate-90 transition-transform duration-500"
+              />
+            </div>
+            <span className="font-heading text-xl font-bold tracking-tight text-white">
+              Tonalzone
+            </span>
+          </Link>
 
           <Link
             href="/"
-            className="text-xs font-mono text-[#0e0e0e]/40 hover:text-[#0e0e0e] uppercase tracking-wider flex items-center gap-2 transition-colors shrink-0 mt-2 sm:mt-0"
+            className="flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-[#888] hover:text-[#D4FF00] transition-colors"
           >
-            <span>←</span>
-            <span>Back to store</span>
+            <ArrowLeft size={14} />
+            <span>{t("nav.home")}</span>
           </Link>
         </div>
 
-        <div className="relative z-10 hidden lg:block" />
+        {/* Center Editorial Focus */}
+        <div className="relative z-10 py-16 lg:py-0 max-w-lg">
+          <span className="text-[11px] font-mono uppercase tracking-[0.3em] text-[#D4FF00] block mb-4 font-semibold">
+            Audiophile Hub // Access Gateway
+          </span>
+          <h1 className="font-heading text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white leading-[1.08] mb-6">
+            Presisi Akustik.<br />Kurasi Terpercaya.
+          </h1>
+          <p className="text-[#888] text-sm sm:text-base leading-relaxed font-sans mb-8">
+            Masuk untuk mengakses koleksi gear audio pribadi Anda, membandingkan kurva frekuensi Squiglink, dan mengelola transaksi terverifikasi.
+          </p>
+
+          <div className="grid grid-cols-2 gap-6 pt-8 border-t border-[#1a1a1a]">
+            <div>
+              <p className="font-mono text-xs text-[#888] uppercase tracking-wider mb-1">Verifikasi Toko</p>
+              <p className="font-sans text-sm font-semibold text-white">100% Original & Bergaransi</p>
+            </div>
+            <div>
+              <p className="font-mono text-xs text-[#888] uppercase tracking-wider mb-1">Database IEM</p>
+              <p className="font-sans text-sm font-semibold text-white">500+ Grafik Respon Frekuensi</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom System Tag */}
+        <div className="relative z-10 hidden lg:flex items-center justify-between text-[11px] font-mono text-[#555] uppercase tracking-widest pt-6 border-t border-[#1a1a1a]">
+          <span>TONALZONE CORE PLATFORM</span>
+          <span>SYSTEM // v2.4</span>
+        </div>
       </div>
 
-      {/* 40% RIGHT SIDE: CLEAN Obsidian Form Panel */}
-      <div className="w-full lg:w-[40%] h-2/3 lg:h-full bg-[#111111] p-8 sm:p-14 lg:p-20 flex flex-col justify-center relative z-10 overflow-y-auto no-scrollbar">
-
-        <div className="max-w-sm w-full mx-auto flex flex-col justify-center my-auto">
-
-          {/* Simple Clean Tab Selector */}
-          <div className="flex bg-transparent border-b border-[#222] mb-8 shrink-0">
+      {/* RIGHT PANEL: Crisp UX-Focused Form */}
+      <div className="w-full lg:w-[52%] bg-[#0a0a0a] p-6 sm:p-12 lg:p-20 flex flex-col justify-center items-center">
+        <div className="w-full max-w-md my-auto">
+          {/* Sharp Tab Navigation */}
+          <div className="flex border-b border-[#222] mb-8 w-full">
             <button
               type="button"
               onClick={() => {
                 setTab("login");
-                setStep(1);
                 setErrorMessage(null);
                 setSuccessMessage(null);
               }}
-              className={`flex-1 py-3.5 text-xs font-medium transition-all cursor-pointer relative ${
-                tab === "login" ? "text-white" : "text-[#FAF9F6]/50 hover:text-[#FAF9F6]/80"
+              className={`flex-1 py-4 text-xs font-mono font-bold uppercase tracking-widest transition-all cursor-pointer text-center relative ${
+                tab === "login"
+                  ? "text-white"
+                  : "text-[#666] hover:text-[#999]"
               }`}
             >
+              <span>{t("auth.login")}</span>
               {tab === "login" && (
-                <motion.div
-                  layoutId="authTabModal"
-                  className="absolute bottom-[-1px] left-0 right-0 h-0.5 bg-[#D4FF00]"
-                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                />
+                <div className="absolute bottom-[-1px] left-0 right-0 h-[2px] bg-[#D4FF00]" />
               )}
-              <span className="font-mono font-bold uppercase tracking-widest">Log In</span>
             </button>
 
             <button
               type="button"
               onClick={() => {
                 setTab("signup");
-                setStep(1);
                 setErrorMessage(null);
                 setSuccessMessage(null);
               }}
-              className={`flex-1 py-3.5 text-xs font-medium transition-all cursor-pointer relative ${
-                tab === "signup" ? "text-white" : "text-[#FAF9F6]/50 hover:text-[#FAF9F6]/80"
+              className={`flex-1 py-4 text-xs font-mono font-bold uppercase tracking-widest transition-all cursor-pointer text-center relative ${
+                tab === "signup"
+                  ? "text-white"
+                  : "text-[#666] hover:text-[#999]"
               }`}
             >
+              <span>{t("auth.createAccount")}</span>
               {tab === "signup" && (
-                <motion.div
-                  layoutId="authTabModal"
-                  className="absolute bottom-[-1px] left-0 right-0 h-0.5 bg-[#D4FF00]"
-                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                />
+                <div className="absolute bottom-[-1px] left-0 right-0 h-[2px] bg-[#D4FF00]" />
               )}
-              <span className="font-mono font-bold uppercase tracking-widest">Sign Up</span>
             </button>
           </div>
 
-          {/* Inline Alert / Feedback Badge */}
-          <AnimatePresence>
-            {errorMessage && (
-              <motion.div
-                initial={{ opacity: 0, y: -6 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -6 }}
-                className="mb-5 p-3 rounded-xl bg-[#1c1c1c] border border-red-500/40 text-red-300 text-xs flex items-start gap-2.5"
-              >
-                <div className="w-1.5 h-1.5 rounded-full bg-red-400 mt-1 shrink-0" />
-                <span className="leading-relaxed font-sans">{errorMessage}</span>
-              </motion.div>
-            )}
-            {successMessage && (
-              <motion.div
-                initial={{ opacity: 0, y: -6 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -6 }}
-                className="mb-5 p-3 rounded-xl bg-[#1c1c1c] border border-[#D4FF00]/40 text-[#D4FF00] text-xs flex items-start gap-2.5"
-              >
-                <div className="w-1.5 h-1.5 rounded-full bg-[#D4FF00] mt-1 shrink-0" />
-                <span className="leading-relaxed font-mono">{successMessage}</span>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          {/* Feedback Messages */}
+          {errorMessage && (
+            <div className="mb-6 p-4 bg-[#141414] border-l-2 border-red-500 text-red-300 text-xs font-sans leading-relaxed">
+              {errorMessage}
+            </div>
+          )}
 
-          <AnimatePresence mode="wait">
-            {tab === "login" ? (
-              /* LOGIN TAB FORM */
-              <motion.form
-                key="login-form-clean"
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.15 }}
-                onSubmit={handleLoginSubmit}
-                className="space-y-4"
-              >
-                <div className="space-y-1.5">
-                  <label className="block text-xs font-mono uppercase tracking-widest text-[#FAF9F6]/50 font-semibold">
-                    {t("auth.email")}
+          {successMessage && (
+            <div className="mb-6 p-4 bg-[#141414] border-l-2 border-[#D4FF00] text-[#D4FF00] text-xs font-mono leading-relaxed">
+              {successMessage}
+            </div>
+          )}
+
+          {tab === "login" ? (
+            /* LOGIN FORM */
+            <form onSubmit={handleLoginSubmit} className="space-y-5">
+              {/* Email Field */}
+              <div className="space-y-2">
+                <label className="block text-[11px] font-mono uppercase tracking-widest text-[#888] font-semibold">
+                  {t("auth.email")}
+                </label>
+                <input
+                  type="email"
+                  required
+                  placeholder="alex.rivera@audiophile.io"
+                  value={loginEmail}
+                  onChange={(e) => setLoginEmail(e.target.value)}
+                  className="w-full bg-[#141414] hover:bg-[#181818] focus:bg-[#1c1c1c] text-white text-sm px-4 py-3.5 outline-none placeholder:text-[#444] transition-colors border-b border-[#222] focus:border-[#D4FF00]"
+                />
+              </div>
+
+              {/* Password Field */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="block text-[11px] font-mono uppercase tracking-widest text-[#888] font-semibold">
+                    {t("auth.password")}
                   </label>
-                  <input
-                    type="email"
-                    required
-                    placeholder="name@example.com"
-                    value={loginEmail}
-                    onChange={(e) => setLoginEmail(e.target.value)}
-                    className="w-full bg-[#161616] border border-[#262626] focus:border-[#D4FF00] rounded-xl px-4 py-3 text-sm text-white placeholder:text-[#FAF9F6]/20 outline-none transition-colors"
-                  />
+                  <button
+                    type="button"
+                    onClick={() => setSuccessMessage("Tautan reset kata sandi dikirim jika email terdaftar.")}
+                    className="text-[11px] font-mono text-[#666] hover:text-[#FAF9F6] transition-colors cursor-pointer"
+                  >
+                    {t("auth.forgotPassword")}
+                  </button>
                 </div>
-
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <label className="block text-xs font-mono uppercase tracking-widest text-[#FAF9F6]/50 font-semibold">
-                      {t("auth.password")}
-                    </label>
-                    <button
-                      type="button"
-                      onClick={() => setSuccessMessage("Tautan reset kata sandi telah dikirim ke email Anda.")}
-                      className="text-xs text-[#FAF9F6]/50 hover:text-white transition-colors cursor-pointer"
-                    >
-                      Forgot password?
-                    </button>
-                  </div>
+                <div className="relative">
                   <input
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     required
                     placeholder="••••••••••••"
                     value={loginPassword}
                     onChange={(e) => setLoginPassword(e.target.value)}
-                    className="w-full bg-[#161616] border border-[#262626] focus:border-[#D4FF00] rounded-xl px-4 py-3 text-sm text-white placeholder:text-[#FAF9F6]/20 outline-none transition-colors font-mono"
+                    className="w-full bg-[#141414] hover:bg-[#181818] focus:bg-[#1c1c1c] text-white text-sm px-4 py-3.5 pr-11 outline-none placeholder:text-[#444] transition-colors border-b border-[#222] focus:border-[#D4FF00] font-mono"
                   />
-                </div>
-
-                <div className="flex items-center gap-2 pt-1 pb-2">
-                  <input
-                    type="checkbox"
-                    id="remember-me"
-                    checked={rememberMe}
-                    onChange={(e) => setRememberMe(e.target.checked)}
-                    className="w-4 h-4 rounded border-[#333] bg-[#161616] text-[#D4FF00] focus:ring-0 cursor-pointer accent-[#D4FF00]"
-                  />
-                  <label htmlFor="remember-me" className="text-xs text-[#FAF9F6]/50 cursor-pointer select-none">
-                    Remember me for 30 days
-                  </label>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={isLoginSubmitting}
-                  className="w-full py-3.5 bg-white hover:bg-[#D4FF00] text-[#0e0e0e] font-mono font-bold text-xs uppercase tracking-[0.2em] rounded-xl transition-all cursor-pointer disabled:opacity-50"
-                >
-                  {isLoginSubmitting ? "AUTHENTICATING..." : t("auth.signIn") + " →"}
-                </button>
-              </motion.form>
-            ) : (
-              /* SIGN UP TAB FORM */
-              <motion.div
-                key="signup-form-clean"
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.15 }}
-                className="space-y-4"
-              >
-                <div className="flex items-center justify-between pb-3 border-b border-[#222]">
-                  <div>
-                    <span className="text-[10px] font-mono uppercase tracking-widest text-[#D4FF00] font-bold block">
-                      {t("auth.step1Of2")}
-                    </span>
-                    <h3 className="text-sm font-bold text-white">
-                      {step === 1 ? t("auth.createAccount") : t("auth.personalizeProfile")}
-                    </h3>
-                  </div>
-
                   <button
                     type="button"
-                    onClick={() => completeAuthAndRedirect(true)}
-                    className="text-xs text-[#FAF9F6]/60 hover:text-white underline cursor-pointer"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#666] hover:text-white transition-colors cursor-pointer"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
                   >
-                    {t("auth.skipForNow")}
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
+              </div>
 
-                <AnimatePresence mode="wait">
-                  {step === 1 && (
-                    <motion.form
-                      key="step-1-clean"
-                      initial={{ opacity: 0, x: 10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: -10 }}
-                      transition={{ duration: 0.15 }}
-                      onSubmit={handleStep1Submit}
-                      className="space-y-3"
+              {/* Remember Me */}
+              <div className="flex items-center gap-2.5 pt-1">
+                <input
+                  type="checkbox"
+                  id="remember"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="w-4 h-4 rounded-none bg-[#141414] border-[#333] accent-[#D4FF00] cursor-pointer"
+                />
+                <label htmlFor="remember" className="text-xs text-[#888] cursor-pointer select-none">
+                  {t("auth.rememberMe")}
+                </label>
+              </div>
+
+              {/* Primary Submit Button */}
+              <button
+                type="submit"
+                disabled={isLoginSubmitting}
+                className="w-full bg-[#D4FF00] hover:bg-[#c6f000] active:scale-[0.99] text-[#0e0e0e] font-mono font-bold text-xs uppercase tracking-[0.25em] py-4 transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed mt-3 shadow-lg"
+              >
+                {isLoginSubmitting ? "MEMVERIFIKASI..." : t("auth.login")}
+              </button>
+
+              {/* Instant One-Click Demo Access */}
+              <div className="pt-6 border-t border-[#1a1a1a] space-y-3">
+                <p className="text-[10px] font-mono text-[#555] uppercase tracking-widest text-center">
+                  Akses Cepat Pengujian (1-Klik)
+                </p>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => handleDemoLogin("buyer")}
+                    className="bg-[#141414] hover:bg-[#1c1c1c] active:scale-[0.98] text-[#FAF9F6] text-xs font-mono py-3 px-3 transition-colors cursor-pointer text-center flex items-center justify-center gap-1.5"
+                  >
+                    <Sparkles size={13} className="text-[#D4FF00]" />
+                    <span>Demo Buyer</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDemoLogin("seller")}
+                    className="bg-[#141414] hover:bg-[#1c1c1c] active:scale-[0.98] text-[#FAF9F6] text-xs font-mono py-3 px-3 transition-colors cursor-pointer text-center flex items-center justify-center gap-1.5"
+                  >
+                    <Sparkles size={13} className="text-emerald-400" />
+                    <span>Demo Seller</span>
+                  </button>
+                </div>
+              </div>
+            </form>
+          ) : (
+            /* SIGNUP FORM */
+            <form onSubmit={handleSignupSubmit} className="space-y-4">
+              {/* Full Name */}
+              <div className="space-y-1.5">
+                <label className="block text-[11px] font-mono uppercase tracking-widest text-[#888] font-semibold">
+                  {t("auth.name")}
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Alex Rivera"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  className="w-full bg-[#141414] hover:bg-[#181818] focus:bg-[#1c1c1c] text-white text-sm px-4 py-3 outline-none placeholder:text-[#444] transition-colors border-b border-[#222] focus:border-[#D4FF00]"
+                />
+              </div>
+
+              {/* Email */}
+              <div className="space-y-1.5">
+                <label className="block text-[11px] font-mono uppercase tracking-widest text-[#888] font-semibold">
+                  {t("auth.email")}
+                </label>
+                <input
+                  type="email"
+                  required
+                  placeholder="alex.rivera@audiophile.io"
+                  value={signupEmail}
+                  onChange={(e) => setSignupEmail(e.target.value)}
+                  className="w-full bg-[#141414] hover:bg-[#181818] focus:bg-[#1c1c1c] text-white text-sm px-4 py-3 outline-none placeholder:text-[#444] transition-colors border-b border-[#222] focus:border-[#D4FF00]"
+                />
+              </div>
+
+              {/* Password */}
+              <div className="space-y-1.5">
+                <label className="block text-[11px] font-mono uppercase tracking-widest text-[#888] font-semibold">
+                  {t("auth.password")}
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    required
+                    placeholder="Min. 8 karakter"
+                    value={signupPassword}
+                    onChange={(e) => setSignupPassword(e.target.value)}
+                    className="w-full bg-[#141414] hover:bg-[#181818] focus:bg-[#1c1c1c] text-white text-sm px-4 py-3 pr-11 outline-none placeholder:text-[#444] transition-colors border-b border-[#222] focus:border-[#D4FF00] font-mono"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#666] hover:text-white transition-colors cursor-pointer"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Tuning Target Preference */}
+              <div className="space-y-1.5">
+                <label className="block text-[11px] font-mono uppercase tracking-widest text-[#888] font-semibold">
+                  {t("auth.soundProfile")}
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {["Reference / Neutral", "Harman Target 2019", "V-Shaped Warm", "Basshead Dynamic"].map((tuning) => (
+                    <button
+                      key={tuning}
+                      type="button"
+                      onClick={() => setSelectedTuning(tuning)}
+                      className={`text-left p-2.5 text-xs font-mono transition-all cursor-pointer border ${
+                        selectedTuning === tuning
+                          ? "border-[#D4FF00] bg-[#D4FF00]/10 text-white"
+                          : "border-[#1a1a1a] bg-[#141414] text-[#888] hover:text-white"
+                      }`}
                     >
-                      <div className="space-y-1">
-                        <label className="block text-xs font-medium text-[#FAF9F6]/80">
-                          {t("auth.fullName")}
-                        </label>
-                        <input
-                          type="text"
-                          required
-                          placeholder="e.g. Alex Rivera"
-                          value={fullName}
-                          onChange={(e) => setFullName(e.target.value)}
-                          className="w-full bg-[#161616] border border-[#262626] focus:border-[#D4FF00] rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-[#FAF9F6]/30 outline-none transition-colors"
-                        />
+                      <div className="flex items-center justify-between">
+                        <span className="truncate">{tuning}</span>
+                        {selectedTuning === tuning && <Check size={12} className="text-[#D4FF00] shrink-0" />}
                       </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
 
-                      <div className="space-y-1">
-                        <label className="block text-xs font-medium text-[#FAF9F6]/80">
-                          {t("auth.email")}
-                        </label>
-                        <input
-                          type="email"
-                          required
-                          placeholder="name@example.com"
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          className="w-full bg-[#161616] border border-[#262626] focus:border-[#D4FF00] rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-[#FAF9F6]/30 outline-none transition-colors"
-                        />
-                      </div>
-
-                      <div className="space-y-1">
-                        <label className="block text-xs font-medium text-[#FAF9F6]/80">
-                          {t("auth.password")}
-                        </label>
-                        <input
-                          type="password"
-                          required
-                          placeholder="Create a password (min. 6 chars)"
-                          value={password}
-                          onChange={(e) => setPassword(e.target.value)}
-                          className="w-full bg-[#161616] border border-[#262626] focus:border-[#D4FF00] rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-[#FAF9F6]/30 outline-none transition-colors font-mono"
-                        />
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="space-y-1">
-                          <label className="block text-xs font-medium text-[#FAF9F6]/80">
-                            Location
-                          </label>
-                          <select
-                            value={location}
-                            onChange={(e) => setLocation(e.target.value)}
-                            className="w-full bg-[#161616] border border-[#262626] focus:border-[#D4FF00] rounded-xl px-3 py-2 text-xs text-white outline-none transition-colors appearance-none cursor-pointer"
-                          >
-                            <option value="Indonesia">Indonesia</option>
-                            <option value="Singapore">Singapore</option>
-                            <option value="Malaysia">Malaysia</option>
-                            <option value="United States">United States</option>
-                            <option value="Japan">Japan</option>
-                          </select>
-                        </div>
-
-                        <div className="space-y-1">
-                          <label className="block text-xs font-medium text-[#FAF9F6]/80">
-                            Language
-                          </label>
-                          <select
-                            value={language}
-                            onChange={(e) => setLanguage(e.target.value)}
-                            className="w-full bg-[#161616] border border-[#262626] focus:border-[#D4FF00] rounded-xl px-3 py-2 text-xs text-white outline-none transition-colors appearance-none cursor-pointer"
-                          >
-                            <option value="id">Bahasa Indonesia</option>
-                            <option value="en">English</option>
-                          </select>
-                        </div>
-                      </div>
-
-                      <button
-                        type="submit"
-                        className="w-full py-3 mt-1 bg-[#D4FF00] hover:bg-white text-[#0e0e0e] font-mono font-bold text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer"
-                      >
-                        {t("auth.continueToStep2")}
-                      </button>
-                    </motion.form>
-                  )}
-
-                  {step === 2 && (
-                    <motion.div
-                      key="step-2-clean"
-                      initial={{ opacity: 0, x: 10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: -10 }}
-                      transition={{ duration: 0.15 }}
-                      className="space-y-3"
-                    >
-                      <p className="text-xs text-[#FAF9F6]/70 leading-relaxed">
-                        {t("auth.optionalTuning")}
-                      </p>
-
-                      <div className="grid grid-cols-1 gap-2">
-                        {[
-                          { name: "Reference / Neutral", desc: "Flat studio monitor response" },
-                          { name: "Basshead (V-Shape)", desc: "Elevated sub-bass slam & punch" },
-                          { name: "Vocal & Mid Focus", desc: "Intimate organic vocal rendering" },
-                          { name: "Treble & Soundstage", desc: "Airy details & holographic depth" },
-                        ].map((opt) => {
-                          const isSel = selectedTuning === opt.name;
-                          return (
-                            <button
-                              key={opt.name}
-                              type="button"
-                              onClick={() => setSelectedTuning(opt.name)}
-                              className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer flex items-center justify-between ${
-                                isSel
-                                  ? "bg-[#222] border-[#D4FF00] text-white shadow-sm"
-                                  : "bg-[#161616] border-[#262626] text-[#FAF9F6]/70 hover:border-[#444]"
-                              }`}
-                            >
-                              <div>
-                                <span className="text-xs font-bold block">{opt.name}</span>
-                                <span className="text-[10px] text-[#FAF9F6]/50 block">{opt.desc}</span>
-                              </div>
-                              {isSel && (
-                                <span className="text-[#D4FF00] font-bold text-xs">✓</span>
-                              )}
-                            </button>
-                          );
-                        })}
-                      </div>
-
-                      <div className="pt-2 flex items-center justify-between gap-3">
-                        <button
-                          type="button"
-                          onClick={() => setStep(1)}
-                          className="px-4 py-2.5 bg-[#181818] hover:bg-[#333] border border-[#2b2b2b] rounded-xl text-xs text-white cursor-pointer"
-                        >
-                          {t("auth.back")}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => completeAuthAndRedirect(false)}
-                          disabled={isSubmitting}
-                          className="flex-1 py-3 bg-[#D4FF00] hover:bg-white text-[#0e0e0e] font-mono font-bold text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer disabled:opacity-50"
-                        >
-                          {isSubmitting ? "CREATING..." : t("auth.completeSignUp")}
-                        </button>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          <div className="mt-6 pt-4 border-t border-[#222] text-center text-xs text-[#FAF9F6]/50">
-            {tab === "login" ? (
-              <>
-                {t("auth.noAccount")}{" "}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setTab("signup");
-                    setStep(1);
-                    setErrorMessage(null);
-                    setSuccessMessage(null);
-                  }}
-                  className="text-white font-bold hover:underline cursor-pointer transition-colors"
-                >
-                  {t("auth.signUpHere")}
-                </button>
-              </>
-            ) : (
-              <>
-                {t("auth.hasAccount")}{" "}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setTab("login");
-                    setStep(1);
-                    setErrorMessage(null);
-                    setSuccessMessage(null);
-                  }}
-                  className="text-white font-bold hover:underline cursor-pointer transition-colors"
-                >
-                  {t("auth.loginHere")}
-                </button>
-              </>
-            )}
-          </div>
-
+              {/* Submit Button */}
+              <button
+                type="submit"
+                disabled={isSignupSubmitting}
+                className="w-full bg-[#D4FF00] hover:bg-[#c6f000] active:scale-[0.99] text-[#0e0e0e] font-mono font-bold text-xs uppercase tracking-[0.25em] py-4 transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed mt-4 shadow-lg"
+              >
+                {isSignupSubmitting ? "MEMPROSES PENDAFTARAN..." : t("auth.createAccount")}
+              </button>
+            </form>
+          )}
         </div>
       </div>
     </div>
@@ -566,14 +457,14 @@ function LoginContent({ initialTab = "login" }: { initialTab?: "login" | "signup
 
 export default function LoginPage({ initialTab = "login" }: { initialTab?: "login" | "signup" }) {
   return (
-    <React.Suspense
+    <Suspense
       fallback={
-        <div className="min-h-screen bg-[#080808] flex items-center justify-center text-white font-mono text-xs">
-          Loading Authentication...
+        <div className="min-h-screen w-full bg-[#0a0a0a] flex items-center justify-center font-mono text-xs uppercase tracking-widest text-[#888]">
+          Memuat Autentikasi...
         </div>
       }
     >
       <LoginContent initialTab={initialTab} />
-    </React.Suspense>
+    </Suspense>
   );
 }
