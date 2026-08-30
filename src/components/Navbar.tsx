@@ -691,7 +691,7 @@ export default function Navbar() {
                 </div>
               </div>
             ) : (
-              <MotionButton href="/login" variant={isDarkNav ? "neon" : "neon-dark"} className="px-6 py-2.5 ml-2">
+              <MotionButton href="/signup" variant={isDarkNav ? "neon" : "neon-dark"} className="px-6 py-2.5 ml-2">
                 {t("nav.signUp")}
               </MotionButton>
             )}
@@ -929,7 +929,7 @@ export default function Navbar() {
                     </button>
                   </>
                 ) : (
-                  <MotionButton href="/login" variant="neon" className="w-full text-center py-3">
+                  <MotionButton href="/signup" variant="neon" className="w-full text-center py-3">
                     {t("nav.signUp")}
                   </MotionButton>
                 )}
