@@ -8,16 +8,12 @@ import ClientProviders from "@/components/ClientProviders";
 
 const manrope = Manrope({
   subsets: ["latin"],
-  variable: "--font-sans",
+  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-heading",
 });
 
 const generalSans = localFont({
   src: [
-    {
-      path: "./fonts/GeneralSans-Semibold.otf",
-      weight: "600",
-      style: "normal",
-    },
     {
       path: "./fonts/GeneralSans-Regular.otf",
       weight: "400",
@@ -29,9 +25,19 @@ const generalSans = localFont({
       style: "normal",
     },
     {
+      path: "./fonts/GeneralSans-Semibold.otf",
+      weight: "600",
+      style: "normal",
+    },
+    {
       path: "./fonts/GeneralSans-Bold.otf",
       weight: "700",
       style: "normal",
+    },
+    {
+      path: "./fonts/GeneralSans-Italic.otf",
+      weight: "400",
+      style: "italic",
     },
     {
       path: "./fonts/GeneralSans-SemiboldItalic.otf",
@@ -39,7 +45,7 @@ const generalSans = localFont({
       style: "italic",
     },
   ],
-  variable: "--font-heading",
+  variable: "--font-sans",
 });
 
 export const metadata: Metadata = {
