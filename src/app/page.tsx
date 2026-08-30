@@ -118,7 +118,7 @@ export default function Home() {
             <span className="text-xs sm:text-sm font-mono uppercase tracking-[0.3em] text-[#888888] block mb-4">
               {t("home.collabSeries")}
             </span>
-            <h2 className="font-heading text-5xl sm:text-6xl md:text-7xl lg:text-[76px] uppercase tracking-tight mb-6 leading-[1.02] text-[#FAF9F6] cursor-default">
+            <h2 className="font-heading text-5xl sm:text-6xl md:text-7xl lg:text-[76px] tracking-tight mb-6 leading-[1.02] text-[#FAF9F6] cursor-default">
               Moondrop<br />x Crinacle<br />Dusk
             </h2>
             <p className="text-[#999999] leading-relaxed text-base sm:text-[17px] max-w-lg mb-10">
@@ -218,7 +218,7 @@ export default function Home() {
           className="max-w-[1400px] mx-auto px-6 lg:px-12"
         >
           <div className="flex justify-between items-end mb-12 border-b border-[#444748] pb-6">
-            <h2 className="font-heading text-4xl uppercase tracking-tight">{t("home.newArrivals")}</h2>
+            <h2 className="font-heading text-4xl tracking-tight text-[#FAF9F6]">{t("home.newArrivals")}</h2>
             <div className="hidden md:flex gap-8">
               <span className="text-[11px] uppercase tracking-[0.2em] text-[#D4FF00] border-b-2 border-[#D4FF00] pb-2 cursor-pointer font-bold">IEM</span>
               <span className="text-[11px] uppercase tracking-[0.2em] text-[#FAF9F6]/50 hover:text-[#FAF9F6] hover:border-b-2 hover:border-[#FAF9F6]/50 pb-2 cursor-pointer transition-colors">TWS</span>
