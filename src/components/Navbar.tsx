@@ -691,8 +691,12 @@ export default function Navbar() {
                 </div>
               </div>
             ) : (
-              <MotionButton href="/signup" variant={isDarkNav ? "neon" : "neon-dark"} className="px-6 py-2.5 ml-2">
-                {t("nav.signUp")}
+              <MotionButton 
+                href={pathname === "/signup" ? "/login" : "/signup"} 
+                variant={isDarkNav ? "neon" : "neon-dark"} 
+                className="px-6 py-2.5 ml-2"
+              >
+                {pathname === "/signup" ? (language === "id" ? "MASUK" : "SIGN IN") : t("nav.signUp")}
               </MotionButton>
             )}
           </div>

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import { useLanguage } from "@/context/LanguageContext";
 import { signUpUser, signInUser } from "@/app/actions/auth";
@@ -10,22 +10,24 @@ import { Eye, EyeOff, CornerDownRight, Sparkles } from "lucide-react";
 
 function LoginContent({ initialTab = "login" }: { initialTab?: "login" | "signup" }) {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const tabParam = searchParams?.get("tab") as "login" | "signup" | null;
   const redirectUrl = searchParams?.get("redirect") || "/";
   const { t } = useLanguage();
 
-  const [tab, setTab] = useState<"login" | "signup">(tabParam || initialTab);
+  const isSignupRoute = pathname.includes("signup") || tabParam === "signup" || initialTab === "signup";
+  const [tab, setTab] = useState<"login" | "signup">(isSignupRoute ? "signup" : "login");
   const [showPassword, setShowPassword] = useState(false);
 
-  // Sync tab if URL param or prop changes
+  // Sync tab immediately when pathname or searchParams change
   useEffect(() => {
-    if (tabParam === "signup" || tabParam === "login") {
-      setTab(tabParam);
-    } else if (initialTab) {
-      setTab(initialTab);
+    if (pathname.includes("signup") || tabParam === "signup") {
+      setTab("signup");
+    } else if (pathname.includes("login") || tabParam === "login") {
+      setTab("login");
     }
-  }, [tabParam, initialTab]);
+  }, [pathname, tabParam]);
 
   // Form States
   const [loginEmail, setLoginEmail] = useState("");
@@ -37,6 +39,13 @@ function LoginContent({ initialTab = "login" }: { initialTab?: "login" | "signup
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  const switchTab = (newTab: "login" | "signup") => {
+    setTab(newTab);
+    setErrorMessage(null);
+    setSuccessMessage(null);
+    window.history.replaceState(null, "", newTab === "signup" ? "/signup" : "/login");
+  };
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -207,11 +216,7 @@ function LoginContent({ initialTab = "login" }: { initialTab?: "login" | "signup
           <div className="flex items-center justify-center gap-10 mb-8 border-b border-[#222] w-full pb-3">
             <button
               type="button"
-              onClick={() => {
-                setTab("login");
-                setErrorMessage(null);
-                setSuccessMessage(null);
-              }}
+              onClick={() => switchTab("login")}
               className={`font-heading text-3xl font-medium transition-colors cursor-pointer pb-2 relative ${
                 tab === "login" ? "text-white" : "text-[#555] hover:text-[#888]"
               }`}
@@ -223,11 +228,7 @@ function LoginContent({ initialTab = "login" }: { initialTab?: "login" | "signup
             </button>
             <button
               type="button"
-              onClick={() => {
-                setTab("signup");
-                setErrorMessage(null);
-                setSuccessMessage(null);
-              }}
+              onClick={() => switchTab("signup")}
               className={`font-heading text-3xl font-medium transition-colors cursor-pointer pb-2 relative ${
                 tab === "signup" ? "text-white" : "text-[#555] hover:text-[#888]"
               }`}
@@ -327,11 +328,7 @@ function LoginContent({ initialTab = "login" }: { initialTab?: "login" | "signup
                 </button>
                 <button
                   type="button"
-                  onClick={() => {
-                    setTab("signup");
-                    setErrorMessage(null);
-                    setSuccessMessage(null);
-                  }}
+                  onClick={() => switchTab("signup")}
                   className="text-xs font-sans text-[#888] hover:text-[#D4FF00] transition-colors cursor-pointer"
                 >
                   Belum punya akun? <span className="underline font-semibold">Daftar sekarang</span>
@@ -390,11 +387,7 @@ function LoginContent({ initialTab = "login" }: { initialTab?: "login" | "signup
 
               <button
                 type="button"
-                onClick={() => {
-                  setTab("login");
-                  setErrorMessage(null);
-                  setSuccessMessage(null);
-                }}
+                onClick={() => switchTab("login")}
                 className="text-xs font-sans text-[#888] hover:text-[#FAF9F6] transition-colors mt-5 cursor-pointer"
               >
                 Sudah punya akun? <span className="underline font-semibold">Masuk di sini</span>
@@ -438,6 +431,9 @@ function LoginContent({ initialTab = "login" }: { initialTab?: "login" | "signup
 }
 
 export default function LoginPage({ initialTab = "login" }: { initialTab?: "login" | "signup" }) {
+  const pathname = usePathname();
+  const isSignup = pathname.includes("signup") || initialTab === "signup";
+
   return (
     <Suspense
       fallback={
@@ -446,7 +442,7 @@ export default function LoginPage({ initialTab = "login" }: { initialTab?: "logi
         </div>
       }
     >
-      <LoginContent initialTab={initialTab} />
+      <LoginContent key={isSignup ? "signup-view" : "login-view"} initialTab={isSignup ? "signup" : "login"} />
     </Suspense>
   );
 }

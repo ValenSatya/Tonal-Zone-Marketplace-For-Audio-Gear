@@ -1,7 +1,7 @@
-"use client";
+﻿"use client";
 
 import LoginPage from "@/app/login/page";
 
 export default function SignUpPage() {
-  return <LoginPage initialTab="signup" />;
+  return <LoginPage initialTab="signup" key="signup" />;
 }
