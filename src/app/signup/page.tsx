@@ -510,27 +510,42 @@ function SignupContent() {
                   
                   {/* Clean Experience Selector Bar */}
                   <CustomSelectBar
-                    label="Experience"
+                    label="Pengalaman"
                     value={experienceLevel}
                     onChange={setExperienceLevel}
                     options={[
-                      { value: "Beginner", label: "Beginner", sub: "Baru masuk ke dunia audio / IEM" },
-                      { value: "Intermediate", label: "Intermediate", sub: "Paham tonal & sound signature" },
-                      { value: "Enthusiast", label: "Enthusiast", sub: "Mencari resolusi & technicalities" },
-                      { value: "Flagship", label: "Summit-Fi", sub: "Endgame gear & critical listening" },
+                      { value: "Beginner", label: "Pemula (Baru Mulai)", sub: "Baru mau coba IEM / earphone berkualitas" },
+                      { value: "Intermediate", label: "Menengah (Hobi Musik)", sub: "Sering dengar lagu & ingin vokal lebih jernih" },
+                      { value: "Enthusiast", label: "Audiophile (Kolektor/Pro)", sub: "Paham detail teknis, DAC, kabel & resolusi" },
                     ]}
                   />
 
-                  {/* Clean Sound Signature Selector Bar */}
+                  {/* Clean Sound Signature / Genre Selector Bar */}
                   <CustomSelectBar
-                    label="Sound Signature"
+                    label="Genre Musik"
                     value={soundSignature}
                     onChange={setSoundSignature}
                     options={[
-                      { value: "Reference / Neutral", label: "Reference / Neutral", sub: "Akurat, seimbang, uncolored" },
-                      { value: "Harman Target 2019", label: "Harman Target 2019", sub: "Vokal jernih, sub-bass mantap" },
-                      { value: "Warm & Musical", label: "Warm & Musical", sub: "Bass empuk, vokal tebal, treble halus" },
-                      { value: "V-Shaped Dynamic", label: "V-Shaped Dynamic", sub: "Bass bertenaga, treble berkilau" },
+                      { 
+                        value: "Harman Target 2019", 
+                        label: "Pop, RnB & Vokal", 
+                        sub: "Vokal jernih di depan, bass pas & nada seimbang" 
+                      },
+                      { 
+                        value: "V-Shaped Dynamic", 
+                        label: "EDM, Hip-Hop & Bass", 
+                        sub: "Bass menghentak bertenaga, nada tinggi berkilau" 
+                      },
+                      { 
+                        value: "Reference / Neutral", 
+                        label: "Akustik, Jazz & Klasik", 
+                        sub: "Suara alami, akurat, instrumen terdengar nyata" 
+                      },
+                      { 
+                        value: "Warm & Musical", 
+                        label: "Rock, Metal & Indie", 
+                        sub: "Gitar tebal, vokal hangat, bass empuk nyaman di telinga" 
+                      },
                     ]}
                   />
 
