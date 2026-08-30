@@ -28,11 +28,11 @@ export default function Home() {
   const heroScale = useTransform(scrollY, [0, 600], [1, 0.95]);
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#0e0e0e] text-[#FAF9F6] font-sans selection:bg-[#D4FF00] selection:text-[#0e0e0e]">
+    <div className="flex flex-col min-h-screen w-full overflow-x-hidden bg-[#0e0e0e] text-[#FAF9F6] font-sans selection:bg-[#D4FF00] selection:text-[#0e0e0e]">
       {/* GLOBAL HEADER */}
       <Navbar />
 
-      <main className="relative w-full">
+      <main className="relative w-full overflow-x-hidden">
 
       {/* HERO SECTION - ENHANCED CLEAN LAYOUT */}
       <section id="hero" className="sticky top-0 z-0 w-full h-[100svh] min-h-[750px] flex flex-col justify-center overflow-hidden bg-[#FAF9F6] text-[#0e0e0e] border-b border-[#0e0e0e]/15">

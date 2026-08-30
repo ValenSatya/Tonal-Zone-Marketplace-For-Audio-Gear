@@ -21,24 +21,23 @@ export default function MotionButton({
   variant = "neon",
   type = "button",
 }: MotionButtonProps) {
-  // Base styling depending on variant - NO glow, NO position shift, clean typography
-  const baseStyles = "relative inline-flex items-center justify-center font-mono font-bold text-xs uppercase tracking-[0.2em] py-4 px-6 overflow-hidden cursor-pointer select-none";
-  
+  const baseStyles =
+    "relative inline-flex items-center justify-center font-mono font-bold text-xs uppercase tracking-[0.2em] py-4 px-6 overflow-hidden cursor-pointer select-none transition-colors duration-300";
+
   let defaultBg = "";
   let hoverOverlayBg = "";
   let textColorClass = "";
 
-  // Exactly imitating the clean diagonal wipe from motion.dev
   if (variant === "neon") {
     defaultBg = "bg-[#D4FF00]";
     hoverOverlayBg = "bg-white";
-    textColorClass = "text-[#0e0e0e] group-hover:text-[#0e0e0e]";
+    textColorClass = "text-[#0e0e0e]";
   } else if (variant === "neon-dark") {
     defaultBg = "bg-[#D4FF00]";
     hoverOverlayBg = "bg-[#0e0e0e]";
     textColorClass = "text-[#0e0e0e] group-hover:text-white";
   } else if (variant === "dark") {
-    defaultBg = "bg-[#0e0e0e] border border-[#2a2a2a] group-hover:border-white";
+    defaultBg = "bg-[#0e0e0e] border border-[#2a2a2a]";
     hoverOverlayBg = "bg-[#D4FF00]";
     textColorClass = "text-[#FAF9F6] group-hover:text-[#0e0e0e]";
   } else if (variant === "light") {
@@ -46,28 +45,22 @@ export default function MotionButton({
     hoverOverlayBg = "bg-[#D4FF00]";
     textColorClass = "text-[#0e0e0e]";
   } else if (variant === "white") {
-    defaultBg = "bg-[#FAF9F6]";
-    hoverOverlayBg = "bg-white";
+    defaultBg = "bg-white";
+    hoverOverlayBg = "bg-[#EAEAEA]";
     textColorClass = "text-[#0e0e0e]";
   }
 
   const content = (
     <>
-      {/* DIAGONAL WIPE TRANSITION OVERLAY */}
-      <motion.span
-        className={`absolute -top-[200px] -left-[400px] w-[1200px] h-[500px] ${hoverOverlayBg} pointer-events-none -rotate-12 z-0`}
-        variants={{
-          initial: { y: "100%" },
-          hover: { 
-            y: "0%", 
-            transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] } // Smooth, unhurried premium wipe
-          },
-          tap: { y: "0%" }
-        }}
+      {/* BOUNDED INSET OVERLAY */}
+      <span
+        className={`absolute inset-0 ${hoverOverlayBg} transform -translate-x-full group-hover:translate-x-0 transition-transform duration-300 ease-out z-0`}
       />
 
       {/* Button text / content */}
-      <span className={`relative z-10 flex items-center justify-center gap-2 transition-colors duration-300 ${textColorClass}`}>
+      <span
+        className={`relative z-10 flex items-center justify-center gap-2 transition-colors duration-300 ${textColorClass}`}
+      >
         {children}
       </span>
     </>
@@ -75,13 +68,11 @@ export default function MotionButton({
 
   const containerVariants: any = {
     initial: { scale: 1 },
-    hover: { 
-      scale: 1, // Zero size change, zero position shift on hover!
+    hover: { scale: 1 },
+    tap: {
+      scale: 0.97,
+      transition: { type: "spring", stiffness: 400, damping: 25 },
     },
-    tap: { 
-      scale: 0.97, // Subtle press physics
-      transition: { type: "spring", stiffness: 400, damping: 25 }
-    }
   };
 
   if (href) {
@@ -91,9 +82,13 @@ export default function MotionButton({
         initial="initial"
         whileHover="hover"
         whileTap="tap"
-        className={`group ${className.includes("w-full") ? "block w-full" : "inline-block"}`}
+        className={`group inline-block ${className.includes("w-full") ? "w-full" : ""}`}
       >
-        <Link href={href} onClick={onClick} className={`${baseStyles} ${defaultBg} ${className}`}>
+        <Link
+          href={href}
+          onClick={onClick}
+          className={`${baseStyles} ${defaultBg} ${className}`}
+        >
           {content}
         </Link>
       </motion.div>
