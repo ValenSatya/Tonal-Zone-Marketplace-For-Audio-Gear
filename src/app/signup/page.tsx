@@ -9,35 +9,35 @@ import { signUpUser } from "@/app/actions/auth";
 import { Eye, EyeOff, CornerDownRight, Check, ChevronDown, Camera } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-// Pinterest-Style Visual Music Genre Cards
+// Music Genre Cards Exact Matching User Mockup (Image on top, Title + Radio + Subtitle below)
 const MUSIC_GENRE_CARDS = [
   {
-    id: "pop-vocal",
-    signature: "Harman Target 2019",
-    title: "Pop & Vokal",
-    desc: "Vokal jernih di depan, bass pas & seimbang",
-    image: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=500&auto=format&fit=crop&q=80",
+    id: "classical",
+    signature: "Reference / Neutral",
+    title: "Classical & Jazz",
+    desc: "Suara alami, akurat & instrumen nyata",
+    image: "https://images.unsplash.com/photo-1465847899084-d164df4dedc6?w=600&auto=format&fit=crop&q=80",
   },
   {
-    id: "edm-bass",
+    id: "edm",
     signature: "V-Shaped Dynamic",
     title: "EDM & Bass",
-    desc: "Bass nendang bertenaga, treble berkilau",
-    image: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=500&auto=format&fit=crop&q=80",
+    desc: "Bass nendang & nada tinggi berkilau",
+    image: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=600&auto=format&fit=crop&q=80",
   },
   {
-    id: "acoustic-jazz",
-    signature: "Reference / Neutral",
-    title: "Akustik & Jazz",
-    desc: "Suara alami, akurat, instrumen nyata",
-    image: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500&auto=format&fit=crop&q=80",
-  },
-  {
-    id: "rock-indie",
+    id: "rock",
     signature: "Warm & Musical",
-    title: "Rock & Indie",
-    desc: "Gitar tebal, vokal hangat, bass empuk",
-    image: "https://images.unsplash.com/photo-1464375117522-1311d6a5b81f?w=500&auto=format&fit=crop&q=80",
+    title: "Rock & Metal",
+    desc: "Gitar tebal, vokal hangat & bass empuk",
+    image: "https://images.unsplash.com/photo-1464375117522-1311d6a5b81f?w=600&auto=format&fit=crop&q=80",
+  },
+  {
+    id: "pop",
+    signature: "Harman Target 2019",
+    title: "Pop & Vokal",
+    desc: "Vokal jernih di depan & nada seimbang",
+    image: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=600&auto=format&fit=crop&q=80",
   },
 ];
 
@@ -142,7 +142,7 @@ function SignupContent() {
 
   // Step 3: Preferensi Audiophile PRD
   const [experienceLevel, setExperienceLevel] = useState("Intermediate");
-  const [soundSignature, setSoundSignature] = useState("Harman Target 2019");
+  const [soundSignature, setSoundSignature] = useState("Reference / Neutral");
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -303,7 +303,7 @@ function SignupContent() {
       {/* 2. CENTER ULTRA-MINIMALIST PROGRESSIVE FLOW */}
       <main className="w-full flex-1 flex flex-col items-center justify-center px-6 py-24 pt-36 z-10">
         <div className={`w-full mx-auto flex flex-col items-center text-center transition-all duration-300 ${
-          step === 3 ? "max-w-[460px]" : "max-w-[380px]"
+          step === 3 ? "max-w-[440px]" : "max-w-[380px]"
         }`}>
 
           {/* Feedback Messages */}
@@ -523,7 +523,7 @@ function SignupContent() {
               </motion.div>
             )}
 
-            {/* STEP 3: EXPERIENCE LEVEL & PINTEREST-STYLE GENRE CARDS */}
+            {/* STEP 3: AUDIO SETUP WITH EXACT USER MOCKUP CARDS */}
             {step === 3 && (
               <motion.div
                 key="signup-step-3"
@@ -540,14 +540,11 @@ function SignupContent() {
                   Pilih selera musik Anda untuk kurasi gear yang pas di telinga.
                 </p>
 
-                <form onSubmit={handleFinalSignup} className="w-full flex flex-col gap-4 text-left">
+                <form onSubmit={handleFinalSignup} className="w-full flex flex-col gap-5 text-left">
                   
-                  {/* 1. Pinterest-Style Visual Music Genre Cards */}
+                  {/* 1. Exact Mockup 2x2 Music Genre Cards */}
                   <div className="w-full">
-                    <label className="block text-[11px] font-mono uppercase tracking-widest text-[#888] mb-2 font-semibold">
-                      Genre Musik Favorit
-                    </label>
-                    <div className="grid grid-cols-2 gap-2.5">
+                    <div className="grid grid-cols-2 gap-4">
                       {MUSIC_GENRE_CARDS.map((item) => {
                         const isSelected = soundSignature === item.signature;
                         return (
@@ -555,43 +552,45 @@ function SignupContent() {
                             key={item.id}
                             type="button"
                             onClick={() => setSoundSignature(item.signature)}
-                            className={`group relative h-28 sm:h-32 w-full overflow-hidden text-left p-3 flex flex-col justify-end transition-all duration-200 cursor-pointer rounded-none border ${
-                              isSelected
-                                ? "border-[#D4FF00] ring-1 ring-[#D4FF00] shadow-[0_0_20px_rgba(212,255,0,0.15)]"
-                                : "border-[#222] hover:border-[#444]"
-                            }`}
+                            className="group text-left cursor-pointer flex flex-col transition-all duration-200"
                           >
-                            {/* Atmospheric Background Image */}
-                            <img
-                              src={item.image}
-                              alt={item.title}
-                              className={`absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${
-                                isSelected
-                                  ? "opacity-45 scale-105"
-                                  : "opacity-25 grayscale-[40%] group-hover:grayscale-0 group-hover:opacity-40"
-                              }`}
-                            />
-                            {/* Dark Gradient Overlay */}
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/60 to-transparent" />
+                            {/* Card Image Box */}
+                            <div className={`relative w-full aspect-[16/10] overflow-hidden bg-[#161616] border transition-all duration-200 ${
+                              isSelected
+                                ? "border-[#D4FF00] ring-1 ring-[#D4FF00] shadow-[0_0_15px_rgba(212,255,0,0.18)]"
+                                : "border-[#222] group-hover:border-[#444]"
+                            }`}>
+                              <img
+                                src={item.image}
+                                alt={item.title}
+                                className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${
+                                  isSelected ? "opacity-100" : "opacity-75 group-hover:opacity-100"
+                                }`}
+                              />
+                            </div>
 
-                            {/* Selected Neon Badge */}
-                            {isSelected && (
-                              <div className="absolute top-2.5 right-2.5 w-5 h-5 bg-[#D4FF00] text-[#0a0a0a] flex items-center justify-center rounded-none z-10 shadow-sm">
-                                <Check size={13} strokeWidth={3} />
-                              </div>
-                            )}
-
-                            {/* Content Info */}
-                            <div className="relative z-10">
-                              <h3 className={`font-mono text-xs font-bold uppercase tracking-wider mb-0.5 ${
-                                isSelected ? "text-[#D4FF00]" : "text-white"
+                            {/* Card Title & Radio Checkbox */}
+                            <div className="flex items-center justify-between mt-2.5">
+                              <h3 className={`font-sans text-sm font-semibold tracking-tight transition-colors ${
+                                isSelected ? "text-white" : "text-[#ddd] group-hover:text-white"
                               }`}>
                                 {item.title}
                               </h3>
-                              <p className="text-[10px] font-sans text-[#aaa] line-clamp-1 leading-tight">
-                                {item.desc}
-                              </p>
+
+                              {/* Radio Icon matching user drawing */}
+                              <div className={`w-4 h-4 rounded-full flex items-center justify-center transition-all ${
+                                isSelected 
+                                  ? "bg-white text-[#0a0a0a]" 
+                                  : "border border-[#444] group-hover:border-[#777]"
+                              }`}>
+                                {isSelected && <Check size={10} strokeWidth={3.5} />}
+                              </div>
                             </div>
+
+                            {/* Card Subtitle / Penjelasan */}
+                            <p className="text-[11px] font-sans text-[#777] leading-snug mt-0.5">
+                              {item.desc}
+                            </p>
                           </button>
                         );
                       })}
@@ -599,12 +598,9 @@ function SignupContent() {
                   </div>
 
                   {/* 2. Clean Experience Selector Bar */}
-                  <div>
-                    <label className="block text-[11px] font-mono uppercase tracking-widest text-[#888] mb-2 font-semibold">
-                      Tingkat Pengalaman
-                    </label>
+                  <div className="pt-1">
                     <CustomSelectBar
-                      label="Level"
+                      label="Pengalaman"
                       value={experienceLevel}
                       onChange={setExperienceLevel}
                       options={[
