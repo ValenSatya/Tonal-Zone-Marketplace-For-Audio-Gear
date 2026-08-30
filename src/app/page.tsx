@@ -171,24 +171,20 @@ export default function Home() {
               </div>
             </div>
 
-            {/* 3. Clean Interactive Exploration Card */}
+            {/* 3. Minimalist Arrow Exploration Card */}
             <Link
               href="/collection"
-              className="border border-[#1c1c1c] bg-[#0a0a0a] hover:bg-[#D4FF00] group cursor-pointer hover:border-[#D4FF00] transition-all duration-500 relative aspect-square flex flex-col items-center justify-center p-6 text-center overflow-hidden select-none"
+              className="border border-[#1c1c1c] bg-[#0a0a0a] hover:bg-[#D4FF00] group cursor-pointer hover:border-[#D4FF00] transition-colors duration-500 relative aspect-square flex items-center justify-center p-6 overflow-hidden select-none"
+              aria-label={t("home.exploreMore")}
             >
               {/* Official Icon Pack: ArrowUpRight with smooth glide */}
-              <div className="text-[#FAF9F6] group-hover:text-[#0e0e0e] transition-colors duration-500 mb-3">
+              <div className="text-[#FAF9F6] group-hover:text-[#0e0e0e] transition-colors duration-500">
                 <ArrowUpRight
-                  size={36}
-                  strokeWidth={2}
-                  className="transition-transform duration-500 ease-out group-hover:translate-x-1.5 group-hover:-translate-y-1.5"
+                  size={44}
+                  strokeWidth={1.75}
+                  className="transition-transform duration-500 ease-out group-hover:translate-x-2 group-hover:-translate-y-2 group-hover:scale-110"
                 />
               </div>
-
-              {/* Main Clean Text */}
-              <span className="text-sm sm:text-base font-sans font-medium tracking-wide text-[#FAF9F6] group-hover:text-[#0e0e0e] transition-colors duration-500">
-                {t("home.exploreMore")}
-              </span>
             </Link>
           </div>
         </motion.div>
