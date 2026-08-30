@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, Suspense } from "react";
 import Link from "next/link";
@@ -137,9 +137,12 @@ function LoginContent() {
         <div className="w-full max-w-[380px] mx-auto flex flex-col items-center text-center">
           
           {/* Direct Title without Tabs */}
-          <h1 className="font-heading text-4xl sm:text-[44px] font-medium tracking-tight text-white mb-8">
+          <h1 className="font-heading text-3xl sm:text-[36px] font-normal tracking-tight text-white mb-2">
             Sign in
           </h1>
+          <p className="text-xs font-sans text-[#777] mb-6 leading-relaxed">
+            Masuk untuk mengakses koleksi & transaksi audio Anda.
+          </p>
 
           {/* Feedback Messages */}
           {errorMessage && (

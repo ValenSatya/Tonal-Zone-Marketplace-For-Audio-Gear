@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useRef, useEffect, Suspense } from "react";
 import Link from "next/link";
@@ -297,9 +297,12 @@ function SignupContent() {
                 className="w-full flex flex-col items-center"
               >
                 {/* Proportional, refined title matching Sign In */}
-                <h1 className="font-heading text-3xl sm:text-[36px] font-normal tracking-tight text-white mb-6">
+                <h1 className="font-heading text-3xl sm:text-[36px] font-normal tracking-tight text-white mb-2">
                   Sign up
                 </h1>
+                <p className="text-xs font-sans text-[#777] mb-6 leading-relaxed">
+                  Buat akun untuk memulai kurasi & eksplorasi gear audio Anda.
+                </p>
 
                 {/* Google OAuth Button */}
                 <button
@@ -416,9 +419,12 @@ function SignupContent() {
                 transition={{ duration: 0.15 }}
                 className="w-full flex flex-col items-center"
               >
-                <h1 className="font-heading text-3xl sm:text-[36px] font-normal tracking-tight text-white mb-6">
+                <h1 className="font-heading text-3xl sm:text-[36px] font-normal tracking-tight text-white mb-2">
                   Profile
                 </h1>
+                <p className="text-xs font-sans text-[#777] mb-6 leading-relaxed">
+                  Atur identitas akun dan foto profil audiophile Anda.
+                </p>
 
                 <form onSubmit={handleNextToStep3} className="w-full flex flex-col gap-3 sm:gap-3.5 text-left">
                   
@@ -493,9 +499,12 @@ function SignupContent() {
                 transition={{ duration: 0.15 }}
                 className="w-full flex flex-col items-center"
               >
-                <h1 className="font-heading text-3xl sm:text-[36px] font-normal tracking-tight text-white mb-6">
+                <h1 className="font-heading text-3xl sm:text-[36px] font-normal tracking-tight text-white mb-2">
                   Audio Setup
                 </h1>
+                <p className="text-xs font-sans text-[#777] mb-6 leading-relaxed">
+                  Sesuaikan rekomendasi produk dengan preferensi telinga Anda.
+                </p>
 
                 <form onSubmit={handleFinalSignup} className="w-full flex flex-col gap-3 sm:gap-3.5 text-left">
                   
