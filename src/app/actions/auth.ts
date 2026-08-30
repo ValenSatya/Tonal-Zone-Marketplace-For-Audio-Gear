@@ -28,6 +28,7 @@ export async function signUpUser(data: {
   location: string;
   language: string;
   tuningPreference: string;
+  experienceLevel?: string;
 }): Promise<AuthSessionResponse> {
   try {
     const email = data.email.trim().toLowerCase();
@@ -53,6 +54,7 @@ export async function signUpUser(data: {
           location: data.location,
           language: data.language,
           tuning_preference: data.tuningPreference,
+          experience_level: data.experienceLevel,
         },
       },
     });
@@ -96,6 +98,7 @@ export async function signUpUser(data: {
       isSeller: dbUser.role === "SELLER" || dbUser.store?.status === "APPROVED",
       sellerStatus: dbUser.store?.status || "NONE",
       tuning: dbUser.tuningPreference || data.tuningPreference,
+      experienceLevel: data.experienceLevel || "Intermediate",
       location: dbUser.location || data.location,
       language: dbUser.language || data.language,
     };

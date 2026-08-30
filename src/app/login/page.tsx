@@ -1,51 +1,25 @@
 ﻿"use client";
 
-import React, { useState, useEffect, Suspense } from "react";
+import React, { useState, Suspense } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import { useLanguage } from "@/context/LanguageContext";
-import { signUpUser, signInUser } from "@/app/actions/auth";
+import { signInUser } from "@/app/actions/auth";
 import { Eye, EyeOff, CornerDownRight, Sparkles } from "lucide-react";
 
-function LoginContent({ initialTab = "login" }: { initialTab?: "login" | "signup" }) {
+function LoginContent() {
   const router = useRouter();
-  const pathname = usePathname();
   const searchParams = useSearchParams();
-  const tabParam = searchParams?.get("tab") as "login" | "signup" | null;
   const redirectUrl = searchParams?.get("redirect") || "/";
   const { t } = useLanguage();
 
-  const isSignupRoute = pathname.includes("signup") || tabParam === "signup" || initialTab === "signup";
-  const [tab, setTab] = useState<"login" | "signup">(isSignupRoute ? "signup" : "login");
-  const [showPassword, setShowPassword] = useState(false);
-
-  // Sync tab immediately when pathname or searchParams change
-  useEffect(() => {
-    if (pathname.includes("signup") || tabParam === "signup") {
-      setTab("signup");
-    } else if (pathname.includes("login") || tabParam === "login") {
-      setTab("login");
-    }
-  }, [pathname, tabParam]);
-
-  // Form States
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
-  const [fullName, setFullName] = useState("");
-  const [signupEmail, setSignupEmail] = useState("");
-  const [signupPassword, setSignupPassword] = useState("");
-  const [selectedTuning, setSelectedTuning] = useState("Reference / Neutral");
+  const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-
-  const switchTab = (newTab: "login" | "signup") => {
-    setTab(newTab);
-    setErrorMessage(null);
-    setSuccessMessage(null);
-    window.history.replaceState(null, "", newTab === "signup" ? "/signup" : "/login");
-  };
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -85,56 +59,6 @@ function LoginContent({ initialTab = "login" }: { initialTab?: "login" | "signup
       };
       localStorage.setItem("tonalzone_user", JSON.stringify(userObj));
       setSuccessMessage("Masuk berhasil! Mengalihkan...");
-      window.dispatchEvent(new Event("userLoginChange"));
-
-      setTimeout(() => {
-        router.push(redirectUrl);
-      }, 350);
-    }
-  };
-
-  const handleSignupSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setErrorMessage(null);
-    setSuccessMessage(null);
-    setIsSubmitting(true);
-
-    try {
-      const res = await signUpUser({
-        fullName,
-        email: signupEmail,
-        passwordRaw: signupPassword,
-        location: "Indonesia",
-        language: "id",
-        tuningPreference: selectedTuning,
-      });
-
-      if (!res.success) {
-        setErrorMessage(res.error || "Gagal mendaftar. Silakan periksa data Anda.");
-        setIsSubmitting(false);
-        return;
-      }
-
-      localStorage.setItem("tonalzone_user", JSON.stringify(res.user));
-      setSuccessMessage("Akun berhasil dibuat! Mengalihkan...");
-      window.dispatchEvent(new Event("userLoginChange"));
-
-      setTimeout(() => {
-        router.push(redirectUrl);
-      }, 350);
-    } catch (err: unknown) {
-      // Fallback local session on network exception
-      const userObj = {
-        name: fullName.trim() || signupEmail.split("@")[0] || "Audiophile Member",
-        email: signupEmail,
-        avatar: "/placeholder.svg",
-        role: "VIP AUDIOPHILE",
-        isSeller: false,
-        tuning: selectedTuning,
-        gear: "Custom IEM Setup",
-      };
-      localStorage.setItem("tonalzone_user", JSON.stringify(userObj));
-      setSuccessMessage("Pendaftaran berhasil! Mengalihkan...");
       window.dispatchEvent(new Event("userLoginChange"));
 
       setTimeout(() => {
@@ -208,37 +132,14 @@ function LoginContent({ initialTab = "login" }: { initialTab?: "login" | "signup
       {/* 1. AUTHENTIC TONALZONE NAVBAR */}
       <Navbar />
 
-      {/* 2. CENTER ULTRA-MINIMALIST AUTH CORE */}
+      {/* 2. CENTER ULTRA-MINIMALIST LOGIN CORE */}
       <main className="w-full flex-1 flex flex-col items-center justify-center px-6 py-24 pt-36 z-10">
         <div className="w-full max-w-[380px] mx-auto flex flex-col items-center text-center">
           
-          {/* Prominent Tab Switcher Header */}
-          <div className="flex items-center justify-center gap-10 mb-8 border-b border-[#222] w-full pb-3">
-            <button
-              type="button"
-              onClick={() => switchTab("login")}
-              className={`font-heading text-3xl font-medium transition-colors cursor-pointer pb-2 relative ${
-                tab === "login" ? "text-white" : "text-[#555] hover:text-[#888]"
-              }`}
-            >
-              Sign in
-              {tab === "login" && (
-                <span className="absolute bottom-[-13px] left-0 right-0 h-[2px] bg-[#D4FF00]" />
-              )}
-            </button>
-            <button
-              type="button"
-              onClick={() => switchTab("signup")}
-              className={`font-heading text-3xl font-medium transition-colors cursor-pointer pb-2 relative ${
-                tab === "signup" ? "text-white" : "text-[#555] hover:text-[#888]"
-              }`}
-            >
-              Sign up
-              {tab === "signup" && (
-                <span className="absolute bottom-[-13px] left-0 right-0 h-[2px] bg-[#D4FF00]" />
-              )}
-            </button>
-          </div>
+          {/* Direct Title without Tabs */}
+          <h1 className="font-heading text-4xl sm:text-[44px] font-medium tracking-tight text-white mb-8">
+            Sign in
+          </h1>
 
           {/* Feedback Messages */}
           {errorMessage && (
@@ -266,7 +167,7 @@ function LoginContent({ initialTab = "login" }: { initialTab?: "login" | "signup
               <path fill="#FBBC05" d="M5.28 14.27a7.2 7.2 0 0 1 0-4.54V6.58H1.25a11.96 11.96 0 0 0 0 10.84l4.03-3.15Z" />
               <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.35 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.93 6.72-4.93Z" />
             </svg>
-            <span>{tab === "login" ? "Masuk dengan Google" : "Daftar dengan Google"}</span>
+            <span>Masuk dengan Google</span>
           </button>
 
           {/* Minimal Divider */}
@@ -276,124 +177,63 @@ function LoginContent({ initialTab = "login" }: { initialTab?: "login" | "signup
             <div className="flex-1 h-px bg-[#1f1f1f]" />
           </div>
 
-          {tab === "login" ? (
-            /* LOGIN FORM STACK */
-            <form onSubmit={handleLoginSubmit} className="w-full flex flex-col gap-3.5 sm:gap-4">
+          {/* LOGIN FORM STACK */}
+          <form onSubmit={handleLoginSubmit} className="w-full flex flex-col gap-3.5 sm:gap-4">
+            <input
+              type="email"
+              required
+              placeholder="Email"
+              value={loginEmail}
+              onChange={(e) => setLoginEmail(e.target.value)}
+              className="w-full bg-[#161616] hover:bg-[#1a1a1a] focus:bg-[#202020] text-white text-sm px-4.5 py-4 outline-none placeholder:text-[#555] transition-colors rounded-none font-sans"
+            />
+
+            <div className="relative w-full">
               <input
-                type="email"
+                type={showPassword ? "text" : "password"}
                 required
-                placeholder="Email"
-                value={loginEmail}
-                onChange={(e) => setLoginEmail(e.target.value)}
-                className="w-full bg-[#161616] hover:bg-[#1a1a1a] focus:bg-[#202020] text-white text-sm px-4.5 py-4 outline-none placeholder:text-[#555] transition-colors rounded-none font-sans"
+                placeholder="Password"
+                value={loginPassword}
+                onChange={(e) => setLoginPassword(e.target.value)}
+                className="w-full bg-[#161616] hover:bg-[#1a1a1a] focus:bg-[#202020] text-white text-sm px-4.5 py-4 pr-12 outline-none placeholder:text-[#555] transition-colors rounded-none font-sans"
               />
-
-              <div className="relative w-full">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  required
-                  placeholder="Password"
-                  value={loginPassword}
-                  onChange={(e) => setLoginPassword(e.target.value)}
-                  className="w-full bg-[#161616] hover:bg-[#1a1a1a] focus:bg-[#202020] text-white text-sm px-4.5 py-4 pr-12 outline-none placeholder:text-[#555] transition-colors rounded-none font-sans"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-[#666] hover:text-white transition-colors cursor-pointer"
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                >
-                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                </button>
-              </div>
-
-              {/* Submit Button with Corner Arrow Indicator */}
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full bg-[#FAF9F6] hover:bg-white active:scale-[0.99] text-[#0e0e0e] font-mono font-bold text-xs uppercase tracking-[0.25em] py-4.5 transition-all duration-200 cursor-pointer disabled:opacity-50 mt-3 sm:mt-4 flex items-center justify-center gap-2 rounded-none shadow-sm"
-              >
-                <CornerDownRight size={14} strokeWidth={2.5} />
-                <span>{isSubmitting ? "MEMPROSES..." : "SIGN IN"}</span>
-              </button>
-
-              {/* Forgot Password & Switch to Signup Links */}
-              <div className="flex flex-col items-center gap-2.5 mt-5">
-                <button
-                  type="button"
-                  onClick={() => setSuccessMessage("Tautan pemulihan kata sandi telah dikirim ke email Anda.")}
-                  className="text-xs font-sans text-[#666] hover:text-[#FAF9F6] transition-colors underline cursor-pointer"
-                >
-                  I can't remember my password
-                </button>
-                <button
-                  type="button"
-                  onClick={() => switchTab("signup")}
-                  className="text-xs font-sans text-[#888] hover:text-[#D4FF00] transition-colors cursor-pointer"
-                >
-                  Belum punya akun? <span className="underline font-semibold">Daftar sekarang</span>
-                </button>
-              </div>
-            </form>
-          ) : (
-            /* REGISTER FORM STACK */
-            <form onSubmit={handleSignupSubmit} className="w-full flex flex-col gap-3.5 sm:gap-4">
-              <input
-                type="text"
-                required
-                placeholder="Full Name"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                className="w-full bg-[#161616] hover:bg-[#1a1a1a] focus:bg-[#202020] text-white text-sm px-4.5 py-4 outline-none placeholder:text-[#555] transition-colors rounded-none font-sans"
-              />
-
-              <input
-                type="email"
-                required
-                placeholder="Email"
-                value={signupEmail}
-                onChange={(e) => setSignupEmail(e.target.value)}
-                className="w-full bg-[#161616] hover:bg-[#1a1a1a] focus:bg-[#202020] text-white text-sm px-4.5 py-4 outline-none placeholder:text-[#555] transition-colors rounded-none font-sans"
-              />
-
-              <div className="relative w-full">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  required
-                  placeholder="Create Password (min. 8 characters)"
-                  value={signupPassword}
-                  onChange={(e) => setSignupPassword(e.target.value)}
-                  className="w-full bg-[#161616] hover:bg-[#1a1a1a] focus:bg-[#202020] text-white text-sm px-4.5 py-4 pr-12 outline-none placeholder:text-[#555] transition-colors rounded-none font-sans"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-[#666] hover:text-white transition-colors cursor-pointer"
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                >
-                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                </button>
-              </div>
-
-              {/* Submit Button with Corner Arrow Indicator */}
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full bg-[#D4FF00] hover:bg-[#c2eb00] active:scale-[0.99] text-[#0e0e0e] font-mono font-bold text-xs uppercase tracking-[0.25em] py-4.5 transition-all duration-200 cursor-pointer disabled:opacity-50 mt-3 sm:mt-4 flex items-center justify-center gap-2 rounded-none shadow-sm"
-              >
-                <CornerDownRight size={14} strokeWidth={2.5} />
-                <span>{isSubmitting ? "MEMPROSES..." : "SIGN UP"}</span>
-              </button>
-
               <button
                 type="button"
-                onClick={() => switchTab("login")}
-                className="text-xs font-sans text-[#888] hover:text-[#FAF9F6] transition-colors mt-5 cursor-pointer"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-[#666] hover:text-white transition-colors cursor-pointer"
+                aria-label={showPassword ? "Hide password" : "Show password"}
               >
-                Sudah punya akun? <span className="underline font-semibold">Masuk di sini</span>
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
-            </form>
-          )}
+            </div>
+
+            {/* Submit Button with Corner Arrow Indicator */}
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full bg-[#FAF9F6] hover:bg-white active:scale-[0.99] text-[#0e0e0e] font-mono font-bold text-xs uppercase tracking-[0.25em] py-4.5 transition-all duration-200 cursor-pointer disabled:opacity-50 mt-3 sm:mt-4 flex items-center justify-center gap-2 rounded-none shadow-sm"
+            >
+              <CornerDownRight size={14} strokeWidth={2.5} />
+              <span>{isSubmitting ? "MEMPROSES..." : "SIGN IN"}</span>
+            </button>
+
+            {/* Links */}
+            <div className="flex flex-col items-center gap-2.5 mt-5">
+              <button
+                type="button"
+                onClick={() => setSuccessMessage("Tautan pemulihan kata sandi telah dikirim ke email Anda.")}
+                className="text-xs font-sans text-[#666] hover:text-[#FAF9F6] transition-colors underline cursor-pointer"
+              >
+                I can't remember my password
+              </button>
+              <Link
+                href="/signup"
+                className="text-xs font-sans text-[#888] hover:text-[#D4FF00] transition-colors cursor-pointer"
+              >
+                Belum punya akun? <span className="underline font-semibold">Daftar sekarang</span>
+              </Link>
+            </div>
+          </form>
 
           {/* Demo Quick Access */}
           <div className="w-full pt-8 mt-6 border-t border-[#181818] flex items-center justify-center gap-3">
@@ -430,10 +270,7 @@ function LoginContent({ initialTab = "login" }: { initialTab?: "login" | "signup
   );
 }
 
-export default function LoginPage({ initialTab = "login" }: { initialTab?: "login" | "signup" }) {
-  const pathname = usePathname();
-  const isSignup = pathname.includes("signup") || initialTab === "signup";
-
+export default function LoginPage() {
   return (
     <Suspense
       fallback={
@@ -442,7 +279,7 @@ export default function LoginPage({ initialTab = "login" }: { initialTab?: "logi
         </div>
       }
     >
-      <LoginContent key={isSignup ? "signup-view" : "login-view"} initialTab={isSignup ? "signup" : "login"} />
+      <LoginContent />
     </Suspense>
   );
 }
