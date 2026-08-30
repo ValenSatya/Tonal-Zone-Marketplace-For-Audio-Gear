@@ -2,8 +2,8 @@
 
 import React, { useState, Suspense } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
+import Navbar from "@/components/Navbar";
 import { useLanguage } from "@/context/LanguageContext";
 import { signUpUser, signInUser } from "@/app/actions/auth";
 import { Eye, EyeOff, CornerDownRight, Sparkles } from "lucide-react";
@@ -158,69 +158,11 @@ function LoginContent({ initialTab = "login" }: { initialTab?: "login" | "signup
   return (
     <div className="min-h-screen w-full bg-[#0a0a0a] text-[#FAF9F6] font-sans flex flex-col justify-between selection:bg-[#D4FF00] selection:text-[#0a0a0a] relative overflow-hidden">
       
-      {/* 1. TOP MINIMALIST NAVIGATION HEADER */}
-      <header className="w-full flex items-center justify-between px-6 sm:px-12 py-8 z-20">
-        {/* Brand Logo */}
-        <Link href="/" className="flex items-center gap-3 group">
-          <div className="w-7 h-7 flex items-center justify-center">
-            <Image
-              src="/logo.svg"
-              alt="Tonalzone Logo"
-              width={28}
-              height={28}
-              className="w-full h-full object-contain group-hover:rotate-90 transition-transform duration-500"
-            />
-          </div>
-          <span className="font-heading text-lg font-bold tracking-tight text-white">
-            Tonalzone
-          </span>
-        </Link>
-
-        {/* Center Links */}
-        <nav className="hidden md:flex items-center gap-8 text-xs font-mono uppercase tracking-[0.2em] text-[#888]">
-          <Link href="/collection" className="hover:text-white transition-colors">
-            Koleksi <span className="text-[10px] text-[#D4FF00] align-super">50+</span>
-          </Link>
-          <Link href="/graph" className="hover:text-white transition-colors">
-            Squiglink
-          </Link>
-          <Link href="/support" className="hover:text-white transition-colors">
-            Bantuan
-          </Link>
-        </nav>
-
-        {/* Right Switch Action */}
-        <div className="flex items-center gap-4">
-          {tab === "login" ? (
-            <button
-              onClick={() => {
-                setTab("signup");
-                setErrorMessage(null);
-                setSuccessMessage(null);
-              }}
-              className="bg-[#D4FF00] hover:bg-[#c2eb00] text-[#0e0e0e] px-4 py-2 text-xs font-mono font-bold uppercase tracking-wider flex items-center gap-1.5 transition-colors cursor-pointer"
-            >
-              <CornerDownRight size={13} strokeWidth={2.5} />
-              <span>DAFTAR AKUN</span>
-            </button>
-          ) : (
-            <button
-              onClick={() => {
-                setTab("login");
-                setErrorMessage(null);
-                setSuccessMessage(null);
-              }}
-              className="bg-[#FAF9F6] hover:bg-white text-[#0e0e0e] px-4 py-2 text-xs font-mono font-bold uppercase tracking-wider flex items-center gap-1.5 transition-colors cursor-pointer"
-            >
-              <CornerDownRight size={13} strokeWidth={2.5} />
-              <span>MASUK</span>
-            </button>
-          )}
-        </div>
-      </header>
+      {/* 1. AUTHENTIC TONALZONE NAVBAR */}
+      <Navbar />
 
       {/* 2. CENTER ULTRA-MINIMALIST AUTH CORE */}
-      <main className="w-full flex-1 flex flex-col items-center justify-center px-6 py-12 z-10">
+      <main className="w-full flex-1 flex flex-col items-center justify-center px-6 py-24 pt-36 z-10">
         <div className="w-full max-w-[380px] mx-auto flex flex-col items-center text-center">
           
           {/* Main Title */}
@@ -305,14 +247,27 @@ function LoginContent({ initialTab = "login" }: { initialTab?: "login" | "signup
                 <span>{isSubmitting ? "MEMPROSES..." : "SIGN IN"}</span>
               </button>
 
-              {/* Forgot Password Link */}
-              <button
-                type="button"
-                onClick={() => setSuccessMessage("Tautan pemulihan kata sandi telah dikirim ke email Anda.")}
-                className="text-xs font-sans text-[#666] hover:text-[#FAF9F6] transition-colors mt-4 underline cursor-pointer"
-              >
-                I can't remember my password
-              </button>
+              {/* Forgot Password & Switch to Signup Links */}
+              <div className="flex flex-col items-center gap-2 mt-4">
+                <button
+                  type="button"
+                  onClick={() => setSuccessMessage("Tautan pemulihan kata sandi telah dikirim ke email Anda.")}
+                  className="text-xs font-sans text-[#666] hover:text-[#FAF9F6] transition-colors underline cursor-pointer"
+                >
+                  I can't remember my password
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setTab("signup");
+                    setErrorMessage(null);
+                    setSuccessMessage(null);
+                  }}
+                  className="text-xs font-sans text-[#888] hover:text-[#D4FF00] transition-colors cursor-pointer"
+                >
+                  Belum punya akun? <span className="underline font-semibold">Daftar sekarang</span>
+                </button>
+              </div>
             </form>
           ) : (
             /* REGISTER FORM STACK */
@@ -366,10 +321,14 @@ function LoginContent({ initialTab = "login" }: { initialTab?: "login" | "signup
 
               <button
                 type="button"
-                onClick={() => setTab("login")}
-                className="text-xs font-sans text-[#666] hover:text-[#FAF9F6] transition-colors mt-4 underline cursor-pointer"
+                onClick={() => {
+                  setTab("login");
+                  setErrorMessage(null);
+                  setSuccessMessage(null);
+                }}
+                className="text-xs font-sans text-[#888] hover:text-[#FAF9F6] transition-colors mt-4 cursor-pointer"
               >
-                Already have an account? Sign in
+                Sudah punya akun? <span className="underline font-semibold">Masuk di sini</span>
               </button>
             </form>
           )}
