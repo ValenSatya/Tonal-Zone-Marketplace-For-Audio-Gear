@@ -1,14 +1,85 @@
 ﻿"use client";
 
-import React, { useState, useRef, Suspense } from "react";
+import React, { useState, useRef, useEffect, Suspense } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import { useLanguage } from "@/context/LanguageContext";
 import { signUpUser } from "@/app/actions/auth";
-import { Eye, EyeOff, CornerDownRight, ArrowLeft, Check, Camera, Sparkles } from "lucide-react";
+import { Eye, EyeOff, CornerDownRight, ArrowLeft, Check, Camera, ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+
+// Custom Tonalzone Styled Dropdown
+function CustomDropdown({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  options: { value: string; label: string }[];
+  onChange: (val: string) => void;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const selectedOption = options.find((o) => o.value === value) || options[0];
+
+  return (
+    <div className="relative w-full text-left" ref={dropdownRef}>
+      <label className="block text-[11px] font-mono uppercase tracking-widest text-[#888] mb-1.5 font-semibold">
+        {label}
+      </label>
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full bg-[#161616] hover:bg-[#1a1a1a] focus:bg-[#202020] text-white text-xs font-mono px-4 py-3.5 outline-none border border-[#222] focus:border-[#D4FF00] rounded-none cursor-pointer flex items-center justify-between transition-colors"
+      >
+        <span className="truncate">{selectedOption.label}</span>
+        <ChevronDown
+          size={14}
+          className={`text-[#777] transition-transform duration-200 shrink-0 ml-2 ${
+            isOpen ? "rotate-180 text-white" : ""
+          }`}
+        />
+      </button>
+
+      {isOpen && (
+        <div className="absolute top-full left-0 right-0 mt-1 bg-[#141414] border border-[#262626] shadow-[0_15px_35px_rgba(0,0,0,0.85)] z-50 overflow-hidden">
+          {options.map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => {
+                onChange(opt.value);
+                setIsOpen(false);
+              }}
+              className={`w-full text-left px-4 py-3 text-xs font-mono transition-colors cursor-pointer flex items-center justify-between ${
+                opt.value === value
+                  ? "bg-[#202020] text-[#D4FF00] font-bold"
+                  : "text-[#888] hover:text-white hover:bg-[#1a1a1a]"
+              }`}
+            >
+              <span>{opt.label}</span>
+              {opt.value === value && <Check size={12} className="text-[#D4FF00]" />}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function SignupContent() {
   const router = useRouter();
@@ -194,20 +265,19 @@ function SignupContent() {
 
       {/* 2. PROGRESSIVE MULTI-STEP SIGNUP CORE */}
       <main className="w-full flex-1 flex flex-col items-center justify-center px-6 py-24 pt-36 z-10">
-        <div className="w-full max-w-[420px] mx-auto flex flex-col items-center text-center">
+        <div className="w-full max-w-[380px] mx-auto flex flex-col items-center text-center">
           
-          {/* Progressive Step Progress Indicator */}
-          <div className="w-full mb-8">
-            <div className="flex items-center justify-between text-[11px] font-mono uppercase tracking-widest text-[#888] mb-3">
+          {/* Subtle Clean Step Progress Bar */}
+          <div className="w-full mb-6">
+            <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-widest text-[#666] mb-2.5">
               <span>Langkah 0{step} / 03</span>
-              <span className="text-[#D4FF00] font-semibold">
-                {step === 1 && "Kredensial & Wilayah"}
-                {step === 2 && "Profil & Avatar"}
+              <span className="text-[#D4FF00]">
+                {step === 1 && "Kredensial"}
+                {step === 2 && "Profil"}
                 {step === 3 && "Preferensi Audio"}
               </span>
             </div>
-            {/* 3-Bar Progress Line */}
-            <div className="grid grid-cols-3 gap-2 w-full h-[3px]">
+            <div className="grid grid-cols-3 gap-2 w-full h-[2px]">
               <div className={`h-full transition-colors duration-300 ${step >= 1 ? "bg-[#D4FF00]" : "bg-[#222]"}`} />
               <div className={`h-full transition-colors duration-300 ${step >= 2 ? "bg-[#D4FF00]" : "bg-[#222]"}`} />
               <div className={`h-full transition-colors duration-300 ${step >= 3 ? "bg-[#D4FF00]" : "bg-[#222]"}`} />
@@ -216,13 +286,13 @@ function SignupContent() {
 
           {/* Feedback Messages */}
           {errorMessage && (
-            <div className="w-full mb-6 p-3.5 bg-[#161616] text-red-400 text-xs font-sans text-left border-l-2 border-red-500">
+            <div className="w-full mb-5 p-3.5 bg-[#161616] text-red-400 text-xs font-sans text-left border-l-2 border-red-500">
               {errorMessage}
             </div>
           )}
 
           {successMessage && (
-            <div className="w-full mb-6 p-3.5 bg-[#161616] text-[#D4FF00] text-xs font-mono text-left border-l-2 border-[#D4FF00]">
+            <div className="w-full mb-5 p-3.5 bg-[#161616] text-[#D4FF00] text-xs font-mono text-left border-l-2 border-[#D4FF00]">
               {successMessage}
             </div>
           )}
@@ -232,18 +302,15 @@ function SignupContent() {
             {step === 1 && (
               <motion.div
                 key="signup-step-1"
-                initial={{ opacity: 0, x: -10 }}
+                initial={{ opacity: 0, x: -8 }}
                 animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 10 }}
-                transition={{ duration: 0.2 }}
+                exit={{ opacity: 0, x: 8 }}
+                transition={{ duration: 0.15 }}
                 className="w-full flex flex-col items-center"
               >
-                <h1 className="font-heading text-4xl sm:text-[44px] font-medium tracking-tight text-white mb-2">
+                <h1 className="font-heading text-4xl sm:text-[44px] font-medium tracking-tight text-white mb-8">
                   Sign up
                 </h1>
-                <p className="text-xs font-mono uppercase tracking-widest text-[#888] mb-8">
-                  Kredensial Akun & Preferensi Wilayah
-                </p>
 
                 {/* Google OAuth Button */}
                 <button
@@ -321,37 +388,29 @@ function SignupContent() {
                     />
                   </div>
 
-                  {/* Bahasa & Lokasi */}
+                  {/* Custom Styled Dropdowns */}
                   <div className="grid grid-cols-2 gap-3 pt-1">
-                    <div>
-                      <label className="block text-[11px] font-mono uppercase tracking-widest text-[#888] mb-1.5 font-semibold">
-                        Bahasa
-                      </label>
-                      <select
-                        value={language}
-                        onChange={(e) => setLanguage(e.target.value)}
-                        className="w-full bg-[#161616] text-white text-xs font-mono px-3.5 py-3.5 outline-none border border-[#222] focus:border-[#D4FF00] rounded-none cursor-pointer"
-                      >
-                        <option value="id">Indonesia (ID)</option>
-                        <option value="en">English (EN)</option>
-                      </select>
-                    </div>
+                    <CustomDropdown
+                      label="Bahasa"
+                      value={language}
+                      onChange={setLanguage}
+                      options={[
+                        { value: "id", label: "Indonesia (ID)" },
+                        { value: "en", label: "English (EN)" },
+                      ]}
+                    />
 
-                    <div>
-                      <label className="block text-[11px] font-mono uppercase tracking-widest text-[#888] mb-1.5 font-semibold">
-                        Lokasi
-                      </label>
-                      <select
-                        value={location}
-                        onChange={(e) => setLocation(e.target.value)}
-                        className="w-full bg-[#161616] text-white text-xs font-mono px-3.5 py-3.5 outline-none border border-[#222] focus:border-[#D4FF00] rounded-none cursor-pointer"
-                      >
-                        <option value="Indonesia">Indonesia</option>
-                        <option value="Singapore">Singapore</option>
-                        <option value="Malaysia">Malaysia</option>
-                        <option value="International">International</option>
-                      </select>
-                    </div>
+                    <CustomDropdown
+                      label="Lokasi"
+                      value={location}
+                      onChange={setLocation}
+                      options={[
+                        { value: "Indonesia", label: "Indonesia" },
+                        { value: "Singapore", label: "Singapore" },
+                        { value: "Malaysia", label: "Malaysia" },
+                        { value: "International", label: "International" },
+                      ]}
+                    />
                   </div>
 
                   {/* Next Step Button */}
@@ -379,35 +438,35 @@ function SignupContent() {
             {step === 2 && (
               <motion.div
                 key="signup-step-2"
-                initial={{ opacity: 0, x: 10 }}
+                initial={{ opacity: 0, x: 8 }}
                 animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -10 }}
-                transition={{ duration: 0.2 }}
+                exit={{ opacity: 0, x: -8 }}
+                transition={{ duration: 0.15 }}
                 className="w-full flex flex-col items-center"
               >
-                <h1 className="font-heading text-4xl sm:text-[44px] font-medium tracking-tight text-white mb-2">
-                  Atur Profil
+                <h1 className="font-heading text-4xl sm:text-[44px] font-medium tracking-tight text-white mb-8">
+                  Profile
                 </h1>
-                <p className="text-xs font-mono uppercase tracking-widest text-[#888] mb-8">
-                  Pilih Foto Profil & Username Anda
-                </p>
 
-                <form onSubmit={handleNextToStep3} className="w-full flex flex-col gap-6 text-left">
+                <form onSubmit={handleNextToStep3} className="w-full flex flex-col gap-5 text-left">
                   {/* Avatar Upload Container */}
-                  <div className="flex flex-col items-center justify-center gap-4 py-2">
-                    <div className="relative group cursor-pointer" onClick={() => avatarInputRef.current?.click()}>
-                      <div className="w-24 h-24 rounded-none bg-[#161616] border-2 border-[#333] group-hover:border-[#D4FF00] overflow-hidden flex items-center justify-center transition-colors">
+                  <div className="flex flex-col items-center justify-center gap-3 py-1">
+                    <div
+                      className="relative group cursor-pointer"
+                      onClick={() => avatarInputRef.current?.click()}
+                    >
+                      <div className="w-20 h-20 rounded-none bg-[#161616] border border-[#333] group-hover:border-[#D4FF00] overflow-hidden flex items-center justify-center transition-colors">
                         {avatarPreview && avatarPreview !== "/placeholder.svg" ? (
                           <img src={avatarPreview} alt="Avatar Preview" className="w-full h-full object-cover" />
                         ) : (
                           <div className="flex flex-col items-center justify-center text-[#666] group-hover:text-white transition-colors">
-                            <Camera size={24} strokeWidth={1.5} />
-                            <span className="text-[10px] font-mono uppercase tracking-wider mt-1">Upload</span>
+                            <Camera size={22} strokeWidth={1.5} />
+                            <span className="text-[9px] font-mono uppercase tracking-wider mt-1">Upload</span>
                           </div>
                         )}
                       </div>
-                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-xs font-mono text-[#D4FF00]">
-                        Ganti
+                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-[10px] font-mono text-[#D4FF00]">
+                        Ganti Foto
                       </div>
                     </div>
 
@@ -419,8 +478,8 @@ function SignupContent() {
                       className="hidden"
                     />
 
-                    <p className="text-[11px] font-mono text-[#777] text-center">
-                      Format PNG / JPG (Maks. 2MB). Opsional.
+                    <p className="text-[10px] font-mono text-[#666] text-center">
+                      Format PNG/JPG maks 2MB (Opsional)
                     </p>
                   </div>
 
@@ -441,7 +500,7 @@ function SignupContent() {
                   </div>
 
                   {/* Navigation Buttons */}
-                  <div className="flex items-center gap-3 mt-2">
+                  <div className="flex items-center gap-3 mt-3">
                     <button
                       type="button"
                       onClick={() => setStep(1)}
@@ -455,7 +514,7 @@ function SignupContent() {
                       type="submit"
                       className="flex-1 bg-[#FAF9F6] hover:bg-white active:scale-[0.99] text-[#0e0e0e] font-mono font-bold text-xs uppercase tracking-[0.2em] py-4.5 transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 rounded-none shadow-sm"
                     >
-                      <span>PREFERENSI AUDIO</span>
+                      <span>PREFERENSI</span>
                       <CornerDownRight size={14} strokeWidth={2.5} />
                     </button>
                   </div>
@@ -467,35 +526,31 @@ function SignupContent() {
             {step === 3 && (
               <motion.div
                 key="signup-step-3"
-                initial={{ opacity: 0, x: 10 }}
+                initial={{ opacity: 0, x: 8 }}
                 animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -10 }}
-                transition={{ duration: 0.2 }}
+                exit={{ opacity: 0, x: -8 }}
+                transition={{ duration: 0.15 }}
                 className="w-full flex flex-col items-center"
               >
-                <h1 className="font-heading text-4xl sm:text-[44px] font-medium tracking-tight text-white mb-2">
-                  Profil Audio
+                <h1 className="font-heading text-4xl sm:text-[44px] font-medium tracking-tight text-white mb-8">
+                  Audio Setup
                 </h1>
-                <p className="text-xs font-mono uppercase tracking-widest text-[#888] mb-8">
-                  Tingkat Pengalaman & Karakter Suara
-                </p>
 
-                <form onSubmit={handleFinalSignup} className="w-full flex flex-col gap-6 text-left">
+                <form onSubmit={handleFinalSignup} className="w-full flex flex-col gap-5 text-left">
                   
                   {/* Level Pengalaman (FR-02) */}
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <label className="text-[11px] font-mono uppercase tracking-widest text-[#D4FF00] font-semibold">
-                        Tingkat Pengalaman (User Level)
+                        Tingkat Pengalaman (FR-02)
                       </label>
-                      <span className="text-[10px] font-mono text-[#666]">FR-02</span>
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       {[
-                        { id: "Beginner", label: "Beginner", desc: "Baru masuk dunia audio / IEM" },
-                        { id: "Intermediate", label: "Intermediate", desc: "Paham tonal & sound signature" },
-                        { id: "Enthusiast", label: "Enthusiast", desc: "Mencari resolusi & technicalities" },
-                        { id: "Flagship", label: "Summit-Fi", desc: "Endgame gear & critical listening" },
+                        { id: "Beginner", label: "Beginner", desc: "Baru masuk dunia audio" },
+                        { id: "Intermediate", label: "Intermediate", desc: "Paham tonal & signature" },
+                        { id: "Enthusiast", label: "Enthusiast", desc: "Resolusi & technicalities" },
+                        { id: "Flagship", label: "Summit-Fi", desc: "Critical listening" },
                       ].map((lvl) => (
                         <button
                           key={lvl.id}
@@ -507,9 +562,9 @@ function SignupContent() {
                               : "border-[#1e1e1e] bg-[#141414] text-[#888] hover:text-white hover:border-[#333]"
                           }`}
                         >
-                          <div className="flex items-center justify-between font-mono font-bold text-xs mb-1">
+                          <div className="flex items-center justify-between font-mono font-bold text-xs mb-0.5">
                             <span className={experienceLevel === lvl.id ? "text-[#D4FF00]" : "text-white"}>{lvl.label}</span>
-                            {experienceLevel === lvl.id && <Check size={13} className="text-[#D4FF00]" />}
+                            {experienceLevel === lvl.id && <Check size={12} className="text-[#D4FF00]" />}
                           </div>
                           <p className="text-[10px] font-sans text-[#777] leading-tight line-clamp-1">{lvl.desc}</p>
                         </button>
@@ -520,7 +575,7 @@ function SignupContent() {
                   {/* Karakteristik Suara (Sound Signature) */}
                   <div>
                     <label className="block text-[11px] font-mono uppercase tracking-widest text-[#D4FF00] mb-2 font-semibold">
-                      Karakteristik Suara Favorit (Sound Signature)
+                      Karakter Suara Favorit
                     </label>
                     <div className="grid grid-cols-2 gap-2">
                       {[
@@ -549,7 +604,7 @@ function SignupContent() {
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="flex items-center gap-3 mt-2">
+                  <div className="flex items-center gap-3 mt-3">
                     <button
                       type="button"
                       onClick={() => setStep(2)}
