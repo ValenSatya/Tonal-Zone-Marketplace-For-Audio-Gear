@@ -158,44 +158,67 @@ export default function Home() {
           </div>
 
           <div className="flex-1 w-full grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="sm:col-span-2 relative aspect-[16/10] border border-[#1c1c1c] overflow-hidden bg-[#121212] group cursor-pointer hover:border-[#333333] transition-colors duration-300">
+            {/* 1. Main DSP Collab Feature Card */}
+            <div className="sm:col-span-2 relative aspect-[16/10] border border-[#1c1c1c] overflow-hidden bg-[#0a0a0a] group cursor-pointer hover:border-[#333333] transition-colors duration-300">
               <Image
                 src="https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=1000"
                 alt="Moondrop x Crinacle Dusk"
                 fill
-                className="object-cover group-hover:scale-105 transition-transform duration-700 opacity-70 group-hover:opacity-90"
+                className="object-cover group-hover:scale-105 transition-transform duration-700 opacity-80 group-hover:opacity-95"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent" />
-              <div className="absolute bottom-4 left-4 bg-black/80 px-3 py-1 text-[10px] font-mono uppercase tracking-widest text-white border border-[#222222]">
+              <div className="absolute bottom-4 left-4 bg-black/90 px-3 py-1.5 text-[10px] font-mono uppercase tracking-widest text-white border border-[#222222] z-10 font-bold">
                 {t("home.dspEnabled")}
               </div>
             </div>
 
-            <div className="relative aspect-square border border-[#1c1c1c] overflow-hidden bg-[#121212] group cursor-pointer hover:border-[#333333] transition-colors duration-300">
+            {/* 2. FreeDSP Cable Sub-card */}
+            <div className="relative aspect-square border border-[#1c1c1c] overflow-hidden bg-[#0a0a0a] group cursor-pointer hover:border-[#333333] transition-colors duration-300">
               <Image
-                src="https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=800"
-                alt="Acoustic Tuning"
+                src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800"
+                alt="Audiophile IEM Cable"
                 fill
-                className="object-cover group-hover:scale-105 transition-transform duration-700 opacity-70 group-hover:opacity-90"
+                className="object-cover group-hover:scale-105 transition-transform duration-700 opacity-80 group-hover:opacity-95"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent" />
-              <div className="absolute bottom-3 left-3 text-[10px] font-mono text-[#888888] uppercase tracking-wider">
-                Type-C FreeDSP Cable
+              <div className="absolute bottom-4 left-4 text-[10px] font-mono text-white/90 uppercase tracking-wider bg-black/90 px-2.5 py-1 border border-[#222222] z-10 font-bold">
+                TYPE-C FREEDSP CABLE
               </div>
             </div>
 
+            {/* 3. Interactive Pixel Transition Card */}
             <Link
               href="/collection"
-              className="relative aspect-square border border-[#1c1c1c] bg-[#121212] hover:bg-[#181818] hover:border-[#333333] transition-colors duration-300 flex flex-col items-center justify-center p-6 text-center group cursor-pointer"
+              className="border border-[#1c1c1c] bg-[#0a0a0a] group cursor-pointer hover:border-[#FAF9F6]/50 transition-colors duration-500 relative aspect-square block overflow-hidden"
             >
-              <div className="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center text-white group-hover:scale-110 group-hover:bg-white group-hover:text-black transition-all duration-300 mb-3">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14M12 5l7 7-7 7" />
-                </svg>
-              </div>
-              <span className="text-xs font-mono uppercase tracking-widest text-white font-bold">
-                {t("home.exploreMore")}
-              </span>
+              <PixelTransition
+                firstContent={
+                  <div className="flex flex-col items-center justify-center w-full h-full p-4 text-center select-none">
+                    <div className="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center text-white mb-4 group-hover:scale-110 transition-transform">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14M12 5l7 7-7 7" />
+                      </svg>
+                    </div>
+                    <span className="text-xs font-mono font-bold uppercase tracking-wider text-white">
+                      {t("home.exploreMore")}
+                    </span>
+                  </div>
+                }
+                secondContent={
+                  <div className="w-full h-full bg-[#D4FF00] flex flex-col items-center justify-center relative p-4 text-center select-none">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-[#0e0e0e] rotate-45 mb-2">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14M12 5l7 7-7 7"></path>
+                    </svg>
+                    <span className="text-xs font-mono uppercase tracking-widest text-[#0e0e0e] font-bold">
+                      {t("home.exploreMore")}
+                    </span>
+                  </div>
+                }
+                gridSize={8}
+                pixelColor="#D4FF00"
+                animationStepDuration={0.3}
+                className="w-full h-full absolute inset-0"
+              />
             </Link>
           </div>
         </motion.div>
