@@ -14,6 +14,7 @@ import {
   FloatingIemModel,
   RevealCard,
 } from "@/components/InteractiveLandingVisuals";
+import { ArrowUpRight } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useLocation } from "@/context/LocationContext";
 import { motion, useScroll, useTransform } from "motion/react";
@@ -170,40 +171,24 @@ export default function Home() {
               </div>
             </div>
 
-            {/* 3. Sharp Geometric Pixel Arrow Card */}
+            {/* 3. Clean Interactive Exploration Card */}
             <Link
               href="/collection"
               className="border border-[#1c1c1c] bg-[#0a0a0a] hover:bg-[#D4FF00] group cursor-pointer hover:border-[#D4FF00] transition-all duration-500 relative aspect-square flex flex-col items-center justify-center p-6 text-center overflow-hidden select-none"
             >
-              {/* Sharp Pixel Arrow Container */}
-              <div className="w-14 h-14 border border-white/20 bg-white/[0.03] group-hover:border-[#0e0e0e]/40 group-hover:bg-black/5 flex items-center justify-center text-[#FAF9F6] group-hover:text-[#0e0e0e] transition-all duration-500 mb-4">
-                <svg
-                  width="22"
-                  height="22"
-                  viewBox="0 0 16 16"
-                  fill="currentColor"
-                  shapeRendering="crispEdges"
+              {/* Official Icon Pack: ArrowUpRight with smooth glide */}
+              <div className="text-[#FAF9F6] group-hover:text-[#0e0e0e] transition-colors duration-500 mb-3">
+                <ArrowUpRight
+                  size={36}
+                  strokeWidth={2}
                   className="transition-transform duration-500 ease-out group-hover:translate-x-1.5 group-hover:-translate-y-1.5"
-                >
-                  <rect x="6" y="2" width="8" height="2" />
-                  <rect x="12" y="4" width="2" height="8" />
-                  <rect x="10" y="4" width="2" height="2" />
-                  <rect x="8" y="6" width="2" height="2" />
-                  <rect x="6" y="8" width="2" height="2" />
-                  <rect x="4" y="10" width="2" height="2" />
-                  <rect x="2" y="12" width="2" height="2" />
-                </svg>
+                />
               </div>
 
-              {/* Clean Editorial Typography */}
-              <div className="flex flex-col items-center">
-                <span className="text-[10px] font-mono uppercase tracking-[0.25em] text-[#666666] group-hover:text-[#0e0e0e]/70 transition-colors duration-500 mb-1 font-semibold">
-                  Katalog
-                </span>
-                <span className="text-sm font-sans font-medium tracking-wide text-[#FAF9F6] group-hover:text-[#0e0e0e] transition-colors duration-500">
-                  {t("home.exploreMore")}
-                </span>
-              </div>
+              {/* Main Clean Text */}
+              <span className="text-sm sm:text-base font-sans font-medium tracking-wide text-[#FAF9F6] group-hover:text-[#0e0e0e] transition-colors duration-500">
+                {t("home.exploreMore")}
+              </span>
             </Link>
           </div>
         </motion.div>
