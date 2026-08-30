@@ -170,39 +170,44 @@ export default function Home() {
               </div>
             </div>
 
-            {/* 3. Interactive Pixel Transition Card */}
+            {/* 3. Luxury Interactive Exploration Card */}
             <Link
               href="/collection"
-              className="border border-[#1c1c1c] bg-[#0a0a0a] group cursor-pointer hover:border-[#FAF9F6]/50 transition-colors duration-500 relative aspect-square block overflow-hidden"
+              className="border border-[#1c1c1c] bg-[#0c0c0c] hover:bg-[#121212] group cursor-pointer hover:border-[#333333] transition-all duration-500 relative aspect-square flex flex-col items-center justify-center p-6 text-center overflow-hidden"
             >
-              <PixelTransition
-                firstContent={
-                  <div className="flex flex-col items-center justify-center w-full h-full p-4 text-center select-none">
-                    <div className="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center text-white mb-4 group-hover:scale-110 transition-transform">
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14M12 5l7 7-7 7" />
-                      </svg>
-                    </div>
-                    <span className="text-xs font-mono font-bold uppercase tracking-wider text-white">
-                      {t("home.exploreMore")}
-                    </span>
-                  </div>
-                }
-                secondContent={
-                  <div className="w-full h-full bg-[#D4FF00] flex flex-col items-center justify-center relative p-4 text-center select-none">
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-[#0e0e0e] rotate-45 mb-2">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14M12 5l7 7-7 7"></path>
-                    </svg>
-                    <span className="text-xs font-mono uppercase tracking-widest text-[#0e0e0e] font-bold">
-                      {t("home.exploreMore")}
-                    </span>
-                  </div>
-                }
-                gridSize={8}
-                pixelColor="#D4FF00"
-                animationStepDuration={0.3}
-                className="w-full h-full absolute inset-0"
-              />
+              {/* Ambient radial glow on hover */}
+              <div className="absolute inset-0 bg-radial from-[#D4FF00]/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+
+              {/* Minimal corner accent dot */}
+              <div className="absolute top-3 right-3 w-1.5 h-1.5 rounded-full bg-white/20 group-hover:bg-[#D4FF00] transition-colors duration-300" />
+
+              {/* Refined Circular Arrow Badge with glide physics */}
+              <div className="relative z-10 w-13 h-13 sm:w-14 sm:h-14 rounded-full border border-white/15 bg-white/[0.03] backdrop-blur-sm flex items-center justify-center text-white group-hover:border-[#D4FF00] group-hover:bg-[#D4FF00] group-hover:text-[#0e0e0e] group-hover:scale-105 transition-all duration-400 shadow-md group-hover:shadow-[0_0_25px_rgba(212,255,0,0.15)] mb-4">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                >
+                  <line x1="7" y1="17" x2="17" y2="7"></line>
+                  <polyline points="7 7 17 7 17 17"></polyline>
+                </svg>
+              </div>
+
+              {/* Clean Editorial Typography */}
+              <div className="relative z-10 flex flex-col items-center">
+                <span className="text-[10px] font-mono uppercase tracking-[0.25em] text-[#666666] group-hover:text-[#888888] transition-colors mb-1">
+                  Katalog
+                </span>
+                <span className="text-sm font-sans font-medium tracking-wide text-[#FAF9F6] group-hover:text-white transition-colors duration-300">
+                  {t("home.exploreMore")}
+                </span>
+              </div>
             </Link>
           </div>
         </motion.div>
