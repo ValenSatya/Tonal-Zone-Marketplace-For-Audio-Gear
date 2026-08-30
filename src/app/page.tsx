@@ -48,10 +48,9 @@ export default function Home() {
 
             {/* Left Column: Title, Subtitle, Price, and Action Buttons */}
             <div className="flex flex-col items-start max-w-xl z-20 relative mt-10 md:mt-0">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-[#0e0e0e]/5 border border-[#0e0e0e]/10 hover:border-[#0e0e0e] transition-colors duration-300 rounded-full mb-6">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#0e0e0e]"></span>
-                <p className="text-[11px] font-mono uppercase tracking-[0.2em] font-bold text-[#0e0e0e]/80">Hype For Audiophiles</p>
-              </div>
+              <span className="text-xs font-mono uppercase tracking-[0.3em] font-semibold text-[#0e0e0e]/60 block mb-4">
+                CURATED AUDIOPHILE FLAGSHIP
+              </span>
 
               <motion.h1 
                 initial={{ opacity: 0, y: 20 }}
@@ -123,73 +122,81 @@ export default function Home() {
       </section>
 
       {/* COLLAB SECTION */}
-      <section id="collab" className="w-full bg-[#0e0e0e] py-40 border-b border-[#444748]">
+      <section id="collab" className="w-full bg-[#0a0a0a] py-32 border-b border-[#1c1c1c]">
         <motion.div 
-          initial={{ opacity: 0, y: 50 }} 
+          initial={{ opacity: 0, y: 40 }} 
           whileInView={{ opacity: 1, y: 0 }} 
-          viewport={{ once: true, margin: "-100px" }} 
+          viewport={{ once: true, margin: "-80px" }} 
           transition={{ duration: 0.8, ease: "easeOut" }}
-          className="max-w-[1400px] mx-auto px-6 lg:px-12 flex flex-col md:flex-row gap-10 md:gap-16"
+          className="max-w-[1400px] mx-auto px-6 lg:px-12 flex flex-col md:flex-row gap-12 md:gap-16 items-center"
         >
           <div className="flex-1 flex flex-col items-start justify-center">
-            <div className="flex items-center gap-2 mb-6">
-              <span className="w-1.5 h-1.5 bg-[#FAF9F6]/50"></span>
-              <p className="text-[11px] uppercase tracking-[0.2em] text-[#FAF9F6]/50">{t("home.collabSeries")}</p>
-            </div>
-            <h2 className="font-heading text-4xl sm:text-5xl md:text-6xl uppercase tracking-tight mb-8 leading-[1.1] text-[#FAF9F6] cursor-default">Moondrop<br />x<br />Crinacle<br />Dusk</h2>
-            <MotionButton variant="light" className="mb-12">
-              {t("home.viewProduct")}
-            </MotionButton>
-            <p className="text-[#FAF9F6]/70 leading-relaxed text-sm max-w-md">
+            <span className="text-xs font-mono uppercase tracking-[0.3em] text-[#888888] block mb-3">
+              {t("home.collabSeries")}
+            </span>
+            <h2 className="font-heading text-4xl sm:text-5xl md:text-6xl uppercase tracking-tight mb-6 leading-[1.05] text-[#FAF9F6] cursor-default">
+              Moondrop<br />x Crinacle<br />Dusk
+            </h2>
+            <p className="text-[#888888] leading-relaxed text-sm max-w-md mb-8">
               {t("home.duskDesc")}
             </p>
-            <div className="flex gap-12 mt-12 pt-8 border-t border-[#444748] w-full max-w-md">
-              <div className="group cursor-default">
-                <p className="text-[10px] text-[#FAF9F6]/50 uppercase tracking-[0.2em] mb-2 group-hover:translate-x-1 transition-transform">{t("home.driver")}</p>
-                <p className="font-medium text-[#FAF9F6]">2DD + 4BA + 2Planar</p>
+            <Link href="/collection" className="mb-10">
+              <MotionButton variant="white">
+                {t("home.viewProduct")}
+              </MotionButton>
+            </Link>
+            <div className="grid grid-cols-2 gap-8 pt-8 border-t border-[#1c1c1c] w-full max-w-md">
+              <div>
+                <p className="text-[10px] font-mono text-[#888888] uppercase tracking-[0.2em] mb-1">{t("home.driver")}</p>
+                <p className="font-sans font-medium text-white text-sm">2DD + 4BA + 2Planar</p>
               </div>
-              <div className="group cursor-default">
-                <p className="text-[10px] text-[#FAF9F6]/50 uppercase tracking-[0.2em] mb-2 group-hover:translate-x-1 transition-transform">{t("home.signature")}</p>
-                <p className="font-medium text-[#FAF9F6]">{t("home.neutralBass")}</p>
+              <div>
+                <p className="text-[10px] font-mono text-[#888888] uppercase tracking-[0.2em] mb-1">{t("home.signature")}</p>
+                <p className="font-sans font-medium text-white text-sm">{t("home.neutralBass")}</p>
               </div>
             </div>
           </div>
 
-          <div className="flex-1 grid grid-cols-2 gap-4 grid-rows-2">
-            <div className="col-span-2 border border-[#444748] bg-[#0a0a0a] flex items-center justify-center p-8 relative overflow-hidden group cursor-pointer hover:border-[#FAF9F6]/50 transition-colors duration-500">
-              {/* Decorative corner accents */}
-              <div className="absolute top-0 left-0 w-4 h-4 border-t border-l border-[#FAF9F6]/30 m-4 group-hover:border-[#FAF9F6] group-hover:w-8 group-hover:h-8 transition-[width,height] duration-300"></div>
-              <div className="absolute bottom-0 right-0 w-4 h-4 border-b border-r border-[#FAF9F6]/30 m-4 group-hover:border-[#FAF9F6] group-hover:w-8 group-hover:h-8 transition-[width,height] duration-300"></div>
-              <div className="w-full h-48 bg-zinc-800 opacity-50 flex items-center justify-center border border-zinc-700 relative group-hover:scale-105 group-hover:opacity-75 transition-[transform,opacity] duration-700">
-                <div className="absolute bottom-4 left-4 bg-black/90 px-3 py-1.5 text-[10px] uppercase tracking-widest border border-[#444748] group-hover:border-[#FAF9F6]/50 group-hover:text-[#FAF9F6] transition-colors">{t("home.dspEnabled")}</div>
+          <div className="flex-1 w-full grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="sm:col-span-2 relative aspect-[16/10] border border-[#1c1c1c] overflow-hidden bg-[#121212] group cursor-pointer hover:border-[#333333] transition-colors duration-300">
+              <Image
+                src="https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=1000"
+                alt="Moondrop x Crinacle Dusk"
+                fill
+                className="object-cover group-hover:scale-105 transition-transform duration-700 opacity-70 group-hover:opacity-90"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent" />
+              <div className="absolute bottom-4 left-4 bg-black/80 px-3 py-1 text-[10px] font-mono uppercase tracking-widest text-white border border-[#222222]">
+                {t("home.dspEnabled")}
               </div>
             </div>
-            <div className="border border-[#444748] bg-[#0a0a0a] p-4 flex items-center justify-center group cursor-pointer hover:border-[#FAF9F6]/50 transition-colors duration-500">
-              <div className="w-full aspect-square bg-zinc-800 opacity-50 flex items-center justify-center border border-zinc-700 group-hover:scale-105 group-hover:border-[#FAF9F6]/50 transition-[transform,colors] duration-500"></div>
-            </div>
-            <div className="border border-[#444748] bg-[#0a0a0a] group cursor-pointer hover:border-[#FAF9F6]/50 transition-colors duration-500 relative">
-              <PixelTransition
-                firstContent={
-                  <div className="flex items-center justify-center w-full h-full">
-                    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" className="text-[#FAF9F6]/50 group-hover:scale-110 transition-transform duration-500">
-                      <path strokeLinecap="square" strokeLinejoin="miter" d="M5 12h14M12 5l7 7-7 7"></path>
-                    </svg>
-                  </div>
-                }
-                secondContent={
-                  <div className="w-full h-full bg-[#D4FF00] flex flex-col items-center justify-center relative">
-                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" className="text-[#0e0e0e] rotate-45 mb-2">
-                      <path strokeLinecap="square" strokeLinejoin="miter" d="M5 12h14M12 5l7 7-7 7"></path>
-                    </svg>
-                    <span className="text-[10px] uppercase tracking-widest text-[#0e0e0e] font-bold">{t("home.exploreMore")}</span>
-                  </div>
-                }
-                gridSize={8}
-                pixelColor="#D4FF00"
-                animationStepDuration={0.3}
-                className="w-full h-full absolute inset-0"
+
+            <div className="relative aspect-square border border-[#1c1c1c] overflow-hidden bg-[#121212] group cursor-pointer hover:border-[#333333] transition-colors duration-300">
+              <Image
+                src="https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=800"
+                alt="Acoustic Tuning"
+                fill
+                className="object-cover group-hover:scale-105 transition-transform duration-700 opacity-70 group-hover:opacity-90"
               />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent" />
+              <div className="absolute bottom-3 left-3 text-[10px] font-mono text-[#888888] uppercase tracking-wider">
+                Type-C FreeDSP Cable
+              </div>
             </div>
+
+            <Link
+              href="/collection"
+              className="relative aspect-square border border-[#1c1c1c] bg-[#121212] hover:bg-[#181818] hover:border-[#333333] transition-colors duration-300 flex flex-col items-center justify-center p-6 text-center group cursor-pointer"
+            >
+              <div className="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center text-white group-hover:scale-110 group-hover:bg-white group-hover:text-black transition-all duration-300 mb-3">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
+              </div>
+              <span className="text-xs font-mono uppercase tracking-widest text-white font-bold">
+                {t("home.exploreMore")}
+              </span>
+            </Link>
           </div>
         </motion.div>
       </section>
