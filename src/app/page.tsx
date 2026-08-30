@@ -106,37 +106,49 @@ export default function Home() {
       <BestSellers />
 
       {/* COLLAB SECTION */}
-      <section id="collab" className="w-full bg-[#0a0a0a] py-32 border-b border-[#1c1c1c]">
+      <section id="collab" className="w-full bg-[#0a0a0a] py-36 md:py-44 border-b border-[#1c1c1c]">
         <motion.div 
           initial={{ opacity: 0, y: 40 }} 
           whileInView={{ opacity: 1, y: 0 }} 
           viewport={{ once: true, margin: "-80px" }} 
           transition={{ duration: 0.8, ease: "easeOut" }}
-          className="max-w-[1400px] mx-auto px-6 lg:px-12 flex flex-col md:flex-row gap-12 md:gap-16 items-center"
+          className="max-w-[1400px] mx-auto px-6 lg:px-12 flex flex-col lg:flex-row gap-12 lg:gap-20 items-center"
         >
           <div className="flex-1 flex flex-col items-start justify-center">
-            <span className="text-xs font-mono uppercase tracking-[0.3em] text-[#888888] block mb-3">
-              {t("home.collabSeries")}
-            </span>
-            <h2 className="font-heading text-4xl sm:text-5xl md:text-6xl uppercase tracking-tight mb-6 leading-[1.05] text-[#FAF9F6] cursor-default">
-              Moondrop<br />x Crinacle<br />Dusk
+            <div className="flex items-center gap-2.5 mb-5">
+              <span className="w-2 h-2 rounded-full bg-[#D4FF00]" />
+              <span className="text-xs sm:text-sm font-mono uppercase tracking-[0.25em] text-[#D4FF00] font-bold">
+                {t("home.collabSeries")}
+              </span>
+            </div>
+
+            <h2 className="font-heading text-5xl sm:text-6xl md:text-7xl lg:text-8xl uppercase tracking-tighter mb-8 leading-[0.92] text-[#FAF9F6] cursor-default">
+              Moondrop<br />
+              <span className="text-white/40 font-light lowercase text-3xl sm:text-4xl md:text-5xl tracking-normal">x </span>
+              Crinacle<br />
+              Dusk
             </h2>
-            <p className="text-[#888888] leading-relaxed text-sm max-w-md mb-8">
+
+            <p className="text-base sm:text-lg text-[#A6A6A6] leading-relaxed max-w-lg mb-10 font-normal">
               {t("home.duskDesc")}
             </p>
-            <Link href="/collection" className="mb-10">
-              <MotionButton variant="white">
-                {t("home.viewProduct")}
-              </MotionButton>
-            </Link>
-            <div className="grid grid-cols-2 gap-8 pt-8 border-t border-[#1c1c1c] w-full max-w-md">
+
+            <div className="mb-12">
+              <Link href="/collection">
+                <MotionButton variant="neon" className="px-8 py-4.5 text-sm">
+                  {t("home.viewProduct")}
+                </MotionButton>
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-2 gap-8 pt-8 border-t border-[#222222] w-full max-w-lg">
               <div>
-                <p className="text-[10px] font-mono text-[#888888] uppercase tracking-[0.2em] mb-1">{t("home.driver")}</p>
-                <p className="font-sans font-medium text-white text-sm">2DD + 4BA + 2Planar</p>
+                <p className="text-xs font-mono text-[#888888] uppercase tracking-[0.2em] mb-2">{t("home.driver")}</p>
+                <p className="font-heading text-base sm:text-lg md:text-xl font-bold uppercase tracking-tight text-white">2DD + 4BA + 2Planar</p>
               </div>
               <div>
-                <p className="text-[10px] font-mono text-[#888888] uppercase tracking-[0.2em] mb-1">{t("home.signature")}</p>
-                <p className="font-sans font-medium text-white text-sm">{t("home.neutralBass")}</p>
+                <p className="text-xs font-mono text-[#888888] uppercase tracking-[0.2em] mb-2">{t("home.signature")}</p>
+                <p className="font-heading text-base sm:text-lg md:text-xl font-bold uppercase tracking-tight text-white">{t("home.neutralBass")}</p>
               </div>
             </div>
           </div>
@@ -151,7 +163,7 @@ export default function Home() {
                 className="object-cover group-hover:scale-105 transition-transform duration-700 opacity-80 group-hover:opacity-95"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent" />
-              <div className="absolute bottom-4 left-4 bg-black/90 px-3 py-1.5 text-[10px] font-mono uppercase tracking-widest text-white border border-[#222222] z-10 font-bold">
+              <div className="absolute bottom-5 left-5 bg-black/90 px-3.5 py-1.5 text-xs font-mono uppercase tracking-widest text-white border border-[#262626] z-10 font-bold">
                 {t("home.dspEnabled")}
               </div>
             </div>
@@ -165,7 +177,7 @@ export default function Home() {
                 className="object-cover group-hover:scale-105 transition-transform duration-700 opacity-80 group-hover:opacity-95"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent" />
-              <div className="absolute bottom-4 left-4 text-[10px] font-mono text-white/90 uppercase tracking-wider bg-black/90 px-2.5 py-1 border border-[#222222] z-10 font-bold">
+              <div className="absolute bottom-4 left-4 text-xs font-mono text-white/95 uppercase tracking-wider bg-black/90 px-3 py-1.5 border border-[#262626] z-10 font-bold">
                 TYPE-C FREEDSP CABLE
               </div>
             </div>
@@ -183,7 +195,7 @@ export default function Home() {
                         <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14M12 5l7 7-7 7" />
                       </svg>
                     </div>
-                    <span className="text-xs font-mono font-bold uppercase tracking-wider text-white">
+                    <span className="text-xs sm:text-sm font-mono font-bold uppercase tracking-wider text-white">
                       {t("home.exploreMore")}
                     </span>
                   </div>
@@ -193,7 +205,7 @@ export default function Home() {
                     <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-[#0e0e0e] rotate-45 mb-2">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14M12 5l7 7-7 7"></path>
                     </svg>
-                    <span className="text-xs font-mono uppercase tracking-widest text-[#0e0e0e] font-bold">
+                    <span className="text-xs sm:text-sm font-mono uppercase tracking-widest text-[#0e0e0e] font-bold">
                       {t("home.exploreMore")}
                     </span>
                   </div>
