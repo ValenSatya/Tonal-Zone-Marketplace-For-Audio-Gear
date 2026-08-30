@@ -32,7 +32,7 @@ export const ROUTE_PERMISSIONS = {
     "/checkout/success",
     "/sell",
   ],
-  AUTH_GUEST_ONLY: ["/login", "/signup"],
+  AUTH_GUEST_ONLY: [],
 };
 
 /**
@@ -45,15 +45,9 @@ export function evaluateRouteAccess(
   const isLoggedIn = Boolean(user && user.id);
   const userRole = user?.role || "GUEST";
 
-  // 1. Check Guest-only pages (e.g. login & signup)
-  if (isLoggedIn && ROUTE_PERMISSIONS.AUTH_GUEST_ONLY.some((route) => pathname.startsWith(route))) {
-    // If admin is logged in, redirect to /admin, if seller redirect to /seller, else /
-    const destination = userRole === "ADMIN" ? "/admin" : userRole === "SELLER" ? "/seller" : "/";
-    return {
-      authorized: false,
-      redirectUrl: destination,
-      reason: "ALREADY_AUTHENTICATED",
-    };
+  // 1. Allow login and signup always
+  if (pathname.startsWith("/login") || pathname.startsWith("/signup")) {
+    return { authorized: true };
   }
 
   // 2. Check Admin Route Access
