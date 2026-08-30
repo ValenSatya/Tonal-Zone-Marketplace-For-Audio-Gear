@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useRef, useEffect, Suspense } from "react";
 import Link from "next/link";
@@ -9,7 +9,39 @@ import { signUpUser } from "@/app/actions/auth";
 import { Eye, EyeOff, CornerDownRight, Check, ChevronDown, Camera } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-// Clean Minimalist Selector Bar (Matches the exact input bar aesthetic)
+// Pinterest-Style Visual Music Genre Cards
+const MUSIC_GENRE_CARDS = [
+  {
+    id: "pop-vocal",
+    signature: "Harman Target 2019",
+    title: "Pop & Vokal",
+    desc: "Vokal jernih di depan, bass pas & seimbang",
+    image: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=500&auto=format&fit=crop&q=80",
+  },
+  {
+    id: "edm-bass",
+    signature: "V-Shaped Dynamic",
+    title: "EDM & Bass",
+    desc: "Bass nendang bertenaga, treble berkilau",
+    image: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=500&auto=format&fit=crop&q=80",
+  },
+  {
+    id: "acoustic-jazz",
+    signature: "Reference / Neutral",
+    title: "Akustik & Jazz",
+    desc: "Suara alami, akurat, instrumen nyata",
+    image: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500&auto=format&fit=crop&q=80",
+  },
+  {
+    id: "rock-indie",
+    signature: "Warm & Musical",
+    title: "Rock & Indie",
+    desc: "Gitar tebal, vokal hangat, bass empuk",
+    image: "https://images.unsplash.com/photo-1464375117522-1311d6a5b81f?w=500&auto=format&fit=crop&q=80",
+  },
+];
+
+// Clean Minimalist Selector Bar
 function CustomSelectBar({
   label,
   value,
@@ -110,7 +142,7 @@ function SignupContent() {
 
   // Step 3: Preferensi Audiophile PRD
   const [experienceLevel, setExperienceLevel] = useState("Intermediate");
-  const [soundSignature, setSoundSignature] = useState("Reference / Neutral");
+  const [soundSignature, setSoundSignature] = useState("Harman Target 2019");
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -270,7 +302,9 @@ function SignupContent() {
 
       {/* 2. CENTER ULTRA-MINIMALIST PROGRESSIVE FLOW */}
       <main className="w-full flex-1 flex flex-col items-center justify-center px-6 py-24 pt-36 z-10">
-        <div className="w-full max-w-[380px] mx-auto flex flex-col items-center text-center">
+        <div className={`w-full mx-auto flex flex-col items-center text-center transition-all duration-300 ${
+          step === 3 ? "max-w-[460px]" : "max-w-[380px]"
+        }`}>
 
           {/* Feedback Messages */}
           {errorMessage && (
@@ -489,7 +523,7 @@ function SignupContent() {
               </motion.div>
             )}
 
-            {/* STEP 3: EXPERIENCE LEVEL & SOUND SIGNATURE */}
+            {/* STEP 3: EXPERIENCE LEVEL & PINTEREST-STYLE GENRE CARDS */}
             {step === 3 && (
               <motion.div
                 key="signup-step-3"
@@ -503,57 +537,89 @@ function SignupContent() {
                   Audio Setup
                 </h1>
                 <p className="text-xs font-sans text-[#777] mb-6 leading-relaxed">
-                  Sesuaikan rekomendasi produk dengan preferensi telinga Anda.
+                  Pilih selera musik Anda untuk kurasi gear yang pas di telinga.
                 </p>
 
-                <form onSubmit={handleFinalSignup} className="w-full flex flex-col gap-3 sm:gap-3.5 text-left">
+                <form onSubmit={handleFinalSignup} className="w-full flex flex-col gap-4 text-left">
                   
-                  {/* Clean Experience Selector Bar */}
-                  <CustomSelectBar
-                    label="Pengalaman"
-                    value={experienceLevel}
-                    onChange={setExperienceLevel}
-                    options={[
-                      { value: "Beginner", label: "Pemula (Baru Mulai)", sub: "Baru mau coba IEM / earphone berkualitas" },
-                      { value: "Intermediate", label: "Menengah (Hobi Musik)", sub: "Sering dengar lagu & ingin vokal lebih jernih" },
-                      { value: "Enthusiast", label: "Audiophile (Kolektor/Pro)", sub: "Paham detail teknis, DAC, kabel & resolusi" },
-                    ]}
-                  />
+                  {/* 1. Pinterest-Style Visual Music Genre Cards */}
+                  <div className="w-full">
+                    <label className="block text-[11px] font-mono uppercase tracking-widest text-[#888] mb-2 font-semibold">
+                      Genre Musik Favorit
+                    </label>
+                    <div className="grid grid-cols-2 gap-2.5">
+                      {MUSIC_GENRE_CARDS.map((item) => {
+                        const isSelected = soundSignature === item.signature;
+                        return (
+                          <button
+                            key={item.id}
+                            type="button"
+                            onClick={() => setSoundSignature(item.signature)}
+                            className={`group relative h-28 sm:h-32 w-full overflow-hidden text-left p-3 flex flex-col justify-end transition-all duration-200 cursor-pointer rounded-none border ${
+                              isSelected
+                                ? "border-[#D4FF00] ring-1 ring-[#D4FF00] shadow-[0_0_20px_rgba(212,255,0,0.15)]"
+                                : "border-[#222] hover:border-[#444]"
+                            }`}
+                          >
+                            {/* Atmospheric Background Image */}
+                            <img
+                              src={item.image}
+                              alt={item.title}
+                              className={`absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${
+                                isSelected
+                                  ? "opacity-45 scale-105"
+                                  : "opacity-25 grayscale-[40%] group-hover:grayscale-0 group-hover:opacity-40"
+                              }`}
+                            />
+                            {/* Dark Gradient Overlay */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/60 to-transparent" />
 
-                  {/* Clean Sound Signature / Genre Selector Bar */}
-                  <CustomSelectBar
-                    label="Genre Musik"
-                    value={soundSignature}
-                    onChange={setSoundSignature}
-                    options={[
-                      { 
-                        value: "Harman Target 2019", 
-                        label: "Pop, RnB & Vokal", 
-                        sub: "Vokal jernih di depan, bass pas & nada seimbang" 
-                      },
-                      { 
-                        value: "V-Shaped Dynamic", 
-                        label: "EDM, Hip-Hop & Bass", 
-                        sub: "Bass menghentak bertenaga, nada tinggi berkilau" 
-                      },
-                      { 
-                        value: "Reference / Neutral", 
-                        label: "Akustik, Jazz & Klasik", 
-                        sub: "Suara alami, akurat, instrumen terdengar nyata" 
-                      },
-                      { 
-                        value: "Warm & Musical", 
-                        label: "Rock, Metal & Indie", 
-                        sub: "Gitar tebal, vokal hangat, bass empuk nyaman di telinga" 
-                      },
-                    ]}
-                  />
+                            {/* Selected Neon Badge */}
+                            {isSelected && (
+                              <div className="absolute top-2.5 right-2.5 w-5 h-5 bg-[#D4FF00] text-[#0a0a0a] flex items-center justify-center rounded-none z-10 shadow-sm">
+                                <Check size={13} strokeWidth={3} />
+                              </div>
+                            )}
+
+                            {/* Content Info */}
+                            <div className="relative z-10">
+                              <h3 className={`font-mono text-xs font-bold uppercase tracking-wider mb-0.5 ${
+                                isSelected ? "text-[#D4FF00]" : "text-white"
+                              }`}>
+                                {item.title}
+                              </h3>
+                              <p className="text-[10px] font-sans text-[#aaa] line-clamp-1 leading-tight">
+                                {item.desc}
+                              </p>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* 2. Clean Experience Selector Bar */}
+                  <div>
+                    <label className="block text-[11px] font-mono uppercase tracking-widest text-[#888] mb-2 font-semibold">
+                      Tingkat Pengalaman
+                    </label>
+                    <CustomSelectBar
+                      label="Level"
+                      value={experienceLevel}
+                      onChange={setExperienceLevel}
+                      options={[
+                        { value: "Beginner", label: "Pemula (Baru Mulai)", sub: "Baru mau coba IEM / earphone berkualitas" },
+                        { value: "Intermediate", label: "Menengah (Hobi Musik)", sub: "Sering dengar lagu & ingin vokal lebih jernih" },
+                        { value: "Enthusiast", label: "Audiophile (Kolektor/Pro)", sub: "Paham detail teknis, DAC, kabel & resolusi" },
+                      ]}
+                    />
+                  </div>
 
                   {/* Final Submit Button */}
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full bg-[#D4FF00] hover:bg-[#c2eb00] active:scale-[0.99] text-[#0e0e0e] font-mono font-bold text-xs uppercase tracking-[0.25em] py-4.5 transition-all duration-200 cursor-pointer disabled:opacity-50 mt-3 flex items-center justify-center gap-2 rounded-none shadow-sm"
+                    className="w-full bg-[#D4FF00] hover:bg-[#c2eb00] active:scale-[0.99] text-[#0e0e0e] font-mono font-bold text-xs uppercase tracking-[0.25em] py-4.5 transition-all duration-200 cursor-pointer disabled:opacity-50 mt-1 flex items-center justify-center gap-2 rounded-none shadow-sm"
                   >
                     <CornerDownRight size={14} strokeWidth={2.5} />
                     <span>{isSubmitting ? "MEMPROSES..." : "CREATE ACCOUNT"}</span>
@@ -562,7 +628,7 @@ function SignupContent() {
                   <button
                     type="button"
                     onClick={() => setStep(2)}
-                    className="text-xs font-sans text-[#888] hover:text-white transition-colors mt-2 text-center underline cursor-pointer"
+                    className="text-xs font-sans text-[#888] hover:text-white transition-colors text-center underline cursor-pointer"
                   >
                     ← Kembali ke Profil
                   </button>
