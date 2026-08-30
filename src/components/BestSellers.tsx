@@ -74,10 +74,10 @@ export default function BestSellers() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6 sm:gap-0 mb-12">
           <div>
-            <h2 className="font-heading text-4xl sm:text-5xl tracking-wide mb-4 hover:text-[#D4FF00] transition-colors duration-300 cursor-default text-[#FAF9F6]">
+            <h2 className="font-heading text-4xl sm:text-5xl tracking-wide mb-3 hover:text-[#D4FF00] transition-colors duration-300 cursor-default text-[#FAF9F6]">
               {t("home.bestSellers")}
             </h2>
-            <p className="text-[13px] text-[#FAF9F6]/50 max-w-sm leading-relaxed">
+            <p className="text-base sm:text-[17px] text-[#FAF9F6]/70 max-w-md leading-relaxed">
               {t("home.bestSellersDesc")}
             </p>
           </div>
