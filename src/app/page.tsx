@@ -170,41 +170,37 @@ export default function Home() {
               </div>
             </div>
 
-            {/* 3. Luxury Interactive Exploration Card */}
+            {/* 3. Sharp Geometric Pixel Arrow Card */}
             <Link
               href="/collection"
-              className="border border-[#1c1c1c] bg-[#0c0c0c] hover:bg-[#121212] group cursor-pointer hover:border-[#333333] transition-all duration-500 relative aspect-square flex flex-col items-center justify-center p-6 text-center overflow-hidden"
+              className="border border-[#1c1c1c] bg-[#0a0a0a] hover:bg-[#D4FF00] group cursor-pointer hover:border-[#D4FF00] transition-all duration-500 relative aspect-square flex flex-col items-center justify-center p-6 text-center overflow-hidden select-none"
             >
-              {/* Ambient radial glow on hover */}
-              <div className="absolute inset-0 bg-radial from-[#D4FF00]/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
-
-              {/* Minimal corner accent dot */}
-              <div className="absolute top-3 right-3 w-1.5 h-1.5 rounded-full bg-white/20 group-hover:bg-[#D4FF00] transition-colors duration-300" />
-
-              {/* Refined Circular Arrow Badge with glide physics */}
-              <div className="relative z-10 w-13 h-13 sm:w-14 sm:h-14 rounded-full border border-white/15 bg-white/[0.03] backdrop-blur-sm flex items-center justify-center text-white group-hover:border-[#D4FF00] group-hover:bg-[#D4FF00] group-hover:text-[#0e0e0e] group-hover:scale-105 transition-all duration-400 shadow-md group-hover:shadow-[0_0_25px_rgba(212,255,0,0.15)] mb-4">
+              {/* Sharp Pixel Arrow Container */}
+              <div className="w-14 h-14 border border-white/20 bg-white/[0.03] group-hover:border-[#0e0e0e]/40 group-hover:bg-black/5 flex items-center justify-center text-[#FAF9F6] group-hover:text-[#0e0e0e] transition-all duration-500 mb-4">
                 <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                  width="22"
+                  height="22"
+                  viewBox="0 0 16 16"
+                  fill="currentColor"
+                  shapeRendering="crispEdges"
+                  className="transition-transform duration-500 ease-out group-hover:translate-x-1.5 group-hover:-translate-y-1.5"
                 >
-                  <line x1="7" y1="17" x2="17" y2="7"></line>
-                  <polyline points="7 7 17 7 17 17"></polyline>
+                  <rect x="6" y="2" width="8" height="2" />
+                  <rect x="12" y="4" width="2" height="8" />
+                  <rect x="10" y="4" width="2" height="2" />
+                  <rect x="8" y="6" width="2" height="2" />
+                  <rect x="6" y="8" width="2" height="2" />
+                  <rect x="4" y="10" width="2" height="2" />
+                  <rect x="2" y="12" width="2" height="2" />
                 </svg>
               </div>
 
               {/* Clean Editorial Typography */}
-              <div className="relative z-10 flex flex-col items-center">
-                <span className="text-[10px] font-mono uppercase tracking-[0.25em] text-[#666666] group-hover:text-[#888888] transition-colors mb-1">
+              <div className="flex flex-col items-center">
+                <span className="text-[10px] font-mono uppercase tracking-[0.25em] text-[#666666] group-hover:text-[#0e0e0e]/70 transition-colors duration-500 mb-1 font-semibold">
                   Katalog
                 </span>
-                <span className="text-sm font-sans font-medium tracking-wide text-[#FAF9F6] group-hover:text-white transition-colors duration-300">
+                <span className="text-sm font-sans font-medium tracking-wide text-[#FAF9F6] group-hover:text-[#0e0e0e] transition-colors duration-500">
                   {t("home.exploreMore")}
                 </span>
               </div>
