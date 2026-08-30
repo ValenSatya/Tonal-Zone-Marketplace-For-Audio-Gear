@@ -118,8 +118,8 @@ export default function Home() {
             <span className="text-xs sm:text-sm font-mono uppercase tracking-[0.3em] text-[#888888] block mb-4">
               {t("home.collabSeries")}
             </span>
-            <h2 className="font-heading text-5xl sm:text-6xl md:text-7xl lg:text-[76px] tracking-tight mb-6 leading-[1.02] text-[#FAF9F6] cursor-default">
-              Moondrop<br />x Crinacle<br />Dusk
+            <h2 className="font-heading text-4xl sm:text-5xl lg:text-[56px] -tracking-[0.02em] mb-6 leading-[1.12] text-[#FAF9F6] cursor-default">
+              Moondrop × Crinacle<br />Dusk
             </h2>
             <p className="text-[#999999] leading-relaxed text-base sm:text-[17px] max-w-lg mb-10">
               {t("home.duskDesc")}
