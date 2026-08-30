@@ -105,22 +105,6 @@ export default function Home() {
       {/* BEST SELLERS SECTION */}
       <BestSellers />
 
-      {/* FLASH SALE PROMO STRIP */}
-      <section className="w-full bg-[#D4FF00] border-y border-[#0e0e0e] py-5 overflow-hidden relative flex items-center z-20">
-         <motion.div 
-           className="flex whitespace-nowrap items-center gap-12 font-mono text-[13px] font-medium uppercase tracking-[0.25em] text-[#0e0e0e] w-max"
-           animate={{ x: ["0%", "-50%"] }}
-           transition={{ repeat: Infinity, ease: "linear", duration: 45 }}
-         >
-           {[...Array(12)].map((_, i) => (
-             <React.Fragment key={i}>
-               <span>FLASH SALE — UP TO 50% OFF SELECT IEMS</span>
-               <span className="text-[#0e0e0e]/30"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg></span>
-             </React.Fragment>
-           ))}
-         </motion.div>
-      </section>
-
       {/* COLLAB SECTION */}
       <section id="collab" className="w-full bg-[#0a0a0a] py-32 border-b border-[#1c1c1c]">
         <motion.div 
