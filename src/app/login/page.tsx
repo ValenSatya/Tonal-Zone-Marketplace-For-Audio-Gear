@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, Suspense } from "react";
 import Link from "next/link";
@@ -208,14 +208,14 @@ function LoginContent({ initialTab = "login" }: { initialTab?: "login" | "signup
 
           {tab === "login" ? (
             /* LOGIN FORM STACK */
-            <form onSubmit={handleLoginSubmit} className="w-full flex flex-col gap-2">
+            <form onSubmit={handleLoginSubmit} className="w-full flex flex-col gap-3.5 sm:gap-4">
               <input
                 type="email"
                 required
                 placeholder="Email"
                 value={loginEmail}
                 onChange={(e) => setLoginEmail(e.target.value)}
-                className="w-full bg-[#161616] hover:bg-[#1a1a1a] focus:bg-[#202020] text-white text-sm px-4 py-3.5 outline-none placeholder:text-[#555] transition-colors rounded-none font-sans"
+                className="w-full bg-[#161616] hover:bg-[#1a1a1a] focus:bg-[#202020] text-white text-sm px-4.5 py-4 outline-none placeholder:text-[#555] transition-colors rounded-none font-sans"
               />
 
               <div className="relative w-full">
@@ -225,12 +225,12 @@ function LoginContent({ initialTab = "login" }: { initialTab?: "login" | "signup
                   placeholder="Password"
                   value={loginPassword}
                   onChange={(e) => setLoginPassword(e.target.value)}
-                  className="w-full bg-[#161616] hover:bg-[#1a1a1a] focus:bg-[#202020] text-white text-sm px-4 py-3.5 pr-11 outline-none placeholder:text-[#555] transition-colors rounded-none font-sans"
+                  className="w-full bg-[#161616] hover:bg-[#1a1a1a] focus:bg-[#202020] text-white text-sm px-4.5 py-4 pr-12 outline-none placeholder:text-[#555] transition-colors rounded-none font-sans"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#666] hover:text-white transition-colors cursor-pointer"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-[#666] hover:text-white transition-colors cursor-pointer"
                   aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -241,14 +241,14 @@ function LoginContent({ initialTab = "login" }: { initialTab?: "login" | "signup
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full bg-[#FAF9F6] hover:bg-white active:scale-[0.99] text-[#0e0e0e] font-mono font-bold text-xs uppercase tracking-[0.25em] py-4 transition-all duration-200 cursor-pointer disabled:opacity-50 mt-1 flex items-center justify-center gap-2 rounded-none"
+                className="w-full bg-[#FAF9F6] hover:bg-white active:scale-[0.99] text-[#0e0e0e] font-mono font-bold text-xs uppercase tracking-[0.25em] py-4.5 transition-all duration-200 cursor-pointer disabled:opacity-50 mt-3 sm:mt-4 flex items-center justify-center gap-2 rounded-none shadow-sm"
               >
                 <CornerDownRight size={14} strokeWidth={2.5} />
                 <span>{isSubmitting ? "MEMPROSES..." : "SIGN IN"}</span>
               </button>
 
               {/* Forgot Password & Switch to Signup Links */}
-              <div className="flex flex-col items-center gap-2 mt-4">
+              <div className="flex flex-col items-center gap-2.5 mt-5">
                 <button
                   type="button"
                   onClick={() => setSuccessMessage("Tautan pemulihan kata sandi telah dikirim ke email Anda.")}
@@ -271,14 +271,14 @@ function LoginContent({ initialTab = "login" }: { initialTab?: "login" | "signup
             </form>
           ) : (
             /* REGISTER FORM STACK */
-            <form onSubmit={handleSignupSubmit} className="w-full flex flex-col gap-2">
+            <form onSubmit={handleSignupSubmit} className="w-full flex flex-col gap-3.5 sm:gap-4">
               <input
                 type="text"
                 required
                 placeholder="Full Name"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                className="w-full bg-[#161616] hover:bg-[#1a1a1a] focus:bg-[#202020] text-white text-sm px-4 py-3.5 outline-none placeholder:text-[#555] transition-colors rounded-none font-sans"
+                className="w-full bg-[#161616] hover:bg-[#1a1a1a] focus:bg-[#202020] text-white text-sm px-4.5 py-4 outline-none placeholder:text-[#555] transition-colors rounded-none font-sans"
               />
 
               <input
@@ -287,7 +287,7 @@ function LoginContent({ initialTab = "login" }: { initialTab?: "login" | "signup
                 placeholder="Email"
                 value={signupEmail}
                 onChange={(e) => setSignupEmail(e.target.value)}
-                className="w-full bg-[#161616] hover:bg-[#1a1a1a] focus:bg-[#202020] text-white text-sm px-4 py-3.5 outline-none placeholder:text-[#555] transition-colors rounded-none font-sans"
+                className="w-full bg-[#161616] hover:bg-[#1a1a1a] focus:bg-[#202020] text-white text-sm px-4.5 py-4 outline-none placeholder:text-[#555] transition-colors rounded-none font-sans"
               />
 
               <div className="relative w-full">
@@ -297,12 +297,12 @@ function LoginContent({ initialTab = "login" }: { initialTab?: "login" | "signup
                   placeholder="Create Password (min. 8 characters)"
                   value={signupPassword}
                   onChange={(e) => setSignupPassword(e.target.value)}
-                  className="w-full bg-[#161616] hover:bg-[#1a1a1a] focus:bg-[#202020] text-white text-sm px-4 py-3.5 pr-11 outline-none placeholder:text-[#555] transition-colors rounded-none font-sans"
+                  className="w-full bg-[#161616] hover:bg-[#1a1a1a] focus:bg-[#202020] text-white text-sm px-4.5 py-4 pr-12 outline-none placeholder:text-[#555] transition-colors rounded-none font-sans"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#666] hover:text-white transition-colors cursor-pointer"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-[#666] hover:text-white transition-colors cursor-pointer"
                   aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -313,7 +313,7 @@ function LoginContent({ initialTab = "login" }: { initialTab?: "login" | "signup
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full bg-[#D4FF00] hover:bg-[#c2eb00] active:scale-[0.99] text-[#0e0e0e] font-mono font-bold text-xs uppercase tracking-[0.25em] py-4 transition-all duration-200 cursor-pointer disabled:opacity-50 mt-1 flex items-center justify-center gap-2 rounded-none"
+                className="w-full bg-[#D4FF00] hover:bg-[#c2eb00] active:scale-[0.99] text-[#0e0e0e] font-mono font-bold text-xs uppercase tracking-[0.25em] py-4.5 transition-all duration-200 cursor-pointer disabled:opacity-50 mt-3 sm:mt-4 flex items-center justify-center gap-2 rounded-none shadow-sm"
               >
                 <CornerDownRight size={14} strokeWidth={2.5} />
                 <span>{isSubmitting ? "MEMPROSES..." : "SIGN UP"}</span>
@@ -326,7 +326,7 @@ function LoginContent({ initialTab = "login" }: { initialTab?: "login" | "signup
                   setErrorMessage(null);
                   setSuccessMessage(null);
                 }}
-                className="text-xs font-sans text-[#888] hover:text-[#FAF9F6] transition-colors mt-4 cursor-pointer"
+                className="text-xs font-sans text-[#888] hover:text-[#FAF9F6] transition-colors mt-5 cursor-pointer"
               >
                 Sudah punya akun? <span className="underline font-semibold">Masuk di sini</span>
               </button>
