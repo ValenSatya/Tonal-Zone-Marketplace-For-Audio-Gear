@@ -25,13 +25,18 @@ const generalSans = localFont({
       style: "normal",
     },
     {
-      path: "./fonts/GeneralSans-Semibold.otf",
+      path: "./fonts/GeneralSans-Medium.otf",
       weight: "600",
       style: "normal",
     },
     {
-      path: "./fonts/GeneralSans-Bold.otf",
+      path: "./fonts/GeneralSans-Medium.otf",
       weight: "700",
+      style: "normal",
+    },
+    {
+      path: "./fonts/GeneralSans-Medium.otf",
+      weight: "800",
       style: "normal",
     },
     {
@@ -40,8 +45,18 @@ const generalSans = localFont({
       style: "italic",
     },
     {
-      path: "./fonts/GeneralSans-SemiboldItalic.otf",
+      path: "./fonts/GeneralSans-MediumItalic.otf",
+      weight: "500",
+      style: "italic",
+    },
+    {
+      path: "./fonts/GeneralSans-MediumItalic.otf",
       weight: "600",
+      style: "italic",
+    },
+    {
+      path: "./fonts/GeneralSans-MediumItalic.otf",
+      weight: "700",
       style: "italic",
     },
   ],
