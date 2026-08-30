@@ -11,8 +11,34 @@ const manrope = Manrope({
   variable: "--font-sans",
 });
 
-const stackSansHeading = localFont({
-  src: "./fonts/StackSansNotch-VariableFont_wght.ttf",
+const generalSans = localFont({
+  src: [
+    {
+      path: "./fonts/GeneralSans-Semibold.otf",
+      weight: "600",
+      style: "normal",
+    },
+    {
+      path: "./fonts/GeneralSans-Regular.otf",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "./fonts/GeneralSans-Medium.otf",
+      weight: "500",
+      style: "normal",
+    },
+    {
+      path: "./fonts/GeneralSans-Bold.otf",
+      weight: "700",
+      style: "normal",
+    },
+    {
+      path: "./fonts/GeneralSans-SemiboldItalic.otf",
+      weight: "600",
+      style: "italic",
+    },
+  ],
   variable: "--font-heading",
 });
 
@@ -36,7 +62,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${manrope.variable} ${stackSansHeading.variable} dark h-full antialiased`}
+      className={`${manrope.variable} ${generalSans.variable} dark h-full antialiased`}
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col" suppressHydrationWarning>

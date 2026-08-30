@@ -285,3 +285,9 @@ input[type="number"] {
   -moz-appearance: textfield;
   appearance: textfield;
 }
+
+/* Global Heading Typography System: General Sans Semibold in Off-White */
+.font-heading {
+  font-family: var(--font-heading), sans-serif;
+  font-weight: 600;
+}
