@@ -756,6 +756,7 @@ export default function Navbar() {
           </button>
         </div>
       </div>
+    </header>
 
       {/* 3. Search Bar & Mega Menu (Outside/Below Navbar) */}
       {isSearchOpen && (
@@ -922,7 +923,7 @@ export default function Navbar() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsMobileMenuOpen(false)}
-              className="fixed inset-0 z-40 bg-black/80 backdrop-blur-md md:hidden"
+              className="fixed inset-0 z-[9998] bg-black/85 backdrop-blur-md md:hidden"
             />
 
             {/* Slide-over Drawer Sheet */}
@@ -931,7 +932,7 @@ export default function Navbar() {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-              className="fixed inset-y-0 right-0 w-full sm:max-w-[380px] z-50 bg-[#09090b] border-l border-[#1f1f23] flex flex-col shadow-[0_0_80px_rgba(0,0,0,0.95)] md:hidden overflow-hidden"
+              className="fixed inset-y-0 right-0 w-full sm:w-[380px] h-screen h-[100dvh] z-[9999] bg-[#09090b] border-l border-[#1f1f23] flex flex-col shadow-[0_0_80px_rgba(0,0,0,0.95)] md:hidden overflow-hidden"
             >
               {/* Drawer Top Bar */}
               <div className="flex items-center justify-between px-6 py-5 border-b border-[#1c1c1f]">
@@ -1235,7 +1236,6 @@ export default function Navbar() {
         )}
       </AnimatePresence>
 
-      </header>
       {!isHomePage && <div className="h-20 w-full shrink-0 pointer-events-none" />}
       
       {/* 4. Off-Canvas Slide-over Cart Drawer */}
