@@ -10,6 +10,7 @@ import { useLanguage } from "@/context/LanguageContext";
 import { useLocation } from "@/context/LocationContext";
 import { useCart } from "@/context/CartContext";
 import { motion, AnimatePresence } from "framer-motion";
+import { getAuthSession, signOutUser } from "@/app/actions/auth";
 
 const SEARCH_CATALOG = [
   { id: "s1", name: "Moondrop Blessing 3", category: "IN-EAR MONITORS", price: 319.99, image: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800", href: "/collection" },
@@ -44,10 +45,12 @@ export default function Navbar() {
   const [searchQuery, setSearchQuery] = useState("");
   const [mounted, setMounted] = useState(false);
   const [userSession, setUserSession] = useState<{ name: string; email: string; avatar?: string; isSeller?: boolean; sellerStatus?: string } | null>(null);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   React.useEffect(() => {
     setMounted(true);
-    const checkUser = () => {
+    const checkUser = async () => {
       try {
         const stored = localStorage.getItem("tonalzone_user");
         if (stored) {
@@ -55,15 +58,12 @@ export default function Navbar() {
           return;
         }
 
-        // Fallback to cookie check for OAuth redirect
-        if (typeof document !== "undefined") {
-          const match = document.cookie.match(new RegExp("(^| )tonalzone_session=([^;]+)"));
-          if (match) {
-            const user = JSON.parse(decodeURIComponent(match[2]));
-            localStorage.setItem("tonalzone_user", JSON.stringify(user));
-            setUserSession(user);
-            return;
-          }
+        // Fallback: Fetch active server session via server action
+        const sessionRes = await getAuthSession();
+        if (sessionRes.success && sessionRes.user) {
+          localStorage.setItem("tonalzone_user", JSON.stringify(sessionRes.user));
+          setUserSession(sessionRes.user);
+          return;
         }
 
         setUserSession(null);
@@ -79,6 +79,22 @@ export default function Navbar() {
       window.removeEventListener("userLoginChange", checkUser);
     };
   }, []);
+
+  const handleConfirmLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      await signOutUser();
+    } catch (err) {
+      console.error("Sign out error:", err);
+    }
+    localStorage.removeItem("tonalzone_user");
+    setUserSession(null);
+    window.dispatchEvent(new Event("userLoginChange"));
+    setIsLoggingOut(false);
+    setIsLogoutModalOpen(false);
+    setIsMobileMenuOpen(false);
+    router.push("/");
+  };
 
   const [isScrolled, setIsScrolled] = useState(false);
   const [isHidden, setIsHidden] = useState(false);
@@ -684,12 +700,7 @@ export default function Navbar() {
                     <div className="py-0.5">
                       <button
                         type="button"
-                        onClick={() => {
-                          localStorage.removeItem("tonalzone_user");
-                          setUserSession(null);
-                          window.dispatchEvent(new Event("userLoginChange"));
-                          router.push("/");
-                        }}
+                        onClick={() => setIsLogoutModalOpen(true)}
                         className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-[#A1A1AA] hover:text-white hover:bg-[#1A1A1A] transition-all duration-150 cursor-pointer text-left group/logout"
                       >
                         <div className="flex items-center gap-2.5">
@@ -934,13 +945,14 @@ export default function Navbar() {
                       <Link href="/seller/onboarding" onClick={() => setIsMobileMenuOpen(false)} className="text-sm font-mono uppercase tracking-widest text-purple-400 hover:text-purple-300">{t("nav.openStore")}</Link>
                     )}
                     
-                    <button onClick={() => {
-                      localStorage.removeItem("tonalzone_user");
-                      setUserSession(null);
-                      window.dispatchEvent(new Event("userLoginChange"));
-                      setIsMobileMenuOpen(false);
-                      router.push("/");
-                    }} className="text-sm font-mono uppercase tracking-widest text-red-400 hover:text-red-300 text-left mt-2">
+                    <button 
+                      type="button"
+                      onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        setIsLogoutModalOpen(true);
+                      }} 
+                      className="text-sm font-mono uppercase tracking-widest text-red-400 hover:text-red-300 text-left mt-2 cursor-pointer"
+                    >
                       {t("nav.logout")}
                     </button>
                   </>
@@ -960,6 +972,75 @@ export default function Navbar() {
       
       {/* 4. Off-Canvas Slide-over Cart Drawer */}
       <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
+
+      {/* 5. Sleek Minimalist Logout Confirmation Modal */}
+      <AnimatePresence>
+        {isLogoutModalOpen && (
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => !isLoggingOut && setIsLogoutModalOpen(false)}
+              className="absolute inset-0 bg-black/80 backdrop-blur-md"
+            />
+
+            {/* Modal Dialog Box */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 12 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 12 }}
+              transition={{ duration: 0.18, ease: "easeOut" }}
+              className="relative w-full max-w-[420px] bg-[#121212] border border-[#262626] p-6 shadow-[0_25px_60px_rgba(0,0,0,0.9)] z-10 font-sans"
+            >
+              {/* Header Icon + Title */}
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 shrink-0 bg-red-500/10 border border-red-500/30 flex items-center justify-center text-red-400">
+                  <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-sm font-heading font-bold uppercase tracking-wider text-[#FAF9F6]">
+                    Konfirmasi Keluar
+                  </h3>
+                  <p className="text-xs text-[#FAF9F6]/60 leading-relaxed mt-2">
+                    Apakah Anda yakin ingin keluar dari akun Tonalzone? Anda perlu masuk kembali untuk mengakses keranjang belanja, wishlist, dan riwayat pesanan Anda.
+                  </p>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center justify-end gap-3 mt-6 pt-4 border-t border-[#222]">
+                <button
+                  type="button"
+                  disabled={isLoggingOut}
+                  onClick={() => setIsLogoutModalOpen(false)}
+                  className="px-4 py-2 text-xs font-mono uppercase tracking-wider text-[#FAF9F6]/70 hover:text-white hover:bg-[#1f1f1f] border border-[#333] transition-colors cursor-pointer disabled:opacity-50"
+                >
+                  Batal
+                </button>
+                <button
+                  type="button"
+                  disabled={isLoggingOut}
+                  onClick={handleConfirmLogout}
+                  className="px-4 py-2 text-xs font-mono uppercase tracking-wider text-black bg-red-500 hover:bg-red-400 font-bold transition-colors cursor-pointer flex items-center gap-2 disabled:opacity-50"
+                >
+                  {isLoggingOut ? (
+                    <>
+                      <span className="w-3 h-3 border-2 border-black border-t-transparent rounded-full animate-spin"></span>
+                      <span>Keluar...</span>
+                    </>
+                  ) : (
+                    <span>Ya, Keluar</span>
+                  )}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </>
   );
 }

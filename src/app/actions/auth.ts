@@ -279,3 +279,72 @@ export async function signInUser(data: { email: string; passwordRaw: string }): 
     return { success: false, error: errorMsg };
   }
 }
+
+export async function getAuthSession(): Promise<AuthSessionResponse> {
+  try {
+    const cookieStore = await cookies();
+    const sessionCookie = cookieStore.get("tonalzone_session")?.value;
+
+    if (sessionCookie) {
+      try {
+        const payload = JSON.parse(decodeURIComponent(sessionCookie));
+        if (payload && payload.email) {
+          return { success: true, user: payload };
+        }
+      } catch (e) {
+        // Fallback to Supabase user
+      }
+    }
+
+    // Check active Supabase Auth user
+    const supabase = await createClient();
+    const { data: userData } = await supabase.auth.getUser();
+
+    if (userData?.user) {
+      const u = userData.user;
+      const meta = u.user_metadata || {};
+      const email = u.email || "";
+      const dbUser = (await userRepo.findByEmail(email)) || (await userRepo.findById(u.id));
+
+      const sessionPayload = {
+        id: dbUser?.id || u.id,
+        name: dbUser?.name || meta.full_name || meta.name || email.split("@")[0],
+        email,
+        avatar: dbUser?.avatar || meta.avatar_url || meta.picture || "/placeholder.svg",
+        role: ((dbUser?.role) || (email.includes("admin") ? "ADMIN" : email.includes("seller") ? "SELLER" : "BUYER")) as any,
+        isSeller: dbUser?.role === "SELLER" || dbUser?.store?.status === "APPROVED",
+        sellerStatus: dbUser?.store?.status || "NONE",
+        tuning: dbUser?.tuningPreference || meta.tuning_preference || "Reference / Neutral",
+        experienceLevel: meta.experience_level || "Intermediate",
+        location: dbUser?.location || meta.location || "Indonesia",
+        language: dbUser?.language || meta.language || "id",
+      };
+
+      cookieStore.set("tonalzone_session", encodeURIComponent(JSON.stringify(sessionPayload)), {
+        path: "/",
+        maxAge: 60 * 60 * 24 * 7,
+        sameSite: "lax",
+      });
+
+      return { success: true, user: sessionPayload };
+    }
+
+    return { success: false };
+  } catch (error: unknown) {
+    return { success: false };
+  }
+}
+
+export async function signOutUser(): Promise<{ success: boolean }> {
+  try {
+    const cookieStore = await cookies();
+    cookieStore.delete("tonalzone_session");
+
+    const supabase = await createClient();
+    await supabase.auth.signOut();
+
+    return { success: true };
+  } catch (error) {
+    return { success: true };
+  }
+}

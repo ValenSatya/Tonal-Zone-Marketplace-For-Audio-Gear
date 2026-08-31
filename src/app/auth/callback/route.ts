@@ -20,30 +20,39 @@ export async function GET(request: Request) {
       const avatar = meta.avatar_url || meta.picture || "/placeholder.svg";
       const email = user.email || "";
 
+      // Check existing user in DB first so we don't overwrite tuning, avatar, or name
+      const existingUser = (await userRepo.findById(user.id)) || (await userRepo.findByEmail(email));
+
+      const finalName = existingUser?.name || fullName;
+      const finalAvatar = existingUser?.avatar || avatar;
+      const finalTuning = existingUser?.tuningPreference || meta.tuning_preference || "Reference / Neutral";
+      const finalLocation = existingUser?.location || meta.location || "Indonesia";
+      const finalLanguage = existingUser?.language || meta.language || "id";
+
       // Upsert into Supabase database
       const dbUser = await userRepo.upsert({
         id: user.id,
         email,
-        name: fullName,
-        avatar,
-        location: meta.location || "Indonesia",
-        language: meta.language || "id",
-        tuningPreference: meta.tuning_preference || "Reference / Neutral",
+        name: finalName,
+        avatar: finalAvatar,
+        location: finalLocation,
+        language: finalLanguage,
+        tuningPreference: finalTuning,
         role: email.includes("admin") ? "ADMIN" : email.includes("seller") ? "SELLER" : "BUYER",
       });
 
       const sessionPayload = {
         id: dbUser.id,
-        name: dbUser.name || fullName,
+        name: dbUser.name || finalName,
         email,
-        avatar: dbUser.avatar || avatar,
+        avatar: dbUser.avatar || finalAvatar,
         role: (dbUser.role || "BUYER") as any,
         isSeller: dbUser.role === "SELLER" || dbUser.store?.status === "APPROVED",
         sellerStatus: dbUser.store?.status || "NONE",
-        tuning: dbUser.tuningPreference || "Reference / Neutral",
+        tuning: dbUser.tuningPreference || finalTuning,
         experienceLevel: meta.experience_level || "Intermediate",
-        location: dbUser.location || "Indonesia",
-        language: dbUser.language || "id",
+        location: dbUser.location || finalLocation,
+        language: dbUser.language || finalLanguage,
       };
 
       const cookieStore = await cookies();
