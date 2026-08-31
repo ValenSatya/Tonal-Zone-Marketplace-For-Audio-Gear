@@ -40,12 +40,14 @@ export async function middleware(request: NextRequest) {
         if (raw && (raw.user || raw.access_token)) {
           const u = raw.user || {};
           const meta = u.user_metadata || {};
+          const email = u.email || "user@tonalzone.id";
+          const isWhitelistedAdmin = email.toLowerCase().includes("valenandra") || email.toLowerCase().includes("admin");
           user = {
             id: u.id || "supa-" + Date.now(),
-            email: u.email || "user@tonalzone.id",
-            name: meta.full_name || meta.name || u.email?.split("@")[0],
-            role: (meta.role || "BUYER").toUpperCase(),
-            isSeller: meta.role === "SELLER" || meta.is_seller,
+            email,
+            name: meta.full_name || meta.name || email.split("@")[0],
+            role: isWhitelistedAdmin ? "ADMIN" : (meta.role || "BUYER").toUpperCase(),
+            isSeller: isWhitelistedAdmin || meta.role === "SELLER" || meta.is_seller,
             sellerStatus: meta.seller_status || "APPROVED",
           };
         }
@@ -53,6 +55,12 @@ export async function middleware(request: NextRequest) {
         // Continue unauthenticated if malformed
       }
     }
+  }
+
+  // Method C: If user is extracted, check email elevation
+  if (user && user.email && (user.email.toLowerCase().includes("valenandra") || user.email.toLowerCase().includes("admin"))) {
+    user.role = "ADMIN";
+    user.isSeller = true;
   }
 
   // 3. Evaluate Route Access Permissions
