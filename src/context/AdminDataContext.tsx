@@ -691,8 +691,60 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
     logAction("Bulk User Status", `${ids.length} users set to ${status}`);
   }, []);
 
+  // Live fetch orders from API on load
+  useEffect(() => {
+    const fetchLiveOrders = async () => {
+      try {
+        const res = await fetch("/api/orders");
+        if (!res.ok) return;
+        const text = await res.text();
+        let data: any = null;
+        try {
+          data = JSON.parse(text);
+        } catch {
+          return;
+        }
+        if (data && data.success && Array.isArray(data.orders) && data.orders.length > 0) {
+          const liveOrders: AdminOrder[] = data.orders.map((o: any) => ({
+            id: o.id,
+            orderNumber: o.id.startsWith("TZ-") ? o.id : `TZ-${o.id.slice(-4)}`,
+            buyerName: o.buyerName || o.destinationCity || "Audiophile Buyer",
+            buyerEmail: o.buyerEmail || "buyer@tonalzone.id",
+            sellerName: "Soundstage ID Authorized",
+            itemSummary: o.items?.[0]?.productName || "Audiophile Gear",
+            totalAmount: o.totalAmount || 0,
+            status: (o.escrowStatus === "COMPLETED"
+              ? "COMPLETED"
+              : o.escrowStatus === "IN_TRANSIT" || o.escrowStatus === "SHIPPED"
+              ? "SHIPPED"
+              : o.escrowStatus === "HELD_IN_ESCROW" || o.escrowStatus === "PAID"
+              ? "PAID"
+              : "PENDING") as AdminOrder["status"],
+            courier: o.courierCode || "JNE Express",
+            trackingNumber: o.waybillNumber || undefined,
+            createdAt: new Date(o.createdAt).toISOString().replace("T", " ").substring(0, 16),
+          }));
+
+          setOrders((prev) => {
+            const combined = [...liveOrders];
+            prev.forEach((p) => {
+              if (!combined.some((c) => c.id === p.id)) {
+                combined.push(p);
+              }
+            });
+            return combined;
+          });
+        }
+      } catch (err) {
+        console.warn("Could not fetch live orders for admin:", err);
+      }
+    };
+
+    fetchLiveOrders();
+  }, []);
+
   // Store Actions
-  const updateStoreStatus = useCallback((id: string, status: AdminStore["status"], reason?: string) => {
+  const updateStoreStatus = useCallback(async (id: string, status: AdminStore["status"], reason?: string) => {
     setStores((prev) =>
       prev.map((s) =>
         s.id === id
@@ -706,6 +758,21 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
       )
     );
     logAction(`Store ${status}`, `Store ID ${id} - ${reason || ""}`);
+
+    // Sync to Supabase Backend
+    try {
+      await fetch("/api/admin/approve-seller", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          storeId: id,
+          action: status === "APPROVED" ? "APPROVE" : "REJECT",
+          reason,
+        }),
+      });
+    } catch (err) {
+      console.warn("Could not sync store approval to backend:", err);
+    }
   }, []);
 
   const deleteStore = useCallback((id: string) => {
