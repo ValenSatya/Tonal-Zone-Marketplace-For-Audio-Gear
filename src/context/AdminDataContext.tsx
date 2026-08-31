@@ -691,56 +691,133 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
     logAction("Bulk User Status", `${ids.length} users set to ${status}`);
   }, []);
 
-  // Live fetch orders from API on load
+  // Live fetch users, stores, and orders from Supabase database on load
   useEffect(() => {
-    const fetchLiveOrders = async () => {
+    const fetchLiveDatabaseData = async () => {
+      // 1. Fetch live Users from Supabase
+      try {
+        const res = await fetch("/api/admin/users");
+        if (res.ok) {
+          const text = await res.text();
+          let data: any = null;
+          try {
+            data = JSON.parse(text);
+          } catch {}
+          if (data && data.success && Array.isArray(data.users) && data.users.length > 0) {
+            const liveUsers: AdminUser[] = data.users.map((u: any) => ({
+              id: u.id,
+              name: u.name || u.email?.split("@")[0] || "Audiophile Member",
+              email: u.email,
+              role: u.role === "ADMIN" ? "Super Admin" : u.role === "SELLER" ? "Seller" : "Buyer",
+              status: "Active",
+              joined: u.createdAt ? new Date(u.createdAt).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
+              location: u.location || "Indonesia",
+              tuningPreference: u.tuningPreference || "Reference / Neutral",
+            }));
+
+            setUsers((prev) => {
+              const combined = [...liveUsers];
+              prev.forEach((p) => {
+                if (!combined.some((c) => c.email.toLowerCase() === p.email.toLowerCase())) {
+                  combined.push(p);
+                }
+              });
+              return combined;
+            });
+          }
+        }
+      } catch (err) {
+        console.warn("Could not fetch live users for admin:", err);
+      }
+
+      // 2. Fetch live Stores from Supabase
+      try {
+        const res = await fetch("/api/admin/stores");
+        if (res.ok) {
+          const text = await res.text();
+          let data: any = null;
+          try {
+            data = JSON.parse(text);
+          } catch {}
+          if (data && data.success && Array.isArray(data.stores) && data.stores.length > 0) {
+            const liveStores: AdminStore[] = data.stores.map((s: any) => ({
+              id: s.id,
+              userId: s.userId,
+              storeName: s.storeName,
+              ownerName: s.user?.name || s.storeName,
+              email: s.user?.email || "seller@tonalzone.id",
+              brandFocus: s.description || "In-Ear Monitors & Audiophile Gear",
+              nik: s.nik || "3273000000000000",
+              bankName: s.bankName || "BCA",
+              bankAccount: s.bankAccount || "0000000000",
+              address: s.address || "Indonesia",
+              status: s.status || "PENDING",
+              revisionCount: 0,
+              submittedAt: s.createdAt ? new Date(s.createdAt).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
+            }));
+
+            setStores((prev) => {
+              const combined = [...liveStores];
+              prev.forEach((p) => {
+                if (!combined.some((c) => c.id === p.id)) {
+                  combined.push(p);
+                }
+              });
+              return combined;
+            });
+          }
+        }
+      } catch (err) {
+        console.warn("Could not fetch live stores for admin:", err);
+      }
+
+      // 3. Fetch live Orders
       try {
         const res = await fetch("/api/orders");
-        if (!res.ok) return;
-        const text = await res.text();
-        let data: any = null;
-        try {
-          data = JSON.parse(text);
-        } catch {
-          return;
-        }
-        if (data && data.success && Array.isArray(data.orders) && data.orders.length > 0) {
-          const liveOrders: AdminOrder[] = data.orders.map((o: any) => ({
-            id: o.id,
-            orderNumber: o.id.startsWith("TZ-") ? o.id : `TZ-${o.id.slice(-4)}`,
-            buyerName: o.buyerName || o.destinationCity || "Audiophile Buyer",
-            buyerEmail: o.buyerEmail || "buyer@tonalzone.id",
-            sellerName: "Soundstage ID Authorized",
-            itemSummary: o.items?.[0]?.productName || "Audiophile Gear",
-            totalAmount: o.totalAmount || 0,
-            status: (o.escrowStatus === "COMPLETED"
-              ? "COMPLETED"
-              : o.escrowStatus === "IN_TRANSIT" || o.escrowStatus === "SHIPPED"
-              ? "SHIPPED"
-              : o.escrowStatus === "HELD_IN_ESCROW" || o.escrowStatus === "PAID"
-              ? "PAID"
-              : "PENDING") as AdminOrder["status"],
-            courier: o.courierCode || "JNE Express",
-            trackingNumber: o.waybillNumber || undefined,
-            createdAt: new Date(o.createdAt).toISOString().replace("T", " ").substring(0, 16),
-          }));
+        if (res.ok) {
+          const text = await res.text();
+          let data: any = null;
+          try {
+            data = JSON.parse(text);
+          } catch {}
+          if (data && data.success && Array.isArray(data.orders) && data.orders.length > 0) {
+            const liveOrders: AdminOrder[] = data.orders.map((o: any) => ({
+              id: o.id,
+              orderNumber: o.id.startsWith("TZ-") ? o.id : `TZ-${o.id.slice(-4)}`,
+              buyerName: o.buyerName || o.destinationCity || "Audiophile Buyer",
+              buyerEmail: o.buyerEmail || "buyer@tonalzone.id",
+              sellerName: "Soundstage ID Authorized",
+              itemSummary: o.items?.[0]?.productName || "Audiophile Gear",
+              totalAmount: o.totalAmount || 0,
+              status: (o.escrowStatus === "COMPLETED"
+                ? "COMPLETED"
+                : o.escrowStatus === "IN_TRANSIT" || o.escrowStatus === "SHIPPED"
+                ? "SHIPPED"
+                : o.escrowStatus === "HELD_IN_ESCROW" || o.escrowStatus === "PAID"
+                ? "PAID"
+                : "PENDING") as AdminOrder["status"],
+              courier: o.courierCode || "JNE Express",
+              trackingNumber: o.waybillNumber || undefined,
+              createdAt: new Date(o.createdAt).toISOString().replace("T", " ").substring(0, 16),
+            }));
 
-          setOrders((prev) => {
-            const combined = [...liveOrders];
-            prev.forEach((p) => {
-              if (!combined.some((c) => c.id === p.id)) {
-                combined.push(p);
-              }
+            setOrders((prev) => {
+              const combined = [...liveOrders];
+              prev.forEach((p) => {
+                if (!combined.some((c) => c.id === p.id)) {
+                  combined.push(p);
+                }
+              });
+              return combined;
             });
-            return combined;
-          });
+          }
         }
       } catch (err) {
         console.warn("Could not fetch live orders for admin:", err);
       }
     };
 
-    fetchLiveOrders();
+    fetchLiveDatabaseData();
   }, []);
 
   // Store Actions
