@@ -31,13 +31,21 @@ function PaymentGatewayContent() {
   useEffect(() => {
     if (orderId) {
       fetch(`/api/orders/${orderId}`)
-        .then((res) => res.json())
+        .then(async (res) => {
+          if (!res.ok) return null;
+          const text = await res.text();
+          try {
+            return JSON.parse(text);
+          } catch {
+            return null;
+          }
+        })
         .then((data) => {
-          if (data.success && data.order) {
+          if (data && data.success && data.order) {
             setOrderDetails(data.order);
           }
         })
-        .catch((err) => console.error("Error fetching order details:", err));
+        .catch((err) => console.warn("Could not parse order details:", err));
     }
   }, [orderId]);
 

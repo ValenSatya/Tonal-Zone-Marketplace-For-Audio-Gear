@@ -112,8 +112,15 @@ export default function SellerOrdersPage() {
   const loadSellerOrders = async () => {
     try {
       const res = await fetch("/api/orders");
-      const data = await res.json();
-      if (data.success && Array.isArray(data.orders)) {
+      if (!res.ok) return;
+      const text = await res.text();
+      let data: any = null;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        return;
+      }
+      if (data && data.success && Array.isArray(data.orders)) {
         const mapped: SellerOrder[] = data.orders.map((o: any) => ({
           id: o.id,
           createdAt: new Date(o.createdAt).toISOString().replace("T", " ").substring(0, 16),
