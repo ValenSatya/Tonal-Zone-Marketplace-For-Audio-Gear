@@ -434,9 +434,9 @@ export default function Navbar() {
             </svg>
           </button>
 
-          {/* Chat / Inbox & Notifications (Only visible when logged in) */}
+          {/* Chat / Inbox & Notifications (Desktop Only - Mobile accesses via Drawer) */}
           {mounted && userSession && (
-            <>
+            <div className="hidden md:flex items-center gap-6 h-full">
               <Link
                 href="/messages"
                 className={`hover:scale-110 active:scale-95 transition-all duration-300 relative cursor-pointer flex items-center ${
@@ -530,7 +530,7 @@ export default function Navbar() {
                       <span className="text-[12px] font-semibold text-[#FAF9F6]">Notifikasi lainnya</span>
                     </div>
 
-                    <Link href="/user/orders" onClick={() => setIsNotifOpen(false)} className="flex gap-3 px-5 py-3 hover:bg-[#1f1f1f] transition-colors relative group opacity-70 hover:opacity-100">
+                    <Link href="/orders" onClick={() => setIsNotifOpen(false)} className="flex gap-3 px-5 py-3 hover:bg-[#1f1f1f] transition-colors relative group opacity-70 hover:opacity-100">
                       <div className="w-10 h-10 rounded-full bg-[#222] shrink-0 overflow-hidden flex items-center justify-center text-[#888]">
                         <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
                       </div>
@@ -553,7 +553,7 @@ export default function Navbar() {
                   </div>
                 </div>
               </div>
-            </>
+            </div>
           )}
 
           <button
@@ -724,18 +724,35 @@ export default function Navbar() {
             )}
           </div>
 
+          {/* Animated Minimalist Hamburger Trigger */}
           <button 
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className={`md:hidden p-2 -mr-2 transition-colors cursor-pointer ${isDarkNav ? "text-[#FAF9F6] hover:text-[#D4FF00]" : "text-[#0e0e0e] hover:text-[#D4FF00]"}`}
+            onClick={() => {
+              setIsNotifOpen(false);
+              setIsSearchOpen(false);
+              setIsMobileMenuOpen(!isMobileMenuOpen);
+            }}
+            className={`md:hidden relative w-10 h-10 flex flex-col items-center justify-center gap-1.5 transition-colors rounded-xl border border-transparent active:scale-95 cursor-pointer z-50 ${
+              isDarkNav 
+                ? "text-[#FAF9F6] hover:text-[#D4FF00] hover:bg-white/5 active:bg-white/10" 
+                : "text-[#0e0e0e] hover:text-[#D4FF00] hover:bg-black/5 active:bg-black/10"
+            }`}
+            aria-label="Toggle navigation menu"
           >
-            <span className="sr-only">Toggle Menu</span>
-            <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-              {isMobileMenuOpen ? (
-                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              ) : (
-                 <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16m-7 6h7" />
-              )}
-            </svg>
+            <motion.span 
+              animate={isMobileMenuOpen ? { rotate: 45, y: 7.5 } : { rotate: 0, y: 0 }}
+              transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+              className="w-5 h-[2px] bg-current rounded-full origin-center transition-colors"
+            />
+            <motion.span 
+              animate={isMobileMenuOpen ? { opacity: 0, x: -6 } : { opacity: 1, x: 0 }}
+              transition={{ duration: 0.2 }}
+              className="w-3.5 h-[2px] bg-current rounded-full self-end mr-2.5 transition-colors"
+            />
+            <motion.span 
+              animate={isMobileMenuOpen ? { rotate: -45, y: -7.5 } : { rotate: 0, y: 0 }}
+              transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+              className="w-5 h-[2px] bg-current rounded-full origin-center transition-colors"
+            />
           </button>
         </div>
       </div>
@@ -914,7 +931,7 @@ export default function Navbar() {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-              className="fixed inset-y-0 right-0 w-full max-w-[380px] z-50 bg-[#09090b] border-l border-[#1f1f23] flex flex-col shadow-[0_0_80px_rgba(0,0,0,0.95)] md:hidden overflow-hidden"
+              className="fixed inset-y-0 right-0 w-full sm:max-w-[380px] z-50 bg-[#09090b] border-l border-[#1f1f23] flex flex-col shadow-[0_0_80px_rgba(0,0,0,0.95)] md:hidden overflow-hidden"
             >
               {/* Drawer Top Bar */}
               <div className="flex items-center justify-between px-6 py-5 border-b border-[#1c1c1f]">
