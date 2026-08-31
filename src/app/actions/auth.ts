@@ -121,6 +121,87 @@ export async function signUpUser(data: {
   }
 }
 
+export async function completeGoogleOnboarding(data: {
+  fullName: string;
+  avatar?: string;
+  tuningPreference: string;
+  experienceLevel?: string;
+  location?: string;
+  language?: string;
+}): Promise<AuthSessionResponse> {
+  try {
+    const supabase = await createClient();
+    const { data: userData } = await supabase.auth.getUser();
+
+    const cookieStore = await cookies();
+    let existingSession: any = null;
+    const sessionCookie = cookieStore.get("tonalzone_session")?.value;
+    if (sessionCookie) {
+      try {
+        existingSession = JSON.parse(decodeURIComponent(sessionCookie));
+      } catch {}
+    }
+
+    const userId = userData?.user?.id || existingSession?.id || "usr-" + Date.now();
+    const email = userData?.user?.email || existingSession?.email || "user@tonalzone.id";
+
+    // Update user metadata in Supabase Auth
+    if (userData?.user) {
+      await supabase.auth.updateUser({
+        data: {
+          full_name: data.fullName.trim(),
+          avatar_url: data.avatar,
+          tuning_preference: data.tuningPreference,
+          experience_level: data.experienceLevel,
+          location: data.location || "Indonesia",
+          language: data.language || "id",
+        },
+      });
+    }
+
+    // Upsert into database
+    const dbUser = await userRepo.upsert({
+      id: userId,
+      email,
+      name: data.fullName.trim() || email.split("@")[0],
+      avatar: data.avatar,
+      location: data.location || "Indonesia",
+      language: data.language || "id",
+      tuningPreference: data.tuningPreference || "Reference / Neutral",
+      role: email.includes("admin") ? "ADMIN" : email.includes("seller") ? "SELLER" : "BUYER",
+    });
+
+    const sessionPayload = {
+      id: dbUser.id,
+      name: dbUser.name || data.fullName.trim(),
+      email,
+      avatar: data.avatar || dbUser.avatar || "/placeholder.svg",
+      role: (dbUser.role || "BUYER") as any,
+      isSeller: dbUser.role === "SELLER" || dbUser.store?.status === "APPROVED",
+      sellerStatus: dbUser.store?.status || "NONE",
+      tuning: data.tuningPreference || dbUser.tuningPreference || "Reference / Neutral",
+      experienceLevel: data.experienceLevel || "Intermediate",
+      location: data.location || dbUser.location || "Indonesia",
+      language: data.language || dbUser.language || "id",
+    };
+
+    cookieStore.set("tonalzone_session", encodeURIComponent(JSON.stringify(sessionPayload)), {
+      path: "/",
+      maxAge: 60 * 60 * 24 * 7,
+      sameSite: "lax",
+    });
+
+    return {
+      success: true,
+      user: sessionPayload,
+    };
+  } catch (error: unknown) {
+    const errorMsg = error instanceof Error ? error.message : "Terjadi kesalahan saat menyelesaikan onboarding Google.";
+    console.error("completeGoogleOnboarding error:", errorMsg);
+    return { success: false, error: errorMsg };
+  }
+}
+
 export async function signInUser(data: { email: string; passwordRaw: string }): Promise<AuthSessionResponse> {
   try {
     const email = data.email.trim().toLowerCase();

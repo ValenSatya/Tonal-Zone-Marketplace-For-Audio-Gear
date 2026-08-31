@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import { useLanguage } from "@/context/LanguageContext";
-import { signUpUser } from "@/app/actions/auth";
+import { signUpUser, completeGoogleOnboarding } from "@/app/actions/auth";
 import { createClient } from "@/lib/supabase/client";
 import { Eye, EyeOff, CornerDownRight, Check, ChevronDown, Camera } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -128,6 +128,9 @@ function SignupContent() {
   // Current Step: 1 = Credentials & Region, 2 = Profile & Avatar, 3 = Audiophile Preferences
   const [step, setStep] = useState<1 | 2 | 3>(1);
 
+  // Check if arriving from Google OAuth signup flow
+  const isGoogleFlow = searchParams?.get("google") === "true";
+
   // Step 1: Kredensial & Wilayah
   const [signupEmail, setSignupEmail] = useState("");
   const [signupPassword, setSignupPassword] = useState("");
@@ -148,6 +151,34 @@ function SignupContent() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  // Auto detect Google signup flow on mount to immediately load Profile & Avatar
+  useEffect(() => {
+    const stepParam = searchParams?.get("step");
+    if (stepParam === "2" || isGoogleFlow) {
+      setStep(2);
+
+      // Pre-fill user data from Google session/storage
+      try {
+        const stored = localStorage.getItem("tonalzone_user");
+        if (stored) {
+          const u = JSON.parse(stored);
+          if (u.name) setUsername(u.name);
+          if (u.avatar && u.avatar !== "/placeholder.svg") setAvatarPreview(u.avatar);
+          if (u.email) setSignupEmail(u.email);
+        } else if (typeof document !== "undefined") {
+          const match = document.cookie.match(new RegExp("(^| )tonalzone_session=([^;]+)"));
+          if (match) {
+            const u = JSON.parse(decodeURIComponent(match[2]));
+            localStorage.setItem("tonalzone_user", JSON.stringify(u));
+            if (u.name) setUsername(u.name);
+            if (u.avatar && u.avatar !== "/placeholder.svg") setAvatarPreview(u.avatar);
+            if (u.email) setSignupEmail(u.email);
+          }
+        }
+      } catch {}
+    }
+  }, [searchParams, isGoogleFlow]);
 
   // Handle Avatar Image Upload
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -210,15 +241,27 @@ function SignupContent() {
     setIsSubmitting(true);
 
     try {
-      const res = await signUpUser({
-        fullName: username.trim(),
-        email: signupEmail.trim(),
-        passwordRaw: signupPassword,
-        location,
-        language,
-        tuningPreference: soundSignature,
-        experienceLevel,
-      });
+      let res;
+      if (isGoogleFlow) {
+        res = await completeGoogleOnboarding({
+          fullName: username.trim(),
+          avatar: avatarPreview,
+          tuningPreference: soundSignature,
+          experienceLevel,
+          location,
+          language,
+        });
+      } else {
+        res = await signUpUser({
+          fullName: username.trim(),
+          email: signupEmail.trim(),
+          passwordRaw: signupPassword,
+          location,
+          language,
+          tuningPreference: soundSignature,
+          experienceLevel,
+        });
+      }
 
       if (!res.success) {
         setErrorMessage(res.error || "Gagal mendaftar. Silakan periksa data Anda.");
@@ -274,7 +317,7 @@ function SignupContent() {
 
     try {
       const supabase = createClient();
-      const callbackUrl = `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(redirectUrl)}`;
+      const callbackUrl = `${window.location.origin}/auth/callback?flow=signup&redirect=${encodeURIComponent(redirectUrl)}`;
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
