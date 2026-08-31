@@ -20,7 +20,7 @@ export async function GET(request: Request) {
       const avatar = meta.avatar_url || meta.picture || "/placeholder.svg";
       const email = user.email || "";
 
-      // Check existing user in DB first so we don't overwrite tuning, avatar, or name
+      // Check existing user in DB first so we don't overwrite role, tuning, avatar, or name
       const existingUser = (await userRepo.findById(user.id)) || (await userRepo.findByEmail(email));
 
       const finalName = existingUser?.name || fullName;
@@ -28,6 +28,7 @@ export async function GET(request: Request) {
       const finalTuning = existingUser?.tuningPreference || meta.tuning_preference || "Reference / Neutral";
       const finalLocation = existingUser?.location || meta.location || "Indonesia";
       const finalLanguage = existingUser?.language || meta.language || "id";
+      const finalRole = existingUser?.role || (email.includes("admin") || email.includes("valenandra") ? "ADMIN" : email.includes("seller") ? "SELLER" : "BUYER");
 
       // Upsert into Supabase database
       const dbUser = await userRepo.upsert({
@@ -38,7 +39,7 @@ export async function GET(request: Request) {
         location: finalLocation,
         language: finalLanguage,
         tuningPreference: finalTuning,
-        role: email.includes("admin") ? "ADMIN" : email.includes("seller") ? "SELLER" : "BUYER",
+        role: finalRole,
       });
 
       const sessionPayload = {
@@ -46,7 +47,7 @@ export async function GET(request: Request) {
         name: dbUser.name || finalName,
         email,
         avatar: dbUser.avatar || finalAvatar,
-        role: (dbUser.role || "BUYER") as any,
+        role: (dbUser.role || finalRole) as any,
         isSeller: dbUser.role === "SELLER" || dbUser.store?.status === "APPROVED",
         sellerStatus: dbUser.store?.status || "NONE",
         tuning: dbUser.tuningPreference || finalTuning,

@@ -289,6 +289,17 @@ export async function getAuthSession(): Promise<AuthSessionResponse> {
       try {
         const payload = JSON.parse(decodeURIComponent(sessionCookie));
         if (payload && payload.email) {
+          // Check live role from DB in case admin changed it in Supabase
+          const dbUser = (await userRepo.findByEmail(payload.email)) || (payload.id ? await userRepo.findById(payload.id) : null);
+          if (dbUser && dbUser.role) {
+            payload.role = dbUser.role;
+            if (payload.role === "ADMIN") {
+              payload.isSeller = true;
+            }
+          }
+          if (payload.email.includes("valenandra") || payload.email.includes("admin")) {
+            payload.role = "ADMIN";
+          }
           return { success: true, user: payload };
         }
       } catch (e) {
@@ -305,14 +316,15 @@ export async function getAuthSession(): Promise<AuthSessionResponse> {
       const meta = u.user_metadata || {};
       const email = u.email || "";
       const dbUser = (await userRepo.findByEmail(email)) || (await userRepo.findById(u.id));
+      const finalRole = ((dbUser?.role) || (email.includes("admin") || email.includes("valenandra") ? "ADMIN" : email.includes("seller") ? "SELLER" : "BUYER")) as any;
 
       const sessionPayload = {
         id: dbUser?.id || u.id,
         name: dbUser?.name || meta.full_name || meta.name || email.split("@")[0],
         email,
         avatar: dbUser?.avatar || meta.avatar_url || meta.picture || "/placeholder.svg",
-        role: ((dbUser?.role) || (email.includes("admin") ? "ADMIN" : email.includes("seller") ? "SELLER" : "BUYER")) as any,
-        isSeller: dbUser?.role === "SELLER" || dbUser?.store?.status === "APPROVED",
+        role: finalRole,
+        isSeller: finalRole === "ADMIN" || dbUser?.role === "SELLER" || dbUser?.store?.status === "APPROVED",
         sellerStatus: dbUser?.store?.status || "NONE",
         tuning: dbUser?.tuningPreference || meta.tuning_preference || "Reference / Neutral",
         experienceLevel: meta.experience_level || "Intermediate",
