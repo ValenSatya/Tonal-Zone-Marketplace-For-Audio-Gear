@@ -52,9 +52,21 @@ export default function Navbar() {
         const stored = localStorage.getItem("tonalzone_user");
         if (stored) {
           setUserSession(JSON.parse(stored));
-        } else {
-          setUserSession(null);
+          return;
         }
+
+        // Fallback to cookie check for OAuth redirect
+        if (typeof document !== "undefined") {
+          const match = document.cookie.match(new RegExp("(^| )tonalzone_session=([^;]+)"));
+          if (match) {
+            const user = JSON.parse(decodeURIComponent(match[2]));
+            localStorage.setItem("tonalzone_user", JSON.stringify(user));
+            setUserSession(user);
+            return;
+          }
+        }
+
+        setUserSession(null);
       } catch (e) {
         setUserSession(null);
       }

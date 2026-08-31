@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useRef, useEffect, Suspense } from "react";
 import Link from "next/link";
@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import { useLanguage } from "@/context/LanguageContext";
 import { signUpUser } from "@/app/actions/auth";
+import { createClient } from "@/lib/supabase/client";
 import { Eye, EyeOff, CornerDownRight, Check, ChevronDown, Camera } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -266,32 +267,29 @@ function SignupContent() {
     }
   };
 
-  const handleGoogleAuth = () => {
+  const handleGoogleAuth = async () => {
     setErrorMessage(null);
-    setSuccessMessage("Menghubungkan dengan Akun Google...");
+    setSuccessMessage("Menghubungkan ke Google...");
     setIsSubmitting(true);
 
-    setTimeout(() => {
-      const userObj = {
-        name: "Google Audiophile",
-        email: "audiophile.user@gmail.com",
-        avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200",
-        role: "VIP AUDIOPHILE",
-        isSeller: false,
-        tuning: soundSignature,
-        experienceLevel,
-        location,
-        language,
-        gear: "Moondrop Blessing 3",
-      };
-      localStorage.setItem("tonalzone_user", JSON.stringify(userObj));
-      setSuccessMessage("Autentikasi Google berhasil! Mengalihkan...");
-      window.dispatchEvent(new Event("userLoginChange"));
+    try {
+      const supabase = createClient();
+      const callbackUrl = `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(redirectUrl)}`;
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: callbackUrl,
+        },
+      });
 
-      setTimeout(() => {
-        router.push(redirectUrl);
-      }, 400);
-    }, 500);
+      if (error) {
+        setErrorMessage(error.message || "Gagal menghubungkan ke Google.");
+        setIsSubmitting(false);
+      }
+    } catch (err: unknown) {
+      setErrorMessage("Terjadi kesalahan saat menghubungkan ke Google.");
+      setIsSubmitting(false);
+    }
   };
 
   return (
