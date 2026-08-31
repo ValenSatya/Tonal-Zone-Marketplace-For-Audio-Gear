@@ -310,12 +310,12 @@ export default function CollectionPage() {
 
       {/* 3. Shop by Category Tabs Bar (Static & Zero-Glitch Pure CSS) */}
       <section className="w-full bg-[#0a0a0a] border-b border-[#1c1c1c]">
-        <div className="max-w-[1500px] mx-auto px-6 lg:px-12 py-4 flex items-center justify-between gap-8">
-          <div className="flex items-center gap-8 overflow-x-auto no-scrollbar flex-1">
-            <span className="text-[10px] uppercase font-mono tracking-[0.25em] text-[#444444] font-bold shrink-0">
-              SHOP BY CATEGORY
+        <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-12 py-3 sm:py-4 flex items-center justify-between gap-4 sm:gap-8">
+          <div className="flex items-center gap-4 sm:gap-8 overflow-x-auto no-scrollbar flex-1">
+            <span className="text-[9px] sm:text-[10px] uppercase font-mono tracking-[0.2em] sm:tracking-[0.25em] text-[#444444] font-bold shrink-0">
+              CATEGORY
             </span>
-            <div className="flex items-center gap-8 shrink-0">
+            <div className="flex items-center gap-4 sm:gap-8 shrink-0">
               {CATEGORIES.map((cat) => {
                 const isActive = activeCategory === cat;
                 return (
@@ -325,13 +325,13 @@ export default function CollectionPage() {
                       setActiveCategory(cat);
                       setCurrentPage(1);
                     }}
-                    className={`relative text-xs uppercase font-mono tracking-widest transition-colors duration-200 py-1 cursor-pointer touch-manipulation border-b-2 ${
+                    className={`relative text-[11px] sm:text-xs uppercase font-mono tracking-wider sm:tracking-widest transition-colors duration-200 py-1 cursor-pointer touch-manipulation border-b-2 ${
                       isActive
                         ? "text-white font-bold border-white"
                         : "text-[#666666] hover:text-[#FAF9F6] border-transparent"
                     }`}
                   >
-                    {isActive && <span className="mr-1.5 text-white">×</span>}
+                    {isActive && <span className="mr-1 text-white">×</span>}
                     {cat === "ALL PRODUCTS" ? t("collection.allProducts") : cat === "IN-EAR MONITORS" ? t("collection.inEarMonitors") : cat === "TWS" ? t("collection.tws") : cat === "HEADPHONE" ? t("collection.headphone") : cat === "DAC/AMP" ? t("collection.dacAmp") : cat === "ACCESSORIES" ? t("collection.accessories") : cat}
                   </button>
                 );
@@ -339,7 +339,7 @@ export default function CollectionPage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             {/* Grid Column Switcher (Universal Column Layout Icons) */}
             <div className="hidden sm:flex items-center border border-[#222222] bg-[#0a0a0a] p-0.5 relative">
               {[3, 4, 5].map((cols) => {
@@ -349,11 +349,10 @@ export default function CollectionPage() {
                     key={cols}
                     type="button"
                     onClick={() => handleSetGridCols(cols)}
-                    className={`w-8 h-8 flex items-center justify-center transition-colors cursor-pointer relative z-10 ${
-                      isActive ? "text-[#080808]" : "text-[#666666] hover:text-white"
+                    className={`w-7 h-7 flex items-center justify-center transition-colors relative z-10 cursor-pointer ${
+                      isActive ? "text-[#080808]" : "text-[#555555] hover:text-[#FAF9F6]"
                     }`}
-                    aria-label={`${cols} Columns View`}
-                    title={`${cols} Kolom`}
+                    aria-label={`${cols} columns`}
                   >
                     {isActive && (
                       <motion.div
@@ -394,18 +393,19 @@ export default function CollectionPage() {
             {/* Filter Button */}
             <button 
               onClick={() => setIsFilterDrawerOpen(!isFilterDrawerOpen)}
-              className="flex items-center gap-2 border border-[#222222] hover:border-white hover:text-white px-4 h-9 font-mono text-xs uppercase tracking-widest text-[#777777] transition-colors shrink-0 font-bold touch-manipulation cursor-pointer"
+              className="flex items-center gap-1.5 sm:gap-2 border border-[#222222] hover:border-white hover:text-white px-2.5 sm:px-4 h-8 sm:h-9 font-mono text-[10px] sm:text-xs uppercase tracking-wider sm:tracking-widest text-[#777777] transition-colors shrink-0 font-bold touch-manipulation cursor-pointer"
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
-              {t("collection.filters") || "FILTERS"} ({filteredProducts.length})
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
+              <span>{t("collection.filters") || "FILTERS"}</span>
+              <span className="text-[#D4FF00]">({filteredProducts.length})</span>
             </button>
           </div>
         </div>
       </section>
 
       {/* 4. Main Content (Filters Sidebar + Product Grid) */}
-      <section className="max-w-[1500px] mx-auto px-6 lg:px-12 py-12 w-full flex-1 relative overflow-hidden">
-        <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-start w-full">
+      <section className="max-w-[1500px] mx-auto px-3 sm:px-6 lg:px-12 py-6 sm:py-12 w-full flex-1 relative overflow-hidden">
+        <div className="flex flex-col lg:flex-row gap-6 lg:gap-12 items-start w-full">
           {/* LEFT SIDEBAR FILTERS */}
           <AnimatePresence initial={false}>
             {isFilterDrawerOpen && (
@@ -420,21 +420,27 @@ export default function CollectionPage() {
                 />
                 
                 <motion.aside 
-                  initial={{ opacity: 0, width: 0 }}
-                  animate={{ opacity: 1, width: "auto" }}
-                  exit={{ opacity: 0, width: 0 }}
-                  transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-                  className="fixed lg:relative top-0 left-0 h-full lg:h-auto z-50 lg:z-auto bg-[#080808] lg:bg-transparent shrink-0 overflow-y-auto lg:overflow-visible overflow-x-hidden border-r border-[#1c1c1c] lg:border-none"
+                  key="filter-drawer"
+                  initial={{ x: "-100%", opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  exit={{ x: "-100%", opacity: 0 }}
+                  transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                  className="fixed inset-y-0 left-0 w-[300px] bg-[#0c0c0c] border-r border-[#1c1c1c] z-50 p-6 overflow-y-auto lg:static lg:w-[260px] lg:border lg:border-[#1c1c1c] lg:bg-[#0a0a0a] lg:p-6 lg:z-auto shrink-0 shadow-2xl lg:shadow-none"
                 >
-                  <div className="w-[280px] space-y-9 p-6 lg:p-0 lg:pr-8 lg:border-r border-[#1c1c1c] pb-8 lg:pb-0 relative">
-                    {/* Mobile Close Button */}
+                  <div className="flex items-center justify-between pb-4 mb-6 border-b border-[#1c1c1c]">
+                    <span className="text-xs font-mono font-bold uppercase tracking-[0.2em] text-[#FAF9F6]">
+                      {t("collection.filters") || "FILTERS"}
+                    </span>
                     <button 
+                      type="button"
                       onClick={() => setIsFilterDrawerOpen(false)}
-                      className="lg:hidden absolute top-2 right-2 p-2 text-[#666666] hover:text-white transition-colors cursor-pointer"
+                      className="text-[#666666] hover:text-white text-lg font-mono leading-none cursor-pointer"
                     >
-                      <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+                      ✕
                     </button>
+                  </div>
 
+                  <div className="space-y-8">
                     {/* SORT BY */}
                     <div>
                       <span className="text-[11px] font-mono font-bold uppercase tracking-[0.2em] text-[#888888] block mb-3">
@@ -655,7 +661,7 @@ export default function CollectionPage() {
           {/* PRODUCT GRID */}
           <div className="flex-1 w-full">
             {isLoading ? (
-              <div className={`grid grid-cols-1 sm:grid-cols-2 ${gridCols === 4 ? "md:grid-cols-3 lg:grid-cols-4" : gridCols === 5 ? "md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5" : "md:grid-cols-3 lg:grid-cols-3"} gap-x-[18px] gap-y-8`}>
+              <div className={`grid grid-cols-2 sm:grid-cols-2 ${gridCols === 4 ? "md:grid-cols-3 lg:grid-cols-4" : gridCols === 5 ? "md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5" : "md:grid-cols-3 lg:grid-cols-3"} gap-x-2.5 sm:gap-x-[18px] gap-y-5 sm:gap-y-8`}>
                 {[...Array(itemsPerPage)].map((_, i) => (
                   <div key={i} className="aspect-square bg-[#0e0e0e] border border-[#1c1c1c] animate-pulse" />
                 ))}
@@ -698,13 +704,13 @@ export default function CollectionPage() {
                     duration: 0.4,
                     ease: [0.16, 1, 0.3, 1],
                   }}
-                  className={`grid grid-cols-1 sm:grid-cols-2 ${
+                  className={`grid grid-cols-2 sm:grid-cols-2 ${
                     gridCols === 4
                       ? "md:grid-cols-3 lg:grid-cols-4"
                       : gridCols === 5
                       ? "md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
                       : "md:grid-cols-3 lg:grid-cols-3"
-                  } gap-x-[18px] gap-y-8`}
+                  } gap-x-2.5 sm:gap-x-[18px] gap-y-5 sm:gap-y-8`}
                 >
                   {paginatedProducts.map((product) => (
                     <motion.div

@@ -37,14 +37,14 @@ export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
   const { language, setLanguage, t } = useLanguage();
-  const { formatPrice } = useLocation();
+  const { formatPrice, currency, setCurrency } = useLocation();
   const { isCartOpen, setIsCartOpen, totalCount } = useCart();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [mounted, setMounted] = useState(false);
-  const [userSession, setUserSession] = useState<{ name: string; email: string; avatar?: string; isSeller?: boolean; sellerStatus?: string } | null>(null);
+  const [userSession, setUserSession] = useState<{ name: string; email: string; avatar?: string; role?: string; isSeller?: boolean; sellerStatus?: string; tuning?: string } | null>(null);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
@@ -176,7 +176,7 @@ export default function Navbar() {
               className={`w-full h-full object-contain group-hover:rotate-180 transition-all duration-700 ease-in-out ${!isDarkNav ? 'brightness-0' : ''}`}
             />
           </div>
-          <span className={`font-heading text-2xl font-bold tracking-tight mt-0.5 transition-colors duration-300 ${
+          <span className={`hidden sm:inline font-heading text-2xl font-bold tracking-tight mt-0.5 transition-colors duration-300 ${
             isDarkNav ? "text-[#FAF9F6]" : "text-[#0e0e0e]"
           }`}>
             Tonalzone
@@ -895,75 +895,326 @@ export default function Navbar() {
         </div>
       )}
 
-      {/* 3.5 Mobile Full-Screen Menu Overlay */}
+      {/* 3.5 Redesigned Ultra-Modern Mobile Menu Drawer (OLED Glassmorphism) */}
       <AnimatePresence>
         {isMobileMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3 }}
-            className="fixed top-[80px] left-0 w-full h-[calc(100vh-80px)] z-40 bg-[#0e0e0e] border-t border-[#222] flex flex-col p-6 overflow-y-auto shadow-2xl"
-          >
-            <div className="flex flex-col gap-6 w-full pb-20">
-              <Link href="/" onClick={() => setIsMobileMenuOpen(false)} className="text-xl font-heading font-bold text-white uppercase tracking-widest border-b border-[#222] pb-4">
-                {t("nav.home")}
-              </Link>
-              <Link href="/collection" onClick={() => setIsMobileMenuOpen(false)} className="text-xl font-heading font-bold text-white uppercase tracking-widest border-b border-[#222] pb-4">
-                {t("nav.collection")}
-              </Link>
-              <Link href="/graph" onClick={() => setIsMobileMenuOpen(false)} className="text-xl font-heading font-bold text-white uppercase tracking-widest border-b border-[#222] pb-4">
-                {t("nav.graph")}
-              </Link>
-              <Link href="/support" onClick={() => setIsMobileMenuOpen(false)} className="text-xl font-heading font-bold text-white uppercase tracking-widest border-b border-[#222] pb-4">
-                {t("nav.support")}
-              </Link>
+          <>
+            {/* Backdrop Blur */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="fixed inset-0 z-40 bg-black/80 backdrop-blur-md md:hidden"
+            />
 
-              {/* Mobile User Section */}
-              <div className="mt-4 border-t border-[#222] pt-6 flex flex-col gap-4">
+            {/* Slide-over Drawer Sheet */}
+            <motion.div
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+              className="fixed inset-y-0 right-0 w-full max-w-[380px] z-50 bg-[#09090b] border-l border-[#1f1f23] flex flex-col shadow-[0_0_80px_rgba(0,0,0,0.95)] md:hidden overflow-hidden"
+            >
+              {/* Drawer Top Bar */}
+              <div className="flex items-center justify-between px-6 py-5 border-b border-[#1c1c1f]">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 flex items-center justify-center">
+                    <Image src="/logo.svg" alt="Tonal Zone" width={28} height={28} className="object-contain" />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="font-heading text-lg font-bold text-white tracking-tight">TONAL ZONE</span>
+                    <span className="text-[9px] font-mono uppercase tracking-[0.2em] text-[#D4FF00] font-bold">Audio Gear Marketplace</span>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="w-9 h-9 flex items-center justify-center rounded-xl bg-[#18181b] border border-[#27272a] text-[#a1a1aa] hover:text-white hover:border-white transition-colors cursor-pointer"
+                  aria-label="Tutup menu"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Scrollable Content */}
+              <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6 no-scrollbar">
+                {/* 1. User Profile Card or Auth Banner */}
                 {userSession ? (
-                  <>
-                    <div className="flex items-center gap-4 mb-4">
-                      <div className="w-10 h-10 rounded-full bg-[#222] border border-[#333] flex items-center justify-center text-[#bbb]">
-                         <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                  <div className="bg-[#121215] border border-[#27272a] rounded-2xl p-4.5 space-y-3.5 relative overflow-hidden">
+                    <div className="flex items-center gap-3.5">
+                      <div className="relative w-12 h-12 rounded-full overflow-hidden border-2 border-[#D4FF00]/40 p-0.5 bg-[#18181b] shrink-0">
+                        <img
+                          src={userSession.avatar || "/placeholder.svg"}
+                          alt={userSession.name}
+                          className="w-full h-full object-cover rounded-full"
+                        />
                       </div>
-                      <div>
-                        <p className="text-sm font-sans font-bold text-white">{userSession.name || userSession.email || "User"}</p>
-                        <p className="text-xs font-mono text-[#888]">{userSession.email}</p>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h4 className="text-sm font-sans font-bold text-white truncate">{userSession.name}</h4>
+                          <span className={`text-[9px] font-mono font-extrabold uppercase px-2 py-0.5 rounded-full border ${
+                            userSession.role === "ADMIN" || userSession.email?.includes("valenandra")
+                              ? "bg-[#D4FF00]/10 text-[#D4FF00] border-[#D4FF00]/30"
+                              : userSession.isSeller || userSession.sellerStatus === "APPROVED"
+                              ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
+                              : "bg-zinc-800 text-zinc-300 border-zinc-700"
+                          }`}>
+                            {userSession.role === "ADMIN" || userSession.email?.includes("valenandra") ? "SUPER ADMIN" : userSession.isSeller ? "SELLER" : "BUYER"}
+                          </span>
+                        </div>
+                        <p className="text-xs font-mono text-[#71717a] truncate mt-0.5">{userSession.email}</p>
                       </div>
                     </div>
-                    <Link href="/settings" onClick={() => setIsMobileMenuOpen(false)} className="text-sm font-mono uppercase tracking-widest text-white/70 hover:text-white">{t("nav.settings")}</Link>
-                    <Link href="/notifications" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-2 text-sm font-mono uppercase tracking-widest text-white/70 hover:text-white">
-                      Notifications
-                      <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#D4FF00] text-[9px] font-bold text-black">2</span>
-                    </Link>
-                    <Link href="/user/orders" onClick={() => setIsMobileMenuOpen(false)} className="text-sm font-mono uppercase tracking-widest text-white/70 hover:text-white">{t("nav.orders")}</Link>
-                    
-                    {(userSession.isSeller || userSession.sellerStatus === "APPROVED") ? (
-                      <Link href="/seller" onClick={() => setIsMobileMenuOpen(false)} className="text-sm font-mono uppercase tracking-widest text-emerald-400 hover:text-emerald-300">{t("nav.sellerVault")}</Link>
-                    ) : (
-                      <Link href="/seller/onboarding" onClick={() => setIsMobileMenuOpen(false)} className="text-sm font-mono uppercase tracking-widest text-purple-400 hover:text-purple-300">{t("nav.openStore")}</Link>
-                    )}
-                    
-                    <button 
-                      type="button"
-                      onClick={() => {
-                        setIsMobileMenuOpen(false);
-                        setIsLogoutModalOpen(true);
-                      }} 
-                      className="text-sm font-mono uppercase tracking-widest text-red-400 hover:text-red-300 text-left mt-2 cursor-pointer"
-                    >
-                      {t("nav.logout")}
-                    </button>
-                  </>
+
+                    {/* Quick Profile Links */}
+                    <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[#1f1f23]">
+                      <Link
+                        href="/orders"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="flex items-center gap-2 p-2.5 rounded-xl bg-[#18181b] hover:bg-[#27272a] border border-[#27272a] text-xs font-mono uppercase tracking-wider text-zinc-300 hover:text-white transition-colors"
+                      >
+                        <span className="text-[#D4FF00]">📦</span>
+                        <span className="truncate">{t("nav.orders")}</span>
+                      </Link>
+
+                      <Link
+                        href="/settings"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="flex items-center gap-2 p-2.5 rounded-xl bg-[#18181b] hover:bg-[#27272a] border border-[#27272a] text-xs font-mono uppercase tracking-wider text-zinc-300 hover:text-white transition-colors"
+                      >
+                        <span className="text-[#D4FF00]">⚙️</span>
+                        <span className="truncate">{t("nav.settings")}</span>
+                      </Link>
+
+                      {(userSession.role === "ADMIN" || userSession.email?.includes("valenandra")) && (
+                        <Link
+                          href="/admin"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                          className="col-span-2 flex items-center justify-between p-2.5 rounded-xl bg-[#D4FF00]/10 hover:bg-[#D4FF00]/20 border border-[#D4FF00]/40 text-xs font-mono font-bold uppercase tracking-wider text-[#D4FF00] transition-colors"
+                        >
+                          <span className="flex items-center gap-2">👑 DASHBOARD ADMIN</span>
+                          <span>→</span>
+                        </Link>
+                      )}
+
+                      {!(userSession.role === "ADMIN" || userSession.email?.includes("valenandra")) && (
+                        (userSession.isSeller || userSession.sellerStatus === "APPROVED") ? (
+                          <Link
+                            href="/seller"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                            className="col-span-2 flex items-center justify-between p-2.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/40 text-xs font-mono font-bold uppercase tracking-wider text-emerald-400 transition-colors"
+                          >
+                            <span className="flex items-center gap-2">🏪 {t("nav.sellerVault")}</span>
+                            <span>→</span>
+                          </Link>
+                        ) : (
+                          <Link
+                            href="/sell"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                            className="col-span-2 flex items-center justify-between p-2.5 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/40 text-xs font-mono font-bold uppercase tracking-wider text-purple-300 transition-colors"
+                          >
+                            <span className="flex items-center gap-2">🚀 BUKA TOKO SELLER</span>
+                            <span>→</span>
+                          </Link>
+                        )
+                      )}
+                    </div>
+                  </div>
                 ) : (
-                  <MotionButton href="/signup" variant="neon" className="w-full text-center py-3">
-                    {t("nav.signUp")}
-                  </MotionButton>
+                  <div className="bg-gradient-to-b from-[#18181b] to-[#121215] border border-[#27272a] rounded-2xl p-5 space-y-4">
+                    <div>
+                      <span className="text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-[#D4FF00]">KOMUNITAS AUDIOPHILE</span>
+                      <h4 className="text-base font-heading font-bold text-white mt-1">Masuk ke Tonal Zone</h4>
+                      <p className="text-xs font-sans text-zinc-400 mt-1 leading-relaxed">
+                        Simpan preferensi sound signature, checkout bergaransi escrow, dan lacak pesanan real-time.
+                      </p>
+                    </div>
+
+                    <div className="flex flex-col gap-2.5 pt-1">
+                      <Link
+                        href="/signup"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="w-full py-3 bg-[#D4FF00] hover:bg-[#bce600] active:scale-[0.98] text-[#080808] text-center font-mono font-bold text-xs uppercase tracking-widest rounded-xl transition-all shadow-[0_0_20px_rgba(212,255,0,0.2)]"
+                      >
+                        {t("nav.signUp")}
+                      </Link>
+                      <Link
+                        href="/login"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="w-full py-3 bg-[#1f1f23] hover:bg-[#27272a] text-white text-center font-mono font-bold text-xs uppercase tracking-widest rounded-xl border border-[#3f3f46] transition-colors"
+                      >
+                        {language === "id" ? "MASUK AKUN" : "SIGN IN"}
+                      </Link>
+                    </div>
+                  </div>
+                )}
+
+                {/* 2. Quick Category Tiles */}
+                <div>
+                  <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-[#71717a] font-bold block mb-3">
+                    KATALOG UTAMA
+                  </span>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Link
+                      href="/collection?cat=IN-EAR+MONITORS"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="p-3 bg-[#141417] hover:bg-[#1c1c20] border border-[#27272a] rounded-xl flex flex-col gap-1 transition-all group"
+                    >
+                      <span className="text-base">🎧</span>
+                      <span className="text-xs font-heading font-bold text-white group-hover:text-[#D4FF00] transition-colors">In-Ear Monitors</span>
+                      <span className="text-[10px] font-mono text-zinc-500">Multi-driver & Planar</span>
+                    </Link>
+
+                    <Link
+                      href="/collection?cat=DAC%2FAMP"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="p-3 bg-[#141417] hover:bg-[#1c1c20] border border-[#27272a] rounded-xl flex flex-col gap-1 transition-all group"
+                    >
+                      <span className="text-base">🎛️</span>
+                      <span className="text-xs font-heading font-bold text-white group-hover:text-[#D4FF00] transition-colors">DAC & Amplifiers</span>
+                      <span className="text-[10px] font-mono text-zinc-500">Portable & Desktop</span>
+                    </Link>
+
+                    <Link
+                      href="/collection?cat=ACCESSORIES"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="p-3 bg-[#141417] hover:bg-[#1c1c20] border border-[#27272a] rounded-xl flex flex-col gap-1 transition-all group"
+                    >
+                      <span className="text-base">🔌</span>
+                      <span className="text-xs font-heading font-bold text-white group-hover:text-[#D4FF00] transition-colors">Upgrade Cables</span>
+                      <span className="text-[10px] font-mono text-zinc-500">OCC Copper & Silver</span>
+                    </Link>
+
+                    <Link
+                      href="/graph"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="p-3 bg-[#141417] hover:bg-[#1c1c20] border border-[#27272a] rounded-xl flex flex-col gap-1 transition-all group"
+                    >
+                      <span className="text-base">📈</span>
+                      <span className="text-xs font-heading font-bold text-white group-hover:text-[#D4FF00] transition-colors">Tonal Graph</span>
+                      <span className="text-[10px] font-mono text-zinc-500">Squiglink Analyzer</span>
+                    </Link>
+                  </div>
+                </div>
+
+                {/* 3. Main Navigation Links */}
+                <div className="space-y-1 pt-2 border-t border-[#1f1f23]">
+                  <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-[#71717a] font-bold block mb-2">
+                    NAVIGASI PLATFORM
+                  </span>
+
+                  <Link
+                    href="/"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className={`flex items-center justify-between p-3 rounded-xl transition-all ${
+                      pathname === "/" ? "bg-[#1f1f23] text-[#D4FF00] font-bold" : "text-zinc-300 hover:bg-[#141417] hover:text-white"
+                    }`}
+                  >
+                    <span className="font-heading text-sm tracking-wide uppercase">{t("nav.home")}</span>
+                    <span className="text-xs font-mono text-zinc-500">→</span>
+                  </Link>
+
+                  <Link
+                    href="/collection"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className={`flex items-center justify-between p-3 rounded-xl transition-all ${
+                      pathname === "/collection" ? "bg-[#1f1f23] text-[#D4FF00] font-bold" : "text-zinc-300 hover:bg-[#141417] hover:text-white"
+                    }`}
+                  >
+                    <span className="font-heading text-sm tracking-wide uppercase">{t("nav.collection")}</span>
+                    <span className="text-xs font-mono text-zinc-500">→</span>
+                  </Link>
+
+                  <Link
+                    href="/graph"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className={`flex items-center justify-between p-3 rounded-xl transition-all ${
+                      pathname === "/graph" ? "bg-[#1f1f23] text-[#D4FF00] font-bold" : "text-zinc-300 hover:bg-[#141417] hover:text-white"
+                    }`}
+                  >
+                    <span className="font-heading text-sm tracking-wide uppercase">{t("nav.graph")}</span>
+                    <span className="text-xs font-mono text-zinc-500">→</span>
+                  </Link>
+
+                  <Link
+                    href="/support"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className={`flex items-center justify-between p-3 rounded-xl transition-all ${
+                      pathname === "/support" ? "bg-[#1f1f23] text-[#D4FF00] font-bold" : "text-zinc-300 hover:bg-[#141417] hover:text-white"
+                    }`}
+                  >
+                    <span className="font-heading text-sm tracking-wide uppercase">{t("nav.support")}</span>
+                    <span className="text-xs font-mono text-zinc-500">→</span>
+                  </Link>
+                </div>
+              </div>
+
+              {/* Drawer Bottom Dock: Currency & Language Switcher & Logout */}
+              <div className="p-5 bg-[#0e0e11] border-t border-[#1f1f23] space-y-3.5">
+                <div className="grid grid-cols-2 gap-3">
+                  {/* Currency Switcher */}
+                  <div className="flex items-center bg-[#18181b] p-1 rounded-xl border border-[#27272a]">
+                    <button
+                      type="button"
+                      onClick={() => setCurrency("IDR")}
+                      className={`flex-1 py-1.5 text-[11px] font-mono font-bold rounded-lg transition-all ${
+                        currency === "IDR" ? "bg-[#D4FF00] text-black shadow-sm" : "text-zinc-400 hover:text-white"
+                      }`}
+                    >
+                      IDR (Rp)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setCurrency("USD")}
+                      className={`flex-1 py-1.5 text-[11px] font-mono font-bold rounded-lg transition-all ${
+                        currency === "USD" ? "bg-[#D4FF00] text-black shadow-sm" : "text-zinc-400 hover:text-white"
+                      }`}
+                    >
+                      USD ($)
+                    </button>
+                  </div>
+
+                  {/* Language Switcher */}
+                  <div className="flex items-center bg-[#18181b] p-1 rounded-xl border border-[#27272a]">
+                    <button
+                      type="button"
+                      onClick={() => setLanguage("id")}
+                      className={`flex-1 py-1.5 text-[11px] font-mono font-bold rounded-lg transition-all ${
+                        language === "id" ? "bg-white text-black shadow-sm" : "text-zinc-400 hover:text-white"
+                      }`}
+                    >
+                      🇮🇩 ID
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setLanguage("en")}
+                      className={`flex-1 py-1.5 text-[11px] font-mono font-bold rounded-lg transition-all ${
+                        language === "en" ? "bg-white text-black shadow-sm" : "text-zinc-400 hover:text-white"
+                      }`}
+                    >
+                      🇺🇸 EN
+                    </button>
+                  </div>
+                </div>
+
+                {userSession && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      setIsLogoutModalOpen(true);
+                    }}
+                    className="w-full py-2.5 flex items-center justify-center gap-2 text-xs font-mono font-bold uppercase tracking-wider text-red-400 hover:text-red-300 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 rounded-xl transition-colors cursor-pointer"
+                  >
+                    <span>🚪</span>
+                    <span>{t("nav.logout")}</span>
+                  </button>
                 )}
               </div>
-            </div>
-          </motion.div>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
 

@@ -67,36 +67,36 @@ export default function ProductCard({
 
         {/* Top-Right Tag Badge */}
         {displayBadge && (
-          <div className="absolute top-3 right-3 bg-black/90 px-2.5 py-1 text-[10px] font-mono text-[#CCCCCC] border border-[#222222] z-10 uppercase tracking-wider group-hover:border-[#444444] group-hover:text-white transition-colors">
+          <div className="absolute top-2 right-2 sm:top-3 sm:right-3 bg-black/90 px-1.5 sm:px-2.5 py-0.5 sm:py-1 text-[8px] sm:text-[10px] font-mono text-[#CCCCCC] border border-[#222222] z-10 uppercase tracking-wider group-hover:border-[#444444] group-hover:text-white transition-colors">
             {displayBadge}
           </div>
         )}
       </div>
 
       {/* 2. Crystal-Clear Visual Hierarchy & Title Case */}
-      <div className="flex flex-col mt-3 gap-1 w-full flex-1">
+      <div className="flex flex-col mt-2 sm:mt-3 gap-0.5 sm:gap-1 w-full flex-1">
         {/* Tier 1: Store / Brand Name */}
-        <span className="text-[11px] font-mono text-[#7A7A80] group-hover:text-[#A0A0A5] uppercase tracking-wider block truncate transition-colors">
+        <span className="text-[9px] sm:text-[11px] font-mono text-[#7A7A80] group-hover:text-[#A0A0A5] uppercase tracking-wider block truncate transition-colors">
           {product.storeName || product.brand || "Official Store"}
         </span>
 
         {/* Tier 2: Product Title (Soft Silver/Platinum - Non-Glaring) */}
-        <h3 className="font-sans text-[15px] font-medium text-[#D1D1D6] group-hover:text-[#F2F2F7] transition-colors line-clamp-1 leading-snug">
+        <h3 className="font-sans text-xs sm:text-[15px] font-medium text-[#D1D1D6] group-hover:text-[#F2F2F7] transition-colors line-clamp-2 sm:line-clamp-1 leading-snug">
           {formattedTitle}
         </h3>
 
         {/* Tier 3: Price on Bottom-Left (Soft Ivory) & Review on Bottom-Right */}
-        <div className="flex items-baseline justify-between gap-2 mt-auto pt-1.5">
+        <div className="flex items-baseline justify-between gap-1.5 sm:gap-2 mt-auto pt-1 sm:pt-1.5">
           {/* Price */}
-          <span className="font-sans text-base md:text-lg font-bold text-[#EDEDED] tracking-wide">
+          <span className="font-sans text-xs sm:text-base md:text-lg font-bold text-[#EDEDED] tracking-wide">
             {formatPrice(product.price)}
           </span>
 
           {/* Review at Bottom Right */}
-          <div className="flex items-center gap-1 text-xs font-mono text-[#7A7A80] shrink-0">
+          <div className="flex items-center gap-0.5 sm:gap-1 text-[10px] sm:text-xs font-mono text-[#7A7A80] shrink-0">
             <span className="text-[#D4FF00]">★</span>
             <span className="font-medium text-[#C7C7CC]">{product.rating || 4.9}</span>
-            <span className="text-[#555555]">({product.reviews || 124})</span>
+            <span className="hidden sm:inline text-[#555555]">({product.reviews || 124})</span>
           </div>
         </div>
       </div>
