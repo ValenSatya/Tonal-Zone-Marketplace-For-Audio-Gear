@@ -109,6 +109,7 @@ export default function CartDrawer({ isOpen: propIsOpen, onClose: propOnClose }:
                         src={item.image || "/placeholder.svg"}
                         alt={item.name}
                         fill
+                        sizes="80px"
                         className="object-cover group-hover:scale-105 transition-transform duration-300"
                       />
                     </div>

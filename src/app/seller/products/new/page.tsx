@@ -147,13 +147,40 @@ export default function AddNewProductPage() {
     e.preventDefault();
     setIsSubmitting(true);
 
+    const newProd = {
+      id: `PRD-NEW-${Date.now()}`,
+      name: formData.name,
+      brand: formData.brand,
+      category: formData.category,
+      specsSummary: `${formData.driverType || "Audiophile Structure"} • ${formData.impedance || "16Ω"}`,
+      priceUSD: formData.priceUSD,
+      stock: formData.stock,
+      condition: formData.condition,
+      status: "APPROVED" as const,
+      createdAt: new Date().toISOString().split("T")[0],
+      images: productImages.length > 0 ? productImages : ["/model-iem-untuk-hero.webp"],
+      image: productImages.length > 0 ? productImages[0] : "/model-iem-untuk-hero.webp",
+      variants: variants.length > 0 ? variants : [
+        { id: `var-1-${Date.now()}`, name: "Standard 3.5mm SE", priceUSD: formData.priceUSD, stock: Math.ceil(formData.stock / 2), sku: `${formData.sku}-35` },
+        { id: `var-2-${Date.now()}`, name: "Balanced 4.4mm Pentaconn", priceUSD: formData.priceUSD, stock: Math.floor(formData.stock / 2), sku: `${formData.sku}-44` },
+      ],
+    };
+
+    try {
+      const existing = localStorage.getItem("tonalzone_custom_products");
+      const list = existing ? JSON.parse(existing) : [];
+      list.unshift(newProd);
+      localStorage.setItem("tonalzone_custom_products", JSON.stringify(list));
+      window.dispatchEvent(new Event("storage"));
+    } catch (err) {}
+
     setTimeout(() => {
       setIsSubmitting(false);
       setSuccessBanner(true);
       setTimeout(() => {
         router.push("/seller/products");
-      }, 1400);
-    }, 750);
+      }, 1200);
+    }, 600);
   };
 
   const handleCategoryChange = (cat: string) => {
@@ -211,6 +238,34 @@ export default function AddNewProductPage() {
             )}
           </button>
         </div>
+      </div>
+
+      {/* Master Catalog Shortcut Recommendation */}
+      <div className="p-4 rounded-xl bg-[#141414] border border-[#2A2A2A] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-[#1F1F1F] border border-[#333] flex items-center justify-center text-white shrink-0">
+            <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 16.875h3.375m0 0h3.375m-3.375 0V13.5m0 3.375v3.375M6 5.625a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.875 0a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm12 0a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0z" />
+            </svg>
+          </div>
+          <div>
+            <h4 className="text-xs font-bold text-white font-sans">
+              {isEn ? "Selling official brand products (TANGZU, Moondrop, Sennheiser)?" : "Ingin menjual IEM dari brand resmi (TANGZU, Moondrop, Sennheiser)?"}
+            </h4>
+            <p className="text-[11px] font-mono text-[#888] mt-0.5">
+              {isEn
+                ? "You don't need to fill this custom form. Select directly from the Master Catalog for 0-minute instant listing."
+                : "Anda tidak perlu mengisi formulir panjang ini dari nol. Pilih langsung dari Master Katalog untuk langsung aktif tanpa antre QC."}
+            </p>
+          </div>
+        </div>
+
+        <Link
+          href="/seller/products"
+          className="px-3.5 py-1.5 bg-[#FAF9F6] text-black hover:bg-[#E5E5E5] text-xs font-sans font-bold rounded-lg transition-colors whitespace-nowrap shrink-0 text-center"
+        >
+          {isEn ? "Open Master Catalog →" : "Buka Master Katalog →"}
+        </Link>
       </div>
 
       {successBanner && (

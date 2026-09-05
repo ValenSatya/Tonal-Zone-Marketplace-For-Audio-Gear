@@ -152,6 +152,7 @@ export default function CartPage() {
                             src={item.image || "/placeholder.svg"}
                             alt={item.name}
                             fill
+                            sizes="(max-width: 640px) 96px, 112px"
                             className="object-cover group-hover:scale-105 transition-transform duration-500"
                           />
                         </Link>

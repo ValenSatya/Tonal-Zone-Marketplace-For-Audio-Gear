@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -99,32 +99,64 @@ export default function ProductDetailPage() {
 
   const handleChatSeller = () => {
     if (!product) return;
-    router.push(`/messages?seller=${encodeURIComponent(currentOffer ? currentOffer.sellerName : (product.storeName || "Official Store"))}`);
+    const storeName = currentOffer ? currentOffer.sellerName : (product.storeName || "Official Store");
+    router.push(`/messages?seller=${encodeURIComponent(storeName)}&product=${encodeURIComponent(product.id)}`);
   };
 
-  const offers: Offer[] = product ? [
-    {
-      id: "off-1",
-      sellerName: product.storeName || "Tonal Zone Official",
-      sellerType: "OFFICIAL",
-      condition: "Brand New — 1 Year Official Disty Warranty",
-      price: product.price,
-    },
-    {
-      id: "off-2",
-      sellerName: "Bass Audio Jakarta",
-      sellerType: "AUTHORIZED",
-      condition: "Brand New Sealed — Local Disty",
-      price: Math.round(product.price * 1.03),
-    },
-    {
-      id: "off-3",
-      sellerName: "Audiophile Lab Surabaya",
-      sellerType: "INDIVIDUAL",
-      condition: "Like New / Mint — 99% Complete Box",
-      price: Math.round(product.price * 0.88),
-    },
-  ] : [];
+  const offers: Offer[] = useMemo(() => {
+    if (!product) return [];
+
+    const baseOffers: Offer[] = [
+      {
+        id: "off-1",
+        sellerName: product.storeName || "Tonal Zone Official",
+        sellerType: "OFFICIAL",
+        condition: "Brand New — 1 Year Official Disty Warranty",
+        price: product.price,
+      },
+      {
+        id: "off-2",
+        sellerName: "Bass Audio Jakarta",
+        sellerType: "AUTHORIZED",
+        condition: "Brand New Sealed — Local Disty",
+        price: Math.round(product.price * 1.03),
+      },
+      {
+        id: "off-3",
+        sellerName: "Audiophile Lab Surabaya",
+        sellerType: "INDIVIDUAL",
+        condition: "Like New / Mint — 99% Complete Box",
+        price: Math.round(product.price * 0.88),
+      },
+    ];
+
+    if (typeof window !== "undefined") {
+      try {
+        const custom = localStorage.getItem("tonalzone_custom_products");
+        if (custom) {
+          const list = JSON.parse(custom);
+          const found = list.find((it: any) => it.name.toLowerCase() === product.name.toLowerCase() || it.id === product.id);
+          if (found) {
+            let storeName = "AudioZone";
+            const storedUser = localStorage.getItem("tonalzone_user");
+            if (storedUser) {
+              const u = JSON.parse(storedUser);
+              if (u.storeName) storeName = u.storeName;
+            }
+            baseOffers.unshift({
+              id: "off-custom-seller",
+              sellerName: storeName,
+              sellerType: "AUTHORIZED",
+              condition: found.condition || "Brand New Sealed",
+              price: found.priceUSD || product.price,
+            });
+          }
+        }
+      } catch (e) {}
+    }
+
+    return baseOffers;
+  }, [product]);
 
   const currentOffer = offers.find((o) => o.id === selectedOfferId) || offers[0];
 
@@ -321,38 +353,75 @@ export default function ProductDetailPage() {
 
             {/* OFFERS DROPDOWN (PILIH TOKO) */}
             <div className="mb-6 w-full max-w-xl">
-              <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#888888] font-bold mb-3">
-                Select Merchant ({offers.length} Verified Offers)
+              <div className="flex items-center justify-between mb-2.5">
+                <span className="font-mono text-[11px] uppercase tracking-wider text-[#888888] font-semibold">
+                  Pilih Penjual ({offers.length} Toko Tersedia)
+                </span>
+                <span className="text-[11px] font-mono text-[#666]">
+                  Garansi & Stok Terverifikasi
+                </span>
               </div>
+
               <div className="relative">
+                {/* Click outside backdrop */}
+                {isOffersOpen && (
+                  <div
+                    className="fixed inset-0 z-40"
+                    onClick={() => setIsOffersOpen(false)}
+                  />
+                )}
+
                 <button
                   type="button"
                   onClick={() => setIsOffersOpen(!isOffersOpen)}
-                  className={`w-full bg-[#0e0e0e] border border-[#222222] hover:border-[#444444] focus:border-white p-4 text-left flex items-center justify-between transition-all cursor-pointer ${
-                    isOffersOpen ? "border-white" : ""
+                  className={`w-full bg-[#101010] border rounded-xl p-3.5 text-left flex items-center justify-between transition-all cursor-pointer outline-none focus:outline-none ${
+                    isOffersOpen ? "border-[#444] bg-[#141414]" : "border-[#222222] hover:border-[#383838]"
                   }`}
                 >
-                  <div className="flex items-center gap-3">
-                    <span className="font-heading font-bold text-[#FAF9F6] text-sm uppercase tracking-wide">
-                      {currentOffer?.sellerName}
-                    </span>
-                    <span className="font-mono text-[9px] text-[#666666] uppercase tracking-wider">
+                  <div className="min-w-0 flex-1 pr-3">
+                    <div className="flex items-center gap-2">
+                      <span className="font-sans font-semibold text-sm text-white truncate">
+                        {currentOffer?.sellerName}
+                      </span>
+                      {currentOffer?.sellerType === "OFFICIAL" && (
+                        <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/60 border border-emerald-800/40 px-1.5 py-0.5 rounded shrink-0">
+                          Official
+                        </span>
+                      )}
+                      {currentOffer?.sellerType === "AUTHORIZED" && (
+                        <span className="text-[10px] font-mono text-[#aaa] bg-[#222] px-1.5 py-0.5 rounded shrink-0">
+                          Authorized
+                        </span>
+                      )}
+                      {currentOffer?.sellerType === "INDIVIDUAL" && (
+                        <span className="text-[10px] font-mono text-[#888] bg-[#1a1a1a] px-1.5 py-0.5 rounded shrink-0">
+                          Pre-loved
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-[#777] mt-0.5 truncate font-sans">
                       {currentOffer?.condition}
-                    </span>
+                    </p>
                   </div>
-                  <svg
-                    width="14"
-                    height="14"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    viewBox="0 0 24 24"
-                    className={`shrink-0 text-[#666666] transition-transform duration-200 ${
-                      isOffersOpen ? "rotate-180 text-white" : ""
-                    }`}
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-                  </svg>
+
+                  <div className="flex items-center gap-3 shrink-0">
+                    <span className="font-mono font-semibold text-sm text-white">
+                      {formatPrice(currentOffer ? currentOffer.price : product.price)}
+                    </span>
+                    <svg
+                      width="14"
+                      height="14"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      viewBox="0 0 24 24"
+                      className={`text-[#777] transition-transform duration-200 ${
+                        isOffersOpen ? "rotate-180 text-white" : ""
+                      }`}
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                    </svg>
+                  </div>
                 </button>
 
                 <AnimatePresence>
@@ -362,7 +431,7 @@ export default function ProductDetailPage() {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -4 }}
                       transition={{ duration: 0.12 }}
-                      className="absolute left-0 right-0 top-full mt-1 bg-[#0a0a0a] border border-[#262626] z-50 overflow-hidden p-1 space-y-0.5 divide-y divide-[#1c1c1c]"
+                      className="absolute left-0 right-0 top-full mt-1.5 bg-[#121212] border border-[#262626] rounded-xl shadow-2xl z-50 overflow-hidden p-1.5 space-y-1"
                     >
                       {offers.map((offer) => {
                         const isSelected = selectedOfferId === offer.id;
@@ -374,43 +443,48 @@ export default function ProductDetailPage() {
                               setSelectedOfferId(offer.id);
                               setIsOffersOpen(false);
                             }}
-                            className={`w-full flex items-center justify-between p-3.5 text-left cursor-pointer transition-all ${
+                            className={`w-full flex items-center justify-between p-3 rounded-lg text-left cursor-pointer transition-colors outline-none focus:outline-none ${
                               isSelected
-                                ? "bg-[#181818] text-white font-semibold border-l-2 border-white"
-                                : "text-[#777777] hover:bg-[#111111] hover:text-white"
+                                ? "bg-[#1c1c1c] text-white"
+                                : "text-[#888] hover:bg-[#181818] hover:text-white"
                             }`}
                           >
-                            <div className="flex flex-col gap-1">
+                            <div className="min-w-0 flex-1 pr-3">
                               <div className="flex items-center gap-2">
-                                <span className={`font-heading font-bold text-xs uppercase tracking-wide ${isSelected ? "text-white" : "text-[#FAF9F6]"}`}>
+                                <span className={`font-sans font-medium text-xs sm:text-sm truncate ${isSelected ? "text-white font-semibold" : "text-[#ddd]"}`}>
                                   {offer.sellerName}
                                 </span>
                                 {offer.sellerType === "OFFICIAL" && (
-                                  <span className="bg-[#FAF9F6] text-[#080808] text-[8px] font-mono px-1.5 py-0.5 uppercase tracking-widest font-bold">
+                                  <span className="text-[9px] font-mono text-emerald-400 bg-emerald-950/60 border border-emerald-800/40 px-1.5 py-0.5 rounded shrink-0">
                                     Official
                                   </span>
                                 )}
                                 {offer.sellerType === "AUTHORIZED" && (
-                                  <span className="bg-[#222222] text-[#FAF9F6] text-[8px] font-mono px-1.5 py-0.5 uppercase tracking-widest">
+                                  <span className="text-[9px] font-mono text-[#aaa] bg-[#222] px-1.5 py-0.5 rounded shrink-0">
                                     Authorized
                                   </span>
                                 )}
                                 {offer.sellerType === "INDIVIDUAL" && (
-                                  <span className="bg-transparent border border-[#262626] text-[#666666] text-[8px] font-mono px-1.5 py-0.5 uppercase tracking-widest">
+                                  <span className="text-[9px] font-mono text-[#888] bg-[#1a1a1a] px-1.5 py-0.5 rounded shrink-0">
                                     Pre-loved
                                   </span>
                                 )}
                               </div>
-                              <span className="font-mono text-[9px] text-[#555555] uppercase tracking-wider">
+                              <p className="text-[11px] text-[#666] mt-0.5 truncate font-sans">
                                 {offer.condition}
-                              </span>
+                              </p>
                             </div>
-                            <div className="flex items-center gap-3">
-                              <span className="font-mono font-bold text-white text-xs tracking-tight">
+
+                            <div className="flex items-center gap-2.5 shrink-0">
+                              <span className="font-mono font-medium text-xs sm:text-sm text-white">
                                 {formatPrice(offer.price)}
                               </span>
-                              {isSelected && (
-                                <span className="text-white font-mono font-bold text-xs">✓</span>
+                              {isSelected ? (
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-emerald-400 shrink-0">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                                </svg>
+                              ) : (
+                                <div className="w-[15px]" />
                               )}
                             </div>
                           </button>
@@ -425,12 +499,12 @@ export default function ProductDetailPage() {
               <button
                 type="button"
                 onClick={handleChatSeller}
-                className="w-full mt-3 py-3 px-4 bg-[#0c0c0c] hover:bg-[#161616] border border-[#222222] hover:border-[#444444] text-[#888888] hover:text-white font-mono text-xs uppercase tracking-widest transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full mt-2.5 py-2.5 px-4 bg-[#101010] hover:bg-[#161616] border border-[#222222] hover:border-[#383838] text-[#888888] hover:text-white font-sans text-xs font-medium rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer outline-none focus:outline-none"
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white">
                   <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
                 </svg>
-                <span>Konsultasi dengan Penjual</span>
+                <span>Chat Penjual</span>
               </button>
             </div>
 

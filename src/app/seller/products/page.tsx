@@ -5,6 +5,8 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/context/LanguageContext";
 import CustomSelect from "@/components/ui/custom-select";
+import { fetchProductsFromDb, CatalogProduct } from "@/lib/products-db";
+import { triggerAppNotification } from "@/context/NotificationContext";
 
 export interface ProductVariant {
   id: string;
@@ -151,12 +153,181 @@ export default function SellerProductsPage() {
   const { language } = useLanguage();
   const isEn = language === "English";
 
-  const [products, setProducts] = useState<SellerProductItem[]>(INITIAL_PRODUCTS);
+  const [products, setProducts] = useState<SellerProductItem[]>([]);
   const [currency, setCurrency] = useState<"IDR" | "USD">("IDR");
+  const [sellerMode, setSellerMode] = useState<"RETAIL_MERCHANT" | "OFFICIAL_BRAND">("RETAIL_MERCHANT");
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<"ALL" | "APPROVED" | "PENDING" | "OUT_OF_STOCK">("ALL");
   const [selectedCategory, setSelectedCategory] = useState("ALL");
   const [expandedVariants, setExpandedVariants] = useState<Record<string, boolean>>({});
+
+  // Sync seller mode from localStorage
+  useEffect(() => {
+    const loadMode = () => {
+      const savedMode = localStorage.getItem("tonalzone_seller_mode") as "RETAIL_MERCHANT" | "OFFICIAL_BRAND" | null;
+      if (savedMode) {
+        setSellerMode(savedMode);
+      }
+    };
+    loadMode();
+    window.addEventListener("storage", loadMode);
+    return () => window.removeEventListener("storage", loadMode);
+  }, []);
+
+  // Master Catalog Claim Modal State
+  const [isMasterCatalogModalOpen, setIsMasterCatalogModalOpen] = useState(false);
+  const [masterDbList, setMasterDbList] = useState<CatalogProduct[]>([]);
+  const [masterSearchQuery, setMasterSearchQuery] = useState("");
+  const [masterSelectedBrand, setMasterSelectedBrand] = useState("ALL");
+  const [selectedMasterProduct, setSelectedMasterProduct] = useState<CatalogProduct | null>(null);
+
+  // Claim Form State
+  const [claimPriceUSD, setClaimPriceUSD] = useState(0);
+  const [claimStock, setClaimStock] = useState(10);
+  const [claimCondition, setClaimCondition] = useState("Brand New Sealed");
+  const [claimVariant1Stock, setClaimVariant1Stock] = useState(6);
+  const [claimVariant2Stock, setClaimVariant2Stock] = useState(4);
+  const [claimToast, setClaimToast] = useState<string | null>(null);
+
+  // Sync products from database for Official Brand or custom added products for New Retail Store
+  useEffect(() => {
+    async function loadCatalog() {
+      try {
+        const dbList = await fetchProductsFromDb();
+        if (dbList) {
+          setMasterDbList(dbList);
+        }
+
+        if (sellerMode === "OFFICIAL_BRAND") {
+          // Official Brand (TANGZU) mode: load verified TANGZU models from database
+          const tangzuDb = (dbList || []).filter((p) => p.brand?.toUpperCase().includes("TANGZU"));
+          const mapped: SellerProductItem[] = tangzuDb.map((p, idx) => ({
+            id: p.id || `PRD-TZ-${idx + 1}`,
+            name: p.name,
+            brand: "TANGZU",
+            category: p.category || "IN-EAR MONITORS",
+            specsSummary: `${p.soundSignature ? p.soundSignature.replace(/_/g, " ") : "Studio Tuning"} • ${p.experienceLevel || "Official Model"}`,
+            priceUSD: p.price,
+            stock: p.stock || 20,
+            condition: "Brand New Sealed",
+            status: "APPROVED",
+            createdAt: "2026-08-01",
+            image: p.image || (p.images && p.images[0]) || "/model-iem-untuk-hero.webp",
+            images: p.images && p.images.length > 0 ? p.images : [p.image || "/model-iem-untuk-hero.webp"],
+            variants: [
+              { id: `${p.id}-v1`, name: "Standard 3.5mm SE", priceUSD: p.price, stock: Math.ceil((p.stock || 20) / 2), sku: `${p.id}-35` },
+              { id: `${p.id}-v2`, name: "Balanced 4.4mm Pentaconn", priceUSD: p.price, stock: Math.floor((p.stock || 20) / 2), sku: `${p.id}-44` },
+            ],
+          }));
+          setProducts(mapped);
+        } else {
+          // RETAIL_MERCHANT mode: New store starts with 0 products unless seller added custom products
+          const custom = localStorage.getItem("tonalzone_custom_products");
+          if (custom) {
+            try {
+              const customList: SellerProductItem[] = JSON.parse(custom);
+              setProducts(customList);
+              return;
+            } catch (e) {}
+          }
+          setProducts([]);
+        }
+      } catch (err) {
+        console.error("Failed to load catalog:", err);
+      }
+    }
+    loadCatalog();
+  }, [sellerMode]);
+
+  // Handle selecting a master product to claim
+  const handleSelectMasterToClaim = (p: CatalogProduct) => {
+    setSelectedMasterProduct(p);
+    setClaimPriceUSD(p.price);
+    setClaimStock(p.stock || 10);
+    setClaimCondition("Brand New Sealed");
+    setClaimVariant1Stock(Math.ceil((p.stock || 10) / 2));
+    setClaimVariant2Stock(Math.floor((p.stock || 10) / 2));
+  };
+
+  // Handle confirming claim into store
+  const handleConfirmClaim = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedMasterProduct) return;
+
+    const newClaimedItem: SellerProductItem = {
+      id: `PRD-CLAIM-${Date.now()}`,
+      name: selectedMasterProduct.name,
+      brand: selectedMasterProduct.brand || "Audiophile",
+      category: selectedMasterProduct.category || "IN-EAR MONITORS",
+      specsSummary: `${selectedMasterProduct.soundSignature ? selectedMasterProduct.soundSignature.replace(/_/g, " ") : "Audiophile Tuning"} • ${selectedMasterProduct.experienceLevel || "Official Model"}`,
+      priceUSD: claimPriceUSD,
+      stock: claimStock,
+      condition: claimCondition,
+      status: "APPROVED",
+      createdAt: new Date().toISOString().split("T")[0],
+      image: selectedMasterProduct.image || (selectedMasterProduct.images && selectedMasterProduct.images[0]) || "/model-iem-untuk-hero.webp",
+      images: selectedMasterProduct.images && selectedMasterProduct.images.length > 0 ? selectedMasterProduct.images : [selectedMasterProduct.image || "/model-iem-untuk-hero.webp"],
+      variants: [
+        { id: `var-1-${Date.now()}`, name: "Standard 3.5mm SE", priceUSD: claimPriceUSD, stock: claimVariant1Stock, sku: `${selectedMasterProduct.id}-35` },
+        { id: `var-2-${Date.now()}`, name: "Balanced 4.4mm Pentaconn", priceUSD: claimPriceUSD, stock: claimVariant2Stock, sku: `${selectedMasterProduct.id}-44` },
+      ],
+    };
+
+    const updated = [newClaimedItem, ...products];
+    setProducts(updated);
+
+    try {
+      const existing = localStorage.getItem("tonalzone_custom_products");
+      const list = existing ? JSON.parse(existing) : [];
+      list.unshift(newClaimedItem);
+      localStorage.setItem("tonalzone_custom_products", JSON.stringify(list));
+      window.dispatchEvent(new Event("storage"));
+    } catch (err) {}
+
+    setClaimToast(isEn ? `Successfully activated ${selectedMasterProduct.name} in your store!` : `Berhasil mengaktifkan ${selectedMasterProduct.name} di toko Anda!`);
+    setTimeout(() => setClaimToast(null), 3500);
+
+    triggerAppNotification({
+      type: "system",
+      title: "Katalog Produk Berhasil Aktif",
+      message: `${selectedMasterProduct.name} (${selectedMasterProduct.brand}) berhasil ditambahkan ke etalase toko Anda. Listing langsung aktif tanpa antre QC.`,
+      actionLink: "/seller/products",
+      meta: {
+        productName: selectedMasterProduct.name,
+        storeName: selectedMasterProduct.brand,
+      },
+    });
+
+    setSelectedMasterProduct(null);
+    setIsMasterCatalogModalOpen(false);
+  };
+
+  // Extract distinct brands from master DB for filter pills
+  const masterBrands = useMemo(() => {
+    const brands = new Set<string>();
+    masterDbList.forEach((p) => {
+      if (p.brand) brands.add(p.brand.toUpperCase());
+    });
+    return ["ALL", ...Array.from(brands)];
+  }, [masterDbList]);
+
+  // Master Catalog Filtered List
+  const filteredMasterCatalog = useMemo(() => {
+    return masterDbList.filter((p) => {
+      if (masterSelectedBrand !== "ALL" && (!p.brand || p.brand.toUpperCase() !== masterSelectedBrand)) {
+        return false;
+      }
+      if (masterSearchQuery.trim()) {
+        const q = masterSearchQuery.toLowerCase();
+        const matchesName = p.name.toLowerCase().includes(q);
+        const matchesBrand = p.brand ? p.brand.toLowerCase().includes(q) : false;
+        const matchesCategory = p.category ? p.category.toLowerCase().includes(q) : false;
+        const matchesSound = p.soundSignature ? p.soundSignature.toLowerCase().includes(q) : false;
+        return matchesName || matchesBrand || matchesCategory || matchesSound;
+      }
+      return true;
+    });
+  }, [masterDbList, masterSelectedBrand, masterSearchQuery]);
 
   // Sync currency from localStorage
   useEffect(() => {
@@ -208,6 +379,13 @@ export default function SellerProductsPage() {
   // Filter products
   const filteredProducts = useMemo(() => {
     return products.filter((p) => {
+      // In Official Brand mode: ONLY show products from TANGZU
+      if (sellerMode === "OFFICIAL_BRAND") {
+        if (!p.brand || !p.brand.toUpperCase().includes("TANGZU")) {
+          return false;
+        }
+      }
+
       // Tab filter
       if (activeTab === "APPROVED" && p.status !== "APPROVED") return false;
       if (activeTab === "PENDING" && p.status !== "PENDING") return false;
@@ -221,14 +399,13 @@ export default function SellerProductsPage() {
         const q = searchQuery.toLowerCase();
         const matchesName = p.name.toLowerCase().includes(q);
         const matchesBrand = p.brand.toLowerCase().includes(q);
-        const matchesSpecs = p.specsSummary.toLowerCase().includes(q);
-        const matchesCat = p.category.toLowerCase().includes(q);
-        const matchesId = p.id.toLowerCase().includes(q);
-        return matchesName || matchesBrand || matchesSpecs || matchesCat || matchesId;
+        const matchesCategory = p.category.toLowerCase().includes(q);
+        return matchesName || matchesBrand || matchesCategory;
       }
+
       return true;
     });
-  }, [products, activeTab, selectedCategory, searchQuery]);
+  }, [products, activeTab, selectedCategory, searchQuery, sellerMode]);
 
   // Handle CSV file upload & parse
   const handleFileUpload = (file: File) => {
@@ -410,25 +587,79 @@ export default function SellerProductsPage() {
 
   return (
     <div className="space-y-6">
+      {/* Toast Notification */}
+      <AnimatePresence>
+        {claimToast && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="p-4 rounded-xl bg-[#141414] border border-[#2E2E2E] text-white text-xs font-mono flex items-center justify-between shadow-xl"
+          >
+            <div className="flex items-center gap-2.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+              <span>{claimToast}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setClaimToast(null)}
+              className="text-[#888] hover:text-white text-xs font-mono"
+            >
+              ✕
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Top Header & Action Controls */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-[#1E1E1E]">
         <div>
           <div className="flex items-center gap-2.5">
             <h1 className="text-xl font-bold font-sans tracking-tight text-white">
-              {isEn ? "Store Product Catalog & Inventory" : "Katalog Produk & Inventaris Toko"}
+              {sellerMode === "OFFICIAL_BRAND"
+                ? (isEn ? "TANGZU Audio Official Lineup" : "Katalog Resmi TANGZU Audio")
+                : (isEn ? "Store Product Catalog & Inventory" : "Katalog Produk & Inventaris Toko")}
             </h1>
             <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#1A1A1A] text-[#FAF9F6] border border-[#2E2E2E]">
-              {products.length} {isEn ? "Total SKUs" : "Total Produk"}
+              {filteredProducts.length} {isEn ? "Products" : "Produk"}
             </span>
           </div>
           <p className="text-xs font-mono text-[#8E8E93] mt-1">
-            {isEn
-              ? "Universal store inventory: IEMs, Headphones, DAC/AMPs, DAPs, Custom Cables, Speakers & Studio Gear."
-              : "Kelola seluruh katalog audio toko: IEM, Headphone, DAC/AMP, DAP, Kabel Custom, Speaker & Aksesoris."}
+            {sellerMode === "OFFICIAL_BRAND"
+              ? (isEn
+                  ? "Displaying verified official models from TANGZU Audio manufacturer."
+                  : "Menampilkan lini produk resmi dari pabrikan TANGZU Audio.")
+              : (isEn
+                  ? "Universal store inventory: IEMs, Headphones, DAC/AMPs, DAPs, Custom Cables & Accessories from all brands."
+                  : "Kelola seluruh katalog audio toko: IEM, Headphone, DAC/AMP, DAP, dan Kabel dari berbagai merek.")}
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5">
+          <button
+            type="button"
+            onClick={() => {
+              setSelectedMasterProduct(null);
+              setIsMasterCatalogModalOpen(true);
+            }}
+            className="inline-flex items-center gap-1.5 bg-[#FAF9F6] text-black hover:bg-[#E5E5E5] px-3.5 py-1.5 rounded-lg text-xs font-sans font-bold transition-all shadow-sm cursor-pointer"
+          >
+            <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 16.875h3.375m0 0h3.375m-3.375 0V13.5m0 3.375v3.375M6 5.625a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.875 0a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm12 0a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0z" />
+            </svg>
+            {isEn ? "Sell from Master Catalog" : "+ Jual dari Master Katalog"}
+          </button>
+
+          <Link
+            href="/seller/products/new"
+            className="inline-flex items-center gap-1.5 bg-[#141414] hover:bg-[#1C1C1C] text-white border border-[#2E2E2E] hover:border-white px-3.5 py-1.5 rounded-lg text-xs font-sans font-medium transition-colors cursor-pointer"
+          >
+            <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+            {isEn ? "Add Custom Product" : "Produk Kustom Baru"}
+          </Link>
+
           <button
             type="button"
             onClick={handleExportCSV}
@@ -448,18 +679,8 @@ export default function SellerProductsPage() {
             <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
             </svg>
-            {isEn ? "Import from CSV" : "Import dari CSV"}
+            {isEn ? "Import CSV" : "Import CSV"}
           </button>
-
-          <Link
-            href="/seller/products/new"
-            className="inline-flex items-center gap-1.5 bg-[#FAF9F6] text-black hover:bg-[#E5E5E5] px-3.5 py-1.5 rounded-lg text-xs font-sans font-bold transition-all shadow-sm cursor-pointer"
-          >
-            <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-            </svg>
-            {isEn ? "Add Product" : "Tambah Produk"}
-          </Link>
         </div>
       </div>
 
@@ -500,11 +721,11 @@ export default function SellerProductsPage() {
                 options={[
                   { label: isEn ? "All Categories" : "Semua Kategori", value: "ALL" },
                   { label: "IEMs", value: "IN-EAR MONITORS" },
-                  { label: "Headphones", value: "HEADPHONES" },
+                  { label: "TWS / Wireless", value: "TWS / WIRELESS" },
+                  { label: "Headphones", value: "HEADPHONE" },
                   { label: "DAC / AMP", value: "DAC/AMP" },
                   { label: "DAP Players", value: "DIGITAL AUDIO PLAYERS" },
-                  { label: "Cables", value: "CABLES & ADAPTERS" },
-                  { label: "Speakers", value: "SPEAKERS & MONITORS" },
+                  { label: "Cables & Accessories", value: "ACCESSORIES" },
                 ]}
               />
             </div>
@@ -739,8 +960,55 @@ export default function SellerProductsPage() {
                 })
               ) : (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-xs font-mono text-[#888]">
-                    {isEn ? "No products found matching filters." : "Tidak ada produk yang cocok dengan pencarian."}
+                  <td colSpan={6} className="py-16 text-center">
+                    <div className="flex flex-col items-center justify-center max-w-md mx-auto space-y-3">
+                      <div className="w-12 h-12 rounded-2xl bg-[#141414] border border-[#262626] flex items-center justify-center text-[#71717A]">
+                        <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" />
+                        </svg>
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-bold text-white font-sans">
+                          {isEn ? "No Products in Store Yet" : "Belum Ada Produk di Toko Anda"}
+                        </h3>
+                        <p className="text-xs font-mono text-[#8E8E93] mt-1">
+                          {isEn
+                            ? "Your store is newly registered and currently has 0 inventory units. Start by adding your first audiophile product!"
+                            : "Toko Anda merupakan toko baru dan belum memiliki produk terdaftar. Mulai tambahkan IEM atau perlengkapan audio pertama Anda!"}
+                        </p>
+                      </div>
+                      <div className="flex flex-wrap items-center justify-center gap-2.5 pt-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedMasterProduct(null);
+                            setIsMasterCatalogModalOpen(true);
+                          }}
+                          className="px-4 py-2 bg-[#FAF9F6] text-black hover:bg-[#E5E5E5] text-xs font-sans font-bold rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer shadow-sm"
+                        >
+                          <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 16.875h3.375m0 0h3.375m-3.375 0V13.5m0 3.375v3.375M6 5.625a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.875 0a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm12 0a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0z" />
+                          </svg>
+                          {isEn ? "Select from Master Catalog (Instant)" : "Pilih dari Master Katalog (Instan)"}
+                        </button>
+                        <Link
+                          href="/seller/products/new"
+                          className="px-4 py-2 bg-[#161616] hover:bg-[#202020] text-white border border-[#2E2E2E] text-xs font-sans rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer"
+                        >
+                          <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                          </svg>
+                          {isEn ? "Add Custom Product" : "Produk Kustom Baru"}
+                        </Link>
+                        <button
+                          type="button"
+                          onClick={() => setIsImportModalOpen(true)}
+                          className="px-4 py-2 bg-[#161616] hover:bg-[#202020] text-white border border-[#2E2E2E] text-xs font-mono rounded-lg transition-colors cursor-pointer"
+                        >
+                          {isEn ? "Import CSV" : "Import File CSV"}
+                        </button>
+                      </div>
+                    </div>
                   </td>
                 </tr>
               )}
@@ -1245,6 +1513,332 @@ export default function SellerProductsPage() {
                   {isEn ? "Delete Product" : "Hapus Produk"}
                 </button>
               </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* MODAL 4: MASTER CATALOG CLAIM (INSTANT LISTING) */}
+      <AnimatePresence>
+        {isMasterCatalogModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => {
+                setIsMasterCatalogModalOpen(false);
+                setSelectedMasterProduct(null);
+              }}
+              className="fixed inset-0 bg-black/80 backdrop-blur-md"
+            />
+
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              className="relative w-full max-w-4xl bg-[#111111] border border-[#2E2E2E] rounded-2xl shadow-2xl p-6 font-sans z-10 max-h-[90vh] overflow-y-auto flex flex-col space-y-4 custom-scrollbar"
+            >
+              {/* Modal Header */}
+              <div className="flex items-start justify-between pb-4 border-b border-[#222]">
+                <div>
+                  <h2 className="text-base font-bold text-white">
+                    {selectedMasterProduct
+                      ? (isEn ? "Configure Store Offer" : "Konfigurasi Penawaran Toko")
+                      : (isEn ? "Master Product Catalog" : "Master Katalog Produk Resmi")}
+                  </h2>
+                  <p className="text-xs text-[#888] mt-1">
+                    {selectedMasterProduct
+                      ? (isEn
+                          ? `Set your store price, inventory quantity and condition for ${selectedMasterProduct.name}.`
+                          : `Tentukan harga jual, jumlah stok, dan kondisi barang untuk ${selectedMasterProduct.name}.`)
+                      : (isEn
+                          ? "Select official products from authorized brands to list instantly in your store without QC delay."
+                          : "Pilih produk resmi dari brand terdaftar untuk langsung dijual di toko Anda tanpa antre QC.")}
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsMasterCatalogModalOpen(false);
+                    setSelectedMasterProduct(null);
+                  }}
+                  className="p-1.5 text-[#888] hover:text-white transition-colors cursor-pointer"
+                >
+                  <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* STEP 1: BROWSE & SEARCH MASTER CATALOG */}
+              {!selectedMasterProduct ? (
+                <div className="space-y-3">
+                  {/* Search & Brand Filter Bar */}
+                  <div className="flex flex-col sm:flex-row gap-3 sm:items-center justify-between pb-1">
+                    <div className="relative w-full sm:w-72">
+                      <svg
+                        width="14"
+                        height="14"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        viewBox="0 0 24 24"
+                        className="absolute left-3 top-1/2 -translate-y-1/2 text-[#777]"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                      </svg>
+                      <input
+                        type="text"
+                        value={masterSearchQuery}
+                        onChange={(e) => setMasterSearchQuery(e.target.value)}
+                        placeholder={isEn ? "Cari model, brand, tuning..." : "Cari model, brand, tuning..."}
+                        className="w-full bg-transparent border-b border-[#333] focus:border-white pl-8 pr-2 py-1.5 text-xs text-white placeholder:text-[#666] outline-none transition-colors font-sans"
+                      />
+                    </div>
+
+                    {/* Brand Filter Text Tabs (No bulky card/pill containers) */}
+                    <div className="flex items-center gap-4 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0 no-scrollbar">
+                      {masterBrands.map((b) => (
+                        <button
+                          key={b}
+                          type="button"
+                          onClick={() => setMasterSelectedBrand(b)}
+                          className={`text-xs transition-colors whitespace-nowrap cursor-pointer pb-0.5 ${
+                            masterSelectedBrand === b
+                              ? "text-white font-bold border-b border-white"
+                              : "text-[#777] hover:text-[#bbb]"
+                          }`}
+                        >
+                          {b}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Clean, Flat List View (Pure typography & subtle divider lines) */}
+                  <div className="divide-y divide-[#222] max-h-[55vh] overflow-y-auto pr-1 custom-scrollbar">
+                    {filteredMasterCatalog.length > 0 ? (
+                      filteredMasterCatalog.map((p) => (
+                        <div
+                          key={p.id}
+                          className="py-3.5 px-2 flex items-center justify-between gap-4 hover:bg-white/[0.02] rounded transition-colors group"
+                        >
+                          <div className="flex items-center gap-3.5 min-w-0 flex-1">
+                            {/* Product Thumbnail */}
+                            <img
+                              src={p.image || (p.images && p.images[0]) || "/model-iem-untuk-hero.webp"}
+                              alt={p.name}
+                              className="w-12 h-12 rounded object-cover bg-black/40 shrink-0"
+                            />
+
+                            {/* Product Details as Clean Text */}
+                            <div className="min-w-0 flex-1">
+                              <div className="text-[11px] text-[#777] font-mono mb-0.5">
+                                <span className="text-[#999] uppercase font-medium">{p.brand}</span>
+                                {p.soundSignature && ` • ${p.soundSignature.replace(/_/g, " ")}`}
+                                {p.experienceLevel && ` • ${p.experienceLevel}`}
+                              </div>
+
+                              <h4 className="text-sm font-medium text-white truncate group-hover:text-[#D4FF00] transition-colors leading-snug">
+                                {p.name}
+                              </h4>
+                            </div>
+                          </div>
+
+                          {/* Price & Action */}
+                          <div className="flex items-center gap-5 shrink-0">
+                            <div className="text-right">
+                              <span className="text-[10px] font-mono text-[#666] uppercase block">
+                                MSRP Ref
+                              </span>
+                              <span className="text-xs sm:text-sm font-mono font-medium text-white">
+                                {formatPrice(p.price)}
+                              </span>
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={() => handleSelectMasterToClaim(p)}
+                              className="px-3.5 py-1.5 border border-[#333] hover:border-white text-white hover:bg-white hover:text-black font-sans text-xs rounded transition-all cursor-pointer shrink-0"
+                            >
+                              {isEn ? "Pilih & Jual" : "Pilih & Jual"}
+                            </button>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="py-16 text-center text-xs font-mono text-[#777]">
+                        {isEn ? "No official models match your search." : "Tidak ada produk resmi yang cocok dengan pencarian."}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                /* STEP 2: CONFIGURE STORE OFFER (Clean Layout, No Nested Cards) */
+                <form onSubmit={handleConfirmClaim} className="space-y-4">
+                  {/* Back button */}
+                  <div>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedMasterProduct(null)}
+                      className="text-xs text-[#888] hover:text-white transition-colors cursor-pointer flex items-center gap-1"
+                    >
+                      <span>← {isEn ? "Back to Catalog" : "Pilih Produk Lain"}</span>
+                    </button>
+                  </div>
+
+                  {/* Selected Product Summary (Clean Header Row, No Box Container) */}
+                  <div className="flex items-center gap-4 py-2 border-b border-[#222]">
+                    <img
+                      src={selectedMasterProduct.image || (selectedMasterProduct.images && selectedMasterProduct.images[0]) || "/model-iem-untuk-hero.webp"}
+                      alt={selectedMasterProduct.name}
+                      className="w-14 h-14 rounded object-cover shrink-0"
+                    />
+                    <div>
+                      <p className="text-xs font-mono text-[#888]">
+                        <span className="uppercase text-[#aaa] font-medium">{selectedMasterProduct.brand}</span> • MSRP: {formatPrice(selectedMasterProduct.price)}
+                      </p>
+                      <h3 className="text-sm sm:text-base font-medium text-white mt-0.5">{selectedMasterProduct.name}</h3>
+                      {selectedMasterProduct.description && (
+                        <p className="text-xs text-[#666] mt-0.5 line-clamp-1">{selectedMasterProduct.description}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Pricing, Stock & Condition Inputs */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    {/* Store Price */}
+                    <div>
+                      <label className="block text-[11px] font-mono text-[#888] uppercase mb-1">
+                        {isEn ? `Your Selling Price (${currency}) *` : `Harga Jual Toko (${currency}) *`}
+                      </label>
+                      <input
+                        type="number"
+                        required
+                        min="1"
+                        value={claimPriceUSD}
+                        onChange={(e) => setClaimPriceUSD(parseFloat(e.target.value) || 0)}
+                        className="w-full bg-[#161616] border border-[#2E2E2E] rounded px-3.5 py-2 text-xs font-mono font-bold text-emerald-400 outline-none focus:border-white"
+                      />
+                      <p className="text-[10px] font-mono text-[#666] mt-1">
+                        {isEn ? `Est: ${formatPrice(claimPriceUSD)}` : `Setara: ${formatPrice(claimPriceUSD)}`}
+                      </p>
+                    </div>
+
+                    {/* Total Stock */}
+                    <div>
+                      <label className="block text-[11px] font-mono text-[#888] uppercase mb-1">
+                        {isEn ? "Total Store Stock (Units) *" : "Jumlah Total Stok Toko *"}
+                      </label>
+                      <input
+                        type="number"
+                        required
+                        min="1"
+                        value={claimStock}
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value) || 1;
+                          setClaimStock(val);
+                          setClaimVariant1Stock(Math.ceil(val / 2));
+                          setClaimVariant2Stock(Math.floor(val / 2));
+                        }}
+                        className="w-full bg-[#161616] border border-[#2E2E2E] rounded px-3.5 py-2 text-xs font-mono font-bold text-white outline-none focus:border-white"
+                      />
+                      <p className="text-[10px] font-mono text-[#666] mt-1">
+                        {isEn ? "Available physical stock" : "Stok siap kirim"}
+                      </p>
+                    </div>
+
+                    {/* Item Condition */}
+                    <div>
+                      <label className="block text-[11px] font-mono text-[#888] uppercase mb-1">
+                        {isEn ? "Item Condition *" : "Kondisi Barang *"}
+                      </label>
+                      <CustomSelect
+                        value={claimCondition}
+                        onChange={(val) => setClaimCondition(val)}
+                        options={[
+                          { label: "Brand New Sealed (Baru Segel)", value: "Brand New Sealed" },
+                          { label: "Like New Open-Box (Buka Segel Mulus)", value: "Like New Open-Box" },
+                          { label: "Pre-Owned Mint (Bekas Terawat)", value: "Pre-Owned Mint" },
+                        ]}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Variant Stock Allocation (Clean List, No Nested Card Boxes) */}
+                  <div className="pt-2">
+                    <h4 className="text-xs font-mono text-[#888] uppercase tracking-wider mb-2">
+                      {isEn ? "Cable Termination Stock Allocation:" : "Alokasi Stok Varian Kabel:"}
+                    </h4>
+                    <div className="divide-y divide-[#222]">
+                      <div className="py-2.5 flex items-center justify-between">
+                        <div>
+                          <p className="text-xs font-medium text-white">Standard 3.5mm SE</p>
+                          <p className="text-[10px] font-mono text-[#666]">Single-Ended Jack</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="number"
+                            min="0"
+                            value={claimVariant1Stock}
+                            onChange={(e) => setClaimVariant1Stock(parseInt(e.target.value) || 0)}
+                            className="w-20 bg-[#161616] border border-[#2E2E2E] rounded px-2.5 py-1.5 text-xs font-mono text-center text-white outline-none focus:border-white"
+                          />
+                          <span className="text-[10px] font-mono text-[#777]">unit</span>
+                        </div>
+                      </div>
+
+                      <div className="py-2.5 flex items-center justify-between">
+                        <div>
+                          <p className="text-xs font-medium text-white">Balanced 4.4mm Pentaconn</p>
+                          <p className="text-[10px] font-mono text-[#666]">Audiophile Balanced</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="number"
+                            min="0"
+                            value={claimVariant2Stock}
+                            onChange={(e) => setClaimVariant2Stock(parseInt(e.target.value) || 0)}
+                            className="w-20 bg-[#161616] border border-[#2E2E2E] rounded px-2.5 py-1.5 text-xs font-mono text-center text-white outline-none focus:border-white"
+                          />
+                          <span className="text-[10px] font-mono text-[#777]">unit</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Instant Verification Notice (Clean text, no bulky container box) */}
+                  <div className="text-xs font-mono text-emerald-400 flex items-center gap-2 pt-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0"></span>
+                    <span>
+                      {isEn
+                        ? "Official master model verified. Listing will be instantly activated in your store without admin review delay."
+                        : "Model resmi terverifikasi. Produk akan langsung aktif di toko Anda tanpa antre moderasi."}
+                    </span>
+                  </div>
+
+                  {/* Form Action Buttons */}
+                  <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#222]">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsMasterCatalogModalOpen(false);
+                        setSelectedMasterProduct(null);
+                      }}
+                      className="px-4 py-2 text-[#888] hover:text-white text-xs font-mono transition-colors cursor-pointer"
+                    >
+                      {isEn ? "Cancel" : "Batal"}
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-5 py-2 bg-white text-black hover:bg-[#E5E5E5] text-xs font-sans font-bold rounded transition-all cursor-pointer"
+                    >
+                      {isEn ? "Activate in My Store (Instant)" : "Aktifkan di Toko Saya (Instan)"}
+                    </button>
+                  </div>
+                </form>
+              )}
             </motion.div>
           </div>
         )}

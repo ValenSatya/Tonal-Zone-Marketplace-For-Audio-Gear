@@ -57,16 +57,21 @@ export default function SellerPayoutsPage() {
   const isEn = language === "English";
 
   const [currency, setCurrency] = useState<"IDR" | "USD">("IDR");
-  const [availableBalance, setAvailableBalance] = useState(4320);
-  const [escrowBalance, setEscrowBalance] = useState(1250);
-  const [transactions, setTransactions] = useState<PayoutTransaction[]>(INITIAL_TRANSACTIONS);
+  const [sellerMode, setSellerMode] = useState<"RETAIL_MERCHANT" | "OFFICIAL_BRAND">("RETAIL_MERCHANT");
+  const [availableBalance, setAvailableBalance] = useState(0);
+  const [escrowBalance, setEscrowBalance] = useState(0);
+  const [lifetimePayouts, setLifetimePayouts] = useState(0);
+  const [transactions, setTransactions] = useState<PayoutTransaction[]>([]);
 
-  // Sync currency from localStorage
+  // Sync mode & currency
   useEffect(() => {
-    const loadCurrency = () => {
-      const saved = localStorage.getItem("tonalzone_seller_currency") as "IDR" | "USD" | null;
-      if (saved) {
-        setCurrency(saved);
+    const loadState = () => {
+      const savedMode = (localStorage.getItem("tonalzone_seller_mode") as "RETAIL_MERCHANT" | "OFFICIAL_BRAND" | null) || "RETAIL_MERCHANT";
+      setSellerMode(savedMode);
+
+      const savedCurrency = localStorage.getItem("tonalzone_seller_currency") as "IDR" | "USD" | null;
+      if (savedCurrency) {
+        setCurrency(savedCurrency);
       } else {
         const stored = localStorage.getItem("tonalzone_user");
         if (stored) {
@@ -77,11 +82,42 @@ export default function SellerPayoutsPage() {
           } catch (e) {}
         }
       }
+
+      if (savedMode === "OFFICIAL_BRAND") {
+        setAvailableBalance(4320);
+        setEscrowBalance(1250);
+        setLifetimePayouts(4300);
+        setTransactions(INITIAL_TRANSACTIONS);
+      } else {
+        // New retail store: 0 balance unless seller has custom transactions
+        const savedBal = localStorage.getItem("tonalzone_seller_balance");
+        if (savedBal) {
+          try {
+            const balObj = JSON.parse(savedBal);
+            setAvailableBalance(balObj.available || 0);
+            setEscrowBalance(balObj.escrow || 0);
+            setLifetimePayouts(balObj.withdrawn || 0);
+          } catch (e) {}
+        } else {
+          setAvailableBalance(0);
+          setEscrowBalance(0);
+          setLifetimePayouts(0);
+        }
+
+        const localTx = localStorage.getItem("tonalzone_seller_transactions");
+        if (localTx) {
+          try {
+            setTransactions(JSON.parse(localTx));
+            return;
+          } catch (e) {}
+        }
+        setTransactions([]);
+      }
     };
 
-    loadCurrency();
-    window.addEventListener("storage", loadCurrency);
-    return () => window.removeEventListener("storage", loadCurrency);
+    loadState();
+    window.addEventListener("storage", loadState);
+    return () => window.removeEventListener("storage", loadState);
   }, []);
 
   const formatAmount = (usd: number) => {
@@ -103,7 +139,7 @@ export default function SellerPayoutsPage() {
 
   const availableFormatted = formatAmount(availableBalance);
   const escrowFormatted = formatAmount(escrowBalance);
-  const lifetimePayoutsFormatted = formatAmount(4300);
+  const lifetimePayoutsFormatted = formatAmount(lifetimePayouts);
 
   const handleConfirmWithdraw = (e: React.FormEvent) => {
     e.preventDefault();
@@ -257,25 +293,50 @@ export default function SellerPayoutsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#1A1A1A]">
-              {transactions.map((tx) => (
-                <tr key={tx.id} className="hover:bg-[#161616] transition-colors font-mono">
-                  <td className="px-5 py-3.5 font-bold text-white text-xs">{tx.id}</td>
-                  <td className="px-5 py-3.5 text-xs text-[#888]">{tx.date}</td>
-                  <td className="px-5 py-3.5 font-sans">
-                    <span className="text-white block font-medium">{tx.description}</span>
-                    {tx.bankAccount && <span className="text-[10px] text-[#777] font-mono">{tx.bankAccount}</span>}
-                  </td>
-                  <td className={`px-5 py-3.5 text-right font-bold text-xs ${tx.amountUSD >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
-                    {tx.amountUSD >= 0 ? `+${formatAmount(tx.amountUSD)}` : formatAmount(tx.amountUSD)}
-                  </td>
-                  <td className="px-5 py-3.5 text-center">
-                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono font-medium uppercase tracking-wider bg-[#161616] text-[#D4D4D8] border border-[#27272A]">
-                      <span className={`w-1.5 h-1.5 rounded-full ${tx.status === "COMPLETED" ? "bg-emerald-400" : "bg-amber-400"}`} />
-                      {tx.status}
-                    </span>
+              {transactions.length > 0 ? (
+                transactions.map((tx) => (
+                  <tr key={tx.id} className="hover:bg-[#161616] transition-colors font-mono">
+                    <td className="px-5 py-3.5 font-bold text-white text-xs">{tx.id}</td>
+                    <td className="px-5 py-3.5 text-xs text-[#888]">{tx.date}</td>
+                    <td className="px-5 py-3.5 font-sans">
+                      <span className="text-white block font-medium">{tx.description}</span>
+                      {tx.bankAccount && <span className="text-[10px] text-[#777] font-mono">{tx.bankAccount}</span>}
+                    </td>
+                    <td className={`px-5 py-3.5 text-right font-bold text-xs ${tx.amountUSD >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                      {tx.amountUSD >= 0 ? `+${formatAmount(tx.amountUSD)}` : formatAmount(tx.amountUSD)}
+                    </td>
+                    <td className="px-5 py-3.5 text-center">
+                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono font-medium uppercase tracking-wider bg-[#161616] text-[#D4D4D8] border border-[#27272A]">
+                        <span className={`w-1.5 h-1.5 rounded-full ${tx.status === "COMPLETED" ? "bg-emerald-400" : "bg-amber-400"}`} />
+                        {tx.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={5} className="py-16 text-center">
+                    <div className="flex flex-col items-center justify-center max-w-md mx-auto space-y-3">
+                      <div className="w-12 h-12 rounded-2xl bg-[#141414] border border-[#262626] flex items-center justify-center text-[#71717A]">
+                        <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                          <rect width="20" height="14" x="2" y="5" rx="2" />
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M2 10h20M6 15h.01M10 15h.01" />
+                        </svg>
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-bold text-white font-sans">
+                          {isEn ? "No Transactions Recorded" : "Belum Ada Riwayat Transaksi"}
+                        </h3>
+                        <p className="text-xs font-mono text-[#8E8E93] mt-1">
+                          {isEn
+                            ? "Earnings from completed orders and payout disbursements will be recorded here automatically."
+                            : "Penghasilan dari pesanan yang selesai dan riwayat penarikan dana akan tercatat otomatis di sini."}
+                        </p>
+                      </div>
+                    </div>
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>

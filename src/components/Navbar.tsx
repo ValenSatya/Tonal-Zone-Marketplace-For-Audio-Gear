@@ -9,8 +9,10 @@ import CartDrawer from "./CartDrawer";
 import { useLanguage } from "@/context/LanguageContext";
 import { useLocation } from "@/context/LocationContext";
 import { useCart } from "@/context/CartContext";
+import { useNotifications, formatRelativeTime } from "@/context/NotificationContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { getAuthSession, signOutUser } from "@/app/actions/auth";
+import { fetchProductsFromDb, CatalogProduct, FALLBACK_CATALOG } from "@/lib/products-db";
 
 const SEARCH_CATALOG = [
   { id: "s1", name: "Moondrop Blessing 3", category: "IN-EAR MONITORS", price: 319.99, image: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800", href: "/collection" },
@@ -39,6 +41,7 @@ export default function Navbar() {
   const { language, setLanguage, t } = useLanguage();
   const { formatPrice, currency, setCurrency } = useLocation();
   const { isCartOpen, setIsCartOpen, totalCount } = useCart();
+  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
@@ -47,6 +50,21 @@ export default function Navbar() {
   const [userSession, setUserSession] = useState<{ name: string; email: string; avatar?: string; role?: string; isSeller?: boolean; sellerStatus?: string; tuning?: string } | null>(null);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [dbProducts, setDbProducts] = useState<CatalogProduct[]>(FALLBACK_CATALOG);
+
+  React.useEffect(() => {
+    async function loadLiveProducts() {
+      try {
+        const live = await fetchProductsFromDb();
+        if (live && live.length > 0) {
+          setDbProducts(live);
+        }
+      } catch (e) {
+        console.error("Failed to load live products for navbar:", e);
+      }
+    }
+    loadLiveProducts();
+  }, []);
 
   React.useEffect(() => {
     setMounted(true);
@@ -99,7 +117,7 @@ export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isHidden, setIsHidden] = useState(false);
   const isHomePage = pathname === "/";
-  const isDarkNav = !isHomePage || isScrolled;
+  const isDarkNav = true;
 
   React.useEffect(() => {
     let ticking = false;
@@ -128,6 +146,24 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setIsSearchOpen(false);
+      }
+    };
+    if (isSearchOpen) {
+      document.body.style.overflow = "hidden";
+      window.addEventListener("keydown", handleKeyDown);
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isSearchOpen]);
+
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
@@ -136,35 +172,79 @@ export default function Navbar() {
     }
   };
 
-  const filteredSearchProducts = useMemo(() => {
-    if (!searchQuery.trim()) return SEARCH_CATALOG.slice(0, 4);
-    const q = searchQuery.toLowerCase();
-    return SEARCH_CATALOG.filter(
-      (item) => item.name.toLowerCase().includes(q) || item.category.toLowerCase().includes(q)
+  const searchData = useMemo(() => {
+    const allProducts = dbProducts && dbProducts.length > 0 ? dbProducts : FALLBACK_CATALOG;
+    if (!searchQuery.trim()) {
+      return {
+        isSearching: false,
+        products: allProducts.slice(0, 4),
+        suggestedLinks: [
+          { label: "Tangzu Wan'er Studio Edition", href: "/product/prod-waner-se", brand: "TANGZU" },
+          { label: "Moondrop Blessing 3 Hybrid", href: "/product/prod-blessing-3", brand: "MOONDROP" },
+          { label: "Sony WF-1000XM5 True Wireless", href: "/product/prod-wf1000xm5", brand: "SONY" },
+          { label: "Sennheiser HD 560S Reference", href: "/product/prod-hd560s", brand: "SENNHEISER" },
+          { label: "FiiO BTR7 Balanced DAC Amp", href: "/product/prod-fiio-btr7", brand: "FIIO" },
+        ],
+        suggestedSearches: [
+          "In-Ear Monitors",
+          "TWS Noise Canceling",
+          "DAC Amp Dongle",
+          "Kabel 4.4mm Balanced",
+          "Open-Back Headphones",
+        ],
+      };
+    }
+
+    const q = searchQuery.toLowerCase().trim();
+    const matches = allProducts.filter(
+      (p) =>
+        p.name.toLowerCase().includes(q) ||
+        p.brand.toLowerCase().includes(q) ||
+        p.category.toLowerCase().includes(q) ||
+        p.soundSignature.toLowerCase().includes(q)
     );
+
+    const directLinks = matches.slice(0, 4).map((p) => ({
+      label: p.name,
+      href: `/product/${p.id}`,
+      brand: p.brand,
+    }));
+
+    const dynamicKeywords = [
+      `${searchQuery} in-ear monitor`,
+      `${searchQuery} wireless TWS`,
+      `${searchQuery} frekuensi grafik`,
+      `${searchQuery} kabel upgrade 4.4mm`,
+      `${searchQuery} tuning filter`,
+    ];
+
+    return {
+      isSearching: true,
+      products: matches.slice(0, 4),
+      suggestedLinks: directLinks,
+      suggestedSearches: dynamicKeywords,
+    };
   }, [searchQuery]);
+
+  const filteredSearchProducts = searchData.products;
 
   const getNavClass = (isActive: boolean) => {
     if (isActive) {
-      return isDarkNav 
-        ? "text-[#D4FF00] border-b-2 border-[#D4FF00]" 
-        : "text-[#0e0e0e] border-b-2 border-[#0e0e0e]";
+      return "text-[#D4FF00] border-b-2 border-[#D4FF00]";
     }
-    return isDarkNav
-      ? "text-[#FAF9F6] hover:text-[#D4FF00] border-b-2 border-transparent"
-      : "text-[#0e0e0e]/70 hover:text-[#0e0e0e] border-b-2 border-transparent";
+    return "text-white hover:text-[#D4FF00] border-b-2 border-transparent";
   };
 
   return (
     <>
       <header
         className={`fixed top-0 left-0 right-0 z-50 w-full transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] transform-gpu ${
-          isDarkNav
-            ? "bg-[#0e0e0e]/90 backdrop-blur-md border-b border-[#444748] shadow-lg"
+          isScrolled
+            ? "bg-[#090808]/95 backdrop-blur-md border-b border-[#2b2b2b] shadow-lg"
             : "bg-transparent backdrop-blur-none border-b border-transparent shadow-none"
         } ${isHidden && !isSearchOpen ? "-translate-y-full" : "translate-y-0"}`}
       >
-      <div className="flex h-20 items-center justify-between px-6 lg:px-12 max-w-[1600px] mx-auto">
+      <div className="flex h-20 items-center justify-between px-6 sm:px-10 lg:px-16 max-w-[1500px] mx-auto">
         {/* Logo & Brand */}
         <Link href="/" className="flex items-center gap-3.5 group">
           <div className="relative w-10 h-10 flex items-center justify-center">
@@ -173,12 +253,10 @@ export default function Navbar() {
               alt="Tonal Zone Logo"
               width={40}
               height={40}
-              className={`w-full h-full object-contain group-hover:rotate-180 transition-all duration-700 ease-in-out ${!isDarkNav ? 'brightness-0' : ''}`}
+              className="w-full h-full object-contain group-hover:rotate-180 transition-all duration-700 ease-in-out"
             />
           </div>
-          <span className={`hidden sm:inline font-heading text-2xl font-bold tracking-tight mt-0.5 transition-colors duration-300 ${
-            isDarkNav ? "text-[#FAF9F6]" : "text-[#0e0e0e]"
-          }`}>
+          <span className="hidden sm:inline font-heading text-2xl font-bold tracking-tight mt-0.5 text-white transition-colors duration-300">
             Tonalzone
           </span>
         </Link>
@@ -453,6 +531,14 @@ export default function Navbar() {
               </Link>
               {/* Notifications Dropdown Toggle */}
               <div className="relative flex items-center h-full">
+                {/* Click outside overlay */}
+                {isNotifOpen && (
+                  <div
+                    className="fixed inset-0 z-40 bg-transparent"
+                    onClick={() => setIsNotifOpen(false)}
+                  />
+                )}
+
                 <button
                   type="button"
                   onClick={() => setIsNotifOpen(!isNotifOpen)}
@@ -464,92 +550,106 @@ export default function Navbar() {
                   <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
                   </svg>
-                  <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#D4FF00] text-[9px] font-bold text-black border border-[#0e0e0e]">
-                    2
-                  </span>
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-4 px-1 items-center justify-center rounded-full bg-[#D4FF00] text-[9px] font-bold text-black border border-[#0e0e0e] animate-pulse">
+                      {unreadCount > 9 ? "9+" : unreadCount}
+                    </span>
+                  )}
                 </button>
 
                 {/* Notification Dropdown Container */}
                 <div 
-                  className={`absolute top-full right-0 mt-4 w-[380px] bg-[#161616] border border-[#2b2b2b] rounded-xl shadow-[0_25px_60px_rgba(0,0,0,0.95)] overflow-hidden transition-all duration-300 z-50 origin-top-right ${
+                  className={`absolute top-full right-0 mt-4 w-[380px] bg-[#141414] border border-[#2b2b2b] rounded-xl shadow-[0_25px_60px_rgba(0,0,0,0.95)] overflow-hidden transition-all duration-300 z-50 origin-top-right ${
                     isNotifOpen ? "opacity-100 scale-100 pointer-events-auto" : "opacity-0 scale-95 pointer-events-none"
                   }`}
                 >
                   {/* Header */}
-                  <div className="px-5 py-4 border-b border-[#262626] flex items-center justify-between">
-                    <h3 className="font-heading font-medium text-[15px] text-[#FAF9F6] tracking-wide">Notifikasi</h3>
-                    <span className="text-[#888] hover:text-[#FAF9F6] transition-colors cursor-pointer">
-                      <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                    </span>
+                  <div className="px-5 py-3.5 border-b border-[#242424] flex items-center justify-between bg-[#111111]">
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-heading font-medium text-sm text-[#FAF9F6] tracking-wide">Notifikasi</h3>
+                      {unreadCount > 0 && (
+                        <span className="text-[10px] font-mono bg-emerald-950/80 text-emerald-400 border border-emerald-800/60 px-2 py-0.5 rounded-full font-bold">
+                          {unreadCount} baru
+                        </span>
+                      )}
+                    </div>
+                    {unreadCount > 0 && (
+                      <button
+                        type="button"
+                        onClick={markAllAsRead}
+                        className="text-[11px] font-mono text-[#D4FF00] hover:underline cursor-pointer transition-colors"
+                      >
+                        Tandai Semua Dibaca
+                      </button>
+                    )}
                   </div>
 
                   {/* Notification List */}
-                  <div className="max-h-[420px] overflow-y-auto custom-scrollbar">
-                    
-                    {/* Important Section */}
-                    <div className="px-5 py-3">
-                      <span className="text-[12px] font-semibold text-[#FAF9F6]">Penting</span>
-                    </div>
+                  <div className="max-h-[380px] overflow-y-auto custom-scrollbar divide-y divide-[#1e1e1e]">
+                    {notifications.length === 0 ? (
+                      <div className="p-8 text-center text-[#777] text-xs font-mono">
+                        Tidak ada notifikasi saat ini
+                      </div>
+                    ) : (
+                      notifications.slice(0, 6).map((notif) => (
+                        <div
+                          key={notif.id}
+                          onClick={() => {
+                            markAsRead(notif.id);
+                            setIsNotifOpen(false);
+                            router.push(notif.actionLink);
+                          }}
+                          className={`flex gap-3 px-4 py-3.5 hover:bg-[#1a1a1a] transition-colors cursor-pointer relative group ${
+                            notif.unread ? "bg-[#161616]" : "bg-transparent opacity-80 hover:opacity-100"
+                          }`}
+                        >
+                          {notif.unread && (
+                            <div className="absolute left-1.5 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-[#D4FF00] rounded-full" />
+                          )}
 
-                    <Link href="/messages?seller=101" onClick={() => setIsNotifOpen(false)} className="flex gap-3 px-5 py-3 hover:bg-[#1f1f1f] transition-colors relative group">
-                      <div className="absolute left-2 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-[#3b82f6] rounded-full"></div>
-                      <div className="w-10 h-10 rounded-full bg-[#222] shrink-0 overflow-hidden flex items-center justify-center text-[#FAF9F6] text-xs font-mono">
-                        CZ
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[13px] text-[#FAF9F6] leading-snug line-clamp-3">
-                          <span className="font-semibold">CSI-ZONE Store</span> mengirim pesan: "Halo kak, untuk pengiriman gosend bisa hari ini ya."
-                        </p>
-                        <span className="text-[11px] text-[#888] mt-1 block">3 jam yang lalu</span>
-                      </div>
-                      <span className="opacity-0 group-hover:opacity-100 p-1 text-[#888] hover:text-[#FAF9F6] self-center transition-all shrink-0">
-                        <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/></svg>
-                      </span>
-                    </Link>
+                          {/* Icon based on type */}
+                          <div className="w-9 h-9 rounded-full bg-[#202020] border border-[#333] shrink-0 overflow-hidden flex items-center justify-center text-white">
+                            {notif.type === "order" && (
+                              <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                            )}
+                            {notif.type === "chat" && (
+                              <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                            )}
+                            {notif.type === "system" && (
+                              <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                            )}
+                            {notif.type === "promo" && (
+                              <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+                            )}
+                          </div>
 
-                    <Link href="/seller" onClick={() => setIsNotifOpen(false)} className="flex gap-3 px-5 py-3 hover:bg-[#1f1f1f] transition-colors relative group">
-                      <div className="absolute left-2 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-[#3b82f6] rounded-full"></div>
-                      <div className="w-10 h-10 rounded-full bg-[#111] shrink-0 overflow-hidden border border-[#D4FF00]/30 flex items-center justify-center text-[#D4FF00]">
-                        <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[13px] text-[#FAF9F6] leading-snug line-clamp-3">
-                          <span className="font-semibold">Tonal Zone Admin:</span> Verifikasi toko Anda telah disetujui. Silakan unggah produk pertama Anda.
-                        </p>
-                        <span className="text-[11px] text-[#888] mt-1 block">5 jam yang lalu</span>
-                      </div>
-                      <span className="opacity-0 group-hover:opacity-100 p-1 text-[#888] hover:text-[#FAF9F6] self-center transition-all shrink-0">
-                        <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/></svg>
-                      </span>
-                    </Link>
-
-                    <div className="w-full h-px bg-[#262626] my-1"></div>
-                    
-                    {/* Others Section */}
-                    <div className="px-5 py-3">
-                      <span className="text-[12px] font-semibold text-[#FAF9F6]">Notifikasi lainnya</span>
-                    </div>
-
-                    <Link href="/orders" onClick={() => setIsNotifOpen(false)} className="flex gap-3 px-5 py-3 hover:bg-[#1f1f1f] transition-colors relative group opacity-70 hover:opacity-100">
-                      <div className="w-10 h-10 rounded-full bg-[#222] shrink-0 overflow-hidden flex items-center justify-center text-[#888]">
-                        <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
-                      </div>
-                      <div className="flex-1 min-w-0 flex gap-2">
-                        <div className="flex-1 min-w-0">
-                          <p className="text-[13px] text-[#FAF9F6] leading-snug line-clamp-3">
-                            Pesanan Anda (INV/2026/08/14/001) telah dikirim oleh <span className="font-semibold">Soundstage ID</span>.
-                          </p>
-                          <span className="text-[11px] text-[#888] mt-1 block">Kemarin</span>
+                          <div className="flex-1 min-w-0">
+                            <h4 className={`text-xs font-semibold leading-snug truncate ${notif.unread ? "text-white" : "text-[#ddd]"}`}>
+                              {notif.title}
+                            </h4>
+                            <p className="text-[11px] text-[#888] leading-relaxed line-clamp-2 mt-0.5">
+                              {notif.message}
+                            </p>
+                            <span className="text-[10px] font-mono text-[#666] mt-1 block">
+                              {formatRelativeTime(notif.createdAt)}
+                            </span>
+                          </div>
                         </div>
-                        <div className="w-20 h-12 bg-[#222] shrink-0 overflow-hidden rounded relative">
-                           <img src="/placeholder.svg" alt="Order" className="w-full h-full object-cover" />
-                        </div>
-                      </div>
-                      <span className="opacity-0 group-hover:opacity-100 p-1 text-[#888] hover:text-[#FAF9F6] self-center transition-all shrink-0">
-                        <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/></svg>
-                      </span>
-                    </Link>
+                      ))
+                    )}
+                  </div>
 
+                  {/* Dropdown Footer */}
+                  <div className="p-3 border-t border-[#242424] bg-[#111111] text-center">
+                    <Link
+                      href="/notifications"
+                      onClick={() => setIsNotifOpen(false)}
+                      className="text-xs font-mono font-bold uppercase tracking-wider text-[#FAF9F6] hover:text-[#D4FF00] transition-colors inline-flex items-center gap-1.5"
+                    >
+                      <span>Lihat Semua Notifikasi</span>
+                      <span>({notifications.length})</span>
+                      <span>→</span>
+                    </Link>
                   </div>
                 </div>
               </div>
@@ -741,160 +841,272 @@ export default function Navbar() {
       </div>
     </header>
 
-      {/* 3. Search Bar & Mega Menu (Outside/Below Navbar) */}
-      {isSearchOpen && (
-        <div className="w-full bg-[#111111] border-b border-[#262626] shadow-2xl animate-in fade-in slide-in-from-top-2 duration-300">
-          {/* Top Search Bar */}
-          <div className="max-w-[1600px] mx-auto px-6 lg:px-12 py-5 border-b border-[#222]">
-            <div className="flex items-center justify-between gap-6">
-              <form onSubmit={handleSearchSubmit} className="flex-1 flex items-center gap-4 bg-[#161616] border border-[#2e2e2e] focus-within:border-white px-5 py-3.5 rounded-xl transition-colors">
-                <span className="text-[#FAF9F6]/50 font-mono font-bold text-xs uppercase tracking-widest">{t("nav.searchLabel")}</span>
-                <input
-                  type="text"
-                  placeholder={t("nav.searchPlaceholder")}
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  autoFocus
-                  className="w-full bg-transparent text-[#FAF9F6] placeholder-[#FAF9F6]/40 font-sans text-sm outline-none font-medium"
-                />
-                {searchQuery && (
-                  <button
-                    type="button"
-                    onClick={() => setSearchQuery("")}
-                    className="text-[10px] font-mono text-[#FAF9F6]/60 hover:text-white font-bold px-2.5 py-1 bg-[#222] hover:bg-[#333] rounded cursor-pointer transition-colors"
+      {/* 3. Apple-Style Dynamic Search Overlay Modal */}
+      <AnimatePresence>
+        {isSearchOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-[100] bg-[#0a0a0a]/98 backdrop-blur-3xl overflow-y-auto flex flex-col text-[#FAF9F6]"
+          >
+            {/* Top Search Input Bar */}
+            <div className="w-full border-b border-[#1c1c1c] sticky top-0 bg-[#0a0a0a]/95 backdrop-blur-md z-10">
+              <div className="max-w-[1200px] mx-auto px-6 lg:px-12 py-6 flex items-center justify-between gap-6">
+                <form onSubmit={handleSearchSubmit} className="flex-1 flex items-center gap-4">
+                  <svg
+                    width="24"
+                    height="24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    viewBox="0 0 24 24"
+                    className="text-[#71717A] shrink-0"
                   >
-                    {t("nav.clear")}
-                  </button>
-                )}
-              </form>
-              <button
-                onClick={() => setIsSearchOpen(false)}
-                className="px-5 py-3.5 bg-[#161616] border border-[#2e2e2e] hover:border-white text-[#FAF9F6]/80 hover:text-white font-mono text-xs font-bold rounded-xl transition-all cursor-pointer shrink-0 uppercase tracking-wider"
-              >
-                [ {t("cart.close")} ]
-              </button>
-            </div>
-          </div>
-
-          {/* Search Mega Menu Content */}
-          <div className="max-w-[1600px] mx-auto px-6 lg:px-12 py-8 flex flex-col lg:flex-row gap-10">
-            {/* Left Column: Categories & Recommendations (Width 1/3) */}
-            <div className="w-full lg:w-1/3 pr-0 lg:pr-8 lg:border-r border-[#222] flex flex-col justify-between gap-6">
-              <div>
-                <span className="text-[10px] font-mono font-bold text-[#FAF9F6]/40 uppercase tracking-[0.25em] block mb-4">
-                  {t("nav.searchCategories")}
-                </span>
-                <div className="space-y-1">
-                  {SEARCH_CATEGORIES.map((cat) => {
-                    let catLabel = cat;
-                    if (cat === "IN-EAR MONITORS") catLabel = t("nav.catIEM");
-                    if (cat === "TWS") catLabel = t("nav.catTws");
-                    if (cat === "HEADPHONE") catLabel = t("nav.catHeadphone");
-                    if (cat === "DAC/AMP") catLabel = t("nav.catDac");
-                    if (cat === "ACCESSORIES") catLabel = t("nav.catAcc");
-                    if (cat === "FLAGSHIP MODELS") catLabel = t("nav.catFlagship");
-                    if (cat === "PORTABLE AUDIO") catLabel = t("nav.catPortable");
-                    return (
-                      <button
-                        key={cat}
-                        onClick={() => {
-                          setIsSearchOpen(false);
-                          router.push(`/search?q=${encodeURIComponent(cat)}`);
-                        }}
-                        className="w-full text-left px-3.5 py-2.5 text-xs font-medium text-[#FAF9F6]/70 hover:text-white hover:bg-[#1e1e1e] rounded-lg transition-all uppercase block cursor-pointer"
-                      >
-                        {catLabel}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div className="p-5 bg-[#141414] border border-[#222] rounded-xl">
-                <span className="text-[10px] font-mono text-[#FAF9F6] font-bold uppercase tracking-wider block mb-1.5">
-                  {t("nav.needAdvanced")}
-                </span>
-                <p className="text-xs text-[#FAF9F6]/60 mb-4 font-sans leading-relaxed">
-                  {t("nav.needAdvancedDesc")}
-                </p>
-                <MotionButton
-                  href="/collection"
-                  variant="dark"
-                  onClick={() => setIsSearchOpen(false)}
-                  className="w-full text-center py-2.5 text-xs font-mono font-bold"
-                >
-                  {t("search.viewFullCollection")}
-                </MotionButton>
-              </div>
-            </div>
-
-            {/* Right Column: Dynamic Results / Recommended (Width 2/3) */}
-            <div className="w-full lg:w-2/3">
-              <div className="flex items-center justify-between pb-3 border-b border-[#222] mb-5">
-                <span className="text-[10px] font-mono text-[#FAF9F6]/40 uppercase tracking-widest font-bold">
-                  {searchQuery.trim() ? `${t("nav.searchResults")} (${filteredSearchProducts.length})` : t("nav.recommendedModels")}
-                </span>
-                <span className="text-[10px] font-mono text-[#FAF9F6]/40 font-bold tracking-wider">
-                  {t("nav.topRatedGear")}
-                </span>
-              </div>
-
-              {filteredSearchProducts.length > 0 ? (
-                <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                  {filteredSearchProducts.map((prod) => (
-                    <Link
-                      key={prod.id}
-                      href={`/search?q=${encodeURIComponent(prod.name)}`}
-                      onClick={() => setIsSearchOpen(false)}
-                      className="group bg-transparent hover:bg-[#0a0a0a] transition-colors duration-300 overflow-hidden flex flex-col cursor-pointer relative rounded-xl"
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    />
+                  </svg>
+                  <input
+                    type="text"
+                    placeholder="Cari IEM, DAC, headphone, kabel..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    autoFocus
+                    className="w-full bg-transparent text-xl md:text-3xl font-light text-[#FAF9F6] placeholder-[#444444] outline-none tracking-tight"
+                  />
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setSearchQuery("")}
+                      className="text-xs font-mono text-[#8E8E93] hover:text-white px-2.5 py-1 bg-[#1A1A1A] hover:bg-[#262626] border border-[#2B2B2B] transition-colors cursor-pointer shrink-0"
                     >
-                      {/* Top Image Box */}
-                      <div className="relative w-full aspect-square bg-[#0a0a0a] overflow-hidden flex items-center justify-center rounded-t-xl group-hover:bg-[#111111] transition-colors">
-                        <div className="relative w-full h-full flex items-center justify-center bg-transparent transition-transform duration-500 ease-out group-hover:scale-105 transform-gpu">
-                          {prod.image === "/placeholder.svg" ? (
-                            <span className="text-[9px] font-mono uppercase tracking-widest text-[#FAF9F6]/30 text-center px-2">
-                              {prod.category}
+                      Batal
+                    </button>
+                  )}
+                </form>
+
+                {/* Close Button */}
+                <button
+                  onClick={() => setIsSearchOpen(false)}
+                  className="text-xs font-mono text-[#8E8E93] hover:text-white border border-[#222222] hover:border-white px-4 py-2 transition-all cursor-pointer shrink-0 uppercase tracking-widest"
+                >
+                  Tutup [ESC]
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Body: Dynamic Suggestions & Results */}
+            <div className="max-w-[1200px] w-full mx-auto px-6 lg:px-12 py-12 flex-1 flex flex-col gap-12">
+              
+              {/* Dynamic State 1: When User is Typing (Apple Reference Experience) */}
+              {searchData.isSearching ? (
+                <div className="space-y-12 animate-in fade-in duration-200">
+                  
+                  {/* Suggested Links (Direct Product Navigation) */}
+                  <div>
+                    <span className="text-xs font-mono text-[#71717A] tracking-[0.2em] uppercase block mb-4">
+                      Suggested Links
+                    </span>
+                    {searchData.suggestedLinks.length > 0 ? (
+                      <div className="space-y-1">
+                        {searchData.suggestedLinks.map((link, idx) => (
+                          <Link
+                            key={idx}
+                            href={link.href}
+                            onClick={() => setIsSearchOpen(false)}
+                            className="flex items-center gap-3 py-2.5 px-3 -mx-3 hover:bg-[#141414] text-[#FAF9F6] text-base md:text-lg font-light tracking-tight transition-colors group cursor-pointer"
+                          >
+                            <span className="text-[#555555] group-hover:text-white transition-colors">→</span>
+                            <span className="group-hover:translate-x-1 transition-transform">
+                              <span className="text-xs font-mono text-[#888888] mr-2">{link.brand}</span>
+                              <span className="text-[#FAF9F6]">{link.label}</span>
                             </span>
-                          ) : (
-                            <Image
-                              src={prod.image}
-                              alt={prod.name}
-                              fill
-                              className="object-cover"
+                          </Link>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm font-sans text-[#666666]">Tidak ada tautan langsung yang cocok.</p>
+                    )}
+                  </div>
+
+                  {/* Suggested Searches (Live Keyword Queries) */}
+                  <div>
+                    <span className="text-xs font-mono text-[#71717A] tracking-[0.2em] uppercase block mb-4">
+                      Suggested Searches
+                    </span>
+                    <div className="space-y-1">
+                      {searchData.suggestedSearches.map((queryText, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => {
+                            setIsSearchOpen(false);
+                            router.push(`/search?q=${encodeURIComponent(queryText)}`);
+                          }}
+                          className="w-full flex items-center gap-3 py-2.5 px-3 -mx-3 hover:bg-[#141414] text-[#A1A1AA] hover:text-white text-sm md:text-base font-light tracking-tight transition-colors text-left group cursor-pointer"
+                        >
+                          <svg
+                            width="16"
+                            height="16"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.75"
+                            viewBox="0 0 24 24"
+                            className="text-[#555555] group-hover:text-[#FAF9F6] transition-colors shrink-0"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                             />
-                          )}
-                        </div>
+                          </svg>
+                          <span className="group-hover:translate-x-1 transition-transform">
+                            {queryText}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Live Matched Products Preview */}
+                  {searchData.products.length > 0 && (
+                    <div className="pt-8 border-t border-[#1a1a1a]">
+                      <div className="flex items-center justify-between mb-4">
+                        <span className="text-xs font-mono text-[#71717A] tracking-[0.2em] uppercase">
+                          Hasil Produk ({searchData.products.length})
+                        </span>
+                        <Link
+                          href={`/search?q=${encodeURIComponent(searchQuery)}`}
+                          onClick={() => setIsSearchOpen(false)}
+                          className="text-xs font-mono text-[#FAF9F6] hover:text-white border-b border-[#FAF9F6] pb-0.5"
+                        >
+                          Lihat semua hasil →
+                        </Link>
                       </div>
 
-                      {/* Bottom Text Area */}
-                      <div className="p-3 flex flex-col flex-1 bg-transparent">
-                        <h3 className="font-sans text-[13px] font-normal tracking-wide text-[#FAF9F6] group-hover:translate-x-1 transition-transform duration-300 mb-1 leading-relaxed truncate">
-                          {prod.name}
-                        </h3>
-                        <p className="font-mono text-xs font-bold tracking-wide text-[#D4FF00] group-hover:translate-x-1 transition-transform duration-300">
-                          {formatPrice(prod.price)}
-                        </p>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                        {searchData.products.map((prod) => (
+                          <Link
+                            key={prod.id}
+                            href={`/product/${prod.id}`}
+                            onClick={() => setIsSearchOpen(false)}
+                            className="group flex flex-col bg-[#0e0e0e] border border-[#1a1a1a] hover:border-[#444444] transition-all p-2.5 cursor-pointer"
+                          >
+                            <div className="relative w-full aspect-square bg-[#141414] overflow-hidden mb-2.5">
+                              <Image
+                                src={prod.image || prod.images[0]}
+                                alt={prod.name}
+                                fill
+                                className="object-cover group-hover:scale-105 transition-transform duration-500"
+                              />
+                            </div>
+                            <div className="flex flex-col min-w-0">
+                              <h4 className="text-xs font-sans font-medium text-[#FAF9F6] group-hover:text-white line-clamp-1 mb-1">
+                                {prod.name}
+                              </h4>
+                              <span className="text-xs font-mono font-bold text-[#FAF9F6]">
+                                {formatPrice(prod.price)}
+                              </span>
+                            </div>
+                          </Link>
+                        ))}
                       </div>
-                    </Link>
-                  ))}
+                    </div>
+                  )}
+
                 </div>
               ) : (
-                <div className="py-16 text-center bg-[#161616] rounded-xl border border-[#222] flex flex-col items-center justify-center">
-                  <span className="text-sm font-mono uppercase text-[#FAF9F6]/50 font-bold block mb-3">
-                    {t("nav.noResults")} &quot;{searchQuery}&quot;
-                  </span>
-                  <button
-                    onClick={() => setSearchQuery("")}
-                    className="text-xs font-mono text-[#FAF9F6] bg-[#222] border border-[#333] hover:border-white hover:bg-white hover:text-[#0e0e0e] px-4 py-2 rounded-lg font-bold cursor-pointer uppercase transition-all"
-                  >
-                    {t("nav.resetQuery")}
-                  </button>
+                /* Dynamic State 2: When Query is Empty (Quick Links & Categories) */
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start animate-in fade-in duration-200">
+                  
+                  {/* Left: Quick Links / Trending */}
+                  <div className="lg:col-span-5 space-y-4">
+                    <span className="text-xs font-mono text-[#71717A] tracking-[0.2em] uppercase block mb-4">
+                      Quick Links
+                    </span>
+                    <div className="space-y-1">
+                      {searchData.suggestedLinks.map((link, idx) => (
+                        <Link
+                          key={idx}
+                          href={link.href}
+                          onClick={() => setIsSearchOpen(false)}
+                          className="flex items-center gap-3 py-2 px-3 -mx-3 hover:bg-[#141414] text-[#A1A1AA] hover:text-[#FAF9F6] text-base font-light tracking-tight transition-colors group cursor-pointer"
+                        >
+                          <span className="text-[#555555] group-hover:text-white transition-colors">→</span>
+                          <span className="group-hover:translate-x-1 transition-transform">
+                            {link.label}
+                          </span>
+                        </Link>
+                      ))}
+                    </div>
+
+                    {/* Popular Categories */}
+                    <div className="pt-8 border-t border-[#1a1a1a]">
+                      <span className="text-xs font-mono text-[#71717A] tracking-[0.2em] uppercase block mb-4">
+                        Kategori Populer
+                      </span>
+                      <div className="flex flex-wrap gap-2">
+                        {SEARCH_CATEGORIES.map((cat) => (
+                          <button
+                            key={cat}
+                            onClick={() => {
+                              setIsSearchOpen(false);
+                              router.push(`/collection?category=${encodeURIComponent(cat)}`);
+                            }}
+                            className="px-3 py-1.5 bg-[#121212] hover:bg-[#202020] border border-[#222] text-xs font-mono text-[#8E8E93] hover:text-white transition-colors cursor-pointer uppercase"
+                          >
+                            {cat}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right: Recommended Benchmark Models */}
+                  <div className="lg:col-span-7 space-y-4">
+                    <span className="text-xs font-mono text-[#71717A] tracking-[0.2em] uppercase block">
+                      Model Rekomendasi
+                    </span>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                      {searchData.products.map((prod) => (
+                        <Link
+                          key={prod.id}
+                          href={`/product/${prod.id}`}
+                          onClick={() => setIsSearchOpen(false)}
+                          className="group flex flex-col bg-[#0e0e0e] border border-[#1a1a1a] hover:border-[#444444] transition-all p-2.5 cursor-pointer"
+                        >
+                          <div className="relative w-full aspect-square bg-[#141414] overflow-hidden mb-2.5">
+                            <Image
+                              src={prod.image || prod.images[0]}
+                              alt={prod.name}
+                              fill
+                              className="object-cover group-hover:scale-105 transition-transform duration-500"
+                            />
+                          </div>
+                          <div className="flex flex-col min-w-0">
+                            <h4 className="text-xs font-sans font-medium text-[#FAF9F6] group-hover:text-white line-clamp-1 mb-1">
+                              {prod.name}
+                            </h4>
+                            <span className="text-xs font-mono font-bold text-[#FAF9F6]">
+                              {formatPrice(prod.price)}
+                            </span>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+
                 </div>
               )}
+
             </div>
-          </div>
-        </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* 3.5 Mobile Full-Screen Menu Overlay */}
       <AnimatePresence>
@@ -933,10 +1145,13 @@ export default function Navbar() {
                         <p className="text-xs font-mono text-[#888]">{userSession.email}</p>
                       </div>
                     </div>
-                    <Link href="/settings" onClick={() => setIsMobileMenuOpen(false)} className="text-sm font-mono uppercase tracking-widest text-white/70 hover:text-white">{t("nav.settings")}</Link>
-                    <Link href="/notifications" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-2 text-sm font-mono uppercase tracking-widest text-white/70 hover:text-white">
-                      Notifications
-                      <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#D4FF00] text-[9px] font-bold text-black">2</span>
+                    <Link href="/notifications" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center justify-between text-sm font-mono uppercase tracking-widest text-white/70 hover:text-white">
+                      <span>Notifications</span>
+                      {unreadCount > 0 && (
+                        <span className="flex h-4 min-w-4 px-1 items-center justify-center rounded-full bg-[#D4FF00] text-[9px] font-bold text-black">
+                          {unreadCount}
+                        </span>
+                      )}
                     </Link>
                     <Link href="/orders" onClick={() => setIsMobileMenuOpen(false)} className="text-sm font-mono uppercase tracking-widest text-white/70 hover:text-white">{t("nav.orders")}</Link>
                     

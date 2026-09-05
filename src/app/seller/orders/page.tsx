@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/context/LanguageContext";
 import CustomSelect from "@/components/ui/custom-select";
+import { triggerAppNotification } from "@/context/NotificationContext";
 
 export interface SellerOrder {
   id: string;
@@ -96,9 +97,21 @@ export default function SellerOrdersPage() {
   const { language } = useLanguage();
   const isEn = language === "English";
 
-  const [orders, setOrders] = useState<SellerOrder[]>(INITIAL_ORDERS);
+  const [orders, setOrders] = useState<SellerOrder[]>([]);
+  const [sellerMode, setSellerMode] = useState<"RETAIL_MERCHANT" | "OFFICIAL_BRAND">("RETAIL_MERCHANT");
   const [activeTab, setActiveTab] = useState<"ALL" | "TO_SHIP" | "IN_TRANSIT" | "COMPLETED" | "DISPUTED">("ALL");
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Sync mode
+  useEffect(() => {
+    const loadMode = () => {
+      const savedMode = localStorage.getItem("tonalzone_seller_mode") as "RETAIL_MERCHANT" | "OFFICIAL_BRAND" | null;
+      if (savedMode) setSellerMode(savedMode);
+    };
+    loadMode();
+    window.addEventListener("storage", loadMode);
+    return () => window.removeEventListener("storage", loadMode);
+  }, []);
 
   // Waybill Dispatch Modal State
   const [dispatchOrder, setDispatchOrder] = useState<SellerOrder | null>(null);
@@ -110,47 +123,30 @@ export default function SellerOrdersPage() {
 
   // Fetch live orders
   const loadSellerOrders = async () => {
-    try {
-      const res = await fetch("/api/orders");
-      if (!res.ok) return;
-      const text = await res.text();
-      let data: any = null;
-      try {
-        data = JSON.parse(text);
-      } catch {
-        return;
-      }
-      if (data && data.success && Array.isArray(data.orders)) {
-        const mapped: SellerOrder[] = data.orders.map((o: any) => ({
-          id: o.id,
-          createdAt: new Date(o.createdAt).toISOString().replace("T", " ").substring(0, 16),
-          buyerName: o.buyerName || "Audiophile Buyer",
-          buyerCity: o.destinationCity || "Jakarta Selatan",
-          buyerAddress: o.destinationAddress || "Jl. Sudirman",
-          productName: o.items?.[0]?.productName || "Audiophile Gear",
-          productQty: o.items?.reduce((acc: number, it: any) => acc + (it.quantity || 1), 0) || 1,
-          totalPriceUSD: o.totalAmount,
-          courier: o.courierCode || "JNE Express",
-          waybill: o.waybillNumber,
-          status: o.escrowStatus === "PAYMENT_PENDING" || o.escrowStatus === "HELD_IN_ESCROW"
-            ? "TO_SHIP"
-            : o.escrowStatus === "IN_TRANSIT"
-            ? "IN_TRANSIT"
-            : o.escrowStatus === "DISPUTED"
-            ? "DISPUTED"
-            : "COMPLETED",
-          escrowStatus: o.escrowStatus === "FUNDS_RELEASED_TO_SELLER" ? "RELEASED" : "HELD_IN_ESCROW",
-        }));
-        setOrders(mapped);
-      }
-    } catch (err) {
-      console.error("Failed to load seller orders:", err);
+    const savedMode = (localStorage.getItem("tonalzone_seller_mode") as "RETAIL_MERCHANT" | "OFFICIAL_BRAND" | null) || "RETAIL_MERCHANT";
+    
+    if (savedMode === "OFFICIAL_BRAND") {
+      setOrders(INITIAL_ORDERS);
+      return;
     }
+
+    // For new retail store, load only custom orders or start with 0
+    const localOrders = localStorage.getItem("tonalzone_seller_orders");
+    if (localOrders) {
+      try {
+        const parsed = JSON.parse(localOrders);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setOrders(parsed);
+          return;
+        }
+      } catch (e) {}
+    }
+    setOrders([]);
   };
 
   useEffect(() => {
     loadSellerOrders();
-  }, []);
+  }, [sellerMode]);
 
   // Filter orders
   const filteredOrders = useMemo(() => {
@@ -196,6 +192,18 @@ export default function SellerOrdersPage() {
             : o
         )
       );
+
+      triggerAppNotification({
+        type: "order",
+        title: "Pesanan Dikirim ke Pembeli",
+        message: `Pesanan #${dispatchOrder.id} (${dispatchOrder.productName}) telah berhasil di-dispatch dengan resi ${waybillClean} via ${selectedCourier}.`,
+        actionLink: "/orders",
+        meta: {
+          orderId: dispatchOrder.id,
+          productName: dispatchOrder.productName,
+        },
+      });
+
       setDispatchOrder(null);
       setWaybillInput("");
     }
@@ -400,8 +408,24 @@ export default function SellerOrdersPage() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-xs font-mono text-[#888]">
-                    {isEn ? "No orders found matching tab filter." : "Tidak ada pesanan pada filter ini."}
+                  <td colSpan={7} className="py-16 text-center">
+                    <div className="flex flex-col items-center justify-center max-w-md mx-auto space-y-3">
+                      <div className="w-12 h-12 rounded-2xl bg-[#141414] border border-[#262626] flex items-center justify-center text-[#71717A]">
+                        <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.175V3.375c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75" />
+                        </svg>
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-bold text-white font-sans">
+                          {isEn ? "No Orders Received Yet" : "Belum Ada Pesanan Masuk"}
+                        </h3>
+                        <p className="text-xs font-mono text-[#8E8E93] mt-1">
+                          {isEn
+                            ? "Customer purchases for your store will automatically appear here for fulfillment."
+                            : "Transaksi pembelian dari pelanggan untuk toko Anda akan otomatis muncul di sini untuk Anda proses dan kirimkan."}
+                        </p>
+                      </div>
+                    </div>
                   </td>
                 </tr>
               )}

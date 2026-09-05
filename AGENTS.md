@@ -6,3 +6,4 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 # Custom Project Rules
 - **No Walkthrough Artifacts**: Setiap selesai mengerjakan task atau penambahan fitur baru, JANGAN membuat atau memberikan file `walkthrough.md`.
+- **Swiss Editorial Design System**: Selalu ikuti panduan di `DESIGN_SYSTEM.md`. Prioritaskan whitespace lapang, tipografi murni, layout asimetris, dan larangan keras simbol klise (jangan pakai `//`, `[]`, atau `•`, jangan buat kartu 3-box gradasi neon AI-slop).

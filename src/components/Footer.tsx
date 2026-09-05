@@ -55,7 +55,7 @@ export default function Footer() {
 
   return (
     <footer className="w-full bg-[#0e0e0e] text-[#FAF9F6] border-t border-[#1c1c1c] pt-12 md:pt-20 pb-8 md:pb-12 overflow-hidden selection:bg-[#D4FF00] selection:text-[#0e0e0e] relative z-10">
-      <div className="max-w-[1600px] mx-auto px-6 lg:px-12">
+      <div className="max-w-[1500px] mx-auto px-6 sm:px-10 lg:px-16">
         
         {/* TOP 4 COLUMNS WITH GIGA-STYLE ANGLED CHAMFER BORDERS */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-12 pb-12 md:pb-24 border-b border-[#1c1c1c]">

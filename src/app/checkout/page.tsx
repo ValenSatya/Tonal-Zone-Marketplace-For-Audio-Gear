@@ -15,6 +15,7 @@ import { useCart } from "@/context/CartContext";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
 import CustomSelect from "@/components/ui/custom-select";
+import { triggerAppNotification } from "@/context/NotificationContext";
 
 // Smart address data for dropdowns
 const ADDRESS_DATA: Record<string, Record<string, string[]>> = {
@@ -242,6 +243,19 @@ export default function CheckoutPage() {
         console.warn("[Checkout] Non-JSON response received:", text.slice(0, 100));
       }
       const finalOrderId = (data.success && data.orderId) ? data.orderId : `TZ-${Date.now().toString().slice(-4)}`;
+
+      // Dispatch Real Order Notification
+      triggerAppNotification({
+        type: "order",
+        title: "Pesanan Berhasil Dibuat",
+        message: `Pesanan #${finalOrderId} berhasil dibuat dan menunggu pengiriman oleh ${checkoutItems[0]?.storeName || "Toko Penjual"}.`,
+        actionLink: "/orders",
+        meta: {
+          orderId: finalOrderId,
+          productName: checkoutItems[0]?.productName,
+          storeName: checkoutItems[0]?.storeName,
+        },
+      });
 
       // DIRECT MIDTRANS POPUP LAUNCH (Standard Seamless E-Commerce UX)
       if (typeof window !== "undefined" && window.snap && data.snapToken) {

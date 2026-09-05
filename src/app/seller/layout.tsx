@@ -25,12 +25,12 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
     storeAvatar?: string;
     brandName?: string;
   }>({
-    storeName: "AudioZone Official",
+    storeName: "Toko Saya (Tonal Zone)",
     ownerName: "Alexander Rivera",
     email: "seller@tonalzone.id",
     status: "APPROVED",
     storeAvatar: "",
-    brandName: "TANGZU Audio",
+    brandName: "Official Store",
   });
 
   const loadUserData = () => {
@@ -59,12 +59,12 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
         }
 
         setSellerData({
-          storeName: u.storeName || (u.name ? `${u.name}'s Store` : "AudioZone Official"),
+          storeName: u.storeName || (u.name ? `Toko ${u.name}` : "Toko Saya"),
           ownerName: u.name || "Alexander Rivera",
           email: u.email || "seller@tonalzone.id",
           status: u.sellerStatus || (u.isSeller ? "APPROVED" : "APPROVED"),
           storeAvatar: u.storeAvatar || "",
-          brandName: u.brandName || "TANGZU Audio",
+          brandName: u.brandName || u.storeName || "Official Brand",
         });
       } catch (e) {}
     }
@@ -151,10 +151,10 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
     ...(sellerMode === "OFFICIAL_BRAND"
       ? [
           {
-            group: isEn ? "Official Brand Flagship" : "Fitur Brand Resmi (TANGZU)",
+            group: isEn ? "Brand Official Features" : "Fitur Khusus Brand Resmi",
             items: [
               {
-                label: isEn ? "Brand Profile & Tuning Story" : "Profil & Filosofi Brand",
+                label: isEn ? "Brand Profile" : "Profil & Cerita Brand",
                 path: "/seller/brand/profile",
                 icon: (
                   <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24">
@@ -163,7 +163,7 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
                 ),
               },
               {
-                label: isEn ? "Master Target FR Curves" : "Master FR Curve Vault",
+                label: isEn ? "Acoustic Tuning Graph" : "Grafik Karakter Suara IEM",
                 path: "/seller/brand/curves",
                 icon: (
                   <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24">
@@ -172,7 +172,7 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
                 ),
               },
               {
-                label: isEn ? "Pre-Order & Group-Buys" : "Kampanye Pre-Order",
+                label: isEn ? "Pre-Order Program" : "Program Pre-Order",
                 path: "/seller/brand/campaigns",
                 icon: (
                   <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24">
@@ -182,7 +182,7 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
                 ),
               },
               {
-                label: isEn ? "Authorized Resellers" : "Direktori Reseller Resmi",
+                label: isEn ? "Distributor List" : "Daftar Toko & Distributor",
                 path: "/seller/brand/resellers",
                 icon: (
                   <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24">
@@ -195,10 +195,10 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
         ]
       : []),
     {
-      group: isEn ? "Store Management" : "Manajemen Toko",
+      group: isEn ? "Main Menu" : "Menu Utama Toko",
       items: [
         {
-          label: isEn ? "Overview & Telemetry" : "Ringkasan Toko",
+          label: isEn ? "Dashboard" : "Ringkasan Toko",
           path: "/seller",
           icon: (
             <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24">
@@ -210,7 +210,7 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
           ),
         },
         {
-          label: isEn ? "Orders & Waybills" : "Pesanan & Resi",
+          label: isEn ? "Orders & Shipping" : "Pesanan & Kirim Paket",
           path: "/seller/orders",
           icon: (
             <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24">
@@ -221,10 +221,10 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
       ],
     },
     {
-      group: isEn ? "Inventory & Products" : "Inventaris & Produk",
+      group: isEn ? "Products" : "Produk & Stok",
       items: [
         {
-          label: isEn ? "All Products & Stock" : "Katalog Semua Produk",
+          label: isEn ? "My Products" : "Daftar Produk Saya",
           path: "/seller/products",
           icon: (
             <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24">
@@ -233,7 +233,7 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
           ),
         },
         {
-          label: isEn ? "Add Product" : "Tambah Produk",
+          label: isEn ? "Add New Product" : "Tambah Produk Baru",
           path: "/seller/products/new",
           icon: (
             <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24">
@@ -245,10 +245,10 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
       ],
     },
     {
-      group: isEn ? "Finance & Settings" : "Keuangan & Toko",
+      group: isEn ? "Finance & Settings" : "Keuangan & Akun",
       items: [
         {
-          label: isEn ? "Wallet & Payouts" : "Dompet & Saldo Toko",
+          label: isEn ? "Earnings & Withdraw" : "Saldo & Tarik Dana",
           path: "/seller/payouts",
           icon: (
             <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24">
@@ -341,23 +341,23 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
               {sellerData.storeAvatar ? (
                 <img src={sellerData.storeAvatar} alt="Avatar" className="w-full h-full object-cover" />
               ) : (
-                sellerMode === "OFFICIAL_BRAND" ? "TZ" : sellerData.storeName.slice(0, 2).toUpperCase()
+                sellerData.storeName.slice(0, 2).toUpperCase()
               )}
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1.5">
                 <p className="text-xs font-sans font-bold text-white truncate">
-                  {sellerMode === "OFFICIAL_BRAND" ? "TANGZU Audio Official" : sellerData.storeName}
+                  {sellerData.storeName}
                 </p>
                 <span
                   className={`w-1.5 h-1.5 rounded-full shrink-0 ${
                     sellerMode === "OFFICIAL_BRAND" ? "bg-white" : "bg-emerald-400"
                   }`}
-                  title={sellerMode === "OFFICIAL_BRAND" ? "Verified Flagship Brand" : "Verified Retail Merchant"}
+                  title={sellerMode === "OFFICIAL_BRAND" ? "Official Brand" : "Verified Merchant"}
                 />
               </div>
               <p className="text-[10px] font-mono text-[#888] truncate">
-                {sellerMode === "OFFICIAL_BRAND" ? "brand@tangzu.audio" : sellerData.email}
+                {sellerData.email}
               </p>
             </div>
           </Link>
@@ -396,7 +396,7 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
 
           {/* Right Header Controls: Mode Switcher, Currency Toggle, Language Switcher, Notifications, Public Store Link */}
           <div className="flex items-center gap-2 sm:gap-2.5">
-            {/* Account Mode Switcher (Merchant ⇄ Official Brand TANGZU) */}
+            {/* Account Mode Switcher (Merchant ⇄ Official Brand) */}
             <div className="relative">
               <button
                 type="button"
@@ -405,7 +405,7 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
               >
                 <span className={`w-1.5 h-1.5 rounded-full ${sellerMode === "OFFICIAL_BRAND" ? "bg-white" : "bg-emerald-400"}`} />
                 <span className="hidden sm:inline">
-                  {sellerMode === "OFFICIAL_BRAND" ? "Brand: TANGZU" : "Retail: AudioZone"}
+                  {sellerMode === "OFFICIAL_BRAND" ? "Mode: Brand Resmi" : "Mode: Toko Retail"}
                 </span>
                 <span className="sm:hidden">
                   {sellerMode === "OFFICIAL_BRAND" ? "Brand" : "Retail"}
@@ -424,7 +424,7 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
                     className="absolute right-0 mt-1.5 w-60 bg-[#121212] border border-[#2E2E2E] rounded-xl shadow-2xl p-1.5 z-50 font-sans text-xs space-y-1"
                   >
                     <div className="px-2.5 py-1.5 text-[10px] font-mono uppercase text-[#71717A] border-b border-[#222]">
-                      {isEn ? "Select Seller Mode" : "Pilih Mode Akun"}
+                      {isEn ? "Select Store Type" : "Pilih Tipe Toko"}
                     </div>
                     <button
                       type="button"
@@ -434,8 +434,8 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
                       }`}
                     >
                       <div>
-                        <p className="text-xs font-medium text-white">Merchant Retail Store</p>
-                        <p className="text-[10px] font-mono text-[#71717A]">AudioZone Retail Hub</p>
+                        <p className="text-xs font-medium text-white">Toko Penjual / Retail</p>
+                        <p className="text-[10px] font-mono text-[#71717A]">Penjualan umum & inventaris</p>
                       </div>
                       {sellerMode === "RETAIL_MERCHANT" && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />}
                     </button>
@@ -447,8 +447,8 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
                       }`}
                     >
                       <div>
-                        <p className="text-xs font-medium text-white">Official Brand Flagship</p>
-                        <p className="text-[10px] font-mono text-[#71717A]">TANGZU Audio Official</p>
+                        <p className="text-xs font-medium text-white">Brand Resmi / Pabrikan</p>
+                        <p className="text-[10px] font-mono text-[#71717A]">Kurva tuning & rilis pre-order</p>
                       </div>
                       {sellerMode === "OFFICIAL_BRAND" && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
                     </button>
@@ -613,15 +613,15 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
                     {sellerData.storeAvatar ? (
                       <img src={sellerData.storeAvatar} alt="Avatar" className="w-full h-full object-cover" />
                     ) : (
-                      sellerMode === "OFFICIAL_BRAND" ? "TZ" : sellerData.storeName.slice(0, 2).toUpperCase()
+                      sellerData.storeName.slice(0, 2).toUpperCase()
                     )}
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-xs font-bold text-white truncate">
-                      {sellerMode === "OFFICIAL_BRAND" ? "TANGZU Audio Official" : sellerData.storeName}
+                      {sellerData.storeName}
                     </p>
                     <p className="text-[10px] font-mono text-[#888] truncate">
-                      {sellerMode === "OFFICIAL_BRAND" ? "brand@tangzu.audio" : sellerData.email}
+                      {sellerData.email}
                     </p>
                   </div>
                 </Link>

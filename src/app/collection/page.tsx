@@ -205,8 +205,12 @@ export default function CollectionPage() {
     return products
       .filter((item) => {
         // Category
-        if (activeCategory !== "ALL PRODUCTS" && item.category !== activeCategory) {
-          return false;
+        if (activeCategory !== "ALL PRODUCTS") {
+          if (activeCategory === "TWS" && !item.category?.toUpperCase().includes("TWS") && !item.category?.toUpperCase().includes("WIRELESS")) {
+            return false;
+          } else if (activeCategory !== "TWS" && item.category !== activeCategory) {
+            return false;
+          }
         }
         // Price
         if (item.price > priceRange) return false;

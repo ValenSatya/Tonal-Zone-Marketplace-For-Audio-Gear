@@ -9,6 +9,7 @@ import Footer from "@/components/Footer";
 import { useLanguage } from "@/context/LanguageContext";
 import { useLocation } from "@/context/LocationContext";
 import { MapPin, Truck, MessageSquare, FileText, ChevronRight, CheckCircle2 } from "lucide-react";
+import { triggerAppNotification } from "@/context/NotificationContext";
 
 interface OrderTimelineStep {
   title: string;
@@ -190,6 +191,13 @@ export default function OrdersPage() {
       try { data = JSON.parse(text); } catch {}
       if (data.success) {
         triggerNotification("Pesanan selesai! Terima kasih telah berbelanja.");
+        triggerAppNotification({
+          type: "order",
+          title: "Pesanan Selesai",
+          message: `Pesanan #${orderId} telah Anda konfirmasi diterima. Dana escrow telah diteruskan ke toko penjual.`,
+          actionLink: "/orders",
+          meta: { orderId },
+        });
         fetchOrders();
       }
     } catch (err) {
@@ -221,6 +229,12 @@ export default function OrdersPage() {
     setReviewingOrder(null);
     setActiveTab("reviews");
     triggerNotification("Ulasan Anda berhasil dikirim!");
+    triggerAppNotification({
+      type: "system",
+      title: "Ulasan Produk Terkirim",
+      message: `Terima kasih! Ulasan ${ratingInput} bintang Anda untuk ${reviewingOrder.productName} telah berhasil dipublikasikan.`,
+      actionLink: "/orders",
+    });
   };
 
   const handleSubmitDispute = async (e: React.FormEvent) => {
@@ -238,6 +252,13 @@ export default function OrdersPage() {
       try { data = JSON.parse(text); } catch {}
       if (data.success) {
         triggerNotification("Komplain berhasil diajukan. Tim TonalZone Escrow akan menahan dana penjual untuk mediasi.");
+        triggerAppNotification({
+          type: "system",
+          title: "Komplain Pesanan Diajukan",
+          message: `Komplain untuk pesanan #${disputeOrder.id} telah diterima. Dana penjual ditahan sementara untuk proses mediasi.`,
+          actionLink: "/orders",
+          meta: { orderId: disputeOrder.id },
+        });
         setDisputeOrder(null);
         setDisputeReason("");
         fetchOrders();
@@ -520,7 +541,7 @@ export default function OrdersPage() {
                       {/* Single Prominent Action Button: Chat Penjual */}
                       <div className="flex items-center justify-end pt-2">
                         <Link
-                          href={`/messages?store=${encodeURIComponent(order.storeName)}`}
+                          href={`/messages?seller=${encodeURIComponent(order.storeName)}&orderId=${encodeURIComponent(order.orderNumber)}`}
                           className="px-5 py-2.5 bg-[#FAF9F6] hover:bg-white text-[#0e0e0e] font-mono text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer flex items-center gap-2"
                         >
                           <MessageSquare className="w-4 h-4" />
@@ -629,6 +650,14 @@ export default function OrdersPage() {
                           </button>
                         )}
 
+                        <Link
+                          href={`/messages?seller=${encodeURIComponent(order.storeName)}&orderId=${encodeURIComponent(order.orderNumber)}`}
+                          className="px-3.5 py-2 bg-[#141414] hover:bg-[#1c1c1c] text-[#CCCCCC] hover:text-white border border-[#222222] font-mono text-xs uppercase tracking-wider transition-colors cursor-pointer flex items-center gap-1.5"
+                        >
+                          <MessageSquare className="w-3.5 h-3.5" />
+                          <span>Chat</span>
+                        </Link>
+
                         <button
                           type="button"
                           onClick={() => setSelectedOrderDetails(order)}
@@ -674,58 +703,104 @@ export default function OrdersPage() {
         )}
       </main>
 
-      {/* Order Detail Modal */}
+      {/* Swiss Minimalist Official Audio Invoice Modal */}
       <AnimatePresence>
         {selectedOrderDetails && (
-          <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-[#111111] border border-[#2a2a2a] p-6 sm:p-8 max-w-lg w-full space-y-6 shadow-2xl relative"
+              className="bg-[#0e0e0e] border border-[#262626] p-8 sm:p-10 max-w-2xl w-full text-left space-y-6 shadow-2xl relative my-8 print:border-none print:p-0 print:bg-white print:text-black"
             >
-              <div className="flex justify-between items-start border-b border-[#222222] pb-4">
+              <div className="flex justify-between items-start border-b border-[#222] pb-6">
                 <div>
-                  <span className="text-[10px] font-mono text-[#888888] uppercase tracking-widest block">
-                    Rincian Pesanan #{selectedOrderDetails.orderNumber}
+                  <span className="text-xs font-mono text-[#D4FF00] font-bold tracking-[0.25em] uppercase block mb-1">
+                    TONAL ZONE LABS
                   </span>
-                  <h3 className="font-heading text-xl font-bold uppercase text-white mt-1">
-                    {selectedOrderDetails.productName}
-                  </h3>
+                  <h2 className="font-heading text-2xl font-bold uppercase tracking-tight text-white print:text-black">
+                    OFFICIAL ESCROW INVOICE
+                  </h2>
+                  <p className="text-[11px] font-mono text-[#71717A] mt-1">
+                    No. Ref: {selectedOrderDetails.orderNumber} | Tanggal: {selectedOrderDetails.date}
+                  </p>
                 </div>
                 <button
                   type="button"
                   onClick={() => setSelectedOrderDetails(null)}
-                  className="text-[#888888] hover:text-white font-mono text-sm cursor-pointer"
+                  className="text-xs font-mono text-[#8E8E93] hover:text-white px-3 py-1 border border-[#222] print:hidden cursor-pointer uppercase"
                 >
-                  ✕
+                  Tutup [ESC]
                 </button>
               </div>
 
-              <div className="space-y-3 text-xs font-mono text-[#888888]">
-                <div className="flex justify-between py-1 border-b border-[#1c1c1c]">
-                  <span>Penjual:</span>
-                  <span className="text-white font-bold">{selectedOrderDetails.storeName}</span>
+              {/* Invoice Meta Grid */}
+              <div className="grid grid-cols-2 gap-6 text-xs font-mono text-[#8E8E93] py-2">
+                <div>
+                  <span className="text-[10px] text-[#555] uppercase block mb-1">PENJUAL RESMI</span>
+                  <span className="text-white font-bold block">{selectedOrderDetails.storeName}</span>
+                  <span className="text-[11px] text-[#71717A]">Verifikasi Mitra Toko TonalZone</span>
                 </div>
-                <div className="flex justify-between py-1 border-b border-[#1c1c1c]">
-                  <span>Status Transaksi:</span>
-                  <span className="text-[#D4FF00] font-bold">{selectedOrderDetails.status}</span>
-                </div>
-                <div className="flex justify-between py-1 border-b border-[#1c1c1c]">
-                  <span>Nomor Resi Pengiriman:</span>
-                  <span className="text-white font-bold">{selectedOrderDetails.waybillNumber || "Belum diterbitkan"}</span>
-                </div>
-                <div className="flex justify-between py-1 border-b border-[#1c1c1c]">
-                  <span>Total Tagihan:</span>
-                  <span className="text-white font-bold text-sm">{formatPrice(selectedOrderDetails.price)}</span>
+                <div>
+                  <span className="text-[10px] text-[#555] uppercase block mb-1">STATUS EKSPEDISI</span>
+                  <span className="text-white font-bold block">{selectedOrderDetails.courierCode || "JNE Express"}</span>
+                  <span className="text-[11px] text-[#D4FF00] font-bold">Resi: {selectedOrderDetails.waybillNumber || "Menunggu Pickup"}</span>
                 </div>
               </div>
 
-              <div className="flex justify-end gap-3 pt-2">
+              {/* Items Table */}
+              <div className="border border-[#1f1f1f] overflow-hidden">
+                <div className="grid grid-cols-12 bg-[#141414] p-3 text-[10px] font-mono uppercase tracking-wider text-[#71717A] font-bold border-b border-[#1f1f1f]">
+                  <div className="col-span-7">Deskripsi Perangkat</div>
+                  <div className="col-span-2 text-center">Qty</div>
+                  <div className="col-span-3 text-right">Total</div>
+                </div>
+                <div className="p-3.5 space-y-2 text-xs font-mono">
+                  <div className="grid grid-cols-12 items-center text-white">
+                    <div className="col-span-7">
+                      <span className="font-semibold block">{selectedOrderDetails.productName}</span>
+                      <span className="text-[10px] text-[#71717A]">{selectedOrderDetails.brand} Audiophile Unit</span>
+                    </div>
+                    <div className="col-span-2 text-center text-[#71717A]">
+                      {selectedOrderDetails.quantity || 1}x
+                    </div>
+                    <div className="col-span-3 text-right font-bold text-[#D4FF00]">
+                      {formatPrice(selectedOrderDetails.price)}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Total & Proteksi Escrow */}
+              <div className="p-4 bg-[#141414] border border-[#1f1f1f] flex justify-between items-center text-xs font-mono">
+                <div>
+                  <span className="text-[10px] text-[#71717A] uppercase block">PROTEKSI ESCROW</span>
+                  <span className="text-emerald-400 font-bold">
+                    {selectedOrderDetails.status === "FUNDS_RELEASED_TO_SELLER" ? "TRANSAKSI SELESAI" : "DANA DILINDUNGI TONALZONE"}
+                  </span>
+                </div>
+                <div className="text-right">
+                  <span className="text-[10px] text-[#71717A] uppercase block">TOTAL TAGIHAN</span>
+                  <span className="text-xl font-mono font-bold text-white">
+                    {formatPrice(selectedOrderDetails.price)}
+                  </span>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex justify-end gap-3 pt-4 border-t border-[#222] print:hidden">
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  className="px-6 py-2.5 bg-[#FAF9F6] hover:bg-white text-black font-mono text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer flex items-center gap-2"
+                >
+                  <FileText className="w-4 h-4" />
+                  <span>Cetak Faktur PDF</span>
+                </button>
                 <button
                   type="button"
                   onClick={() => setSelectedOrderDetails(null)}
-                  className="px-6 py-2.5 bg-white text-black font-mono text-xs font-bold uppercase tracking-wider cursor-pointer"
+                  className="px-5 py-2.5 bg-[#141414] hover:bg-[#1c1c1c] text-[#8E8E93] hover:text-white border border-[#222] font-mono text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
                 >
                   Tutup
                 </button>
