@@ -64,7 +64,7 @@ export default function AdminReportsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#222] pb-5">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-[10px] font-mono font-medium bg-[#141414] text-[#A1A1AA] border border-[#27272A] px-2 py-0.5 rounded uppercase tracking-wider">
+            <span className="text-[10px] font-mono font-medium bg-[#050505] text-[#A1A1AA] border border-[#27272A] px-2 py-0.5 rounded uppercase tracking-wider">
               {isEn ? "Audit & Compliance" : "Audit & Kepatuhan"}
             </span>
           </div>
@@ -91,19 +91,19 @@ export default function AdminReportsPage() {
 
       {/* 3 Telemetry Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 font-mono">
-        <div className="bg-[#111111] border border-[#222222] p-4 rounded-xl space-y-1">
+        <div className="bg-[#050505] border border-[#222222] p-4 rounded-xl space-y-1">
           <span className="text-[10px] text-[#71717A] uppercase">Total GMV Volume</span>
           <p className="text-xl font-bold text-white">{formatPrice(totalRevenue)}</p>
           <p className="text-[10px] text-[#52525B]">{orders.length} transactions audited</p>
         </div>
 
-        <div className="bg-[#111111] border border-[#222222] p-4 rounded-xl space-y-1">
+        <div className="bg-[#050505] border border-[#222222] p-4 rounded-xl space-y-1">
           <span className="text-[10px] text-[#71717A] uppercase">Active Merchants</span>
           <p className="text-xl font-bold text-white">{stores.filter((s) => s.status === "APPROVED").length} Verified</p>
           <p className="text-[10px] text-[#52525B]">{stores.length} total applications</p>
         </div>
 
-        <div className="bg-[#111111] border border-[#222222] p-4 rounded-xl space-y-1">
+        <div className="bg-[#050505] border border-[#222222] p-4 rounded-xl space-y-1">
           <span className="text-[10px] text-[#71717A] uppercase">Catalog Inventory</span>
           <p className="text-xl font-bold text-white">{products.length} Active SKUs</p>
           <p className="text-[10px] text-[#52525B]">QC moderation verified</p>
@@ -111,7 +111,7 @@ export default function AdminReportsPage() {
       </div>
 
       {/* Export Configuration Card */}
-      <div className="bg-[#111111] border border-[#222222] rounded-xl p-5 space-y-4 font-sans text-xs">
+      <div className="bg-[#050505] border border-[#222222] rounded-xl p-5 space-y-4 font-sans text-xs">
         <h3 className="text-xs font-bold font-sans text-white uppercase tracking-wider">
           {isEn ? "Configure Export Parameters" : "Parameter Pembuatan Laporan"}
         </h3>

@@ -197,7 +197,7 @@ export default function AddNewProductPage() {
             <h1 className="text-xl font-bold font-sans tracking-tight text-white">
               {isEn ? "Add New Audio Product" : "Tambah Produk Audio Baru"}
             </h1>
-            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-medium uppercase tracking-wider bg-[#161616] text-[#D4D4D8] border border-[#27272A]">
+            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-medium uppercase tracking-wider bg-[#050505] text-[#D4D4D8] border border-[#27272A]">
               {isEn ? "Requires Admin QC" : "Wajib QC Admin"}
             </span>
           </div>
@@ -211,7 +211,7 @@ export default function AddNewProductPage() {
         <div className="flex items-center gap-2.5">
           <Link
             href="/seller/products"
-            className="px-4 py-2 bg-[#141414] hover:bg-[#1C1C1C] border border-[#262626] hover:border-[#3E3E3E] text-white text-xs font-mono rounded-lg transition-colors cursor-pointer"
+            className="px-4 py-2 bg-[#050505] hover:bg-[#050505] border border-[#1c1c1c] hover:border-[#3E3E3E] text-white text-xs font-mono rounded-lg transition-colors cursor-pointer"
           >
             {isEn ? "Cancel" : "Batal"}
           </Link>
@@ -241,9 +241,9 @@ export default function AddNewProductPage() {
       </div>
 
       {/* Master Catalog Shortcut Recommendation */}
-      <div className="p-4 rounded-xl bg-[#141414] border border-[#2A2A2A] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="p-4 rounded-xl bg-[#050505] border border-[#2A2A2A] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-[#1F1F1F] border border-[#333] flex items-center justify-center text-white shrink-0">
+          <div className="w-8 h-8 rounded-lg bg-[#050505] border border-[#333] flex items-center justify-center text-white shrink-0">
             <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 16.875h3.375m0 0h3.375m-3.375 0V13.5m0 3.375v3.375M6 5.625a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.875 0a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm12 0a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0z" />
             </svg>
@@ -269,7 +269,7 @@ export default function AddNewProductPage() {
       </div>
 
       {successBanner && (
-        <div className="p-4 rounded-xl bg-[#141414] border border-[#2A2A2A] text-white text-xs font-mono flex items-center gap-2">
+        <div className="p-4 rounded-xl bg-[#050505] border border-[#2A2A2A] text-white text-xs font-mono flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
           {isEn
             ? "Product listing submitted successfully! Transferred to Admin QC Queue."
@@ -282,7 +282,7 @@ export default function AddNewProductPage() {
         {/* Left 2 Cols: General Info & Dynamic Category Specs */}
         <div className="lg:col-span-2 space-y-6">
           {/* Section 1: General Product Information & Category Picker */}
-          <div className="bg-[#111111] border border-[#222222] rounded-xl p-5 space-y-4">
+          <div className="bg-[#050505] border border-[#222222] rounded-xl p-5 space-y-4">
             <div className="flex items-center gap-2 pb-2 border-b border-[#1E1E1E]">
               <span className="w-2 h-2 rounded-full bg-indigo-400" />
               <h3 className="text-xs font-bold font-sans text-white uppercase tracking-wider">
@@ -311,7 +311,7 @@ export default function AddNewProductPage() {
                   }
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full bg-[#161616] border border-[#2A2A2A] rounded-lg px-3.5 py-2 text-xs font-sans text-white placeholder:text-[#555] outline-none focus:border-white"
+                  className="w-full bg-[#050505] border border-[#2A2A2A] rounded-lg px-3.5 py-2 text-xs font-sans text-white placeholder:text-[#555] outline-none focus:border-white"
                 />
               </div>
 
@@ -391,7 +391,7 @@ export default function AddNewProductPage() {
                     min={0}
                     value={formData.warrantyMonths}
                     onChange={(e) => setFormData({ ...formData, warrantyMonths: parseInt(e.target.value, 10) || 0 })}
-                    className="w-full bg-[#161616] border border-[#2A2A2A] rounded-lg px-3.5 py-2 text-xs font-mono text-white outline-none focus:border-white"
+                    className="w-full bg-[#050505] border border-[#2A2A2A] rounded-lg px-3.5 py-2 text-xs font-mono text-white outline-none focus:border-white"
                   />
                 </div>
               </div>
@@ -409,14 +409,14 @@ export default function AddNewProductPage() {
                   }
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full bg-[#161616] border border-[#2A2A2A] rounded-lg p-3 text-xs font-sans text-white placeholder:text-[#555] outline-none focus:border-white resize-none"
+                  className="w-full bg-[#050505] border border-[#2A2A2A] rounded-lg p-3 text-xs font-sans text-white placeholder:text-[#555] outline-none focus:border-white resize-none"
                 />
               </div>
             </div>
           </div>
 
           {/* Section 2: Dynamic Category-Specific Technical Specs */}
-          <div className="bg-[#111111] border border-[#222222] rounded-xl p-5 space-y-4">
+          <div className="bg-[#050505] border border-[#222222] rounded-xl p-5 space-y-4">
             <div className="flex items-center gap-2 pb-2 border-b border-[#1E1E1E]">
               <span className="w-2 h-2 rounded-full bg-emerald-400" />
               <h3 className="text-xs font-bold font-sans text-white uppercase tracking-wider">
@@ -439,7 +439,7 @@ export default function AddNewProductPage() {
                     placeholder="e.g. 1DD (10mm Carbon) + 4BA (Knowles)"
                     value={formData.driverType}
                     onChange={(e) => setFormData({ ...formData, driverType: e.target.value })}
-                    className="w-full bg-[#161616] border border-[#2A2A2A] rounded-lg px-3.5 py-2 text-xs font-mono text-white outline-none focus:border-white"
+                    className="w-full bg-[#050505] border border-[#2A2A2A] rounded-lg px-3.5 py-2 text-xs font-mono text-white outline-none focus:border-white"
                   />
                 </div>
 
@@ -469,7 +469,7 @@ export default function AddNewProductPage() {
                     placeholder="e.g. 14.8 Ω @ 1kHz"
                     value={formData.impedance}
                     onChange={(e) => setFormData({ ...formData, impedance: e.target.value })}
-                    className="w-full bg-[#161616] border border-[#2A2A2A] rounded-lg px-3.5 py-2 text-xs font-mono text-white outline-none focus:border-white"
+                    className="w-full bg-[#050505] border border-[#2A2A2A] rounded-lg px-3.5 py-2 text-xs font-mono text-white outline-none focus:border-white"
                   />
                 </div>
 
@@ -482,7 +482,7 @@ export default function AddNewProductPage() {
                     placeholder="e.g. 120 dB/Vrms"
                     value={formData.sensitivity}
                     onChange={(e) => setFormData({ ...formData, sensitivity: e.target.value })}
-                    className="w-full bg-[#161616] border border-[#2A2A2A] rounded-lg px-3.5 py-2 text-xs font-mono text-white outline-none focus:border-white"
+                    className="w-full bg-[#050505] border border-[#2A2A2A] rounded-lg px-3.5 py-2 text-xs font-mono text-white outline-none focus:border-white"
                   />
                 </div>
 
@@ -511,7 +511,7 @@ export default function AddNewProductPage() {
                     placeholder="e.g. 10Hz - 40,000Hz"
                     value={formData.frequencyRange}
                     onChange={(e) => setFormData({ ...formData, frequencyRange: e.target.value })}
-                    className="w-full bg-[#161616] border border-[#2A2A2A] rounded-lg px-3.5 py-2 text-xs font-mono text-white outline-none focus:border-white"
+                    className="w-full bg-[#050505] border border-[#2A2A2A] rounded-lg px-3.5 py-2 text-xs font-mono text-white outline-none focus:border-white"
                   />
                 </div>
               </div>
@@ -544,7 +544,7 @@ export default function AddNewProductPage() {
                     placeholder="e.g. 50mm Beryllium Dynamic or Planar Magnetic"
                     value={formData.headphoneDriverSize}
                     onChange={(e) => setFormData({ ...formData, headphoneDriverSize: e.target.value })}
-                    className="w-full bg-[#161616] border border-[#2A2A2A] rounded-lg px-3.5 py-2 text-xs font-mono text-white outline-none focus:border-white"
+                    className="w-full bg-[#050505] border border-[#2A2A2A] rounded-lg px-3.5 py-2 text-xs font-mono text-white outline-none focus:border-white"
                   />
                 </div>
 
@@ -557,7 +557,7 @@ export default function AddNewProductPage() {
                     placeholder="e.g. 300 Ω / 104 dB"
                     value={formData.impedance}
                     onChange={(e) => setFormData({ ...formData, impedance: e.target.value })}
-                    className="w-full bg-[#161616] border border-[#2A2A2A] rounded-lg px-3.5 py-2 text-xs font-mono text-white outline-none focus:border-white"
+                    className="w-full bg-[#050505] border border-[#2A2A2A] rounded-lg px-3.5 py-2 text-xs font-mono text-white outline-none focus:border-white"
                   />
                 </div>
 
@@ -570,7 +570,7 @@ export default function AddNewProductPage() {
                     placeholder="e.g. 380g (Without Cable)"
                     value={formData.weightGrams}
                     onChange={(e) => setFormData({ ...formData, weightGrams: e.target.value })}
-                    className="w-full bg-[#161616] border border-[#2A2A2A] rounded-lg px-3.5 py-2 text-xs font-mono text-white outline-none focus:border-white"
+                    className="w-full bg-[#050505] border border-[#2A2A2A] rounded-lg px-3.5 py-2 text-xs font-mono text-white outline-none focus:border-white"
                   />
                 </div>
               </div>
@@ -587,7 +587,7 @@ export default function AddNewProductPage() {
                     placeholder="e.g. Dual ESS ES9038PRO or AK4499EX / R2R Ladder"
                     value={formData.dacChipset}
                     onChange={(e) => setFormData({ ...formData, dacChipset: e.target.value })}
-                    className="w-full bg-[#161616] border border-[#2A2A2A] rounded-lg px-3.5 py-2 text-xs font-mono text-white outline-none focus:border-white"
+                    className="w-full bg-[#050505] border border-[#2A2A2A] rounded-lg px-3.5 py-2 text-xs font-mono text-white outline-none focus:border-white"
                   />
                 </div>
 
@@ -600,7 +600,7 @@ export default function AddNewProductPage() {
                     placeholder="e.g. 2000mW @ 32Ω (4.4mm Balanced)"
                     value={formData.outputPower}
                     onChange={(e) => setFormData({ ...formData, outputPower: e.target.value })}
-                    className="w-full bg-[#161616] border border-[#2A2A2A] rounded-lg px-3.5 py-2 text-xs font-mono text-white outline-none focus:border-white"
+                    className="w-full bg-[#050505] border border-[#2A2A2A] rounded-lg px-3.5 py-2 text-xs font-mono text-white outline-none focus:border-white"
                   />
                 </div>
 
@@ -613,7 +613,7 @@ export default function AddNewProductPage() {
                     placeholder="e.g. USB-C XMOS XU316, Optical, Coaxial, Bluetooth LDAC"
                     value={formData.inputs}
                     onChange={(e) => setFormData({ ...formData, inputs: e.target.value })}
-                    className="w-full bg-[#161616] border border-[#2A2A2A] rounded-lg px-3.5 py-2 text-xs font-mono text-white outline-none focus:border-white"
+                    className="w-full bg-[#050505] border border-[#2A2A2A] rounded-lg px-3.5 py-2 text-xs font-mono text-white outline-none focus:border-white"
                   />
                 </div>
 
@@ -626,7 +626,7 @@ export default function AddNewProductPage() {
                     placeholder="e.g. 3.5mm SE, 4.4mm Bal, 6.35mm, XLR Pre-Out"
                     value={formData.outputs}
                     onChange={(e) => setFormData({ ...formData, outputs: e.target.value })}
-                    className="w-full bg-[#161616] border border-[#2A2A2A] rounded-lg px-3.5 py-2 text-xs font-mono text-white outline-none focus:border-white"
+                    className="w-full bg-[#050505] border border-[#2A2A2A] rounded-lg px-3.5 py-2 text-xs font-mono text-white outline-none focus:border-white"
                   />
                 </div>
               </div>
@@ -637,7 +637,7 @@ export default function AddNewProductPage() {
         {/* Right 1 Col: Pricing, Inventory, Variants & Photos */}
         <div className="space-y-6">
           {/* Section 3: Pricing, Stock & Product Variants */}
-          <div className="bg-[#111111] border border-[#222222] rounded-xl p-5 space-y-4">
+          <div className="bg-[#050505] border border-[#222222] rounded-xl p-5 space-y-4">
             <div className="flex items-center gap-2 pb-2 border-b border-[#1E1E1E]">
               <span className="w-2 h-2 rounded-full bg-amber-400" />
               <h3 className="text-xs font-bold font-sans text-white uppercase tracking-wider">
@@ -658,7 +658,7 @@ export default function AddNewProductPage() {
                     min={1}
                     value={formData.priceUSD}
                     onChange={(e) => setFormData({ ...formData, priceUSD: parseFloat(e.target.value) || 0 })}
-                    className="w-full bg-[#161616] border border-[#2A2A2A] rounded-lg pl-8 pr-3.5 py-2 text-sm font-mono font-bold text-emerald-400 outline-none focus:border-white"
+                    className="w-full bg-[#050505] border border-[#2A2A2A] rounded-lg pl-8 pr-3.5 py-2 text-sm font-mono font-bold text-emerald-400 outline-none focus:border-white"
                   />
                 </div>
                 <p className="text-[10px] font-mono text-[#666] mt-1">
@@ -671,11 +671,11 @@ export default function AddNewProductPage() {
                 <label className="block text-[11px] font-mono text-[#888] uppercase mb-1">
                   {isEn ? "Total Stock *" : "Stok Unit *"}
                 </label>
-                <div className="flex items-center bg-[#161616] border border-[#2A2A2A] rounded-lg overflow-hidden">
+                <div className="flex items-center bg-[#050505] border border-[#2A2A2A] rounded-lg overflow-hidden">
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, stock: Math.max(0, formData.stock - 1) })}
-                    className="px-3 py-2 text-[#888] hover:text-white hover:bg-[#222] transition-colors font-mono"
+                    className="px-3 py-2 text-[#888] hover:text-white hover:bg-[#080808] transition-colors font-mono"
                   >
                     -
                   </button>
@@ -690,7 +690,7 @@ export default function AddNewProductPage() {
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, stock: formData.stock + 1 })}
-                    className="px-3 py-2 text-[#888] hover:text-white hover:bg-[#222] transition-colors font-mono"
+                    className="px-3 py-2 text-[#888] hover:text-white hover:bg-[#080808] transition-colors font-mono"
                   >
                     +
                   </button>
@@ -705,7 +705,7 @@ export default function AddNewProductPage() {
                   type="text"
                   value={formData.sku}
                   onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
-                  className="w-full bg-[#161616] border border-[#2A2A2A] rounded-lg px-3.5 py-2 text-xs font-mono text-white outline-none focus:border-white"
+                  className="w-full bg-[#050505] border border-[#2A2A2A] rounded-lg px-3.5 py-2 text-xs font-mono text-white outline-none focus:border-white"
                 />
               </div>
             </div>
@@ -719,7 +719,7 @@ export default function AddNewProductPage() {
                 <button
                   type="button"
                   onClick={handleAddVariant}
-                  className="px-2.5 py-1 bg-[#1C1C1C] hover:bg-[#282828] text-white border border-[#2E2E2E] hover:border-white text-[10px] font-mono font-bold rounded-lg transition-colors cursor-pointer"
+                  className="px-2.5 py-1 bg-[#050505] hover:bg-[#050505] text-white border border-[#2E2E2E] hover:border-white text-[10px] font-mono font-bold rounded-lg transition-colors cursor-pointer"
                 >
                   + {isEn ? "Add Option" : "Tambah Opsi"}
                 </button>
@@ -728,14 +728,14 @@ export default function AddNewProductPage() {
               {variants.length > 0 ? (
                 <div className="space-y-2">
                   {variants.map((v) => (
-                    <div key={v.id} className="p-2.5 rounded-lg bg-[#161616] border border-[#262626] space-y-2">
+                    <div key={v.id} className="p-2.5 rounded-lg bg-[#050505] border border-[#1c1c1c] space-y-2">
                       <div className="flex items-center justify-between">
                         <input
                           type="text"
                           value={v.name}
                           onChange={(e) => handleUpdateVariant(v.id, "name", e.target.value)}
                           placeholder={isEn ? "e.g. 4.4mm Balanced" : "e.g. Warna Hitam"}
-                          className="bg-[#111] border border-[#333] rounded px-2 py-1 text-xs font-sans text-white outline-none flex-1 mr-2"
+                          className="bg-[#050505] border border-[#333] rounded px-2 py-1 text-xs font-sans text-white outline-none flex-1 mr-2"
                         />
                         <button
                           type="button"
@@ -755,10 +755,10 @@ export default function AddNewProductPage() {
                             value={v.priceUSD}
                             onChange={(e) => handleUpdateVariant(v.id, "priceUSD", parseFloat(e.target.value) || 0)}
                             placeholder="Price"
-                            className="w-full bg-[#111] border border-[#333] rounded pl-5 pr-2 py-1 text-emerald-400 font-bold outline-none text-right"
+                            className="w-full bg-[#050505] border border-[#333] rounded pl-5 pr-2 py-1 text-emerald-400 font-bold outline-none text-right"
                           />
                         </div>
-                        <div className="flex items-center bg-[#111] border border-[#333] rounded overflow-hidden">
+                        <div className="flex items-center bg-[#050505] border border-[#333] rounded overflow-hidden">
                           <button
                             type="button"
                             onClick={() => handleUpdateVariant(v.id, "stock", Math.max(0, (v.stock || 0) - 1))}
@@ -795,7 +795,7 @@ export default function AddNewProductPage() {
           </div>
 
           {/* Section 4: Multi-Image Product Gallery Upload */}
-          <div className="bg-[#111111] border border-[#222222] rounded-xl p-5 space-y-4">
+          <div className="bg-[#050505] border border-[#222222] rounded-xl p-5 space-y-4">
             <div className="flex items-center justify-between pb-2 border-b border-[#1E1E1E]">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-pink-400" />
@@ -824,7 +824,7 @@ export default function AddNewProductPage() {
             {productImages.length > 0 ? (
               <div className="space-y-3">
                 {/* Primary Cover Image Preview */}
-                <div className="relative rounded-xl overflow-hidden border border-[#2E2E2E] h-44 bg-[#141414] group">
+                <div className="relative rounded-xl overflow-hidden border border-[#2E2E2E] h-44 bg-[#050505] group">
                   <img src={productImages[0]} alt="Primary Cover" className="w-full h-full object-cover" />
                   <div className="absolute top-2 left-2 bg-black/90 text-white text-[9px] font-mono font-medium tracking-wider px-2 py-0.5 rounded border border-[#333] flex items-center gap-1.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
@@ -834,14 +834,14 @@ export default function AddNewProductPage() {
                     <button
                       type="button"
                       onClick={() => imageInputRef.current?.click()}
-                      className="px-2.5 py-1.5 bg-[#222] text-white text-[11px] font-mono rounded-lg border border-[#444] hover:bg-[#333]"
+                      className="px-2.5 py-1.5 bg-[#050505] text-white text-[11px] font-mono rounded-lg border border-[#444] hover:bg-[#080808]"
                     >
                       {isEn ? "Add More Photos" : "Tambah Foto Lagi"}
                     </button>
                     <button
                       type="button"
                       onClick={() => handleRemoveImage(0)}
-                      className="px-2.5 py-1.5 bg-[#1C1C1C] hover:bg-[#282828] text-white text-[11px] font-mono rounded-lg border border-[#2E2E2E] hover:border-white"
+                      className="px-2.5 py-1.5 bg-[#050505] hover:bg-[#050505] text-white text-[11px] font-mono rounded-lg border border-[#2E2E2E] hover:border-white"
                     >
                       {isEn ? "Delete" : "Hapus"}
                     </button>
@@ -853,8 +853,8 @@ export default function AddNewProductPage() {
                   {productImages.map((img, idx) => (
                     <div
                       key={idx}
-                      className={`relative rounded-lg overflow-hidden border h-16 bg-[#161616] group ${
-                        idx === 0 ? "border-white/30" : "border-[#262626]"
+                      className={`relative rounded-lg overflow-hidden border h-16 bg-[#050505] group ${
+                        idx === 0 ? "border-white/30" : "border-[#1c1c1c]"
                       }`}
                     >
                       <img src={img} alt={`Thumb ${idx + 1}`} className="w-full h-full object-cover" />
@@ -877,7 +877,7 @@ export default function AddNewProductPage() {
                         <button
                           type="button"
                           onClick={() => handleRemoveImage(idx)}
-                          className="w-full py-0.5 bg-[#1C1C1C] hover:bg-[#282828] text-white text-[8px] font-mono rounded border border-[#2E2E2E]"
+                          className="w-full py-0.5 bg-[#050505] hover:bg-[#050505] text-white text-[8px] font-mono rounded border border-[#2E2E2E]"
                         >
                           {isEn ? "Delete" : "Hapus"}
                         </button>
@@ -890,7 +890,7 @@ export default function AddNewProductPage() {
                     <button
                       type="button"
                       onClick={() => imageInputRef.current?.click()}
-                      className="rounded-lg border border-dashed border-[#444] hover:border-[#666] bg-[#141414] hover:bg-[#1A1A1A] h-16 flex flex-col items-center justify-center text-[#777] hover:text-white transition-colors cursor-pointer"
+                      className="rounded-lg border border-dashed border-[#444] hover:border-[#666] bg-[#050505] hover:bg-[#050505] h-16 flex flex-col items-center justify-center text-[#777] hover:text-white transition-colors cursor-pointer"
                     >
                       <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -903,9 +903,9 @@ export default function AddNewProductPage() {
             ) : (
               <div
                 onClick={() => imageInputRef.current?.click()}
-                className="border border-dashed border-[#333] hover:border-[#555] bg-[#141414] hover:bg-[#181818] rounded-xl p-6 text-center cursor-pointer transition-all"
+                className="border border-dashed border-[#333] hover:border-[#555] bg-[#050505] hover:bg-[#050505] rounded-xl p-6 text-center cursor-pointer transition-all"
               >
-                <div className="w-10 h-10 rounded-full bg-[#1E1E1E] border border-[#333] flex items-center justify-center text-[#888] mx-auto mb-2">
+                <div className="w-10 h-10 rounded-full bg-[#050505] border border-[#333] flex items-center justify-center text-[#888] mx-auto mb-2">
                   <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
                   </svg>

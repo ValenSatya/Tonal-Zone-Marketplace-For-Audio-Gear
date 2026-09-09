@@ -92,11 +92,11 @@ export default function CustomSelect({
         className={
           buttonClassName ||
           (isCompact
-            ? `bg-[#141414] hover:bg-[#1C1C1C] border border-[#2A2A2A] hover:border-[#3E3E3E] text-[#FAF9F6] font-sans text-xs flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg transition-all cursor-pointer select-none shadow-sm ${
-                isOpen ? "bg-[#1C1C1C] border-[#555]" : ""
+            ? `bg-[#050505] hover:bg-[#030303] border border-[#2A2A2A] hover:border-[#3E3E3E] text-[#FAF9F6] font-sans text-xs flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg transition-all cursor-pointer select-none shadow-sm ${
+                isOpen ? "bg-[#050505] border-[#555]" : ""
               }`
-            : `w-full bg-[#111111] border border-[#262626] hover:border-[#3E3E3E] focus:border-[#555] rounded-xl px-3.5 py-2.5 text-xs font-sans text-[#FAF9F6] text-left flex items-center justify-between transition-all cursor-pointer shadow-sm select-none ${
-                isOpen ? "border-[#555] bg-[#161616]" : ""
+            : `w-full bg-[#050505] border border-[#1c1c1c] hover:border-[#3E3E3E] focus:border-[#555] rounded-xl px-3.5 py-2.5 text-xs font-sans text-[#FAF9F6] text-left flex items-center justify-between transition-all cursor-pointer shadow-sm select-none ${
+                isOpen ? "border-[#555] bg-[#050505]" : ""
               }`)
         }
       >
@@ -123,7 +123,7 @@ export default function CustomSelect({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -4, scale: 0.98 }}
             transition={{ duration: 0.15 }}
-            className={`absolute left-0 top-full mt-1.5 bg-[#111111] border border-[#2A2A2A] rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.98)] z-[100] max-h-60 overflow-y-auto p-1.5 space-y-0.5 min-w-[160px] ${
+            className={`absolute left-0 top-full mt-1.5 bg-[#030303] border border-[#1c1c1c] rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.98)] z-[100] max-h-60 overflow-y-auto p-1.5 space-y-0.5 min-w-[160px] ${
               isCompact ? "w-max" : "right-0"
             } ${menuClassName}`}
           >
@@ -139,8 +139,8 @@ export default function CustomSelect({
                   }}
                   className={`w-full text-left px-3 py-2 rounded-lg text-xs font-sans transition-all flex items-center justify-between cursor-pointer select-none border ${
                     isSelected
-                      ? "bg-[#242424] text-[#FAF9F6] font-semibold border-[#383838] shadow-sm"
-                      : "text-[#8E8E93] hover:text-[#FAF9F6] hover:bg-[#1A1A1A] border-transparent"
+                      ? "bg-[#050505] text-[#FAF9F6] font-semibold border-[#383838] shadow-sm"
+                      : "text-[#8E8E93] hover:text-[#FAF9F6] hover:bg-[#080808] border-transparent"
                   }`}
                 >
                   <span className="truncate mr-2">{opt.label}</span>

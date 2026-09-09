@@ -75,11 +75,11 @@ export default function SellPage() {
 
   if (isSuccess) {
     return (
-      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-6 text-white font-sans selection:bg-white selection:text-[#0e0e0e]">
+      <div className="min-h-screen bg-[#030303] flex items-center justify-center p-6 text-white font-sans selection:bg-white selection:text-[#030303]">
         <motion.div 
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="max-w-md w-full bg-[#111] border border-[#222] p-10 rounded-2xl text-center"
+          className="max-w-md w-full bg-[#050505] border border-[#1c1c1c] p-10 rounded-2xl text-center"
         >
           <div className="w-20 h-20 bg-[white]/10 rounded-full flex items-center justify-center mx-auto mb-6">
             <Check className="w-10 h-10 text-[white]" />
@@ -99,7 +99,7 @@ export default function SellPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-[#FAF9F6] font-sans selection:bg-white selection:text-[#0e0e0e] relative flex flex-col items-center py-12 px-4 sm:px-6">
+    <div className="min-h-screen bg-[#030303] text-[#FAF9F6] font-sans selection:bg-white selection:text-[#030303] relative flex flex-col items-center py-12 px-4 sm:px-6">
       
       {/* Header */}
       <div className="max-w-3xl w-full flex items-center justify-between mb-12">
@@ -112,12 +112,12 @@ export default function SellPage() {
       </div>
 
       {/* Main Form Container */}
-      <div className="max-w-3xl w-full bg-[#111] border border-[#222] rounded-3xl overflow-hidden shadow-2xl">
+      <div className="max-w-3xl w-full bg-[#050505] border border-[#1c1c1c] rounded-3xl overflow-hidden shadow-2xl">
         
         {/* Progress Bar */}
         <div className="flex border-b border-[#222]">
           {[1, 2, 3, 4].map((s) => (
-            <div key={s} className="flex-1 relative h-1.5 bg-[#1a1a1a]">
+            <div key={s} className="flex-1 relative h-1.5 bg-[#050505]">
               {step >= s && (
                 <motion.div 
                   layoutId={`progress-${s}`}
@@ -165,7 +165,7 @@ export default function SellPage() {
                       <button
                         type="button"
                         onClick={() => setRegion("LOCAL")}
-                        className={`p-5 rounded-xl border text-left transition-all ${region === "LOCAL" ? "bg-[#222] border-white" : "bg-[#161616] border-[#262626] hover:border-[#444]"}`}
+                        className={`p-5 rounded-xl border text-left transition-all ${region === "LOCAL" ? "bg-[#050505] border-white" : "bg-[#050505] border-[#1c1c1c] hover:border-[#333]"}`}
                       >
                         <div className="font-bold text-white mb-1">Local (Indonesia)</div>
                         <div className="text-xs text-[#FAF9F6]/50">Rupiah payouts, local KYC (KTP/NIB).</div>
@@ -173,7 +173,7 @@ export default function SellPage() {
                       <button
                         type="button"
                         onClick={() => setRegion("INTERNATIONAL")}
-                        className={`p-5 rounded-xl border text-left transition-all ${region === "INTERNATIONAL" ? "bg-[#222] border-white" : "bg-[#161616] border-[#262626] hover:border-[#444]"}`}
+                        className={`p-5 rounded-xl border text-left transition-all ${region === "INTERNATIONAL" ? "bg-[#050505] border-white" : "bg-[#050505] border-[#1c1c1c] hover:border-[#333]"}`}
                       >
                         <div className="font-bold text-white mb-1">International</div>
                         <div className="text-xs text-[#FAF9F6]/50">USD payouts, global KYC (Passport/TIN).</div>
@@ -189,7 +189,7 @@ export default function SellPage() {
                       <button
                         type="button"
                         onClick={() => setTier("BRAND_OWNER")}
-                        className={`p-4 rounded-xl border text-left transition-all flex items-center gap-4 ${tier === "BRAND_OWNER" ? "bg-[#222] border-white" : "bg-[#161616] border-[#262626] hover:border-[#444]"}`}
+                        className={`p-4 rounded-xl border text-left transition-all flex items-center gap-4 ${tier === "BRAND_OWNER" ? "bg-[#050505] border-white" : "bg-[#050505] border-[#1c1c1c] hover:border-[#333]"}`}
                       >
                         <div className="w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0" style={{ borderColor: tier === "BRAND_OWNER" ? "white" : "#444" }}>
                           {tier === "BRAND_OWNER" && <div className="w-2 h-2 bg-white rounded-full" />}
@@ -203,7 +203,7 @@ export default function SellPage() {
                       <button
                         type="button"
                         onClick={() => setTier("AUTHORIZED_DISTRIBUTOR")}
-                        className={`p-4 rounded-xl border text-left transition-all flex items-center gap-4 ${tier === "AUTHORIZED_DISTRIBUTOR" ? "bg-[#222] border-white" : "bg-[#161616] border-[#262626] hover:border-[#444]"}`}
+                        className={`p-4 rounded-xl border text-left transition-all flex items-center gap-4 ${tier === "AUTHORIZED_DISTRIBUTOR" ? "bg-[#050505] border-white" : "bg-[#050505] border-[#1c1c1c] hover:border-[#333]"}`}
                       >
                         <div className="w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0" style={{ borderColor: tier === "AUTHORIZED_DISTRIBUTOR" ? "white" : "#444" }}>
                           {tier === "AUTHORIZED_DISTRIBUTOR" && <div className="w-2 h-2 bg-white rounded-full" />}
@@ -217,7 +217,7 @@ export default function SellPage() {
                       <button
                         type="button"
                         onClick={() => setTier("INDEPENDENT_RETAILER")}
-                        className={`p-4 rounded-xl border text-left transition-all flex items-center gap-4 ${tier === "INDEPENDENT_RETAILER" ? "bg-[#222] border-white" : "bg-[#161616] border-[#262626] hover:border-[#444]"}`}
+                        className={`p-4 rounded-xl border text-left transition-all flex items-center gap-4 ${tier === "INDEPENDENT_RETAILER" ? "bg-[#050505] border-white" : "bg-[#050505] border-[#1c1c1c] hover:border-[#333]"}`}
                       >
                         <div className="w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0" style={{ borderColor: tier === "INDEPENDENT_RETAILER" ? "white" : "#444" }}>
                           {tier === "INDEPENDENT_RETAILER" && <div className="w-2 h-2 bg-white rounded-full" />}
@@ -251,7 +251,7 @@ export default function SellPage() {
                       placeholder="e.g., Intium Audio"
                       value={storeName}
                       onChange={(e) => setStoreName(e.target.value)}
-                      className="w-full bg-[#161616] border border-[#262626] focus:border-white rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-[#FAF9F6]/20 outline-none transition-colors"
+                      className="w-full bg-[#050505] border border-[#1c1c1c] focus:border-white rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-[#FAF9F6]/20 outline-none transition-colors"
                     />
                   </div>
                   <div className="space-y-2">
@@ -263,7 +263,7 @@ export default function SellPage() {
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
                       rows={3}
-                      className="w-full bg-[#161616] border border-[#262626] focus:border-white rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-[#FAF9F6]/20 outline-none transition-colors resize-none"
+                      className="w-full bg-[#050505] border border-[#1c1c1c] focus:border-white rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-[#FAF9F6]/20 outline-none transition-colors resize-none"
                     />
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 relative z-20">
@@ -275,7 +275,7 @@ export default function SellPage() {
                         value={province}
                         onChange={(val) => setProvince(val)}
                         placeholder={`Select ${region === "LOCAL" ? "Province" : "Country"}`}
-                        buttonClassName="w-full bg-[#161616] border border-[#262626] focus:border-white rounded-xl px-4 py-3.5 text-sm text-white flex items-center justify-between transition-colors cursor-pointer"
+                        buttonClassName="w-full bg-[#050505] border border-[#1c1c1c] focus:border-white rounded-xl px-4 py-3.5 text-sm text-white flex items-center justify-between transition-colors cursor-pointer"
                         options={
                           region === "LOCAL"
                             ? ["DKI Jakarta", "Jawa Barat", "Jawa Tengah", "Jawa Timur", "Banten", "Bali"]
@@ -294,7 +294,7 @@ export default function SellPage() {
                           placeholder={region === "LOCAL" ? "e.g., Jakarta Selatan" : "e.g., Shenzhen"}
                           value={city}
                           onChange={(e) => setCity(e.target.value)}
-                          className="w-full bg-[#161616] border border-[#262626] focus:border-white rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-[#FAF9F6]/20 outline-none transition-colors"
+                          className="w-full bg-[#050505] border border-[#1c1c1c] focus:border-white rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-[#FAF9F6]/20 outline-none transition-colors"
                         />
                       </div>
                     </div>
@@ -309,7 +309,7 @@ export default function SellPage() {
                       value={streetAddress}
                       onChange={(e) => setStreetAddress(e.target.value)}
                       rows={2}
-                      className="w-full bg-[#161616] border border-[#262626] focus:border-white rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-[#FAF9F6]/20 outline-none transition-colors resize-none"
+                      className="w-full bg-[#050505] border border-[#1c1c1c] focus:border-white rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-[#FAF9F6]/20 outline-none transition-colors resize-none"
                     />
                   </div>
                 </motion.div>
@@ -342,7 +342,7 @@ export default function SellPage() {
                             placeholder="16-digit NIK"
                             value={nik}
                             onChange={(e) => setNik(e.target.value)}
-                            className="w-full bg-[#161616] border border-[#262626] focus:border-[white] rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-[#FAF9F6]/20 outline-none transition-colors"
+                            className="w-full bg-[#050505] border border-[#1c1c1c] focus:border-[white] rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-[#FAF9F6]/20 outline-none transition-colors"
                           />
                         </div>
                         <div className="space-y-2">
@@ -355,7 +355,7 @@ export default function SellPage() {
                             placeholder="15-digit NPWP"
                             value={taxId}
                             onChange={(e) => setTaxId(e.target.value)}
-                            className="w-full bg-[#161616] border border-[#262626] focus:border-[white] rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-[#FAF9F6]/20 outline-none transition-colors"
+                            className="w-full bg-[#050505] border border-[#1c1c1c] focus:border-[white] rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-[#FAF9F6]/20 outline-none transition-colors"
                           />
                         </div>
                       </div>
@@ -363,7 +363,7 @@ export default function SellPage() {
                         <label className="block text-xs font-mono uppercase tracking-widest text-[#FAF9F6]/50 font-semibold">
                           Upload KTP (PDF/Image)
                         </label>
-                        <div className="border-2 border-dashed border-[#262626] hover:border-[white] transition-colors rounded-xl p-6 flex flex-col items-center justify-center relative bg-[#161616]">
+                        <div className="border-2 border-dashed border-[#1c1c1c] hover:border-[white] transition-colors rounded-xl p-6 flex flex-col items-center justify-center relative bg-[#050505]">
                           <input 
                             type="file" 
                             accept=".pdf,image/*" 
@@ -388,7 +388,7 @@ export default function SellPage() {
                           placeholder="Your country's Tax ID"
                           value={taxId}
                           onChange={(e) => setTaxId(e.target.value)}
-                          className="w-full bg-[#161616] border border-[#262626] focus:border-[white] rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-[#FAF9F6]/20 outline-none transition-colors"
+                          className="w-full bg-[#050505] border border-[#1c1c1c] focus:border-[white] rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-[#FAF9F6]/20 outline-none transition-colors"
                         />
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -396,7 +396,7 @@ export default function SellPage() {
                           <label className="block text-xs font-mono uppercase tracking-widest text-[#FAF9F6]/50 font-semibold">
                             Passport / National ID
                           </label>
-                          <div className="border-2 border-dashed border-[#262626] hover:border-[white] transition-colors rounded-xl p-6 flex flex-col items-center justify-center relative bg-[#161616] h-32">
+                          <div className="border-2 border-dashed border-[#1c1c1c] hover:border-[white] transition-colors rounded-xl p-6 flex flex-col items-center justify-center relative bg-[#050505] h-32">
                             <input 
                               type="file" 
                               accept=".pdf,image/*" 
@@ -420,7 +420,7 @@ export default function SellPage() {
                           <label className="block text-xs font-mono uppercase tracking-widest text-[#FAF9F6]/50 font-semibold">
                             Company Incorporation Cert.
                           </label>
-                          <div className="border-2 border-dashed border-[#262626] hover:border-[white] transition-colors rounded-xl p-6 flex flex-col items-center justify-center relative bg-[#161616] h-32">
+                          <div className="border-2 border-dashed border-[#1c1c1c] hover:border-[white] transition-colors rounded-xl p-6 flex flex-col items-center justify-center relative bg-[#050505] h-32">
                             <input 
                               type="file" 
                               accept=".pdf,image/*" 
@@ -450,7 +450,7 @@ export default function SellPage() {
                         Authorized Dealership Proof (Required)
                       </label>
                       <p className="text-xs text-[#FAF9F6]/50 mb-2">Upload a Letter of Authorization from the brand to get the Verified Badge.</p>
-                      <div className="border-2 border-dashed border-[#262626] hover:border-[white] transition-colors rounded-xl p-6 flex flex-col items-center justify-center relative bg-[#161616]">
+                      <div className="border-2 border-dashed border-[#1c1c1c] hover:border-[white] transition-colors rounded-xl p-6 flex flex-col items-center justify-center relative bg-[#050505]">
                         <input 
                           type="file" 
                           accept=".pdf,image/*" 
@@ -489,7 +489,7 @@ export default function SellPage() {
                               placeholder="BCA / Mandiri / BNI"
                               value={bankName}
                               onChange={(e) => setBankName(e.target.value)}
-                              className="w-full bg-[#161616] border border-[#262626] focus:border-[white] rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-[#FAF9F6]/20 outline-none transition-colors"
+                              className="w-full bg-[#050505] border border-[#1c1c1c] focus:border-[white] rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-[#FAF9F6]/20 outline-none transition-colors"
                             />
                           </div>
                           <div className="space-y-2">
@@ -502,7 +502,7 @@ export default function SellPage() {
                               placeholder="Account Number"
                               value={bankAccount}
                               onChange={(e) => setBankAccount(e.target.value)}
-                              className="w-full bg-[#161616] border border-[#262626] focus:border-[white] rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-[#FAF9F6]/20 outline-none transition-colors"
+                              className="w-full bg-[#050505] border border-[#1c1c1c] focus:border-[white] rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-[#FAF9F6]/20 outline-none transition-colors"
                             />
                           </div>
                         </div>
@@ -516,7 +516,7 @@ export default function SellPage() {
                             placeholder="Must match identity document"
                             value={bankAccountName}
                             onChange={(e) => setBankAccountName(e.target.value)}
-                            className="w-full bg-[#161616] border border-[#262626] focus:border-[white] rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-[#FAF9F6]/20 outline-none transition-colors"
+                            className="w-full bg-[#050505] border border-[#1c1c1c] focus:border-[white] rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-[#FAF9F6]/20 outline-none transition-colors"
                           />
                         </div>
                       </>
@@ -531,7 +531,7 @@ export default function SellPage() {
                             placeholder="Optional if using PayPal"
                             value={swiftCode}
                             onChange={(e) => setSwiftCode(e.target.value)}
-                            className="w-full bg-[#161616] border border-[#262626] focus:border-[white] rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-[#FAF9F6]/20 outline-none transition-colors"
+                            className="w-full bg-[#050505] border border-[#1c1c1c] focus:border-[white] rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-[#FAF9F6]/20 outline-none transition-colors"
                           />
                         </div>
                         <div className="space-y-2">
@@ -543,7 +543,7 @@ export default function SellPage() {
                             placeholder="Store's PayPal Email"
                             value={paypalEmail}
                             onChange={(e) => setPaypalEmail(e.target.value)}
-                            className="w-full bg-[#161616] border border-[#262626] focus:border-[white] rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-[#FAF9F6]/20 outline-none transition-colors"
+                            className="w-full bg-[#050505] border border-[#1c1c1c] focus:border-[white] rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-[#FAF9F6]/20 outline-none transition-colors"
                           />
                         </div>
                       </>
@@ -562,7 +562,7 @@ export default function SellPage() {
                         value={warrantyPolicy}
                         onChange={(e) => setWarrantyPolicy(e.target.value)}
                         rows={3}
-                        className="w-full bg-[#161616] border border-[#262626] focus:border-[white] rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-[#FAF9F6]/20 outline-none transition-colors resize-none"
+                        className="w-full bg-[#050505] border border-[#1c1c1c] focus:border-[white] rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-[#FAF9F6]/20 outline-none transition-colors resize-none"
                       />
                     </div>
                   </div>
@@ -577,7 +577,7 @@ export default function SellPage() {
                 <button
                   type="button"
                   onClick={handlePrev}
-                  className="px-6 py-3.5 rounded-xl text-sm font-medium text-[#FAF9F6]/60 hover:text-white hover:bg-[#222] transition-colors"
+                  className="px-6 py-3.5 rounded-xl text-sm font-medium text-[#FAF9F6]/60 hover:text-white hover:bg-[#080808] transition-colors"
                 >
                   Back
                 </button>

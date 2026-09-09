@@ -272,9 +272,9 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
   ];
 
   return (
-    <div className="min-h-screen bg-[#090909] text-[#FAF9F6] font-sans selection:bg-[#242424] selection:text-[#FAF9F6] flex">
+    <div className="min-h-screen bg-[#030303] text-[#FAF9F6] font-sans selection:bg-[#050505] selection:text-[#FAF9F6] flex">
       {/* Sidebar (Desktop) */}
-      <aside className="w-64 border-r border-[#1E1E1E] bg-[#0D0D0D] flex flex-col shrink-0 min-h-screen sticky top-0 h-screen hidden md:flex z-30">
+      <aside className="w-64 border-r border-[#1E1E1E] bg-[#030303] flex flex-col shrink-0 min-h-screen sticky top-0 h-screen hidden md:flex z-30">
         {/* Brand Header */}
         <div className="h-14 flex items-center justify-between px-5 border-b border-[#1E1E1E] shrink-0">
           <Link href="/seller" className="flex items-center gap-2.5 group">
@@ -286,11 +286,11 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
             </span>
           </Link>
           {sellerMode === "OFFICIAL_BRAND" ? (
-            <span className="text-[10px] font-mono font-medium text-[#FAF9F6] bg-[#161616] px-2 py-0.5 rounded border border-[#2A2A2A] flex items-center gap-1.5">
+            <span className="text-[10px] font-mono font-medium text-[#FAF9F6] bg-[#050505] px-2 py-0.5 rounded border border-[#2A2A2A] flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-white" /> BRAND HUB
             </span>
           ) : (
-            <span className="text-[10px] font-mono font-medium text-[#FAF9F6] bg-[#161616] px-2 py-0.5 rounded border border-[#2A2A2A] flex items-center gap-1.5">
+            <span className="text-[10px] font-mono font-medium text-[#FAF9F6] bg-[#050505] px-2 py-0.5 rounded border border-[#2A2A2A] flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" /> SELLER HUB
             </span>
           )}
@@ -311,8 +311,8 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
                     href={item.path}
                     className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs font-sans transition-all duration-150 border ${
                       isActive
-                        ? "bg-[#242424] text-[#FAF9F6] font-semibold border-[#383838] shadow-sm"
-                        : "text-[#8E8E93] hover:text-[#FAF9F6] hover:bg-[#1A1A1A] border-transparent"
+                        ? "bg-[#050505] text-[#FAF9F6] font-semibold border-[#383838] shadow-sm"
+                        : "text-[#8E8E93] hover:text-[#FAF9F6] hover:bg-[#050505] border-transparent"
                     }`}
                   >
                     <div className="flex items-center gap-2.5">
@@ -332,12 +332,12 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
         </div>
 
         {/* Store Profile Card Footer */}
-        <div className="p-3 border-t border-[#1E1E1E] bg-[#0A0A0A] shrink-0">
+        <div className="p-3 border-t border-[#1E1E1E] bg-[#030303] shrink-0">
           <Link
             href="/seller/settings"
-            className="flex items-center gap-3 px-2 py-1.5 rounded-lg bg-[#141414] hover:bg-[#1A1A1A] border border-[#222] hover:border-[#333] transition-colors"
+            className="flex items-center gap-3 px-2 py-1.5 rounded-lg bg-[#050505] hover:bg-[#050505] border border-[#222] hover:border-[#333] transition-colors"
           >
-            <div className="w-8 h-8 rounded-lg bg-[#1E1E1E] border border-[#333] overflow-hidden flex items-center justify-center font-mono font-bold text-xs text-white shrink-0">
+            <div className="w-8 h-8 rounded-lg bg-[#050505] border border-[#333] overflow-hidden flex items-center justify-center font-mono font-bold text-xs text-white shrink-0">
               {sellerData.storeAvatar ? (
                 <img src={sellerData.storeAvatar} alt="Avatar" className="w-full h-full object-cover" />
               ) : (
@@ -367,13 +367,13 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden min-h-screen">
         {/* Top Header */}
-        <header className="h-14 flex items-center px-4 sm:px-6 justify-between sticky top-0 z-20 bg-[#0D0D0D]/90 backdrop-blur-md border-b border-[#1E1E1E] gap-4">
+        <header className="h-14 flex items-center px-4 sm:px-6 justify-between sticky top-0 z-20 bg-[#030303]/90 backdrop-blur-md border-b border-[#1E1E1E] gap-4">
           {/* Mobile hamburger & Breadcrumbs */}
           <div className="flex items-center gap-3 min-w-0">
             <button
               type="button"
               onClick={() => setIsMobileSidebarOpen(true)}
-              className="p-1.5 rounded-lg text-[#8E8E93] hover:text-[#FAF9F6] hover:bg-[#1A1A1A] md:hidden focus:outline-none"
+              className="p-1.5 rounded-lg text-[#8E8E93] hover:text-[#FAF9F6] hover:bg-[#050505] md:hidden focus:outline-none"
               aria-label="Open sidebar menu"
             >
               <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -401,7 +401,7 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
               <button
                 type="button"
                 onClick={() => setIsModeDropdownOpen(!isModeDropdownOpen)}
-                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-mono font-medium bg-[#141414] text-[#FAF9F6] border border-[#2E2E2E] hover:bg-[#1E1E1E] transition-colors cursor-pointer"
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-mono font-medium bg-[#050505] text-[#FAF9F6] border border-[#2E2E2E] hover:bg-[#050505] transition-colors cursor-pointer"
               >
                 <span className={`w-1.5 h-1.5 rounded-full ${sellerMode === "OFFICIAL_BRAND" ? "bg-white" : "bg-emerald-400"}`} />
                 <span className="hidden sm:inline">
@@ -421,7 +421,7 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
                     initial={{ opacity: 0, y: 5 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 5 }}
-                    className="absolute right-0 mt-1.5 w-60 bg-[#121212] border border-[#2E2E2E] rounded-xl shadow-2xl p-1.5 z-50 font-sans text-xs space-y-1"
+                    className="absolute right-0 mt-1.5 w-60 bg-[#050505] border border-[#2E2E2E] rounded-xl shadow-2xl p-1.5 z-50 font-sans text-xs space-y-1"
                   >
                     <div className="px-2.5 py-1.5 text-[10px] font-mono uppercase text-[#71717A] border-b border-[#222]">
                       {isEn ? "Select Store Type" : "Pilih Tipe Toko"}
@@ -430,7 +430,7 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
                       type="button"
                       onClick={() => handleModeChange("RETAIL_MERCHANT")}
                       className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-left transition-colors cursor-pointer ${
-                        sellerMode === "RETAIL_MERCHANT" ? "bg-[#222222] text-white font-semibold" : "text-[#A1A1AA] hover:bg-[#181818] hover:text-white"
+                        sellerMode === "RETAIL_MERCHANT" ? "bg-[#050505] text-white font-semibold" : "text-[#A1A1AA] hover:bg-[#050505] hover:text-white"
                       }`}
                     >
                       <div>
@@ -443,7 +443,7 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
                       type="button"
                       onClick={() => handleModeChange("OFFICIAL_BRAND")}
                       className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-left transition-colors cursor-pointer ${
-                        sellerMode === "OFFICIAL_BRAND" ? "bg-[#222222] text-white font-semibold" : "text-[#A1A1AA] hover:bg-[#181818] hover:text-white"
+                        sellerMode === "OFFICIAL_BRAND" ? "bg-[#050505] text-white font-semibold" : "text-[#A1A1AA] hover:bg-[#050505] hover:text-white"
                       }`}
                     >
                       <div>
@@ -458,13 +458,13 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
             </div>
 
             {/* Currency Switcher (IDR / USD) */}
-            <div className="flex items-center bg-[#141414] border border-[#262626] rounded-lg p-0.5 text-xs font-mono font-medium">
+            <div className="flex items-center bg-[#050505] border border-[#1c1c1c] rounded-lg p-0.5 text-xs font-mono font-medium">
               <button
                 type="button"
                 onClick={() => handleCurrencyChange("IDR")}
                 className={`px-2 py-1 rounded transition-colors cursor-pointer ${
                   currency === "IDR"
-                    ? "bg-[#262626] text-white font-bold shadow-sm"
+                    ? "bg-[#050505] text-white font-bold shadow-sm"
                     : "text-[#71717A] hover:text-[#FAF9F6]"
                 }`}
                 title="Indonesian Rupiah (Rp)"
@@ -476,7 +476,7 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
                 onClick={() => handleCurrencyChange("USD")}
                 className={`px-2 py-1 rounded transition-colors cursor-pointer ${
                   currency === "USD"
-                    ? "bg-[#262626] text-white font-bold shadow-sm"
+                    ? "bg-[#050505] text-white font-bold shadow-sm"
                     : "text-[#71717A] hover:text-[#FAF9F6]"
                 }`}
                 title="US Dollar ($)"
@@ -486,13 +486,13 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
             </div>
 
             {/* Language Switcher */}
-            <div className="flex items-center bg-[#141414] border border-[#262626] rounded-lg p-0.5 text-xs font-mono font-medium">
+            <div className="flex items-center bg-[#050505] border border-[#1c1c1c] rounded-lg p-0.5 text-xs font-mono font-medium">
               <button
                 type="button"
                 onClick={() => setLanguage("English")}
                 className={`px-2 py-1 rounded transition-colors cursor-pointer ${
                   isEn
-                    ? "bg-[#262626] text-white font-bold shadow-sm"
+                    ? "bg-[#050505] text-white font-bold shadow-sm"
                     : "text-[#71717A] hover:text-[#FAF9F6]"
                 }`}
               >
@@ -503,7 +503,7 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
                 onClick={() => setLanguage("Bahasa Indonesia")}
                 className={`px-2 py-1 rounded transition-colors cursor-pointer ${
                   !isEn
-                    ? "bg-[#262626] text-white font-bold shadow-sm"
+                    ? "bg-[#050505] text-white font-bold shadow-sm"
                     : "text-[#71717A] hover:text-[#FAF9F6]"
                 }`}
               >
@@ -515,7 +515,7 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
             <Link
               href="/collection"
               target="_blank"
-              className="hidden lg:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#141414] hover:bg-[#1A1A1A] border border-[#2E2E2E] text-xs font-mono text-[#8E8E93] hover:text-[#FAF9F6] transition-colors"
+              className="hidden lg:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#050505] hover:bg-[#050505] border border-[#2E2E2E] text-xs font-mono text-[#8E8E93] hover:text-[#FAF9F6] transition-colors"
             >
               <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
@@ -548,7 +548,7 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="relative w-72 bg-[#0D0D0D] border-r border-[#1E1E1E] flex flex-col h-full z-10"
+              className="relative w-72 bg-[#030303] border-r border-[#1E1E1E] flex flex-col h-full z-10"
             >
               {/* Mobile Drawer Header */}
               <div className="h-14 flex items-center justify-between px-5 border-b border-[#1E1E1E] shrink-0">
@@ -587,7 +587,7 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
                           onClick={() => setIsMobileSidebarOpen(false)}
                           className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs font-sans border ${
                             isActive
-                              ? "bg-[#242424] text-[#FAF9F6] font-semibold border-[#383838]"
+                              ? "bg-[#050505] text-[#FAF9F6] font-semibold border-[#383838]"
                               : "text-[#8E8E93] hover:text-[#FAF9F6] border-transparent"
                           }`}
                         >
@@ -603,13 +603,13 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
               </div>
 
               {/* Mobile Drawer Footer */}
-              <div className="p-3 border-t border-[#1E1E1E] bg-[#0A0A0A] shrink-0">
+              <div className="p-3 border-t border-[#1E1E1E] bg-[#030303] shrink-0">
                 <Link
                   href="/seller/settings"
                   onClick={() => setIsMobileSidebarOpen(false)}
-                  className="flex items-center gap-3 px-2 py-1.5 rounded-lg bg-[#141414] border border-[#222]"
+                  className="flex items-center gap-3 px-2 py-1.5 rounded-lg bg-[#050505] border border-[#222]"
                 >
-                  <div className="w-8 h-8 rounded-lg bg-[#1E1E1E] overflow-hidden flex items-center justify-center font-mono font-bold text-xs text-white shrink-0">
+                  <div className="w-8 h-8 rounded-lg bg-[#050505] overflow-hidden flex items-center justify-center font-mono font-bold text-xs text-white shrink-0">
                     {sellerData.storeAvatar ? (
                       <img src={sellerData.storeAvatar} alt="Avatar" className="w-full h-full object-cover" />
                     ) : (

@@ -150,7 +150,7 @@ export default function SellerOverviewPage() {
       {/* Header Profile & Quick Action Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-[#1E1E1E]">
         <div className="flex items-center gap-3.5">
-          <div className="w-12 h-12 rounded-xl bg-[#1E1E1E] border border-[#333] overflow-hidden flex items-center justify-center font-mono font-bold text-sm text-white shrink-0 shadow-md">
+          <div className="w-12 h-12 rounded-xl bg-[#050505] border border-[#333] overflow-hidden flex items-center justify-center font-mono font-bold text-sm text-white shrink-0 shadow-md">
             {storeData.storeAvatar ? (
               <img src={storeData.storeAvatar} alt="Store Avatar" className="w-full h-full object-cover" />
             ) : (
@@ -162,7 +162,7 @@ export default function SellerOverviewPage() {
               <h1 className="text-xl font-bold font-sans tracking-tight text-white">
                 {storeData.storeName}
               </h1>
-              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono font-medium uppercase tracking-wider bg-[#161616] text-[#D4D4D8] border border-[#27272A]">
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono font-medium uppercase tracking-wider bg-[#050505] text-[#D4D4D8] border border-[#27272A]">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
                 {isEn ? "Verified Merchant" : "Penjual Terverifikasi"}
               </span>
@@ -185,7 +185,7 @@ export default function SellerOverviewPage() {
           </Link>
           <Link
             href="/seller/products"
-            className="inline-flex items-center gap-1.5 bg-[#141414] hover:bg-[#1C1C1C] text-[#FAF9F6] border border-[#262626] hover:border-[#3E3E3E] px-3.5 py-1.5 rounded-lg text-xs font-sans font-medium transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 bg-[#050505] hover:bg-[#050505] text-[#FAF9F6] border border-[#1c1c1c] hover:border-[#3E3E3E] px-3.5 py-1.5 rounded-lg text-xs font-sans font-medium transition-colors cursor-pointer"
           >
             <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
@@ -194,7 +194,7 @@ export default function SellerOverviewPage() {
           </Link>
           <Link
             href="/seller/payouts"
-            className="inline-flex items-center gap-1.5 bg-[#141414] hover:bg-[#1C1C1C] text-[#FAF9F6] border border-[#262626] hover:border-[#3E3E3E] px-3.5 py-1.5 rounded-lg text-xs font-sans font-medium transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 bg-[#050505] hover:bg-[#050505] text-[#FAF9F6] border border-[#1c1c1c] hover:border-[#3E3E3E] px-3.5 py-1.5 rounded-lg text-xs font-sans font-medium transition-colors cursor-pointer"
           >
             <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -206,9 +206,9 @@ export default function SellerOverviewPage() {
 
       {/* Urgent Action Needed Notification (Only shown when there are pending orders) */}
       {storeOrders.some((o) => o.status === "TO_SHIP") && (
-        <div className="bg-[#141414] border border-[#2E2E2E] rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="bg-[#050505] border border-[#2E2E2E] rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-start gap-3">
-            <div className="w-8 h-8 rounded-lg bg-[#1A1A1A] border border-[#2E2E2E] flex items-center justify-center shrink-0 text-white mt-0.5">
+            <div className="w-8 h-8 rounded-lg bg-[#050505] border border-[#2E2E2E] flex items-center justify-center shrink-0 text-white mt-0.5">
               <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
               </svg>
@@ -229,7 +229,7 @@ export default function SellerOverviewPage() {
 
           <Link
             href="/seller/orders"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#222] hover:bg-[#2E2E2E] text-white text-xs font-mono font-bold rounded-lg border border-[#3E3E3E] transition-colors shrink-0"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#050505] hover:bg-[#050505] text-white text-xs font-mono font-bold rounded-lg border border-[#3E3E3E] transition-colors shrink-0"
           >
             {isEn ? "Process Order" : "Proses Sekarang"}
             <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -242,7 +242,7 @@ export default function SellerOverviewPage() {
       {/* KPI Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card 1: Net Revenue */}
-        <div className="bg-[#111111] border border-[#222222] hover:border-[#333333] transition-colors p-4 rounded-xl flex flex-col justify-between">
+        <div className="bg-[#050505] border border-[#222222] hover:border-[#333333] transition-colors p-4 rounded-xl flex flex-col justify-between">
           <div className="flex items-start justify-between gap-2">
             <div>
               <p className="text-[11px] font-mono text-[#888888] uppercase tracking-wider">
@@ -266,7 +266,7 @@ export default function SellerOverviewPage() {
         </div>
 
         {/* Card 2: Active Orders */}
-        <div className="bg-[#111111] border border-[#222222] hover:border-[#333333] transition-colors p-4 rounded-xl flex flex-col justify-between">
+        <div className="bg-[#050505] border border-[#222222] hover:border-[#333333] transition-colors p-4 rounded-xl flex flex-col justify-between">
           <div className="flex items-start justify-between gap-2">
             <div>
               <p className="text-[11px] font-mono text-[#888888] uppercase tracking-wider">
@@ -292,7 +292,7 @@ export default function SellerOverviewPage() {
         </div>
 
         {/* Card 3: Active Audio Catalog */}
-        <div className="bg-[#111111] border border-[#222222] hover:border-[#333333] transition-colors p-4 rounded-xl flex flex-col justify-between">
+        <div className="bg-[#050505] border border-[#222222] hover:border-[#333333] transition-colors p-4 rounded-xl flex flex-col justify-between">
           <div className="flex items-start justify-between gap-2">
             <div>
               <p className="text-[11px] font-mono text-[#888888] uppercase tracking-wider">
@@ -315,7 +315,7 @@ export default function SellerOverviewPage() {
         </div>
 
         {/* Card 4: Wallet & Escrow */}
-        <div className="bg-[#111111] border border-[#222222] hover:border-[#333333] transition-colors p-4 rounded-xl flex flex-col justify-between">
+        <div className="bg-[#050505] border border-[#222222] hover:border-[#333333] transition-colors p-4 rounded-xl flex flex-col justify-between">
           <div className="flex items-start justify-between gap-2">
             <div>
               <p className="text-[11px] font-mono text-[#888888] uppercase tracking-wider">
@@ -341,8 +341,8 @@ export default function SellerOverviewPage() {
       {/* Main Content Grid: Recent Orders & Top Stock */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column: Recent Orders (2 Cols) */}
-        <div className="lg:col-span-2 bg-[#111111] border border-[#222222] rounded-xl overflow-hidden flex flex-col">
-          <div className="p-4 border-b border-[#1E1E1E] flex items-center justify-between bg-[#141414]">
+        <div className="lg:col-span-2 bg-[#050505] border border-[#222222] rounded-xl overflow-hidden flex flex-col">
+          <div className="p-4 border-b border-[#1E1E1E] flex items-center justify-between bg-[#050505]">
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-emerald-400" />
               <h3 className="text-xs font-bold font-sans text-white uppercase tracking-wider">
@@ -360,7 +360,7 @@ export default function SellerOverviewPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse font-sans text-xs">
               <thead>
-                <tr className="border-b border-[#1E1E1E] bg-[#0E0E0E] text-[10px] font-mono uppercase text-[#777] tracking-wider">
+                <tr className="border-b border-[#1E1E1E] bg-[#030303] text-[10px] font-mono uppercase text-[#777] tracking-wider">
                   <th className="px-4 py-3">{isEn ? "Order & Buyer" : "Pesanan & Pembeli"}</th>
                   <th className="px-4 py-3">{isEn ? "Product" : "Produk"}</th>
                   <th className="px-4 py-3 text-right">{isEn ? "Total" : "Total"}</th>
@@ -371,7 +371,7 @@ export default function SellerOverviewPage() {
               <tbody className="divide-y divide-[#1E1E1E]">
                 {storeOrders.length > 0 ? (
                   storeOrders.map((ord: any) => (
-                    <tr key={ord.id} className="hover:bg-[#161616] transition-colors">
+                    <tr key={ord.id} className="hover:bg-[#050505] transition-colors">
                       <td className="px-4 py-3.5">
                         <div className="flex flex-col">
                           <span className="font-mono font-bold text-white text-xs">{ord.id}</span>
@@ -388,7 +388,7 @@ export default function SellerOverviewPage() {
                         {ord.amount || formatPrice(ord.totalPriceUSD || 0)}
                       </td>
                       <td className="px-4 py-3.5 text-center">
-                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono font-medium uppercase tracking-wider bg-[#161616] text-[#D4D4D8] border border-[#27272A]">
+                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono font-medium uppercase tracking-wider bg-[#050505] text-[#D4D4D8] border border-[#27272A]">
                           <span className={`w-1.5 h-1.5 rounded-full ${
                             ord.status === "DELIVERED" || ord.status === "COMPLETED" ? "bg-emerald-400" : ord.status === "IN_TRANSIT" ? "bg-white" : "bg-amber-400"
                           }`} />
@@ -402,7 +402,7 @@ export default function SellerOverviewPage() {
                       <td className="px-4 py-3.5 text-right">
                         <Link
                           href="/seller/orders"
-                          className="px-2.5 py-1 bg-[#1C1C1C] hover:bg-[#282828] border border-[#2E2E2E] text-white text-[11px] font-mono rounded transition-colors"
+                          className="px-2.5 py-1 bg-[#050505] hover:bg-[#050505] border border-[#2E2E2E] text-white text-[11px] font-mono rounded transition-colors"
                         >
                           {ord.status === "TO_SHIP" ? (isEn ? "Input Waybill" : "Input Resi") : isEn ? "Details" : "Rincian"}
                         </Link>
@@ -429,8 +429,8 @@ export default function SellerOverviewPage() {
         </div>
 
         {/* Right Column: Top Products & Stock Watch */}
-        <div className="bg-[#111111] border border-[#222222] rounded-xl overflow-hidden flex flex-col">
-          <div className="p-4 border-b border-[#1E1E1E] flex items-center justify-between bg-[#141414]">
+        <div className="bg-[#050505] border border-[#222222] rounded-xl overflow-hidden flex flex-col">
+          <div className="p-4 border-b border-[#1E1E1E] flex items-center justify-between bg-[#050505]">
             <h3 className="text-xs font-bold font-sans text-white uppercase tracking-wider">
               {isEn ? "Top Stock & Inventory" : "Inventaris & Stok Terlaris"}
             </h3>
@@ -445,7 +445,7 @@ export default function SellerOverviewPage() {
           <div className="p-4 space-y-4 flex-1 flex flex-col justify-center">
             {catalogUnits > 0 ? (
               <div className="space-y-3">
-                <div className="p-3 bg-[#161616] border border-[#222] rounded-lg">
+                <div className="p-3 bg-[#050505] border border-[#222] rounded-lg">
                   <div className="flex items-center justify-between text-xs font-sans">
                     <span className="font-semibold text-white truncate max-w-[170px]">
                       {isEn ? "Active Catalog Items" : "Total Produk Aktif"}
@@ -469,10 +469,10 @@ export default function SellerOverviewPage() {
             )}
           </div>
 
-          <div className="p-3 bg-[#0E0E0E] border-t border-[#1E1E1E] mt-auto">
+          <div className="p-3 bg-[#030303] border-t border-[#1E1E1E] mt-auto">
             <Link
               href="/seller/products/new"
-              className="w-full py-2 bg-[#1A1A1A] hover:bg-[#242424] text-white text-xs font-mono font-semibold rounded-lg flex items-center justify-center gap-1.5 transition-colors border border-[#2E2E2E]"
+              className="w-full py-2 bg-[#050505] hover:bg-[#050505] text-white text-xs font-mono font-semibold rounded-lg flex items-center justify-center gap-1.5 transition-colors border border-[#2E2E2E]"
             >
               <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />

@@ -134,7 +134,7 @@ export default function ShipmentTrackingAdminPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#222] pb-5">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-[10px] font-mono font-bold bg-[#1C1C1C] text-[#FAF9F6] border border-[#2E2E2E] px-2 py-0.5 rounded uppercase tracking-wider">
+            <span className="text-[10px] font-mono font-bold bg-[#050505] text-[#FAF9F6] border border-[#2E2E2E] px-2 py-0.5 rounded uppercase tracking-wider">
               {isEn ? "Package Logistics" : "Pengiriman Paket"}
             </span>
             <span className="text-[11px] font-mono text-[#888]">
@@ -154,7 +154,7 @@ export default function ShipmentTrackingAdminPage() {
         <div className="flex items-center gap-2.5">
           <button
             onClick={handleExport}
-            className="flex items-center gap-2 px-3.5 py-2 bg-[#141414] hover:bg-[#1f1f1f] border border-[#2a2a2a] hover:border-[#444] text-xs font-mono font-bold rounded-lg transition-colors cursor-pointer"
+            className="flex items-center gap-2 px-3.5 py-2 bg-[#050505] hover:bg-[#050505] border border-[#2a2a2a] hover:border-[#444] text-xs font-mono font-bold rounded-lg transition-colors cursor-pointer"
           >
             <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
@@ -168,7 +168,7 @@ export default function ShipmentTrackingAdminPage() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         
         {/* Card 1: In-Transit */}
-        <div className="bg-[#111] border border-[#222] hover:border-[#333] transition-colors p-4 rounded-xl flex flex-col justify-between">
+        <div className="bg-[#050505] border border-[#222] hover:border-[#333] transition-colors p-4 rounded-xl flex flex-col justify-between">
           <div className="flex items-start justify-between gap-2">
             <div>
               <p className="text-[11px] font-mono text-[#888] uppercase tracking-wider">
@@ -191,7 +191,7 @@ export default function ShipmentTrackingAdminPage() {
         </div>
 
         {/* Card 2: 2x24h Inspection Window */}
-        <div className="bg-[#111] border border-[#222] hover:border-[#333] transition-colors p-4 rounded-xl flex flex-col justify-between">
+        <div className="bg-[#050505] border border-[#222] hover:border-[#333] transition-colors p-4 rounded-xl flex flex-col justify-between">
           <div className="flex items-start justify-between gap-2">
             <div>
               <p className="text-[11px] font-mono text-[#888] uppercase tracking-wider">
@@ -214,7 +214,7 @@ export default function ShipmentTrackingAdminPage() {
         </div>
 
         {/* Card 3: Successfully Delivered */}
-        <div className="bg-[#111] border border-[#222] hover:border-[#333] transition-colors p-4 rounded-xl flex flex-col justify-between">
+        <div className="bg-[#050505] border border-[#222] hover:border-[#333] transition-colors p-4 rounded-xl flex flex-col justify-between">
           <div className="flex items-start justify-between gap-2">
             <div>
               <p className="text-[11px] font-mono text-[#888] uppercase tracking-wider">
@@ -239,7 +239,7 @@ export default function ShipmentTrackingAdminPage() {
       </div>
 
       {/* Toolbar & Filters */}
-      <div className="bg-[#111] border border-[#222] p-3.5 rounded-xl space-y-3">
+      <div className="bg-[#050505] border border-[#222] p-3.5 rounded-xl space-y-3">
         <div className="flex flex-col md:flex-row gap-3 items-center justify-between">
           <div className="relative w-full md:w-80">
             <input
@@ -247,7 +247,7 @@ export default function ShipmentTrackingAdminPage() {
               placeholder={isEn ? "Search AWB, buyer, store, city..." : "Cari resi, pembeli, toko, kota tujuan..."}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-[#161616] border border-[#2a2a2a] focus:border-white rounded-lg pl-9 pr-3.5 py-2 text-xs font-sans text-white placeholder:text-[#666] outline-none transition-colors"
+              className="w-full bg-[#050505] border border-[#2a2a2a] focus:border-white rounded-lg pl-9 pr-3.5 py-2 text-xs font-sans text-white placeholder:text-[#666] outline-none transition-colors"
             />
             <svg
               width="14"
@@ -264,7 +264,7 @@ export default function ShipmentTrackingAdminPage() {
 
           <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
             {/* Status Pills */}
-            <div className="flex items-center bg-[#161616] p-1 rounded-lg border border-[#262626]">
+            <div className="flex items-center bg-[#050505] p-1 rounded-lg border border-[#1c1c1c]">
               {[
                 { id: "ALL", label: isEn ? "All Packages" : "Semua Paket" },
                 { id: "IN_TRANSIT", label: isEn ? "In Transit" : "Dalam Perjalanan" },
@@ -276,8 +276,8 @@ export default function ShipmentTrackingAdminPage() {
                   onClick={() => setStatusFilter(tab.id)}
                   className={`px-3 py-1 text-xs font-mono font-medium rounded-md transition-all cursor-pointer border ${
                     statusFilter === tab.id
-                      ? "bg-[#242424] text-[#FAF9F6] font-semibold border-[#383838] shadow-sm"
-                      : "text-[#8E8E93] hover:text-[#FAF9F6] hover:bg-[#1A1A1A] border-transparent"
+                      ? "bg-[#050505] text-[#FAF9F6] font-semibold border-[#383838] shadow-sm"
+                      : "text-[#8E8E93] hover:text-[#FAF9F6] hover:bg-[#050505] border-transparent"
                   }`}
                 >
                   {tab.label}
@@ -298,18 +298,18 @@ export default function ShipmentTrackingAdminPage() {
                 { label: "DHL Express", value: "DHL" },
                 { label: "FedEx", value: "FedEx" },
               ]}
-              buttonClassName="bg-[#161616] border border-[#2a2a2a] hover:border-[#444] text-xs font-mono text-white px-3 py-1.5 rounded-lg flex items-center justify-between gap-2 cursor-pointer"
+              buttonClassName="bg-[#050505] border border-[#2a2a2a] hover:border-[#444] text-xs font-mono text-white px-3 py-1.5 rounded-lg flex items-center justify-between gap-2 cursor-pointer"
             />
           </div>
         </div>
       </div>
 
       {/* Main Shipments Table */}
-      <div className="bg-[#111] border border-[#222] rounded-xl overflow-hidden shadow-2xl">
+      <div className="bg-[#050505] border border-[#222] rounded-xl overflow-hidden shadow-2xl">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-[#222] bg-[#141414] text-[10px] font-mono uppercase text-[#777] tracking-wider">
+              <tr className="border-b border-[#222] bg-[#050505] text-[10px] font-mono uppercase text-[#777] tracking-wider">
                 <th
                   onClick={() => handleSortToggle("orderNumber")}
                   className="py-3 px-4 cursor-pointer hover:text-white transition-colors"
@@ -333,7 +333,7 @@ export default function ShipmentTrackingAdminPage() {
             <tbody className="divide-y divide-[#1e1e1e] text-xs font-sans">
               {paginatedShipments.length > 0 ? (
                 paginatedShipments.map((ship) => (
-                  <tr key={ship.id} className="hover:bg-[#141414] transition-colors">
+                  <tr key={ship.id} className="hover:bg-[#050505] transition-colors">
                     <td className="py-3.5 px-4">
                       <div className="flex flex-col">
                         <span
@@ -366,7 +366,7 @@ export default function ShipmentTrackingAdminPage() {
                     </td>
 
                     <td className="py-3.5 px-4">
-                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-[#161616] text-[#D4D4D8] border border-[#27272A]">
+                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-[#050505] text-[#D4D4D8] border border-[#27272A]">
                         <span className={`w-1.5 h-1.5 rounded-full ${
                           ship.currentStatus === "DELIVERED" ? "bg-emerald-400" : ship.currentStatus === "OUT_FOR_DELIVERY" ? "bg-white" : "bg-amber-400"
                         }`} />
@@ -376,7 +376,7 @@ export default function ShipmentTrackingAdminPage() {
 
                     <td className="py-3.5 px-4 font-mono text-[11px]">
                       {ship.escrowStatus === "RELEASE_ELIGIBLE" ? (
-                        <span className="inline-flex items-center gap-1.5 text-[#D4D4D8] font-medium bg-[#161616] px-2 py-0.5 rounded border border-[#27272A]">
+                        <span className="inline-flex items-center gap-1.5 text-[#D4D4D8] font-medium bg-[#050505] px-2 py-0.5 rounded border border-[#27272A]">
                           <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
                           {ship.inspectionExpiry || (isEn ? "2x24h Active" : "2x24 Jam Aktif")}
                         </span>
@@ -391,7 +391,7 @@ export default function ShipmentTrackingAdminPage() {
                       <div className="flex items-center justify-end gap-1.5">
                         <button
                           onClick={() => setInspectingShipment(ship)}
-                          className="px-2.5 py-1 bg-[#1c1c1c] hover:bg-[#282828] border border-[#333] hover:border-white text-xs font-mono font-semibold text-white rounded-lg transition-colors cursor-pointer"
+                          className="px-2.5 py-1 bg-[#1c1c1c] hover:bg-[#050505] border border-[#333] hover:border-white text-xs font-mono font-semibold text-white rounded-lg transition-colors cursor-pointer"
                         >
                           {isEn ? "Milestones" : "Posisi Paket"}
                         </button>
@@ -399,7 +399,7 @@ export default function ShipmentTrackingAdminPage() {
                           <button
                             onClick={() => setCompletingShipment(ship)}
                             title={isEn ? "Force Complete / Release Escrow" : "Paksa Selesai / Cairkan Rekber"}
-                            className="p-1.5 bg-[#181818] hover:bg-[#262626] border border-[#2E2E2E] hover:border-white text-white rounded-lg transition-colors cursor-pointer"
+                            className="p-1.5 bg-[#050505] hover:bg-[#050505] border border-[#2E2E2E] hover:border-white text-white rounded-lg transition-colors cursor-pointer"
                           >
                             <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                               <polyline points="20 6 9 17 4 12" />
@@ -422,7 +422,7 @@ export default function ShipmentTrackingAdminPage() {
         </div>
 
         {/* Footer info & Pagination */}
-        <div className="p-3.5 border-t border-[#1e1e1e] bg-[#141414] flex flex-col sm:flex-row items-center justify-between text-xs font-mono text-[#777] gap-3">
+        <div className="p-3.5 border-t border-[#1e1e1e] bg-[#050505] flex flex-col sm:flex-row items-center justify-between text-xs font-mono text-[#777] gap-3">
           <div className="flex items-center gap-2">
             <span>
               {isEn
@@ -436,7 +436,7 @@ export default function ShipmentTrackingAdminPage() {
               <button
                 disabled={currentPage === 1}
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                className="px-2.5 py-1 rounded bg-[#1c1c1c] hover:bg-[#262626] border border-[#2a2a2a] disabled:opacity-30 disabled:cursor-not-allowed text-white font-mono text-xs transition-colors cursor-pointer"
+                className="px-2.5 py-1 rounded bg-[#1c1c1c] hover:bg-[#050505] border border-[#2a2a2a] disabled:opacity-30 disabled:cursor-not-allowed text-white font-mono text-xs transition-colors cursor-pointer"
               >
                 {isEn ? "Previous" : "Sebelumnya"}
               </button>
@@ -446,7 +446,7 @@ export default function ShipmentTrackingAdminPage() {
               <button
                 disabled={currentPage === totalPages}
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                className="px-2.5 py-1 rounded bg-[#1c1c1c] hover:bg-[#262626] border border-[#2a2a2a] disabled:opacity-30 disabled:cursor-not-allowed text-white font-mono text-xs transition-colors cursor-pointer"
+                className="px-2.5 py-1 rounded bg-[#1c1c1c] hover:bg-[#050505] border border-[#2a2a2a] disabled:opacity-30 disabled:cursor-not-allowed text-white font-mono text-xs transition-colors cursor-pointer"
               >
                 {isEn ? "Next" : "Selanjutnya"}
               </button>
@@ -470,9 +470,9 @@ export default function ShipmentTrackingAdminPage() {
               initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 1, y: 0 }}
-              className="relative w-full max-w-lg bg-[#141414] border border-[#333] rounded-2xl p-5 sm:p-6 shadow-2xl z-10 space-y-5"
+              className="relative w-full max-w-lg bg-[#050505] border border-[#333] rounded-2xl p-5 sm:p-6 shadow-2xl z-10 space-y-5"
             >
-              <div className="flex items-center justify-between border-b border-[#262626] pb-3">
+              <div className="flex items-center justify-between border-b border-[#1c1c1c] pb-3">
                 <div>
                   <span className="text-[10px] font-mono font-bold uppercase text-sky-400">
                     {isEn ? "Live Telemetry Milestones" : "Riwayat Perjalanan Paket"}
@@ -496,12 +496,12 @@ export default function ShipmentTrackingAdminPage() {
                 {inspectingShipment.milestones.map((m, idx) => (
                   <div key={idx} className="flex items-start gap-3 relative">
                     {idx !== inspectingShipment.milestones.length - 1 && (
-                      <div className="absolute left-3 top-6 bottom-0 w-0.5 bg-[#262626] -translate-x-1/2" />
+                      <div className="absolute left-3 top-6 bottom-0 w-0.5 bg-[#050505] -translate-x-1/2" />
                     )}
-                    <div className="w-6 h-6 rounded-full bg-[#1e1e1e] border border-[#333] flex items-center justify-center text-xs font-mono font-bold text-white shrink-0 z-10">
+                    <div className="w-6 h-6 rounded-full bg-[#050505] border border-[#333] flex items-center justify-center text-xs font-mono font-bold text-white shrink-0 z-10">
                       {idx + 1}
                     </div>
-                    <div className="space-y-0.5 flex-1 bg-[#191919] p-3 rounded-xl border border-[#282828]">
+                    <div className="space-y-0.5 flex-1 bg-[#050505] p-3 rounded-xl border border-[#282828]">
                       <div className="flex items-center justify-between">
                         <span className="font-bold text-white text-xs">{m.stage.replace(/_/g, " ")}</span>
                         <span className="text-[10px] font-mono text-[#888]">{m.timestamp}</span>
@@ -519,7 +519,7 @@ export default function ShipmentTrackingAdminPage() {
                 <button
                   type="button"
                   onClick={() => setInspectingShipment(null)}
-                  className="px-3.5 py-1.5 bg-[#222] hover:bg-[#333] text-white text-xs font-mono rounded-lg transition-colors cursor-pointer"
+                  className="px-3.5 py-1.5 bg-[#050505] hover:bg-[#080808] text-white text-xs font-mono rounded-lg transition-colors cursor-pointer"
                 >
                   {isEn ? "Close" : "Tutup"}
                 </button>
@@ -544,7 +544,7 @@ export default function ShipmentTrackingAdminPage() {
               initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 1, y: 0 }}
-              className="relative w-full max-w-md bg-[#141414] border border-[#333] rounded-2xl p-5 shadow-2xl z-10 space-y-4"
+              className="relative w-full max-w-md bg-[#050505] border border-[#333] rounded-2xl p-5 shadow-2xl z-10 space-y-4"
             >
               <h3 className="text-sm font-bold text-white font-heading uppercase">
                 {isEn
@@ -562,7 +562,7 @@ export default function ShipmentTrackingAdminPage() {
                 <button
                   type="button"
                   onClick={() => setCompletingShipment(null)}
-                  className="px-3.5 py-1.5 bg-[#222] hover:bg-[#333] text-white text-xs font-mono rounded-lg transition-colors cursor-pointer"
+                  className="px-3.5 py-1.5 bg-[#050505] hover:bg-[#080808] text-white text-xs font-mono rounded-lg transition-colors cursor-pointer"
                 >
                   {isEn ? "Cancel" : "Batal"}
                 </button>

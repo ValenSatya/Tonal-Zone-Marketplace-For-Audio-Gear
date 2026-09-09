@@ -53,7 +53,7 @@ export default function AdminCommandPalette({ isOpen, onClose }: AdminCommandPal
         subtitle: isEn ? "GMV, active stores, live system metrics" : "GMV, toko aktif, antrean moderasi",
         path: "/admin",
         badge: "Overview",
-        badgeColor: "bg-[#181818] text-[#D4D4D8] border border-[#2E2E2E]",
+        badgeColor: "bg-[#050505] text-[#D4D4D8] border border-[#2E2E2E]",
         keywords: ["overview", "ringkasan", "dashboard", "home", "metrics", "telemetry", "gmv", "omzet", "penjualan"],
       },
       {
@@ -63,7 +63,7 @@ export default function AdminCommandPalette({ isOpen, onClose }: AdminCommandPal
         subtitle: isEn ? "Review seller verification, documents, identity" : "Verifikasi identitas merchant, toko baru, dokumen",
         path: "/admin/approvals/sellers",
         badge: isEn ? "Sellers" : "Toko",
-        badgeColor: "bg-[#181818] text-[#D4D4D8] border border-[#2E2E2E]",
+        badgeColor: "bg-[#050505] text-[#D4D4D8] border border-[#2E2E2E]",
         keywords: ["sellers", "toko", "penjual", "kyc", "verifikasi", "approval", "merchant", "store", "identitas"],
       },
       {
@@ -73,7 +73,7 @@ export default function AdminCommandPalette({ isOpen, onClose }: AdminCommandPal
         subtitle: isEn ? "Authorize audio brands & official distributors" : "Katalog merek resmi & distributor audio",
         path: "/admin/approvals/brands",
         badge: isEn ? "Brands" : "Merek",
-        badgeColor: "bg-[#181818] text-[#D4D4D8] border border-[#2E2E2E]",
+        badgeColor: "bg-[#050505] text-[#D4D4D8] border border-[#2E2E2E]",
         keywords: ["brand", "merek", "distributor", "authorization", "katalog", "resmi", "sennheiser", "moondrop", "64 audio"],
       },
       {
@@ -83,7 +83,7 @@ export default function AdminCommandPalette({ isOpen, onClose }: AdminCommandPal
         subtitle: isEn ? "Inspect IEM target curves, driver specs, price" : "Periksa kurva frekuensi, driver, dan harga IEM",
         path: "/admin/approvals/products",
         badge: isEn ? "Products" : "Produk",
-        badgeColor: "bg-[#181818] text-[#D4D4D8] border border-[#2E2E2E]",
+        badgeColor: "bg-[#050505] text-[#D4D4D8] border border-[#2E2E2E]",
         keywords: ["product", "produk", "iem", "qc", "curve", "frekuensi", "tuning", "driver", "kurva", "earphone"],
       },
       {
@@ -93,7 +93,7 @@ export default function AdminCommandPalette({ isOpen, onClose }: AdminCommandPal
         subtitle: isEn ? "Configure carousel hero, strip promo, popup" : "Atur slider hero utama, strip promo, dan popup",
         path: "/admin/banners",
         badge: "CMS",
-        badgeColor: "bg-[#181818] text-[#D4D4D8] border border-[#2E2E2E]",
+        badgeColor: "bg-[#050505] text-[#D4D4D8] border border-[#2E2E2E]",
         keywords: ["banner", "promo", "hero", "cms", "iklan", "promosi", "slider", "carousel", "tampilan"],
       },
       {
@@ -103,7 +103,7 @@ export default function AdminCommandPalette({ isOpen, onClose }: AdminCommandPal
         subtitle: isEn ? "Live courier parcel milestones & 2x24h trial inspection" : "Status paket ekspedisi, resi, dan masa uji coba 2x24 jam",
         path: "/admin/logistics/tracking",
         badge: isEn ? "Tracking" : "Lacak",
-        badgeColor: "bg-[#181818] text-[#D4D4D8] border border-[#2E2E2E]",
+        badgeColor: "bg-[#050505] text-[#D4D4D8] border border-[#2E2E2E]",
         keywords: ["tracking", "lacak", "resi", "waybill", "pengiriman", "logistics", "kurir", "paket", "sla", "transit"],
       },
       {
@@ -113,7 +113,7 @@ export default function AdminCommandPalette({ isOpen, onClose }: AdminCommandPal
         subtitle: isEn ? "Manage fleet partners, base rate per kg, cargo insurance" : "Kelola partner kurir, tarif ongkir per kg, asuransi kargo",
         path: "/admin/logistics/couriers",
         badge: isEn ? "Couriers" : "Ekspedisi",
-        badgeColor: "bg-[#181818] text-[#D4D4D8] border border-[#2E2E2E]",
+        badgeColor: "bg-[#050505] text-[#D4D4D8] border border-[#2E2E2E]",
         keywords: ["couriers", "ekspedisi", "ongkir", "tarif", "jne", "jnt", "sicepat", "dhl", "fedex", "armada"],
       },
       {
@@ -123,7 +123,7 @@ export default function AdminCommandPalette({ isOpen, onClose }: AdminCommandPal
         subtitle: isEn ? "Escrow vaults, seller payouts, refunds, dispute arbitration" : "Rekening bersama, pencairan dana seller, refund, arbitrase komplain",
         path: "/admin/transactions",
         badge: "Escrow",
-        badgeColor: "bg-[#181818] text-[#D4D4D8] border border-[#2E2E2E]",
+        badgeColor: "bg-[#050505] text-[#D4D4D8] border border-[#2E2E2E]",
         keywords: ["transactions", "transaksi", "rekber", "escrow", "rekening bersama", "saldo", "settlement", "refund", "dispute", "sengketa", "komplain"],
       },
       {
@@ -133,7 +133,7 @@ export default function AdminCommandPalette({ isOpen, onClose }: AdminCommandPal
         subtitle: isEn ? "Buyer & seller accounts, CSV import/export, role manager" : "Database akun pembeli, penjual, import/export CSV, role",
         path: "/admin/users",
         badge: isEn ? "Users" : "Pengguna",
-        badgeColor: "bg-[#181818] text-[#D4D4D8] border border-[#2E2E2E]",
+        badgeColor: "bg-[#050505] text-[#D4D4D8] border border-[#2E2E2E]",
         keywords: ["users", "pengguna", "akun", "user", "buyer", "seller", "admin", "csv", "import", "database"],
       },
       {
@@ -143,7 +143,7 @@ export default function AdminCommandPalette({ isOpen, onClose }: AdminCommandPal
         subtitle: isEn ? "Manage category tree, URL slugs, SEO metadata" : "Atur kategori produk audio, slug URL, metadata",
         path: "/admin/config/catalog",
         badge: isEn ? "Taxonomy" : "Kategori",
-        badgeColor: "bg-[#181818] text-[#D4D4D8] border border-[#2E2E2E]",
+        badgeColor: "bg-[#050505] text-[#D4D4D8] border border-[#2E2E2E]",
         keywords: ["category", "kategori", "taksonomi", "taxonomy", "slug", "tag", "dac", "planar", "tws"],
       },
       {
@@ -153,7 +153,7 @@ export default function AdminCommandPalette({ isOpen, onClose }: AdminCommandPal
         subtitle: isEn ? "View customer-facing homepage & catalog" : "Lihat antarmuka pembeli & katalog belanja publik",
         path: "/",
         badge: isEn ? "Storefront" : "Toko",
-        badgeColor: "bg-[#181818] text-[#D4D4D8] border border-[#2E2E2E]",
+        badgeColor: "bg-[#050505] text-[#D4D4D8] border border-[#2E2E2E]",
         keywords: ["storefront", "toko", "home", "homepage", "pembeli", "koleksi", "marketplace"],
       },
     ];
@@ -167,7 +167,7 @@ export default function AdminCommandPalette({ isOpen, onClose }: AdminCommandPal
         subtitle: `${store.ownerName} • ${store.brandFocus} • ${store.status}`,
         path: "/admin/approvals/sellers",
         badge: store.status,
-        badgeColor: "bg-[#181818] text-[#D4D4D8] border border-[#2E2E2E]",
+        badgeColor: "bg-[#050505] text-[#D4D4D8] border border-[#2E2E2E]",
         keywords: ["toko", "store", store.storeName.toLowerCase(), store.ownerName.toLowerCase(), store.brandFocus.toLowerCase(), store.email.toLowerCase()],
       });
     });
@@ -181,7 +181,7 @@ export default function AdminCommandPalette({ isOpen, onClose }: AdminCommandPal
         subtitle: `${brand.submittedBy || "Official Distributor"} • ${brand.country} • ${brand.tier}`,
         path: "/admin/approvals/brands",
         badge: brand.tier,
-        badgeColor: "bg-[#181818] text-[#D4D4D8] border border-[#2E2E2E]",
+        badgeColor: "bg-[#050505] text-[#D4D4D8] border border-[#2E2E2E]",
         keywords: ["brand", "merek", brand.name.toLowerCase(), (brand.submittedBy || "").toLowerCase(), brand.country.toLowerCase()],
       });
     });
@@ -195,7 +195,7 @@ export default function AdminCommandPalette({ isOpen, onClose }: AdminCommandPal
         subtitle: `${prod.storeName} • $${prod.price} • ${prod.soundSignature}`,
         path: "/admin/approvals/products",
         badge: prod.status,
-        badgeColor: "bg-[#181818] text-[#D4D4D8] border border-[#2E2E2E]",
+        badgeColor: "bg-[#050505] text-[#D4D4D8] border border-[#2E2E2E]",
         keywords: ["produk", "iem", prod.name.toLowerCase(), prod.storeName.toLowerCase(), prod.brand.toLowerCase(), prod.soundSignature.toLowerCase()],
       });
     });
@@ -209,7 +209,7 @@ export default function AdminCommandPalette({ isOpen, onClose }: AdminCommandPal
         subtitle: `${courier.type} • $${courier.baseRateUSD}/kg • ${courier.estimatedDays}`,
         path: "/admin/logistics/couriers",
         badge: courier.code,
-        badgeColor: "bg-[#181818] text-[#D4D4D8] border border-[#2E2E2E]",
+        badgeColor: "bg-[#050505] text-[#D4D4D8] border border-[#2E2E2E]",
         keywords: ["kurir", "ekspedisi", courier.name.toLowerCase(), courier.code.toLowerCase(), courier.type.toLowerCase()],
       });
     });
@@ -295,10 +295,10 @@ export default function AdminCommandPalette({ isOpen, onClose }: AdminCommandPal
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: -10 }}
             transition={{ duration: 0.15, ease: "easeOut" }}
-            className="relative w-full max-w-2xl bg-[#111111] border border-[#2A2A2A] rounded-2xl shadow-[0_25px_70px_rgba(0,0,0,0.95)] overflow-hidden z-10 flex flex-col font-sans"
+            className="relative w-full max-w-2xl bg-[#030303] border border-[#1c1c1c] rounded-2xl shadow-[0_25px_70px_rgba(0,0,0,0.95)] overflow-hidden z-10 flex flex-col font-sans"
           >
             {/* Search Input Bar */}
-            <div className="flex items-center px-4 py-3.5 border-b border-[#222] bg-[#141414] gap-3">
+            <div className="flex items-center px-4 py-3.5 border-b border-[#1c1c1c] bg-[#030303] gap-3">
               <svg className="w-5 h-5 text-[#888] shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
@@ -326,7 +326,7 @@ export default function AdminCommandPalette({ isOpen, onClose }: AdminCommandPal
                     setQuery("");
                     inputRef.current?.focus();
                   }}
-                  className="px-2 py-0.5 text-[11px] font-mono text-[#888] hover:text-white bg-[#222] hover:bg-[#333] rounded cursor-pointer transition-colors"
+                  className="px-2 py-0.5 text-[11px] font-mono text-[#888] hover:text-white bg-[#050505] hover:bg-[#080808] rounded cursor-pointer transition-colors"
                 >
                   {isEn ? "Clear" : "Bersihkan"}
                 </button>
@@ -334,7 +334,7 @@ export default function AdminCommandPalette({ isOpen, onClose }: AdminCommandPal
 
               <kbd
                 onClick={onClose}
-                className="px-2 py-1 text-[10px] font-mono text-[#888] hover:text-white bg-[#1C1C1C] border border-[#2E2E2E] rounded cursor-pointer transition-colors"
+                className="px-2 py-1 text-[10px] font-mono text-[#888] hover:text-white bg-[#050505] border border-[#2E2E2E] rounded cursor-pointer transition-colors"
               >
                 ESC
               </kbd>
@@ -353,8 +353,8 @@ export default function AdminCommandPalette({ isOpen, onClose }: AdminCommandPal
                       onMouseEnter={() => setSelectedIndex(idx)}
                       className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl cursor-pointer transition-all border ${
                         isSelected
-                          ? "bg-[#242424] text-[#FAF9F6] border-[#383838] shadow-sm"
-                          : "text-[#8E8E93] hover:bg-[#1A1A1A] hover:text-[#FAF9F6] border-transparent"
+                          ? "bg-[#050505] text-[#FAF9F6] border-[#383838] shadow-sm"
+                          : "text-[#8E8E93] hover:bg-[#080808] hover:text-[#FAF9F6] border-transparent"
                       }`}
                     >
                       <div className="flex items-center gap-3 min-w-0">
@@ -362,8 +362,8 @@ export default function AdminCommandPalette({ isOpen, onClose }: AdminCommandPal
                         <div
                           className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border ${
                             isSelected
-                              ? "bg-[#161616] text-[#FAF9F6] border-[#444]"
-                              : "bg-[#181818] text-[#777] border-[#2A2A2A]"
+                              ? "bg-[#050505] text-[#FAF9F6] border-[#444]"
+                              : "bg-[#050505] text-[#777] border-[#2A2A2A]"
                           }`}
                         >
                           <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -387,7 +387,7 @@ export default function AdminCommandPalette({ isOpen, onClose }: AdminCommandPal
                         {item.badge && (
                           <span
                             className={`px-2 py-0.5 rounded text-[9px] font-mono font-bold uppercase tracking-wider border ${
-                              item.badgeColor || "bg-[#222] text-[#888] border-[#333]"
+                              item.badgeColor || "bg-[#050505] text-[#888] border-[#333]"
                             }`}
                           >
                             {item.badge}
@@ -395,7 +395,7 @@ export default function AdminCommandPalette({ isOpen, onClose }: AdminCommandPal
                         )}
 
                         {isSelected && (
-                          <kbd className="hidden sm:inline text-[10px] font-mono text-[#FAF9F6] bg-[#181818] px-1.5 py-0.5 rounded border border-[#444]">
+                          <kbd className="hidden sm:inline text-[10px] font-mono text-[#FAF9F6] bg-[#050505] px-1.5 py-0.5 rounded border border-[#444]">
                             ↵
                           </kbd>
                         )}
@@ -405,7 +405,7 @@ export default function AdminCommandPalette({ isOpen, onClose }: AdminCommandPal
                 })
               ) : (
                 <div className="py-12 px-6 text-center">
-                  <div className="w-10 h-10 rounded-full bg-[#181818] border border-[#2A2A2A] text-[#777] flex items-center justify-center mx-auto mb-3">
+                  <div className="w-10 h-10 rounded-full bg-[#050505] border border-[#2A2A2A] text-[#777] flex items-center justify-center mx-auto mb-3">
                     <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
@@ -423,21 +423,21 @@ export default function AdminCommandPalette({ isOpen, onClose }: AdminCommandPal
             </div>
 
             {/* Command Palette Footer */}
-            <div className="px-4 py-2.5 bg-[#0D0D0D] border-t border-[#1E1E1E] flex items-center justify-between text-[10px] font-mono text-[#777]">
+            <div className="px-4 py-2.5 bg-[#030303] border-t border-[#1E1E1E] flex items-center justify-between text-[10px] font-mono text-[#777]">
               <div className="flex items-center gap-3">
                 <span className="flex items-center gap-1">
-                  <kbd className="px-1.5 py-0.5 bg-[#1C1C1C] border border-[#2A2A2A] rounded text-[#FAF9F6]">↑</kbd>
-                  <kbd className="px-1.5 py-0.5 bg-[#1C1C1C] border border-[#2A2A2A] rounded text-[#FAF9F6]">↓</kbd>
+                  <kbd className="px-1.5 py-0.5 bg-[#050505] border border-[#2A2A2A] rounded text-[#FAF9F6]">↑</kbd>
+                  <kbd className="px-1.5 py-0.5 bg-[#050505] border border-[#2A2A2A] rounded text-[#FAF9F6]">↓</kbd>
                   <span className="ml-0.5">{isEn ? "to navigate" : "untuk memilih"}</span>
                 </span>
                 <span className="flex items-center gap-1">
-                  <kbd className="px-1.5 py-0.5 bg-[#1C1C1C] border border-[#2A2A2A] rounded text-[#FAF9F6]">↵</kbd>
+                  <kbd className="px-1.5 py-0.5 bg-[#050505] border border-[#2A2A2A] rounded text-[#FAF9F6]">↵</kbd>
                   <span className="ml-0.5">{isEn ? "to select" : "buka menu"}</span>
                 </span>
               </div>
 
               <span className="flex items-center gap-1">
-                <kbd className="px-1.5 py-0.5 bg-[#1C1C1C] border border-[#2A2A2A] rounded text-[#FAF9F6]">esc</kbd>
+                <kbd className="px-1.5 py-0.5 bg-[#050505] border border-[#2A2A2A] rounded text-[#FAF9F6]">esc</kbd>
                 <span className="ml-0.5">{isEn ? "to close" : "tutup"}</span>
               </span>
             </div>

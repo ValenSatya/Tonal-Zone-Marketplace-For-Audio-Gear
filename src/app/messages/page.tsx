@@ -553,23 +553,23 @@ function MessagesContent() {
   };
 
   return (
-    <div className="flex flex-col h-[100svh] bg-[#090909] text-[#FAF9F6] font-sans overflow-hidden selection:bg-[#D4FF00] selection:text-[#080808]">
+    <div className="flex flex-col h-[100svh] bg-[#030303] text-[#FAF9F6] font-sans overflow-hidden selection:bg-[#BFDD25] selection:text-[#030303]">
       <main className="flex-1 flex overflow-hidden">
         
         {/* ========================================================= */}
         {/* LEFT COLUMN: SHOPEE-STYLE CONVERSATIONS LIST */}
         {/* ========================================================= */}
         <div
-          className={`w-full md:w-[320px] lg:w-[360px] border-r border-[#1c1c1c] flex flex-col bg-[#0c0c0c] shrink-0 transition-transform duration-200 ${
+          className={`w-full md:w-[320px] lg:w-[360px] border-r border-[#1c1c1c] flex flex-col bg-[#050505] shrink-0 transition-transform duration-200 ${
             !isMobileListVisible ? "hidden md:flex" : "flex"
           }`}
         >
           {/* Header */}
-          <div className="px-4 py-3.5 border-b border-[#1c1c1c] flex items-center justify-between shrink-0 bg-[#080808]">
+          <div className="px-4 py-3.5 border-b border-[#1c1c1c] flex items-center justify-between shrink-0 bg-[#030303]">
             <div className="flex items-center gap-2.5">
               <Link
                 href="/"
-                className="text-[#888888] hover:text-white p-1 border border-transparent hover:border-[#262626] transition-colors"
+                className="text-[#888888] hover:text-white p-1 border border-transparent hover:border-[#1c1c1c] transition-colors"
                 title="Kembali ke Beranda"
               >
                 <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
@@ -586,21 +586,21 @@ function MessagesContent() {
 
             <Link
               href="/collection"
-              className="px-2.5 py-1 bg-[#141414] hover:bg-[#1f1f1f] border border-[#262626] text-[10px] font-mono text-[#CCCCCC] hover:text-white uppercase tracking-wider transition-colors"
+              className="px-2.5 py-1 bg-[#050505] hover:bg-[#050505] border border-[#1c1c1c] text-[10px] font-mono text-[#CCCCCC] hover:text-white uppercase tracking-wider transition-colors"
             >
               KATALOG
             </Link>
           </div>
 
           {/* Search Contacts Bar */}
-          <div className="p-2.5 border-b border-[#1c1c1c] bg-[#0a0a0a]">
+          <div className="p-2.5 border-b border-[#1c1c1c] bg-[#050505]">
             <div className="relative">
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Cari toko atau chat..."
-                className="w-full bg-[#141414] border border-[#222222] focus:border-[#444444] rounded-none pl-8 pr-6 py-2 text-xs text-white placeholder:text-[#555555] font-mono outline-none transition-colors"
+                className="w-full bg-[#050505] border border-[#222222] focus:border-[#444444] rounded-none pl-8 pr-6 py-2 text-xs text-white placeholder:text-[#555555] font-mono outline-none transition-colors"
               />
               <svg
                 className="absolute left-2.5 top-2.5 text-[#555555] w-3.5 h-3.5"
@@ -631,9 +631,9 @@ function MessagesContent() {
                   <button
                     key={contact.id}
                     onClick={() => handleSelectContact(contact)}
-                    className={`w-full text-left px-3.5 py-3 flex items-center gap-3 hover:bg-[#121212] transition-colors cursor-pointer border-l-2 ${
+                    className={`w-full text-left px-3.5 py-3 flex items-center gap-3 hover:bg-[#050505] transition-colors cursor-pointer border-l-2 ${
                       isSelected
-                        ? "bg-[#141414] border-l-[#D4FF00]"
+                        ? "bg-[#050505] border-l-[#BFDD25]"
                         : "border-l-transparent bg-transparent"
                     }`}
                   >
@@ -642,14 +642,14 @@ function MessagesContent() {
                       <div
                         className={`w-10 h-10 flex items-center justify-center text-xs font-mono font-bold tracking-wider border ${
                           isSelected
-                            ? "bg-[#1f1f1f] border-white text-white"
-                            : "bg-[#141414] border-[#222222] text-[#CCCCCC]"
+                            ? "bg-[#050505] border-white text-white"
+                            : "bg-[#050505] border-[#222222] text-[#CCCCCC]"
                         }`}
                       >
                         {contact.avatar}
                       </div>
                       {contact.online && (
-                        <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-[#D4FF00] border border-[#080808]"></div>
+                        <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-[#BFDD25] border border-[#030303]"></div>
                       )}
                     </div>
 
@@ -667,7 +667,7 @@ function MessagesContent() {
                           {contact.lastMessage}
                         </p>
                         {contact.unread > 0 && (
-                          <span className="h-4 min-w-[16px] px-1 bg-[#D4FF00] text-black text-[9px] font-bold font-mono flex items-center justify-center shrink-0">
+                          <span className="h-4 min-w-[16px] px-1 bg-[#BFDD25] text-black text-[9px] font-bold font-mono flex items-center justify-center shrink-0">
                             {contact.unread}
                           </span>
                         )}
@@ -688,38 +688,38 @@ function MessagesContent() {
         {/* RIGHT COLUMN: ACTIVE CHAT CONVERSATION (SHOPEE STYLE) */}
         {/* ========================================================= */}
         <div
-          className={`flex-1 flex flex-col bg-[#080808] relative ${
+          className={`flex-1 flex flex-col bg-[#030303] relative ${
             isMobileListVisible ? "hidden md:flex" : "flex"
           }`}
         >
           {activeContact ? (
             <>
               {/* Header Bar */}
-              <div className="px-4 py-3 border-b border-[#1c1c1c] bg-[#0c0c0c] flex items-center justify-between shrink-0 z-20">
+              <div className="px-4 py-3 border-b border-[#1c1c1c] bg-[#050505] flex items-center justify-between shrink-0 z-20">
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => setIsMobileListVisible(true)}
-                    className="md:hidden text-[#888888] hover:text-white p-1 border border-[#262626]"
+                    className="md:hidden text-[#888888] hover:text-white p-1 border border-[#1c1c1c]"
                   >
                     <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
                     </svg>
                   </button>
 
-                  <div className="w-9 h-9 bg-[#141414] border border-[#222222] flex items-center justify-center text-[#D4FF00] text-xs font-mono font-bold shrink-0">
+                  <div className="w-9 h-9 bg-[#050505] border border-[#222222] flex items-center justify-center text-[#BFDD25] text-xs font-mono font-bold shrink-0">
                     {activeContact.avatar}
                   </div>
 
                   <div>
                     <div className="flex items-center gap-2">
                       <h2 className="font-sans font-bold text-sm text-white">{activeContact.name}</h2>
-                      <span className="text-[8px] font-mono uppercase px-1.5 py-0.2 bg-[#181818] border border-[#262626] text-[#AAAAAA]">
+                      <span className="text-[8px] font-mono uppercase px-1.5 py-0.2 bg-[#050505] border border-[#1c1c1c] text-[#AAAAAA]">
                         {activeContact.type}
                       </span>
                     </div>
                     <p className="text-[10px] font-mono text-[#777777]">
                       {activeContact.online ? (
-                        <span className="text-[#D4FF00]">Online</span>
+                        <span className="text-[#BFDD25]">Online</span>
                       ) : (
                         <span>Aktif 1 jam lalu</span>
                       )}
@@ -729,7 +729,7 @@ function MessagesContent() {
 
                 <Link
                   href="/collection"
-                  className="px-3 py-1.5 bg-[#141414] hover:bg-[#1a1a1a] border border-[#262626] text-xs font-mono text-[#CCCCCC] hover:text-white uppercase tracking-wider transition-colors flex items-center gap-1.5"
+                  className="px-3 py-1.5 bg-[#050505] hover:bg-[#050505] border border-[#1c1c1c] text-xs font-mono text-[#CCCCCC] hover:text-white uppercase tracking-wider transition-colors flex items-center gap-1.5"
                 >
                   <span>Kunjungi Toko</span>
                   <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -739,11 +739,11 @@ function MessagesContent() {
               </div>
 
               {/* Chat Thread Messages Area */}
-              <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3.5 no-scrollbar bg-[#080808]">
+              <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3.5 no-scrollbar bg-[#030303]">
                 
                 {/* Security Trust Note */}
                 <div className="text-center my-2">
-                  <span className="text-[10px] font-mono text-[#555555] tracking-wider uppercase bg-[#0f0f0f] px-3 py-1 border border-[#1a1a1a] inline-block">
+                  <span className="text-[10px] font-mono text-[#555555] tracking-wider uppercase bg-[#050505] px-3 py-1 border border-[#1a1a1a] inline-block">
                     Percakapan Dilindungi Sistem Rekening Bersama Tonal Zone Escrow
                   </span>
                 </div>
@@ -761,10 +761,10 @@ function MessagesContent() {
                       {/* SHOPEE-STYLE UNIFIED PRODUCT MENTION BUBBLE */}
                       {/* ========================================================= */}
                       {msg.productCard ? (
-                        <div className="max-w-[340px] sm:max-w-[380px] bg-[#121212] border border-[#2a2a2a] p-3 text-left">
+                        <div className="max-w-[340px] sm:max-w-[380px] bg-[#050505] border border-[#2a2a2a] p-3 text-left">
                           {/* Inner Product Card with Clear Image (Shopee Style) */}
-                          <div className="flex gap-3 items-center bg-[#0a0a0a] border border-[#1c1c1c] p-2.5 mb-2.5">
-                            <div className="w-16 h-16 bg-[#141414] border border-[#262626] shrink-0 relative overflow-hidden">
+                          <div className="flex gap-3 items-center bg-[#050505] border border-[#1c1c1c] p-2.5 mb-2.5">
+                            <div className="w-16 h-16 bg-[#050505] border border-[#1c1c1c] shrink-0 relative overflow-hidden">
                               <Image
                                 src={msg.productCard.image || "/placeholder.svg"}
                                 alt={msg.productCard.name}
@@ -779,7 +779,7 @@ function MessagesContent() {
                               <h4 className="font-sans text-xs font-semibold text-white truncate leading-snug">
                                 {msg.productCard.name}
                               </h4>
-                              <p className="font-mono text-xs font-bold text-[#D4FF00] mt-1">
+                              <p className="font-mono text-xs font-bold text-[#BFDD25] mt-1">
                                 {formatPrice(msg.productCard.price)}
                               </p>
                             </div>
@@ -796,7 +796,7 @@ function MessagesContent() {
                           <div className="flex items-center justify-between pt-2 border-t border-[#1c1c1c]">
                             <Link
                               href={`/product/${msg.productCard.id}`}
-                              className="text-[10px] font-mono text-[#D4FF00] hover:underline uppercase tracking-wider font-bold"
+                              className="text-[10px] font-mono text-[#BFDD25] hover:underline uppercase tracking-wider font-bold"
                             >
                               Lihat Produk →
                             </Link>
@@ -809,13 +809,13 @@ function MessagesContent() {
                         /* ========================================================= */
                         /* UNIFIED ORDER MENTION BUBBLE */
                         /* ========================================================= */
-                        <div className="max-w-[340px] sm:max-w-[380px] bg-[#121212] border border-[#2a2a2a] p-3 text-left">
-                          <div className="bg-[#0a0a0a] border border-[#1c1c1c] p-2.5 mb-2.5">
+                        <div className="max-w-[340px] sm:max-w-[380px] bg-[#050505] border border-[#2a2a2a] p-3 text-left">
+                          <div className="bg-[#050505] border border-[#1c1c1c] p-2.5 mb-2.5">
                             <div className="flex justify-between items-center pb-1 mb-1 border-b border-[#1c1c1c]">
-                              <span className="text-[10px] font-mono text-[#D4FF00] font-bold">
+                              <span className="text-[10px] font-mono text-[#BFDD25] font-bold">
                                 PESANAN #{msg.orderCard.orderNumber}
                               </span>
-                              <span className="text-[8px] font-mono uppercase text-white bg-[#1a1a1a] px-1 py-0.5">
+                              <span className="text-[8px] font-mono uppercase text-white bg-[#050505] px-1 py-0.5">
                                 {msg.orderCard.status.replace(/_/g, " ")}
                               </span>
                             </div>
@@ -823,7 +823,7 @@ function MessagesContent() {
                             <div className="flex justify-between text-[11px] font-mono text-[#888888] mt-1">
                               <span>Total: <strong className="text-white">{formatPrice(msg.orderCard.price)}</strong></span>
                               {msg.orderCard.waybillNumber && (
-                                <span>Resi: <strong className="text-[#D4FF00]">{msg.orderCard.waybillNumber}</strong></span>
+                                <span>Resi: <strong className="text-[#BFDD25]">{msg.orderCard.waybillNumber}</strong></span>
                               )}
                             </div>
                           </div>
@@ -837,7 +837,7 @@ function MessagesContent() {
                           <div className="flex items-center justify-between pt-2 border-t border-[#1c1c1c]">
                             <Link
                               href="/orders"
-                              className="text-[10px] font-mono text-[#D4FF00] hover:underline uppercase tracking-wider font-bold"
+                              className="text-[10px] font-mono text-[#BFDD25] hover:underline uppercase tracking-wider font-bold"
                             >
                               Detail Pesanan →
                             </Link>
@@ -853,8 +853,8 @@ function MessagesContent() {
                         <div
                           className={`max-w-[85%] sm:max-w-[70%] px-3.5 py-2.5 text-xs sm:text-[13px] leading-relaxed break-words border ${
                             isMe
-                              ? "bg-[#181818] text-white border-[#2e2e2e]"
-                              : "bg-[#101010] border-[#1a1a1a] text-[#E5E5EA]"
+                              ? "bg-[#050505] text-white border-[#2e2e2e]"
+                              : "bg-[#050505] border-[#1a1a1a] text-[#E5E5EA]"
                           }`}
                         >
                           <p>{msg.text}</p>
@@ -876,7 +876,7 @@ function MessagesContent() {
                     animate={{ opacity: 1, y: 0 }}
                     className="flex items-center gap-2 text-xs text-[#777777] font-mono pl-1"
                   >
-                    <div className="flex gap-1 items-center bg-[#121212] border border-[#222222] px-2.5 py-1.5">
+                    <div className="flex gap-1 items-center bg-[#050505] border border-[#222222] px-2.5 py-1.5">
                       <span className="w-1.5 h-1.5 bg-[#888888] animate-pulse"></span>
                       <span className="w-1.5 h-1.5 bg-[#888888] animate-pulse [animation-delay:0.2s]"></span>
                       <span className="w-1.5 h-1.5 bg-[#888888] animate-pulse [animation-delay:0.4s]"></span>
@@ -894,10 +894,10 @@ function MessagesContent() {
               {/* SHOPEE-STYLE FLOATING PRODUCT INQUIRY DOCK */}
               {/* ========================================================= */}
               {attachedProduct && (
-                <div className="p-3 bg-[#111111] border-t border-[#1c1c1c] shrink-0">
+                <div className="p-3 bg-[#050505] border-t border-[#1c1c1c] shrink-0">
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-12 h-12 bg-[#080808] border border-[#222222] shrink-0 relative overflow-hidden">
+                      <div className="w-12 h-12 bg-[#030303] border border-[#222222] shrink-0 relative overflow-hidden">
                         <Image
                           src={attachedProduct.image || "/placeholder.svg"}
                           alt={attachedProduct.name}
@@ -906,7 +906,7 @@ function MessagesContent() {
                         />
                       </div>
                       <div className="min-w-0">
-                        <span className="text-[9px] font-mono text-[#D4FF00] uppercase font-bold tracking-wider block">
+                        <span className="text-[9px] font-mono text-[#BFDD25] uppercase font-bold tracking-wider block">
                           PRODUK YANG INGIN DITANYAKAN
                         </span>
                         <h5 className="text-xs font-semibold text-white truncate max-w-md">
@@ -927,7 +927,7 @@ function MessagesContent() {
                             withProductCard: true,
                           })
                         }
-                        className="px-3.5 py-2 bg-[#D4FF00] hover:bg-white text-black font-mono text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
+                        className="px-3.5 py-2 bg-[#BFDD25] hover:bg-white text-black font-mono text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
                       >
                         Kirim Produk
                       </button>
@@ -951,7 +951,7 @@ function MessagesContent() {
                           withProductCard: true,
                         })
                       }
-                      className="px-2.5 py-1 bg-[#181818] hover:bg-[#222222] border border-[#262626] text-[11px] font-sans text-[#CCCCCC] hover:text-white whitespace-nowrap transition-colors cursor-pointer"
+                      className="px-2.5 py-1 bg-[#050505] hover:bg-[#050505] border border-[#1c1c1c] text-[11px] font-sans text-[#CCCCCC] hover:text-white whitespace-nowrap transition-colors cursor-pointer"
                     >
                       Apakah ready stock?
                     </button>
@@ -962,7 +962,7 @@ function MessagesContent() {
                           withProductCard: true,
                         })
                       }
-                      className="px-2.5 py-1 bg-[#181818] hover:bg-[#222222] border border-[#262626] text-[11px] font-sans text-[#CCCCCC] hover:text-white whitespace-nowrap transition-colors cursor-pointer"
+                      className="px-2.5 py-1 bg-[#050505] hover:bg-[#050505] border border-[#1c1c1c] text-[11px] font-sans text-[#CCCCCC] hover:text-white whitespace-nowrap transition-colors cursor-pointer"
                     >
                       Garansi resmi?
                     </button>
@@ -973,7 +973,7 @@ function MessagesContent() {
                           withProductCard: true,
                         })
                       }
-                      className="px-2.5 py-1 bg-[#181818] hover:bg-[#222222] border border-[#262626] text-[11px] font-sans text-[#CCCCCC] hover:text-white whitespace-nowrap transition-colors cursor-pointer"
+                      className="px-2.5 py-1 bg-[#050505] hover:bg-[#050505] border border-[#1c1c1c] text-[11px] font-sans text-[#CCCCCC] hover:text-white whitespace-nowrap transition-colors cursor-pointer"
                     >
                       Bisa kirim hari ini?
                     </button>
@@ -983,10 +983,10 @@ function MessagesContent() {
 
               {/* FLOATING ORDER DOCK */}
               {attachedOrder && (
-                <div className="p-3 bg-[#111111] border-t border-[#1c1c1c] shrink-0">
+                <div className="p-3 bg-[#050505] border-t border-[#1c1c1c] shrink-0">
                   <div className="flex items-center justify-between gap-3">
                     <div className="min-w-0">
-                      <span className="text-[9px] font-mono text-[#D4FF00] uppercase font-bold tracking-wider block">
+                      <span className="text-[9px] font-mono text-[#BFDD25] uppercase font-bold tracking-wider block">
                         LAMPIRAN PESANAN
                       </span>
                       <h5 className="text-xs font-semibold text-white truncate">
@@ -1006,7 +1006,7 @@ function MessagesContent() {
                             { withOrderCard: true }
                           )
                         }
-                        className="px-3.5 py-2 bg-[#D4FF00] hover:bg-white text-black font-mono text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
+                        className="px-3.5 py-2 bg-[#BFDD25] hover:bg-white text-black font-mono text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
                       >
                         Kirim Info Pesanan
                       </button>
@@ -1026,13 +1026,13 @@ function MessagesContent() {
               {/* ========================================================= */}
               {/* SHOPEE-STYLE INPUT AREA WITH + PRODUK BUTTON */}
               {/* ========================================================= */}
-              <div className="p-3 bg-[#0c0c0c] border-t border-[#1c1c1c] shrink-0">
+              <div className="p-3 bg-[#050505] border-t border-[#1c1c1c] shrink-0">
                 <form onSubmit={handleFormSubmit} className="flex items-center gap-2">
                   {/* + Produk Button (Allows mentioning any product from catalog) */}
                   <button
                     type="button"
                     onClick={() => setIsProductPickerOpen(true)}
-                    className="px-3 py-2.5 bg-[#141414] hover:bg-[#1f1f1f] text-[#CCCCCC] hover:text-white border border-[#262626] font-mono text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer shrink-0 flex items-center gap-1.5"
+                    className="px-3 py-2.5 bg-[#050505] hover:bg-[#050505] text-[#CCCCCC] hover:text-white border border-[#1c1c1c] font-mono text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer shrink-0 flex items-center gap-1.5"
                     title="Pilih dan mention produk dari katalog"
                   >
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -1041,7 +1041,7 @@ function MessagesContent() {
                     <span>Produk</span>
                   </button>
 
-                  <div className="flex-1 bg-[#141414] border border-[#262626] focus-within:border-white flex items-center px-3 py-2 transition-colors">
+                  <div className="flex-1 bg-[#050505] border border-[#1c1c1c] focus-within:border-white flex items-center px-3 py-2 transition-colors">
                     <input
                       ref={textareaRef as any}
                       type="text"
@@ -1057,8 +1057,8 @@ function MessagesContent() {
                     disabled={!messageInput.trim() && !attachedProduct && !attachedOrder}
                     className={`px-4 py-2.5 font-mono text-xs font-bold uppercase tracking-wider transition-all cursor-pointer shrink-0 flex items-center gap-1.5 border ${
                       messageInput.trim() || attachedProduct || attachedOrder
-                        ? "bg-[#D4FF00] hover:bg-white text-black border-[#D4FF00]"
-                        : "bg-[#141414] text-[#555555] border-[#222222] cursor-not-allowed"
+                        ? "bg-[#BFDD25] hover:bg-white text-black border-[#BFDD25]"
+                        : "bg-[#050505] text-[#555555] border-[#222222] cursor-not-allowed"
                     }`}
                   >
                     <span>Kirim</span>
@@ -1070,8 +1070,8 @@ function MessagesContent() {
               </div>
             </>
           ) : (
-            <div className="flex-1 flex flex-col items-center justify-center text-center p-8 bg-[#080808]">
-              <div className="w-16 h-16 bg-[#141414] border border-[#222222] flex items-center justify-center text-[#555555] mb-4">
+            <div className="flex-1 flex flex-col items-center justify-center text-center p-8 bg-[#030303]">
+              <div className="w-16 h-16 bg-[#050505] border border-[#222222] flex items-center justify-center text-[#555555] mb-4">
                 <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                 </svg>
@@ -1097,11 +1097,11 @@ function MessagesContent() {
               initial={{ opacity: 0, scale: 0.98 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.98 }}
-              className="w-full max-w-lg bg-[#111111] border border-[#262626] p-5 shadow-2xl space-y-4"
+              className="w-full max-w-lg bg-[#050505] border border-[#1c1c1c] p-5 shadow-2xl space-y-4"
             >
               <div className="flex items-center justify-between pb-3 border-b border-[#222222]">
                 <div>
-                  <span className="text-[10px] font-mono text-[#D4FF00] uppercase font-bold tracking-wider block">
+                  <span className="text-[10px] font-mono text-[#BFDD25] uppercase font-bold tracking-wider block">
                     KATALOG TONAL ZONE
                   </span>
                   <h3 className="font-heading text-base font-bold text-white uppercase tracking-wider">
@@ -1123,7 +1123,7 @@ function MessagesContent() {
                 value={pickerSearch}
                 onChange={(e) => setPickerSearch(e.target.value)}
                 placeholder="Ketik nama IEM / DAC (misal: Blessing 3, IE 900)..."
-                className="w-full bg-[#161616] border border-[#2a2a2a] px-3 py-2 text-xs font-mono text-white placeholder:text-[#555555] outline-none"
+                className="w-full bg-[#050505] border border-[#2a2a2a] px-3 py-2 text-xs font-mono text-white placeholder:text-[#555555] outline-none"
               />
 
               {/* Product Grid */}
@@ -1131,7 +1131,7 @@ function MessagesContent() {
                 {filteredCatalog.map((item) => (
                   <div
                     key={item.id}
-                    className="pt-2 flex items-center justify-between gap-3 hover:bg-[#161616] p-2 transition-colors cursor-pointer"
+                    className="pt-2 flex items-center justify-between gap-3 hover:bg-[#050505] p-2 transition-colors cursor-pointer"
                     onClick={() => {
                       setAttachedProduct({
                         id: item.id,
@@ -1146,19 +1146,19 @@ function MessagesContent() {
                     }}
                   >
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-12 h-12 bg-[#0a0a0a] border border-[#222222] shrink-0 relative overflow-hidden">
+                      <div className="w-12 h-12 bg-[#050505] border border-[#222222] shrink-0 relative overflow-hidden">
                         <Image src={item.image || "/placeholder.svg"} alt={item.name} fill className="object-cover" />
                       </div>
                       <div className="min-w-0">
                         <span className="text-[9px] font-mono text-[#777777] uppercase block">{item.brand}</span>
                         <h4 className="text-xs font-semibold text-white truncate">{item.name}</h4>
-                        <span className="text-xs font-mono text-[#D4FF00] font-bold">{formatPrice(item.price)}</span>
+                        <span className="text-xs font-mono text-[#BFDD25] font-bold">{formatPrice(item.price)}</span>
                       </div>
                     </div>
 
                     <button
                       type="button"
-                      className="px-3 py-1.5 bg-[#1f1f1f] hover:bg-[#D4FF00] text-[#CCCCCC] hover:text-black border border-[#2a2a2a] text-[10px] font-mono font-bold uppercase tracking-wider shrink-0 transition-colors"
+                      className="px-3 py-1.5 bg-[#050505] hover:bg-[#BFDD25] text-[#CCCCCC] hover:text-black border border-[#2a2a2a] text-[10px] font-mono font-bold uppercase tracking-wider shrink-0 transition-colors"
                     >
                       Pilih
                     </button>
@@ -1177,7 +1177,7 @@ export default function MessagesPage() {
   return (
     <React.Suspense
       fallback={
-        <div className="min-h-screen bg-[#080808] flex items-center justify-center text-white font-mono text-xs">
+        <div className="min-h-screen bg-[#030303] flex items-center justify-center text-white font-mono text-xs">
           MEMUAT PERCAKAPAN...
         </div>
       }

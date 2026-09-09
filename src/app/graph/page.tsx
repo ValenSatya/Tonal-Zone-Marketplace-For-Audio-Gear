@@ -122,7 +122,7 @@ export default function GraphPage() {
   const activeProfile = acousticProfiles[selectedSignatureIndex];
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#0e0e0e] text-[#FAF9F6] font-sans selection:bg-[#D4FF00] selection:text-[#0e0e0e]">
+    <div className="flex flex-col min-h-screen bg-[#030303] text-[#FAF9F6] font-sans selection:bg-[#BFDD25] selection:text-[#030303]">
       <Navbar />
 
       <main className="relative w-full overflow-hidden flex-grow pt-24">
@@ -140,40 +140,40 @@ export default function GraphPage() {
           </div>
 
           <div className="w-full md:w-1/2 flex justify-end">
-            <div className="relative w-full max-w-[500px] aspect-[4/5] border border-[#222] bg-[#1a1a1a] flex flex-col items-center justify-center group overflow-hidden">
+            <div className="relative w-full max-w-[500px] aspect-[4/5] border border-[#222] bg-[#050505] flex flex-col items-center justify-center group overflow-hidden">
               <img 
                 src="https://blogs.qsc.com/live-sound/wp-content/uploads/sites/3/2024/06/IEM-Hero-Image-copy.jpg" 
                 alt="Audiophile listening with IEMs" 
                 className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-700" 
               />
-              <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-[#0e0e0e] to-transparent z-10" />
+              <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-[#030303] to-transparent z-10" />
               <div className="absolute bottom-6 left-6 right-6 flex items-end gap-1.5 opacity-10 z-0">
                  {[40, 25, 60, 30, 80, 45, 90, 50, 70, 35, 65, 40, 75, 20, 55].map((h, i) => (
-                   <div key={i} className="flex-1 bg-white transition-all duration-1000 group-hover:bg-[#D4FF00]" style={{ height: `${h}px` }} />
+                   <div key={i} className="flex-1 bg-white transition-all duration-1000 group-hover:bg-[#BFDD25]" style={{ height: `${h}px` }} />
                  ))}
               </div>
-              <div className="absolute top-4 right-4 w-3 h-3 border-t border-r border-[#D4FF00] opacity-50 group-hover:opacity-100 transition-opacity" />
-              <div className="absolute bottom-4 left-4 w-3 h-3 border-b border-l border-[#D4FF00] opacity-50 group-hover:opacity-100 transition-opacity z-20" />
+              <div className="absolute top-4 right-4 w-3 h-3 border-t border-r border-[#BFDD25] opacity-50 group-hover:opacity-100 transition-opacity" />
+              <div className="absolute bottom-4 left-4 w-3 h-3 border-b border-l border-[#BFDD25] opacity-50 group-hover:opacity-100 transition-opacity z-20" />
             </div>
           </div>
         </section>
 
         {/* 2. HOW TO READ GRAPH SECTION */}
-        <section className="w-full bg-[#0a0a0a] border-t border-[#222]">
+        <section className="w-full bg-[#030303] border-t border-[#1c1c1c]">
           <div className="w-full max-w-[1400px] mx-auto px-6 lg:px-12 py-20">
-            <div className="flex justify-between items-end border-b border-[#222] pb-4 mb-8">
+            <div className="flex justify-between items-end border-b border-[#1c1c1c] pb-4 mb-8">
               <h2 className="font-heading text-3xl font-bold uppercase tracking-widest text-[#FAF9F6]">
                 HOW TO READ GRAPH
               </h2>
               <div className="flex gap-3 pb-1">
                 {graphSections.map((_, i) => (
-                  <div key={i} className={`w-2 h-2 rounded-full transition-colors duration-500 ${activeSection === i ? 'bg-white' : 'bg-[#333]'}`} />
+                  <div key={i} className={`w-2 h-2 rounded-full transition-colors duration-500 ${activeSection === i ? 'bg-[#BFDD25]' : 'bg-[#050505]'}`} />
                 ))}
               </div>
             </div>
 
-            <div className="w-full border border-[#222] bg-[#0a0a0a] rounded-sm overflow-hidden flex flex-col shadow-lg">
-              <div className="w-full h-[450px] relative border-b border-[#222] p-8 flex items-center justify-center overflow-hidden">
+            <div className="w-full border border-[#1c1c1c] bg-[#030303] rounded-sm overflow-hidden flex flex-col shadow-lg">
+              <div className="w-full h-[450px] relative border-b border-[#1c1c1c] p-8 flex items-center justify-center overflow-hidden bg-[#030303]">
                 <div className="absolute inset-0 opacity-[0.04] pointer-events-none" style={{ backgroundImage: "linear-gradient(white 1px, transparent 1px), linear-gradient(90deg, white 1px, transparent 1px)", backgroundSize: "40px 40px" }}></div>
 
                 <div className="relative z-10 w-full h-full">
@@ -215,10 +215,10 @@ export default function GraphPage() {
                 </div>
               </div>
 
-              <div className="w-full flex h-32 relative bg-[#0e0e0e]">
+              <div className="w-full flex h-32 relative bg-[#030303]">
                 <button 
                   onClick={() => setActiveSection(Math.max(0, activeSection - 1))}
-                  className={`w-16 flex items-center justify-center border-r border-[#222] transition-colors ${activeSection === 0 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-[#111111] cursor-pointer'}`}
+                  className={`w-16 flex items-center justify-center border-r border-[#1c1c1c] transition-colors ${activeSection === 0 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-[#030303] cursor-pointer'}`}
                   disabled={activeSection === 0}
                 >
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FAF9F6" strokeWidth="2">
@@ -226,7 +226,7 @@ export default function GraphPage() {
                   </svg>
                 </button>
 
-                <div className="flex-1 p-6 md:p-8 flex flex-col justify-center overflow-hidden">
+                <div className="flex-1 p-6 md:p-8 flex flex-col justify-center overflow-hidden bg-[#030303]">
                   <AnimatePresence mode="wait">
                     <motion.div
                       key={activeSection}
@@ -244,10 +244,10 @@ export default function GraphPage() {
 
                 <button 
                   onClick={() => setActiveSection(Math.min(graphSections.length - 1, activeSection + 1))}
-                  className={`w-1/4 max-w-[200px] border-l border-[#222] bg-[#0a0a0a] transition-colors flex flex-col items-center justify-center gap-2 group ${activeSection === graphSections.length - 1 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-[#111111] cursor-pointer'}`}
+                  className={`w-1/4 max-w-[200px] border-l border-[#1c1c1c] bg-[#030303] transition-colors flex flex-col items-center justify-center gap-2 group ${activeSection === graphSections.length - 1 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-[#030303] cursor-pointer'}`}
                   disabled={activeSection === graphSections.length - 1}
                 >
-                  <span className="text-[10px] font-mono text-[#FAF9F6]/70 uppercase tracking-widest hidden sm:block">NEXT SECTION</span>
+                  <span className="text-[10px] font-mono text-[#FAF9F6]/70 uppercase tracking-widest hidden sm:block group-hover:text-white transition-colors">NEXT SECTION</span>
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FAF9F6" strokeWidth="2" className={activeSection === graphSections.length - 1 ? "" : "group-hover:translate-x-2 transition-transform"}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                   </svg>
@@ -258,7 +258,7 @@ export default function GraphPage() {
         </section>
 
         {/* 3. SOUND SIGNATURES (MINIMALIST SWISS TYPOGRAPHY) */}
-        <section id="sound-signatures-editorial" className="w-full bg-[#0e0e0e] border-t border-[#1a1a1a] py-32">
+        <section id="sound-signatures-editorial" className="w-full bg-[#030303] border-t border-[#1a1a1a] py-32">
           <div className="w-full max-w-[1400px] mx-auto px-6 lg:px-12">
             
             {/* Editorial Header */}
@@ -379,13 +379,13 @@ export default function GraphPage() {
         </section>
 
         {/* 5. EXPLORE COLLECTION CTA SECTION */}
-        <section className="w-full relative border-t border-[#1c1c1c] py-40 flex items-center justify-center bg-[#0a0a0a]">
+        <section className="w-full relative border-t border-[#1c1c1c] py-40 flex items-center justify-center bg-[#030303]">
           {/* Subtle Grid Background with Deep Vignette */}
           <div className="absolute inset-0 pointer-events-none opacity-40" style={{ backgroundImage: "linear-gradient(#1a1a1a 1px, transparent 1px), linear-gradient(90deg, #1a1a1a 1px, transparent 1px)", backgroundSize: "40px 40px" }}></div>
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,#0a0a0a_90%)] pointer-events-none"></div>
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,#030303_90%)] pointer-events-none"></div>
 
           <div className="relative z-10 w-full max-w-[1200px] mx-auto px-6 lg:px-12 flex flex-col items-center justify-center text-center space-y-8">
-            <span className="font-mono text-xs text-[#D4FF00] uppercase tracking-[0.25em] font-bold">
+            <span className="font-mono text-xs text-[#BFDD25] uppercase tracking-[0.25em] font-bold">
               TONAL ZONE CURATED VAULT
             </span>
 
@@ -410,7 +410,7 @@ export default function GraphPage() {
                     const el = document.getElementById("comparator");
                     if (el) el.scrollIntoView({ behavior: "smooth" });
                   }}
-                  className="px-8 py-4 bg-[#141414] hover:bg-[#1c1c1c] text-white border border-[#262626] font-mono text-xs font-bold tracking-widest uppercase transition-colors cursor-pointer"
+                  className="px-8 py-4 bg-[#050505] hover:bg-[#080808] text-white border border-[#1c1c1c] font-mono text-xs font-bold tracking-widest uppercase transition-colors cursor-pointer"
                 >
                   Bandingkan Grafik ↑
                 </button>

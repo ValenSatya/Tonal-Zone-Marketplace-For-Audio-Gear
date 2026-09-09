@@ -32,7 +32,7 @@ export default function SystemSettingsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#222] pb-5">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-[10px] font-mono font-medium bg-[#141414] text-[#A1A1AA] border border-[#27272A] px-2 py-0.5 rounded uppercase tracking-wider">
+            <span className="text-[10px] font-mono font-medium bg-[#050505] text-[#A1A1AA] border border-[#27272A] px-2 py-0.5 rounded uppercase tracking-wider">
               {isEn ? "Platform Core" : "Konfigurasi Inti"}
             </span>
           </div>
@@ -58,7 +58,7 @@ export default function SystemSettingsPage() {
       </div>
 
       {isSaved && (
-        <div className="p-3.5 rounded-xl bg-[#141414] border border-[#2A2A2A] text-white text-xs font-mono flex items-center gap-2">
+        <div className="p-3.5 rounded-xl bg-[#050505] border border-[#2A2A2A] text-white text-xs font-mono flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-emerald-400" />
           {isEn ? "System configuration saved successfully." : "Konfigurasi sistem berhasil disimpan."}
         </div>
@@ -67,7 +67,7 @@ export default function SystemSettingsPage() {
       {/* Configuration Cards Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Card 1: Escrow & Marketplace Platform Parameters */}
-        <div className="bg-[#111111] border border-[#222222] rounded-xl p-5 space-y-4 font-sans text-xs">
+        <div className="bg-[#050505] border border-[#222222] rounded-xl p-5 space-y-4 font-sans text-xs">
           <div className="flex items-center gap-2 pb-2 border-b border-[#1E1E1E]">
             <span className="w-1.5 h-1.5 rounded-full bg-white" />
             <h3 className="text-xs font-bold text-white uppercase tracking-wider">
@@ -85,7 +85,7 @@ export default function SystemSettingsPage() {
                 step="0.1"
                 value={settings.escrowFeePercent}
                 onChange={(e) => setSettings({ ...settings, escrowFeePercent: parseFloat(e.target.value) || 0 })}
-                className="w-full bg-[#161616] border border-[#2A2A2A] rounded-lg px-3.5 py-2 text-xs font-mono text-white outline-none focus:border-white"
+                className="w-full bg-[#050505] border border-[#2A2A2A] rounded-lg px-3.5 py-2 text-xs font-mono text-white outline-none focus:border-white"
               />
             </div>
 
@@ -97,7 +97,7 @@ export default function SystemSettingsPage() {
                 type="number"
                 value={settings.inspectionWindowHours}
                 onChange={(e) => setSettings({ ...settings, inspectionWindowHours: parseInt(e.target.value, 10) || 0 })}
-                className="w-full bg-[#161616] border border-[#2A2A2A] rounded-lg px-3.5 py-2 text-xs font-mono text-white outline-none focus:border-white"
+                className="w-full bg-[#050505] border border-[#2A2A2A] rounded-lg px-3.5 py-2 text-xs font-mono text-white outline-none focus:border-white"
               />
               <p className="text-[10px] font-mono text-[#52525B] mt-1">
                 Standard: 48 Hours (2x24 Jam) for IEM listening test & seal verification.
@@ -107,7 +107,7 @@ export default function SystemSettingsPage() {
         </div>
 
         {/* Card 2: Payment Gateway & Security */}
-        <div className="bg-[#111111] border border-[#222222] rounded-xl p-5 space-y-4 font-sans text-xs">
+        <div className="bg-[#050505] border border-[#222222] rounded-xl p-5 space-y-4 font-sans text-xs">
           <div className="flex items-center gap-2 pb-2 border-b border-[#1E1E1E]">
             <span className="w-1.5 h-1.5 rounded-full bg-white" />
             <h3 className="text-xs font-bold text-white uppercase tracking-wider">
@@ -139,7 +139,7 @@ export default function SystemSettingsPage() {
                 type="email"
                 value={settings.adminNotificationEmail}
                 onChange={(e) => setSettings({ ...settings, adminNotificationEmail: e.target.value })}
-                className="w-full bg-[#161616] border border-[#2A2A2A] rounded-lg px-3.5 py-2 text-xs font-mono text-white outline-none focus:border-white"
+                className="w-full bg-[#050505] border border-[#2A2A2A] rounded-lg px-3.5 py-2 text-xs font-mono text-white outline-none focus:border-white"
               />
             </div>
           </div>

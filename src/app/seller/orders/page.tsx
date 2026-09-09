@@ -218,7 +218,7 @@ export default function SellerOrdersPage() {
             <h1 className="text-xl font-bold font-sans tracking-tight text-white">
               {isEn ? "Store Orders & Waybill Dispatch" : "Pesanan Toko & Pengiriman Resi"}
             </h1>
-            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#1A1A1A] text-[#FAF9F6] border border-[#2E2E2E]">
+            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#050505] text-[#FAF9F6] border border-[#2E2E2E]">
               {orders.length} {isEn ? "Total Orders" : "Total Pesanan"}
             </span>
           </div>
@@ -249,7 +249,7 @@ export default function SellerOrdersPage() {
               link.click();
               document.body.removeChild(link);
             }}
-            className="inline-flex items-center gap-1.5 bg-[#141414] hover:bg-[#1C1C1C] text-[#FAF9F6] border border-[#262626] hover:border-[#3E3E3E] px-3.5 py-1.5 rounded-lg text-xs font-sans font-medium transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 bg-[#050505] hover:bg-[#050505] text-[#FAF9F6] border border-[#1c1c1c] hover:border-[#3E3E3E] px-3.5 py-1.5 rounded-lg text-xs font-sans font-medium transition-colors cursor-pointer"
           >
             <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
@@ -260,9 +260,9 @@ export default function SellerOrdersPage() {
       </div>
 
       {/* Main Table Card */}
-      <div className="bg-[#111111] border border-[#222222] rounded-xl overflow-hidden flex flex-col">
+      <div className="bg-[#050505] border border-[#222222] rounded-xl overflow-hidden flex flex-col">
         {/* Toolbar: Status Tabs & Search */}
-        <div className="p-4 border-b border-[#1E1E1E] bg-[#141414] flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div className="p-4 border-b border-[#1E1E1E] bg-[#050505] flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div className="flex items-center gap-1.5 overflow-x-auto pb-1 lg:pb-0">
             {[
               { id: "ALL", label: isEn ? "All Orders" : "Semua Pesanan", count: orders.length },
@@ -277,8 +277,8 @@ export default function SellerOrdersPage() {
                 onClick={() => setActiveTab(tab.id as any)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-sans transition-all cursor-pointer whitespace-nowrap border ${
                   activeTab === tab.id
-                    ? "bg-[#242424] text-[#FAF9F6] font-semibold border-[#383838] shadow-sm"
-                    : "text-[#8E8E93] hover:text-[#FAF9F6] hover:bg-[#1A1A1A] border-transparent"
+                    ? "bg-[#050505] text-[#FAF9F6] font-semibold border-[#383838] shadow-sm"
+                    : "text-[#8E8E93] hover:text-[#FAF9F6] hover:bg-[#050505] border-transparent"
                 }`}
               >
                 {tab.label}
@@ -296,7 +296,7 @@ export default function SellerOrdersPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={isEn ? "Search order, buyer, waybill..." : "Cari pesanan, pembeli, resi..."}
-              className="w-full bg-[#111] border border-[#2A2A2A] rounded-lg pl-9 pr-8 py-1.5 text-xs font-sans text-white placeholder:text-[#666] focus:outline-none focus:border-[#555] transition-colors"
+              className="w-full bg-[#050505] border border-[#2A2A2A] rounded-lg pl-9 pr-8 py-1.5 text-xs font-sans text-white placeholder:text-[#666] focus:outline-none focus:border-[#555] transition-colors"
             />
           </div>
         </div>
@@ -305,7 +305,7 @@ export default function SellerOrdersPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse font-sans text-xs">
             <thead>
-              <tr className="border-b border-[#1E1E1E] bg-[#0E0E0E] text-[10px] font-mono uppercase text-[#777] tracking-wider">
+              <tr className="border-b border-[#1E1E1E] bg-[#030303] text-[10px] font-mono uppercase text-[#777] tracking-wider">
                 <th className="px-5 py-3.5">{isEn ? "Order ID / Date" : "ID Pesanan / Waktu"}</th>
                 <th className="px-5 py-3.5">{isEn ? "Product" : "Produk"}</th>
                 <th className="px-5 py-3.5">{isEn ? "Buyer & Destination" : "Pembeli & Alamat"}</th>
@@ -318,7 +318,7 @@ export default function SellerOrdersPage() {
             <tbody className="divide-y divide-[#1A1A1A]">
               {filteredOrders.length > 0 ? (
                 filteredOrders.map((ord) => (
-                  <tr key={ord.id} className="hover:bg-[#161616] transition-colors">
+                  <tr key={ord.id} className="hover:bg-[#050505] transition-colors">
                     {/* Order ID & Date */}
                     <td className="px-5 py-3.5 whitespace-nowrap">
                       <div className="flex flex-col">
@@ -366,7 +366,7 @@ export default function SellerOrdersPage() {
 
                     {/* Payment Status */}
                     <td className="px-5 py-3.5 text-center whitespace-nowrap">
-                      <span className="inline-flex items-center gap-2 px-2.5 py-1 text-xs font-mono font-medium bg-[#141414] text-[#CCCCCC] border border-[#222222]">
+                      <span className="inline-flex items-center gap-2 px-2.5 py-1 text-xs font-mono font-medium bg-[#050505] text-[#CCCCCC] border border-[#222222]">
                         <span
                           className={`w-1.5 h-1.5 rounded-full ${
                             ord.escrowStatus === "RELEASED" ? "bg-white" : "bg-[#777777]"
@@ -389,7 +389,7 @@ export default function SellerOrdersPage() {
                               setSelectedCourier(ord.courier);
                               setWaybillInput("");
                             }}
-                            className="px-3 py-1 bg-[#1C1C1C] hover:bg-[#282828] text-white border border-[#2E2E2E] hover:border-white text-xs font-mono font-bold rounded-lg transition-colors cursor-pointer shadow-sm"
+                            className="px-3 py-1 bg-[#050505] hover:bg-[#050505] text-white border border-[#2E2E2E] hover:border-white text-xs font-mono font-bold rounded-lg transition-colors cursor-pointer shadow-sm"
                           >
                             {isEn ? "Input Resi" : "Input Resi"}
                           </button>
@@ -397,7 +397,7 @@ export default function SellerOrdersPage() {
                           <button
                             type="button"
                             onClick={() => setSlipOrder(ord)}
-                            className="px-2.5 py-1 bg-[#1A1A1A] hover:bg-[#262626] border border-[#2E2E2E] text-white text-[11px] font-mono rounded transition-colors cursor-pointer"
+                            className="px-2.5 py-1 bg-[#050505] hover:bg-[#050505] border border-[#2E2E2E] text-white text-[11px] font-mono rounded transition-colors cursor-pointer"
                           >
                             {isEn ? "Packing Slip" : "Cetak Resi"}
                           </button>
@@ -410,7 +410,7 @@ export default function SellerOrdersPage() {
                 <tr>
                   <td colSpan={7} className="py-16 text-center">
                     <div className="flex flex-col items-center justify-center max-w-md mx-auto space-y-3">
-                      <div className="w-12 h-12 rounded-2xl bg-[#141414] border border-[#262626] flex items-center justify-center text-[#71717A]">
+                      <div className="w-12 h-12 rounded-2xl bg-[#050505] border border-[#1c1c1c] flex items-center justify-center text-[#71717A]">
                         <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.175V3.375c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75" />
                         </svg>
@@ -450,7 +450,7 @@ export default function SellerOrdersPage() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="relative w-full max-w-md bg-[#111111] border border-[#2A2A2A] rounded-2xl shadow-2xl p-6 font-sans z-10 space-y-4"
+              className="relative w-full max-w-md bg-[#050505] border border-[#2A2A2A] rounded-2xl shadow-2xl p-6 font-sans z-10 space-y-4"
             >
               <div className="flex items-center justify-between pb-3 border-b border-[#222]">
                 <h3 className="text-sm font-bold text-white">
@@ -463,7 +463,7 @@ export default function SellerOrdersPage() {
                 </button>
               </div>
 
-              <div className="bg-[#161616] p-3 rounded-xl border border-[#262626] space-y-1 text-xs">
+              <div className="bg-[#050505] p-3 rounded-xl border border-[#1c1c1c] space-y-1 text-xs">
                 <div className="flex justify-between font-mono">
                   <span className="text-[#888]">Order ID:</span>
                   <span className="font-bold text-white">{dispatchOrder.id}</span>
@@ -506,7 +506,7 @@ export default function SellerOrdersPage() {
                     placeholder={isEn ? "e.g. JNT-88942109ID" : "Contoh: JNT-88942109ID"}
                     value={waybillInput}
                     onChange={(e) => setWaybillInput(e.target.value)}
-                    className="w-full bg-[#161616] border border-[#2A2A2A] rounded-lg px-3 py-2 text-xs font-mono font-bold text-white uppercase placeholder:text-[#555] outline-none focus:border-white"
+                    className="w-full bg-[#050505] border border-[#2A2A2A] rounded-lg px-3 py-2 text-xs font-mono font-bold text-white uppercase placeholder:text-[#555] outline-none focus:border-white"
                   />
                 </div>
 
@@ -514,7 +514,7 @@ export default function SellerOrdersPage() {
                   <button
                     type="button"
                     onClick={() => setDispatchOrder(null)}
-                    className="px-3.5 py-1.5 bg-[#1A1A1A] hover:bg-[#242424] text-white text-xs font-mono rounded-lg transition-colors cursor-pointer"
+                    className="px-3.5 py-1.5 bg-[#050505] hover:bg-[#050505] text-white text-xs font-mono rounded-lg transition-colors cursor-pointer"
                   >
                     {isEn ? "Cancel" : "Batal"}
                   </button>

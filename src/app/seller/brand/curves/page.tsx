@@ -108,7 +108,7 @@ export default function BrandCurvesPage() {
             <h1 className="text-xl font-bold font-sans tracking-tight text-white">
               {isEn ? "Master Catalog & Acoustic FR Vault" : "Master Katalog & Kurva Akustik FR"}
             </h1>
-            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-[#141414] text-[#A1A1AA] border border-[#27272A]">
+            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-[#050505] text-[#A1A1AA] border border-[#27272A]">
               IEC-711 Standard
             </span>
           </div>
@@ -123,7 +123,7 @@ export default function BrandCurvesPage() {
           <Link
             href="/graph"
             target="_blank"
-            className="inline-flex items-center gap-1.5 bg-[#141414] hover:bg-[#1C1C1C] text-[#FAF9F6] border border-[#262626] px-3.5 py-1.5 rounded-lg text-xs font-sans font-medium transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 bg-[#050505] hover:bg-[#050505] text-[#FAF9F6] border border-[#1c1c1c] px-3.5 py-1.5 rounded-lg text-xs font-sans font-medium transition-colors cursor-pointer"
           >
             <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
@@ -144,12 +144,12 @@ export default function BrandCurvesPage() {
 
       {/* Selected Curve Visualizer Preview */}
       {selectedModel && (
-        <div className="bg-[#111111] border border-[#222222] rounded-xl p-5 space-y-4">
+        <div className="bg-[#050505] border border-[#222222] rounded-xl p-5 space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-[#1E1E1E]">
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="text-sm font-semibold text-white">{selectedModel.name}</h3>
-                <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#161616] text-[#D4D4D8] border border-[#2A2A2A]">
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#050505] text-[#D4D4D8] border border-[#2A2A2A]">
                   {selectedModel.targetCompliance}
                 </span>
               </div>
@@ -166,7 +166,7 @@ export default function BrandCurvesPage() {
           </div>
 
           {/* Clean FR Canvas */}
-          <div className="h-48 bg-[#090909] border border-[#1E1E1E] rounded-lg p-4 relative overflow-hidden flex flex-col justify-between">
+          <div className="h-48 bg-[#030303] border border-[#1E1E1E] rounded-lg p-4 relative overflow-hidden flex flex-col justify-between">
             <div className="flex justify-between items-center text-[10px] font-mono text-[#52525B]">
               <span>20 Hz</span>
               <span>100 Hz</span>
@@ -218,8 +218,8 @@ export default function BrandCurvesPage() {
       )}
 
       {/* Master Models Table */}
-      <div className="bg-[#111111] border border-[#222222] rounded-xl overflow-hidden">
-        <div className="p-4 border-b border-[#1E1E1E] bg-[#141414] flex items-center justify-between">
+      <div className="bg-[#050505] border border-[#222222] rounded-xl overflow-hidden">
+        <div className="p-4 border-b border-[#1E1E1E] bg-[#050505] flex items-center justify-between">
           <h3 className="text-xs font-bold text-white uppercase tracking-wider font-mono">
             {isEn ? "Master Acoustic Lineup" : "Daftar Model Master TANGZU"}
           </h3>
@@ -229,7 +229,7 @@ export default function BrandCurvesPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse font-sans text-xs">
             <thead>
-              <tr className="border-b border-[#1E1E1E] bg-[#0E0E0E] text-[10px] font-mono uppercase text-[#71717A] tracking-wider">
+              <tr className="border-b border-[#1E1E1E] bg-[#030303] text-[10px] font-mono uppercase text-[#71717A] tracking-wider">
                 <th className="px-5 py-3.5">Model & Transducer</th>
                 <th className="px-5 py-3.5">Coupler</th>
                 <th className="px-5 py-3.5">Target Compliance</th>
@@ -243,8 +243,8 @@ export default function BrandCurvesPage() {
                 <tr
                   key={m.id}
                   onClick={() => setSelectedModel(m)}
-                  className={`hover:bg-[#161616] cursor-pointer transition-colors ${
-                    selectedModel?.id === m.id ? "bg-[#181818]" : ""
+                  className={`hover:bg-[#050505] cursor-pointer transition-colors ${
+                    selectedModel?.id === m.id ? "bg-[#050505]" : ""
                   }`}
                 >
                   <td className="px-5 py-3.5">
@@ -269,7 +269,7 @@ export default function BrandCurvesPage() {
                   </td>
 
                   <td className="px-5 py-3.5 text-center">
-                    <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#161616] text-[#A1A1AA] border border-[#27272A]">
+                    <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#050505] text-[#A1A1AA] border border-[#27272A]">
                       {m.status === "ACTIVE_PRODUCTION" ? "Active" : "Prototype"}
                     </span>
                   </td>
@@ -281,7 +281,7 @@ export default function BrandCurvesPage() {
                         e.stopPropagation();
                         setSelectedModel(m);
                       }}
-                      className="px-2.5 py-1 bg-[#1A1A1A] hover:bg-[#242424] text-[#D4D4D8] text-[10px] font-mono rounded border border-[#2A2A2A] transition-colors"
+                      className="px-2.5 py-1 bg-[#050505] hover:bg-[#050505] text-[#D4D4D8] text-[10px] font-mono rounded border border-[#2A2A2A] transition-colors"
                     >
                       View
                     </button>

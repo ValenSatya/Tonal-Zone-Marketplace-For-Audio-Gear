@@ -259,7 +259,7 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0d0d0d] text-[#e5e5e5] font-sans flex flex-col relative">
+    <div className="min-h-screen bg-[#030303] text-[#e5e5e5] font-sans flex flex-col relative">
       <Navbar />
 
       <main className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full flex-1">
@@ -281,7 +281,7 @@ export default function SettingsPage() {
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="fixed bottom-8 right-8 z-50 bg-[#1a1a1a] border border-[#333] text-white px-4 py-3 rounded-lg shadow-xl flex items-center gap-2.5 text-xs font-medium"
+              className="fixed bottom-8 right-8 z-50 bg-[#050505] border border-[#333] text-white px-4 py-3 rounded-lg shadow-xl flex items-center gap-2.5 text-xs font-medium"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-emerald-400"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
               <span>{saveMessage}</span>
@@ -303,8 +303,8 @@ export default function SettingsPage() {
               onClick={() => setActiveTab("profile")}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer text-left ${
                 activeTab === "profile"
-                  ? "bg-[#1f1f1f] text-white font-semibold"
-                  : "text-[#888] hover:text-white hover:bg-[#161616]"
+                  ? "bg-[#080808] border border-white/20 text-white font-semibold"
+                  : "text-[#888] hover:text-white hover:bg-[#050505]"
               }`}
             >
               <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
@@ -316,8 +316,8 @@ export default function SettingsPage() {
               onClick={() => setActiveTab("security")}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer text-left ${
                 activeTab === "security"
-                  ? "bg-[#1f1f1f] text-white font-semibold"
-                  : "text-[#888] hover:text-white hover:bg-[#161616]"
+                  ? "bg-[#080808] border border-white/20 text-white font-semibold"
+                  : "text-[#888] hover:text-white hover:bg-[#050505]"
               }`}
             >
               <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
@@ -329,8 +329,8 @@ export default function SettingsPage() {
               onClick={() => setActiveTab("notifications")}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer text-left ${
                 activeTab === "notifications"
-                  ? "bg-[#1f1f1f] text-white font-semibold"
-                  : "text-[#888] hover:text-white hover:bg-[#161616]"
+                  ? "bg-[#080808] border border-white/20 text-white font-semibold"
+                  : "text-[#888] hover:text-white hover:bg-[#050505]"
               }`}
             >
               <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
@@ -342,8 +342,8 @@ export default function SettingsPage() {
               onClick={() => setActiveTab("addresses")}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer text-left ${
                 activeTab === "addresses"
-                  ? "bg-[#1f1f1f] text-white font-semibold"
-                  : "text-[#888] hover:text-white hover:bg-[#161616]"
+                  ? "bg-[#080808] border border-white/20 text-white font-semibold"
+                  : "text-[#888] hover:text-white hover:bg-[#050505]"
               }`}
             >
               <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
@@ -355,8 +355,8 @@ export default function SettingsPage() {
               onClick={() => setActiveTab("preferences")}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer text-left ${
                 activeTab === "preferences"
-                  ? "bg-[#1f1f1f] text-white font-semibold"
-                  : "text-[#888] hover:text-white hover:bg-[#161616]"
+                  ? "bg-[#080808] border border-white/20 text-white font-semibold"
+                  : "text-[#888] hover:text-white hover:bg-[#050505]"
               }`}
             >
               <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
@@ -377,8 +377,8 @@ export default function SettingsPage() {
                   }}
                   className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer text-left ${
                     activeTab === "seller"
-                      ? "bg-[#1f1f1f] text-white font-semibold"
-                      : "text-[#888] hover:text-white hover:bg-[#161616]"
+                      ? "bg-[#080808] border border-white/20 text-white font-semibold"
+                      : "text-[#888] hover:text-white hover:bg-[#050505]"
                   }`}
                 >
                   <div className="flex items-center gap-3">
@@ -402,7 +402,7 @@ export default function SettingsPage() {
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.15 }}
-                  className="bg-[#0e0e0e] border border-[#222] rounded-xl p-6 sm:p-8 space-y-8"
+                  className="bg-[#030303] border border-[#222] rounded-xl p-6 sm:p-8 space-y-8"
                 >
                   <div>
                     <h2 className="text-lg font-semibold text-white">{t("settings.accountProfile")}</h2>
@@ -413,11 +413,11 @@ export default function SettingsPage() {
 
                   <form onSubmit={handleSaveProfile} className="space-y-6">
                     {/* Role Status Display */}
-                    <div className="bg-[#181818] border border-[#262626] rounded-lg p-5 flex items-center justify-between">
+                    <div className="bg-[#050505] border border-[#1c1c1c] rounded-lg p-5 flex items-center justify-between">
                       <div>
                         <span className="text-xs text-[#888] block mb-1">{t("settings.accountType")}</span>
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-mono font-semibold uppercase tracking-wider text-white bg-[#222] border border-[#333] px-2 py-0.5 rounded">
+                          <span className="text-xs font-mono font-semibold uppercase tracking-wider text-white bg-[#080808] border border-[#333] px-2 py-0.5 rounded">
                             {roleBadge}
                           </span>
                           <span className="text-xs text-[#aaa]">
@@ -428,12 +428,12 @@ export default function SettingsPage() {
                     </div>
 
                     {/* AVATAR PROFILE PICTURE SECTION */}
-                    <div className="bg-[#181818] border border-[#262626] rounded-lg p-5 space-y-4">
+                    <div className="bg-[#050505] border border-[#1c1c1c] rounded-lg p-5 space-y-4">
                       <label className="block text-xs font-medium text-[#ccc]">
                         Foto Profil Akun
                       </label>
                       <div className="flex flex-col sm:flex-row items-center gap-5">
-                        <div className="w-20 h-20 rounded-full bg-[#222] border-2 border-[#333] overflow-hidden shrink-0 flex items-center justify-center shadow-md relative group/av">
+                        <div className="w-20 h-20 rounded-full bg-[#080808] border-2 border-[#333] overflow-hidden shrink-0 flex items-center justify-center shadow-md relative group/av">
                           {avatar && avatar !== "/placeholder.svg" ? (
                             <img src={avatar} alt={name} className="w-full h-full object-cover" />
                           ) : (
@@ -455,7 +455,7 @@ export default function SettingsPage() {
                             <button
                               type="button"
                               onClick={() => avatarInputRef.current?.click()}
-                              className="px-4 py-2 bg-[#222] hover:bg-[#333] border border-[#333] text-white rounded-lg text-xs font-medium transition-colors cursor-pointer"
+                              className="px-4 py-2 bg-[#080808] hover:bg-[#050505] border border-[#333] text-white rounded-lg text-xs font-medium transition-colors cursor-pointer"
                             >
                               Upload Foto Baru
                             </button>
@@ -476,7 +476,7 @@ export default function SettingsPage() {
                       </div>
 
                       {/* Quick Presets */}
-                      <div className="pt-2 border-t border-[#262626]">
+                      <div className="pt-2 border-t border-[#1c1c1c]">
                         <span className="text-[10px] font-mono text-[#888] uppercase tracking-wider block mb-2">
                           Atau Pilih Preset Avatar Audiophile:
                         </span>
@@ -495,7 +495,7 @@ export default function SettingsPage() {
                                 triggerSaveNotification(`Preset ${p.name} dipilih.`);
                               }}
                               className={`w-9 h-9 rounded-full overflow-hidden border transition-all cursor-pointer ${
-                                avatar === p.url ? "border-[#D4FF00] scale-105" : "border-[#333] hover:border-white"
+                                avatar === p.url ? "border-[#BFDD25] scale-105" : "border-[#333] hover:border-white"
                               }`}
                               title={p.name}
                             >
@@ -516,7 +516,7 @@ export default function SettingsPage() {
                           value={name}
                           onChange={(e) => setName(e.target.value)}
                           required
-                          className="w-full bg-[#181818] border border-[#262626] focus:border-white text-white px-3.5 py-2.5 rounded-lg text-xs outline-none transition-colors"
+                          className="w-full bg-[#050505] border border-[#1c1c1c] focus:border-white text-white px-3.5 py-2.5 rounded-lg text-xs outline-none transition-colors"
                           placeholder="e.g. Alex Rivera"
                         />
                       </div>
@@ -530,7 +530,7 @@ export default function SettingsPage() {
                           value={gear}
                           onChange={(e) => setGear(e.target.value)}
                           required
-                          className="w-full bg-[#181818] border border-[#262626] focus:border-white text-white px-3.5 py-2.5 rounded-lg text-xs outline-none transition-colors"
+                          className="w-full bg-[#050505] border border-[#1c1c1c] focus:border-white text-white px-3.5 py-2.5 rounded-lg text-xs outline-none transition-colors"
                           placeholder="e.g. Dedicated DAC/AMP or Portable Dongle"
                         />
                       </div>
@@ -556,7 +556,7 @@ export default function SettingsPage() {
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.15 }}
-                  className="bg-[#0e0e0e] border border-[#222] rounded-xl p-6 sm:p-8 space-y-8"
+                  className="bg-[#030303] border border-[#222] rounded-xl p-6 sm:p-8 space-y-8"
                 >
                   <div>
                     <h2 className="text-lg font-semibold text-white">{t("settings.securityEmail")}</h2>
@@ -566,13 +566,13 @@ export default function SettingsPage() {
                   </div>
 
                   {/* Email Section */}
-                  <div className="bg-[#181818] border border-[#262626] rounded-lg p-5 space-y-4">
+                  <div className="bg-[#050505] border border-[#1c1c1c] rounded-lg p-5 space-y-4">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                       <div>
                         <span className="text-xs text-[#888] block mb-1">{t("settings.email")}</span>
                         <div className="flex items-center gap-2.5">
                           <span className="text-sm font-medium text-white">{email}</span>
-                          <span className="inline-flex items-center gap-1.5 text-[11px] bg-[#161616] text-[#D4D4D8] border border-[#27272A] px-2 py-0.5 rounded font-medium">
+                          <span className="inline-flex items-center gap-1.5 text-[11px] bg-[#050505] text-[#D4D4D8] border border-[#27272A] px-2 py-0.5 rounded font-medium">
                             <span className={`w-1.5 h-1.5 rounded-full ${isEmailVerified ? "bg-emerald-400" : "bg-amber-400"}`} />
                             {isEmailVerified ? "Verified" : "Pending Verification"}
                           </span>
@@ -589,7 +589,7 @@ export default function SettingsPage() {
                             alert("Verification link sent to " + newE + ". Please check your inbox.");
                           }
                         }}
-                        className="px-4 py-2 bg-[#222] hover:bg-[#2c2c2c] border border-[#333] rounded-lg text-xs font-medium text-white transition-colors self-start sm:self-auto cursor-pointer"
+                        className="px-4 py-2 bg-[#080808] hover:bg-[#050505] border border-[#333] rounded-lg text-xs font-medium text-white transition-colors self-start sm:self-auto cursor-pointer"
                       >
                         Change Email Address
                       </button>
@@ -609,7 +609,7 @@ export default function SettingsPage() {
                           placeholder="••••••••••••"
                           value={currentPassword}
                           onChange={(e) => setCurrentPassword(e.target.value)}
-                          className="w-full bg-[#181818] border border-[#262626] focus:border-white rounded-lg px-3.5 py-2.5 text-sm text-white outline-none transition-colors"
+                          className="w-full bg-[#050505] border border-[#1c1c1c] focus:border-white rounded-lg px-3.5 py-2.5 text-sm text-white outline-none transition-colors"
                         />
                       </div>
 
@@ -621,7 +621,7 @@ export default function SettingsPage() {
                           placeholder="Min. 8 characters"
                           value={newPassword}
                           onChange={(e) => setNewPassword(e.target.value)}
-                          className="w-full bg-[#181818] border border-[#262626] focus:border-white rounded-lg px-3.5 py-2.5 text-sm text-white outline-none transition-colors"
+                          className="w-full bg-[#050505] border border-[#1c1c1c] focus:border-white rounded-lg px-3.5 py-2.5 text-sm text-white outline-none transition-colors"
                         />
                       </div>
 
@@ -633,7 +633,7 @@ export default function SettingsPage() {
                           placeholder="Repeat new password"
                           value={confirmPassword}
                           onChange={(e) => setConfirmPassword(e.target.value)}
-                          className="w-full bg-[#181818] border border-[#262626] focus:border-white rounded-lg px-3.5 py-2.5 text-sm text-white outline-none transition-colors"
+                          className="w-full bg-[#050505] border border-[#1c1c1c] focus:border-white rounded-lg px-3.5 py-2.5 text-sm text-white outline-none transition-colors"
                         />
                       </div>
                     </div>
@@ -658,7 +658,7 @@ export default function SettingsPage() {
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.15 }}
-                  className="bg-[#0e0e0e] border border-[#222] rounded-xl p-6 sm:p-8 space-y-6"
+                  className="bg-[#030303] border border-[#222] rounded-xl p-6 sm:p-8 space-y-6"
                 >
                   <div>
                     <h2 className="text-lg font-semibold text-white">{t("settings.notifications")}</h2>
@@ -670,11 +670,11 @@ export default function SettingsPage() {
                   <form onSubmit={handleSaveNotif} className="space-y-3">
                     
                     {/* Item 1: Order Status */}
-                    <div className="flex items-center justify-between p-4 bg-[#181818] border border-[#262626] rounded-lg">
+                    <div className="flex items-center justify-between p-4 bg-[#050505] border border-[#1c1c1c] rounded-lg">
                       <div className="space-y-0.5 pr-4">
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-medium text-white">{t("settings.notifOrder")}</span>
-                          <span className="text-[10px] bg-[#222] text-[#aaa] border border-[#333] px-2 py-0.5 rounded font-medium">Required</span>
+                          <span className="text-[10px] bg-[#080808] text-[#aaa] border border-[#333] px-2 py-0.5 rounded font-medium">Required</span>
                         </div>
                         <p className="text-xs text-[#888]">
                           {t("settings.notifOrderDesc")}
@@ -684,16 +684,16 @@ export default function SettingsPage() {
                         type="checkbox"
                         checked={notifOrder}
                         onChange={(e) => setNotifOrder(e.target.checked)}
-                        className="w-4 h-4 rounded bg-[#222] border-[#444] text-white focus:ring-0 cursor-pointer accent-white"
+                        className="w-4 h-4 rounded bg-[#080808] border-[#444] text-white focus:ring-0 cursor-pointer accent-white"
                       />
                     </div>
 
                     {/* Item 2: Promo */}
-                    <div className="flex items-center justify-between p-4 bg-[#181818] border border-[#262626] rounded-lg">
+                    <div className="flex items-center justify-between p-4 bg-[#050505] border border-[#1c1c1c] rounded-lg">
                       <div className="space-y-0.5 pr-4">
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-medium text-white">{t("settings.notifPromo")}</span>
-                          <span className="text-[10px] bg-[#222] text-[#888] px-2 py-0.5 rounded font-medium">{t("common.optional")}</span>
+                          <span className="text-[10px] bg-[#080808] text-[#888] px-2 py-0.5 rounded font-medium">{t("common.optional")}</span>
                         </div>
                         <p className="text-xs text-[#888]">
                           {t("settings.notifPromoDesc")}
@@ -703,16 +703,16 @@ export default function SettingsPage() {
                         type="checkbox"
                         checked={notifPromo}
                         onChange={(e) => setNotifPromo(e.target.checked)}
-                        className="w-4 h-4 rounded bg-[#222] border-[#444] text-white focus:ring-0 cursor-pointer accent-white"
+                        className="w-4 h-4 rounded bg-[#080808] border-[#444] text-white focus:ring-0 cursor-pointer accent-white"
                       />
                     </div>
 
                     {/* Item 3: System Approval */}
-                    <div className="flex items-center justify-between p-4 bg-[#181818] border border-[#262626] rounded-lg">
+                    <div className="flex items-center justify-between p-4 bg-[#050505] border border-[#1c1c1c] rounded-lg">
                       <div className="space-y-0.5 pr-4">
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-medium text-white">{t("settings.notifSystem")}</span>
-                          <span className="text-[10px] bg-[#222] text-[#aaa] border border-[#333] px-2 py-0.5 rounded font-medium">Important</span>
+                          <span className="text-[10px] bg-[#080808] text-[#aaa] border border-[#333] px-2 py-0.5 rounded font-medium">Important</span>
                         </div>
                         <p className="text-xs text-[#888]">
                           {t("settings.notifSystemDesc")}
@@ -722,7 +722,7 @@ export default function SettingsPage() {
                         type="checkbox"
                         checked={notifSystem}
                         onChange={(e) => setNotifSystem(e.target.checked)}
-                        className="w-4 h-4 rounded bg-[#222] border-[#444] text-white focus:ring-0 cursor-pointer accent-white"
+                        className="w-4 h-4 rounded bg-[#080808] border-[#444] text-white focus:ring-0 cursor-pointer accent-white"
                       />
                     </div>
 
@@ -746,7 +746,7 @@ export default function SettingsPage() {
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.15 }}
-                  className="bg-[#0e0e0e] border border-[#222] rounded-xl p-6 sm:p-8 space-y-6"
+                  className="bg-[#030303] border border-[#222] rounded-xl p-6 sm:p-8 space-y-6"
                 >
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
@@ -773,14 +773,14 @@ export default function SettingsPage() {
                         key={addr.id}
                         className={`p-5 rounded-lg border transition-colors flex flex-col justify-between ${
                           addr.isDefault
-                            ? "bg-[#181818] border-white/40"
-                            : "bg-[#161616] border-[#262626]"
+                            ? "bg-[#050505] border-white/40"
+                            : "bg-[#050505] border-[#1c1c1c]"
                         }`}
                       >
                         <div>
                           <div className="flex items-center justify-between gap-2 mb-3">
                             <div className="flex items-center gap-2">
-                              <span className="text-xs font-semibold text-white bg-[#222] px-2.5 py-1 rounded border border-[#333]">
+                              <span className="text-xs font-semibold text-white bg-[#080808] px-2.5 py-1 rounded border border-[#333]">
                                 {addr.label}
                               </span>
                               {addr.isDefault && (
@@ -800,7 +800,7 @@ export default function SettingsPage() {
                           </p>
                         </div>
 
-                        <div className="pt-3 border-t border-[#262626] flex items-center justify-between gap-2 text-xs">
+                        <div className="pt-3 border-t border-[#1c1c1c] flex items-center justify-between gap-2 text-xs">
                           {!addr.isDefault ? (
                             <button
                               type="button"
@@ -835,12 +835,12 @@ export default function SettingsPage() {
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.15 }}
-                  className="bg-[#0e0e0e] border border-[#222] rounded-xl p-6 sm:p-8 space-y-8"
+                  className="bg-[#030303] border border-[#222] rounded-xl p-6 sm:p-8 space-y-8"
                 >
                   <div>
                     <div className="flex items-center gap-2">
                       <h2 className="text-lg font-semibold text-white">{t("settings.audioDefaults")}</h2>
-                      <span className="text-[10px] bg-[#222] text-[#888] px-2 py-0.5 rounded font-medium">Optional</span>
+                      <span className="text-[10px] bg-[#080808] text-[#888] px-2 py-0.5 rounded font-medium">Optional</span>
                     </div>
                     <p className="text-xs text-[#888] mt-0.5">
                       {t("settings.audioDefaultsDesc")}
@@ -868,8 +868,8 @@ export default function SettingsPage() {
                               onClick={() => setExperienceLevel(lvl.name)}
                               className={`p-4 rounded-lg border text-left transition-colors cursor-pointer flex flex-col justify-between ${
                                 isSel
-                                  ? "bg-[#222] border-white text-white"
-                                  : "bg-[#181818] border-[#262626] text-[#888] hover:border-[#444]"
+                                  ? "bg-[#050505] border-white text-white"
+                                  : "bg-[#050505] border-[#1c1c1c] text-[#888] hover:border-[#444]"
                               }`}
                             >
                               <div className="flex items-center justify-between mb-1 w-full">
@@ -907,8 +907,8 @@ export default function SettingsPage() {
                               onClick={() => setSoundSignature(sig.name)}
                               className={`p-4 rounded-lg border text-left transition-colors cursor-pointer flex flex-col justify-between ${
                                 isSel
-                                  ? "bg-[#222] border-white text-white"
-                                  : "bg-[#181818] border-[#262626] text-[#888] hover:border-[#444]"
+                                  ? "bg-[#050505] border-white text-white"
+                                  : "bg-[#050505] border-[#1c1c1c] text-[#888] hover:border-[#444]"
                               }`}
                             >
                               <div className="flex items-center justify-between mb-1 w-full">
@@ -950,8 +950,8 @@ export default function SettingsPage() {
                               }}
                               className={`p-4 rounded-lg border text-left transition-colors cursor-pointer flex items-center gap-3 ${
                                 isSel
-                                  ? "bg-[#222] border-white text-white"
-                                  : "bg-[#181818] border-[#262626] text-[#888] hover:border-[#444]"
+                                  ? "bg-[#050505] border-white text-white"
+                                  : "bg-[#050505] border-[#1c1c1c] text-[#888] hover:border-[#444]"
                               }`}
                             >
                               <span className="text-xl leading-none">{lang.flag}</span>
@@ -990,7 +990,7 @@ export default function SettingsPage() {
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.15 }}
-                  className="bg-[#0e0e0e] border border-[#222] rounded-xl p-6 sm:p-8 space-y-8"
+                  className="bg-[#030303] border border-[#222] rounded-xl p-6 sm:p-8 space-y-8"
                 >
                   <div className="flex items-center justify-between border-b border-[#222] pb-5">
                     <div>
@@ -999,7 +999,7 @@ export default function SettingsPage() {
                         {t("settings.sellerSettingsDesc")}
                       </p>
                     </div>
-                    <span className="text-[11px] bg-[#222] text-white border border-[#333] px-2.5 py-1 rounded font-medium">
+                    <span className="text-[11px] bg-[#080808] text-white border border-[#333] px-2.5 py-1 rounded font-medium">
                       {t("settings.sellerModeActive")}
                     </span>
                   </div>
@@ -1015,7 +1015,7 @@ export default function SettingsPage() {
                         </p>
                       </div>
 
-                      <div className="p-4 bg-[#181818] border border-[#2a2a2a] rounded-lg text-xs text-[#aaa] leading-relaxed">
+                      <div className="p-4 bg-[#050505] border border-[#2a2a2a] rounded-lg text-xs text-[#aaa] leading-relaxed">
                         <strong className="text-white">{t("settings.mvpNote")}</strong> {t("settings.mvpNoteDesc")}
                       </div>
 
@@ -1025,7 +1025,7 @@ export default function SettingsPage() {
                           <select
                             value={bankName}
                             onChange={(e) => setBankName(e.target.value)}
-                            className="w-full bg-[#181818] border border-[#262626] focus:border-white rounded-lg px-3.5 py-2.5 text-sm text-white outline-none cursor-pointer"
+                            className="w-full bg-[#050505] border border-[#1c1c1c] focus:border-white rounded-lg px-3.5 py-2.5 text-sm text-white outline-none cursor-pointer"
                           >
                             <option value="BCA (Bank Central Asia)">BCA (Bank Central Asia)</option>
                             <option value="Mandiri (Bank Mandiri)">Mandiri (Bank Mandiri)</option>
@@ -1043,7 +1043,7 @@ export default function SettingsPage() {
                             placeholder="e.g. 8765432109"
                             value={accountNumber}
                             onChange={(e) => setAccountNumber(e.target.value)}
-                            className="w-full bg-[#181818] border border-[#262626] focus:border-white rounded-lg px-3.5 py-2.5 text-sm text-white outline-none"
+                            className="w-full bg-[#050505] border border-[#1c1c1c] focus:border-white rounded-lg px-3.5 py-2.5 text-sm text-white outline-none"
                           />
                         </div>
 
@@ -1055,7 +1055,7 @@ export default function SettingsPage() {
                             placeholder="Exact name on account"
                             value={accountHolder}
                             onChange={(e) => setAccountHolder(e.target.value)}
-                            className="w-full bg-[#181818] border border-[#262626] focus:border-white rounded-lg px-3.5 py-2.5 text-sm text-white uppercase outline-none"
+                            className="w-full bg-[#050505] border border-[#1c1c1c] focus:border-white rounded-lg px-3.5 py-2.5 text-sm text-white uppercase outline-none"
                           />
                         </div>
                       </div>
@@ -1071,7 +1071,7 @@ export default function SettingsPage() {
                       </div>
 
                       <div className="space-y-2.5">
-                        <div className="flex items-center justify-between p-4 bg-[#181818] border border-[#262626] rounded-lg">
+                        <div className="flex items-center justify-between p-4 bg-[#050505] border border-[#1c1c1c] rounded-lg">
                           <div className="pr-4">
                             <span className="text-sm font-medium text-white block">{t("New Order Notifications")}</span>
                             <span className="text-xs text-[#888]">Immediate alert when a buyer completes payment for your item.</span>
@@ -1080,11 +1080,11 @@ export default function SettingsPage() {
                             type="checkbox"
                             checked={sellerNotifNewOrder}
                             onChange={(e) => setSellerNotifNewOrder(e.target.checked)}
-                            className="w-4 h-4 rounded bg-[#222] border-[#444] text-white focus:ring-0 cursor-pointer accent-white"
+                            className="w-4 h-4 rounded bg-[#080808] border-[#444] text-white focus:ring-0 cursor-pointer accent-white"
                           />
                         </div>
 
-                        <div className="flex items-center justify-between p-4 bg-[#181818] border border-[#262626] rounded-lg">
+                        <div className="flex items-center justify-between p-4 bg-[#050505] border border-[#1c1c1c] rounded-lg">
                           <div className="pr-4">
                             <span className="text-sm font-medium text-white block">{t("Shipping SLA Deadline Warnings")}</span>
                             <span className="text-xs text-[#888]">Alert 6 hours before the required tracking number input deadline.</span>
@@ -1093,11 +1093,11 @@ export default function SettingsPage() {
                             type="checkbox"
                             checked={sellerNotifShippingDeadline}
                             onChange={(e) => setSellerNotifShippingDeadline(e.target.checked)}
-                            className="w-4 h-4 rounded bg-[#222] border-[#444] text-white focus:ring-0 cursor-pointer accent-white"
+                            className="w-4 h-4 rounded bg-[#080808] border-[#444] text-white focus:ring-0 cursor-pointer accent-white"
                           />
                         </div>
 
-                        <div className="flex items-center justify-between p-4 bg-[#181818] border border-[#262626] rounded-lg">
+                        <div className="flex items-center justify-between p-4 bg-[#050505] border border-[#1c1c1c] rounded-lg">
                           <div className="pr-4">
                             <span className="text-sm font-medium text-white block">{t("Payout Disbursement Confirmation")}</span>
                             <span className="text-xs text-[#888]">Email notification when admin transfers funds to your bank account.</span>
@@ -1106,7 +1106,7 @@ export default function SettingsPage() {
                             type="checkbox"
                             checked={sellerNotifPayout}
                             onChange={(e) => setSellerNotifPayout(e.target.checked)}
-                            className="w-4 h-4 rounded bg-[#222] border-[#444] text-white focus:ring-0 cursor-pointer accent-white"
+                            className="w-4 h-4 rounded bg-[#080808] border-[#444] text-white focus:ring-0 cursor-pointer accent-white"
                           />
                         </div>
                       </div>
@@ -1126,7 +1126,7 @@ export default function SettingsPage() {
             </AnimatePresence>
 
             {/* SECTION: DEFERRED FEATURES INFO BOX - Clean Neutral Style */}
-            <div className="bg-[#141414] border border-[#222] rounded-xl p-6 text-xs text-[#888] space-y-3">
+            <div className="bg-[#050505] border border-[#222] rounded-xl p-6 text-xs text-[#888] space-y-3">
               <h4 className="font-semibold text-white text-sm">Security &amp; Post-MVP Roadmap Notes</h4>
               <ul className="space-y-2 list-disc list-inside leading-relaxed text-[#aaa]">
                 <li>
@@ -1162,7 +1162,7 @@ export default function SettingsPage() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.98, y: 10 }}
               transition={{ duration: 0.15 }}
-              className="relative w-full max-w-lg bg-[#141414] border border-[#262626] rounded-xl p-6 sm:p-8 shadow-2xl z-10"
+              className="relative w-full max-w-lg bg-[#050505] border border-[#1c1c1c] rounded-xl p-6 sm:p-8 shadow-2xl z-10"
             >
               <div className="flex items-center justify-between pb-4 border-b border-[#222] mb-6">
                 <h3 className="text-lg font-semibold text-white">
@@ -1187,7 +1187,7 @@ export default function SettingsPage() {
                       placeholder="e.g. Home, Office, Studio"
                       value={newAddrLabel}
                       onChange={(e) => setNewAddrLabel(e.target.value)}
-                      className="w-full bg-[#181818] border border-[#262626] focus:border-white rounded-lg px-3.5 py-2.5 text-sm text-white outline-none"
+                      className="w-full bg-[#050505] border border-[#1c1c1c] focus:border-white rounded-lg px-3.5 py-2.5 text-sm text-white outline-none"
                     />
                   </div>
 
@@ -1199,7 +1199,7 @@ export default function SettingsPage() {
                       placeholder="e.g. Alex Rivera"
                       value={newAddrReceiver}
                       onChange={(e) => setNewAddrReceiver(e.target.value)}
-                      className="w-full bg-[#181818] border border-[#262626] focus:border-white rounded-lg px-3.5 py-2.5 text-sm text-white outline-none"
+                      className="w-full bg-[#050505] border border-[#1c1c1c] focus:border-white rounded-lg px-3.5 py-2.5 text-sm text-white outline-none"
                     />
                   </div>
                 </div>
@@ -1212,7 +1212,7 @@ export default function SettingsPage() {
                     placeholder="+62 812-3456-7890"
                     value={newAddrPhone}
                     onChange={(e) => setNewAddrPhone(e.target.value)}
-                    className="w-full bg-[#181818] border border-[#262626] focus:border-white rounded-lg px-3.5 py-2.5 text-sm text-white outline-none"
+                    className="w-full bg-[#050505] border border-[#1c1c1c] focus:border-white rounded-lg px-3.5 py-2.5 text-sm text-white outline-none"
                   />
                 </div>
 
@@ -1224,7 +1224,7 @@ export default function SettingsPage() {
                     placeholder="Jl. Audiophile No. 99, Kebayoran Baru"
                     value={newAddrFull}
                     onChange={(e) => setNewAddrFull(e.target.value)}
-                    className="w-full bg-[#181818] border border-[#262626] focus:border-white rounded-lg px-3.5 py-2.5 text-sm text-white outline-none"
+                    className="w-full bg-[#050505] border border-[#1c1c1c] focus:border-white rounded-lg px-3.5 py-2.5 text-sm text-white outline-none"
                   />
                 </div>
 
@@ -1237,7 +1237,7 @@ export default function SettingsPage() {
                       placeholder="Jakarta Selatan"
                       value={newAddrCity}
                       onChange={(e) => setNewAddrCity(e.target.value)}
-                      className="w-full bg-[#181818] border border-[#262626] focus:border-white rounded-lg px-3.5 py-2.5 text-sm text-white outline-none"
+                      className="w-full bg-[#050505] border border-[#1c1c1c] focus:border-white rounded-lg px-3.5 py-2.5 text-sm text-white outline-none"
                     />
                   </div>
 
@@ -1249,7 +1249,7 @@ export default function SettingsPage() {
                       placeholder="12110"
                       value={newAddrPostal}
                       onChange={(e) => setNewAddrPostal(e.target.value)}
-                      className="w-full bg-[#181818] border border-[#262626] focus:border-white rounded-lg px-3.5 py-2.5 text-sm text-white outline-none"
+                      className="w-full bg-[#050505] border border-[#1c1c1c] focus:border-white rounded-lg px-3.5 py-2.5 text-sm text-white outline-none"
                     />
                   </div>
                 </div>
@@ -1258,7 +1258,7 @@ export default function SettingsPage() {
                   <button
                     type="button"
                     onClick={() => setShowAddModal(false)}
-                    className="px-4 py-2.5 bg-[#181818] hover:bg-[#222] border border-[#333] rounded-lg text-xs font-medium text-white cursor-pointer"
+                    className="px-4 py-2.5 bg-[#050505] hover:bg-[#080808] border border-[#333] rounded-lg text-xs font-medium text-white cursor-pointer"
                   >
                     Cancel
                   </button>

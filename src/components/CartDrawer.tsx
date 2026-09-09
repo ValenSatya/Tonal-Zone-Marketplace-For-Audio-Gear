@@ -62,12 +62,12 @@ export default function CartDrawer({ isOpen: propIsOpen, onClose: propOnClose }:
             animate={{ x: "0%" }}
             exit={{ x: "100%" }}
             transition={{ type: "spring", damping: 30, stiffness: 300 }}
-            className="fixed top-0 right-0 h-screen w-full sm:w-[480px] md:w-[520px] bg-[#111111] border-l border-[#262626] z-[100] flex flex-col shadow-2xl text-[#FAF9F6] font-sans selection:bg-[#D4FF00] selection:text-[#0e0e0e]"
+            className="fixed top-0 right-0 h-screen w-full sm:w-[480px] md:w-[520px] bg-[#030303] border-l border-[#1c1c1c] z-[100] flex flex-col shadow-2xl text-[#FAF9F6] font-sans selection:bg-[#BFDD25] selection:text-[#030303]"
           >
             {/* 1. Header */}
-            <div className="p-6 border-b border-[#222] flex items-center justify-between shrink-0 bg-[#0e0e0e]">
+            <div className="p-6 border-b border-[#222] flex items-center justify-between shrink-0 bg-[#030303]">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-md bg-[#1a1a1a] border border-[#333] flex items-center justify-center text-[#D4FF00]">
+                <div className="w-8 h-8 rounded-md bg-[#050505] border border-[#333] flex items-center justify-center text-[#BFDD25]">
                   <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
                   </svg>
@@ -84,7 +84,7 @@ export default function CartDrawer({ isOpen: propIsOpen, onClose: propOnClose }:
 
               <button
                 onClick={onClose}
-                className="px-3 py-1.5 border border-[#333] hover:border-[#D4FF00] rounded-lg text-xs font-mono text-[#FAF9F6]/70 hover:text-[#D4FF00] transition-colors flex items-center gap-1.5 cursor-pointer uppercase"
+                className="px-3 py-1.5 border border-[#333] hover:border-[#BFDD25] rounded-lg text-xs font-mono text-[#FAF9F6]/70 hover:text-[#BFDD25] transition-colors flex items-center gap-1.5 cursor-pointer uppercase"
               >
                 <span>{t("cart.close")}</span>
                 <span className="text-sm font-bold">×</span>
@@ -101,10 +101,10 @@ export default function CartDrawer({ isOpen: propIsOpen, onClose: propOnClose }:
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95 }}
-                    className="bg-[#161616] border border-[#222] hover:border-[#333] rounded-xl p-4 flex gap-4 relative group transition-colors"
+                    className="bg-[#050505] border border-[#1c1c1c] hover:border-[#2a2a2a] rounded-xl p-4 flex gap-4 relative group transition-colors"
                   >
                     {/* Thumbnail */}
-                    <div className="relative w-20 h-20 bg-[#0d0d0d] border border-[#262626] rounded-lg overflow-hidden shrink-0 flex items-center justify-center">
+                    <div className="relative w-20 h-20 bg-[#050505] border border-[#1c1c1c] rounded-lg overflow-hidden shrink-0 flex items-center justify-center">
                       <Image
                         src={item.image || "/placeholder.svg"}
                         alt={item.name}
@@ -117,11 +117,11 @@ export default function CartDrawer({ isOpen: propIsOpen, onClose: propOnClose }:
                     {/* Details */}
                     <div className="flex flex-col flex-grow min-w-0 pr-6">
                       <div className="flex items-center gap-2">
-                        <span className="text-[9px] font-mono font-medium text-[#D4FF00] uppercase tracking-[0.2em]">
+                        <span className="text-[9px] font-mono font-medium text-[#BFDD25] uppercase tracking-[0.2em]">
                           {item.brand}
                         </span>
                         {item.sellerName && (
-                          <span className="text-[8px] font-mono text-[#888] px-1.5 py-0.2 bg-[#222] rounded">
+                          <span className="text-[8px] font-mono text-[#888] px-1.5 py-0.2 bg-[#050505] rounded">
                             {item.sellerName}
                           </span>
                         )}
@@ -135,14 +135,14 @@ export default function CartDrawer({ isOpen: propIsOpen, onClose: propOnClose }:
 
                       {/* Price & Quantity Controls */}
                       <div className="flex items-center justify-between mt-3">
-                        <span className="font-mono font-medium text-xs tracking-wider text-[#D4FF00]">
+                        <span className="font-mono font-medium text-xs tracking-wider text-[#BFDD25]">
                           {formatPrice(item.price * item.quantity)}
                         </span>
 
-                        <div className="flex items-center border border-[#333] bg-[#111] rounded-md overflow-hidden h-7">
+                        <div className="flex items-center border border-[#333] bg-[#050505] rounded-md overflow-hidden h-7">
                           <button
                             onClick={() => updateQuantity(item.id, -1)}
-                            className="w-7 h-7 flex items-center justify-center text-[#FAF9F6]/70 hover:text-white hover:bg-[#222] font-mono text-sm font-medium cursor-pointer"
+                            className="w-7 h-7 flex items-center justify-center text-[#FAF9F6]/70 hover:text-white hover:bg-[#080808] font-mono text-sm font-medium cursor-pointer"
                           >
                             -
                           </button>
@@ -151,7 +151,7 @@ export default function CartDrawer({ isOpen: propIsOpen, onClose: propOnClose }:
                           </span>
                           <button
                             onClick={() => updateQuantity(item.id, 1)}
-                            className="w-7 h-7 flex items-center justify-center text-[#FAF9F6]/70 hover:text-white hover:bg-[#222] font-mono text-sm font-medium cursor-pointer"
+                            className="w-7 h-7 flex items-center justify-center text-[#FAF9F6]/70 hover:text-white hover:bg-[#080808] font-mono text-sm font-medium cursor-pointer"
                           >
                             +
                           </button>
@@ -173,7 +173,7 @@ export default function CartDrawer({ isOpen: propIsOpen, onClose: propOnClose }:
                 ))
               ) : (
                 <div className="py-20 text-center flex flex-col items-center justify-center">
-                  <div className="w-16 h-16 rounded-2xl bg-[#161616] border border-[#262626] flex items-center justify-center text-[#FAF9F6]/30 mb-6 mx-auto">
+                  <div className="w-16 h-16 rounded-2xl bg-[#050505] border border-[#1c1c1c] flex items-center justify-center text-[#FAF9F6]/30 mb-6 mx-auto">
                     <svg width="28" height="28" fill="none" stroke="currentColor" strokeWidth="1.2" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007z" />
                     </svg>
@@ -181,7 +181,7 @@ export default function CartDrawer({ isOpen: propIsOpen, onClose: propOnClose }:
                   <p className="font-mono text-xs text-[#FAF9F6]/50 uppercase mb-4">{t("cart.empty")}</p>
                   <button
                     onClick={onClose}
-                    className="px-5 py-2.5 bg-[#222] hover:bg-[#333] border border-[#333] hover:border-[#D4FF00] text-xs font-mono font-bold text-[#D4FF00] rounded-lg transition-colors cursor-pointer uppercase"
+                    className="px-5 py-2.5 bg-[#050505] hover:bg-[#080808] border border-[#333] hover:border-[#BFDD25] text-xs font-mono font-bold text-[#BFDD25] rounded-lg transition-colors cursor-pointer uppercase"
                   >
                     {t("cart.continueShopping")}
                   </button>
@@ -191,7 +191,7 @@ export default function CartDrawer({ isOpen: propIsOpen, onClose: propOnClose }:
 
             {/* 3. Footer / Checkout Area */}
             {items.length > 0 && (
-              <div className="p-6 border-t border-[#222] bg-[#0e0e0e] space-y-4 shrink-0">
+              <div className="p-6 border-t border-[#222] bg-[#030303] space-y-4 shrink-0">
                 {/* Promo Code Box */}
                 <form onSubmit={handleApplyPromo} className="flex gap-2">
                   <input
@@ -199,17 +199,17 @@ export default function CartDrawer({ isOpen: propIsOpen, onClose: propOnClose }:
                     value={promoCode}
                     onChange={(e) => setPromoCode(e.target.value)}
                     placeholder={t("cart.promoPlaceholder")}
-                    className="bg-[#111] border border-[#333] focus:border-[#D4FF00] rounded-lg px-3 py-2 text-[11px] font-mono text-[#FAF9F6] outline-none flex-grow uppercase transition-colors"
+                    className="bg-[#050505] border border-[#1c1c1c] focus:border-[#BFDD25] rounded-lg px-3 py-2 text-[11px] font-mono text-[#FAF9F6] outline-none flex-grow uppercase transition-colors"
                   />
                   <button
                     type="submit"
-                    className="bg-[#222] hover:bg-[#333] border border-[#444] text-[#FAF9F6] hover:text-[#D4FF00] font-mono text-[11px] font-medium tracking-wider px-3 py-2 rounded-lg transition-colors uppercase cursor-pointer shrink-0"
+                    className="bg-[#050505] hover:bg-[#080808] border border-[#444] text-[#FAF9F6] hover:text-[#BFDD25] font-mono text-[11px] font-medium tracking-wider px-3 py-2 rounded-lg transition-colors uppercase cursor-pointer shrink-0"
                   >
                     {t("cart.apply")}
                   </button>
                 </form>
                 {promoMessage && (
-                  <p className={`text-[10px] font-mono font-normal tracking-wide -mt-2 ${promoMessage.includes("[SUCCESS]") ? "text-[#D4FF00]" : "text-red-400"}`}>
+                  <p className={`text-[10px] font-mono font-normal tracking-wide -mt-2 ${promoMessage.includes("[SUCCESS]") ? "text-[#BFDD25]" : "text-red-400"}`}>
                     {promoMessage}
                   </p>
                 )}
@@ -221,14 +221,14 @@ export default function CartDrawer({ isOpen: propIsOpen, onClose: propOnClose }:
                     <span className="font-medium tracking-wide">{formatPrice(subtotal)}</span>
                   </div>
                   {discount > 0 && (
-                    <div className="flex justify-between text-[#D4FF00]">
+                    <div className="flex justify-between text-[#BFDD25]">
                       <span>{t("cart.discount")} ({discount * 100}%)</span>
                       <span className="font-medium tracking-wide">-{formatPrice(discountAmount)}</span>
                     </div>
                   )}
                   <div className="flex justify-between items-center pt-2 border-t border-[#222] text-sm">
                     <span className="font-medium tracking-wider text-[#FAF9F6]">{t("cart.total")}</span>
-                    <span className="font-mono text-xl font-semibold tracking-wide text-[#D4FF00]">
+                    <span className="font-mono text-xl font-semibold tracking-wide text-[#BFDD25]">
                       {formatPrice(total)}
                     </span>
                   </div>
@@ -239,7 +239,7 @@ export default function CartDrawer({ isOpen: propIsOpen, onClose: propOnClose }:
                   href="/checkout"
                   onClick={onClose}
                   variant="neon"
-                  className="w-full py-4 text-xs font-semibold tracking-[0.2em] uppercase rounded-xl shadow-[0_0_20px_rgba(212,255,0,0.15)]"
+                  className="w-full py-4 text-xs font-semibold tracking-[0.2em] uppercase rounded-xl shadow-[0_0_20px_rgba(191,221,37,0.15)]"
                 >
                   {t("cart.proceedToCheckout")}
                 </MotionButton>

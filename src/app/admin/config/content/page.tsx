@@ -29,7 +29,7 @@ export default function ContentConfigPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#222] pb-5">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-[10px] font-mono font-medium bg-[#141414] text-[#A1A1AA] border border-[#27272A] px-2 py-0.5 rounded uppercase tracking-wider">
+            <span className="text-[10px] font-mono font-medium bg-[#050505] text-[#A1A1AA] border border-[#27272A] px-2 py-0.5 rounded uppercase tracking-wider">
               {isEn ? "Content & Quality Control" : "Konten & Kontrol Kualitas"}
             </span>
           </div>
@@ -55,14 +55,14 @@ export default function ContentConfigPage() {
       </div>
 
       {isSaved && (
-        <div className="p-3.5 rounded-xl bg-[#141414] border border-[#2A2A2A] text-white text-xs font-mono flex items-center gap-2">
+        <div className="p-3.5 rounded-xl bg-[#050505] border border-[#2A2A2A] text-white text-xs font-mono flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-emerald-400" />
           {isEn ? "Content policies saved successfully." : "Kebijakan konten berhasil disimpan."}
         </div>
       )}
 
       {/* Rules Box */}
-      <div className="bg-[#111111] border border-[#222222] rounded-xl p-5 space-y-4 font-sans text-xs">
+      <div className="bg-[#050505] border border-[#222222] rounded-xl p-5 space-y-4 font-sans text-xs">
         <h3 className="text-xs font-bold font-sans text-white uppercase tracking-wider">
           {isEn ? "Anti-Counterfeit & Listing Protection" : "Perlindungan Anti-Barang Tiruan (KW)"}
         </h3>
@@ -76,7 +76,7 @@ export default function ContentConfigPage() {
               type="text"
               value={policies.prohibitedKeywords}
               onChange={(e) => setPolicies({ ...policies, prohibitedKeywords: e.target.value })}
-              className="w-full bg-[#161616] border border-[#2A2A2A] rounded-lg px-3.5 py-2 text-xs font-mono text-white outline-none focus:border-white"
+              className="w-full bg-[#050505] border border-[#2A2A2A] rounded-lg px-3.5 py-2 text-xs font-mono text-white outline-none focus:border-white"
             />
             <p className="text-[10px] font-mono text-[#52525B] mt-1">
               Listings containing these terms will be auto-flagged and rejected before public display.

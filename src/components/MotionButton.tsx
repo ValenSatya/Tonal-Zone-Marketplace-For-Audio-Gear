@@ -29,25 +29,25 @@ export default function MotionButton({
   let textColorClass = "";
 
   if (variant === "neon") {
-    defaultBg = "bg-[#D4FF00]";
+    defaultBg = "bg-[#BFDD25]";
     hoverOverlayBg = "bg-white";
-    textColorClass = "text-[#0e0e0e]";
+    textColorClass = "text-[#030303]";
   } else if (variant === "neon-dark") {
-    defaultBg = "bg-[#D4FF00]";
-    hoverOverlayBg = "bg-[#0e0e0e]";
-    textColorClass = "text-[#0e0e0e] group-hover:text-white";
+    defaultBg = "bg-[#BFDD25]";
+    hoverOverlayBg = "bg-[#030303]";
+    textColorClass = "text-[#030303] group-hover:text-white";
   } else if (variant === "dark") {
-    defaultBg = "bg-[#0e0e0e] border border-[#2a2a2a]";
-    hoverOverlayBg = "bg-[#D4FF00]";
-    textColorClass = "text-[#FAF9F6] group-hover:text-[#0e0e0e]";
+    defaultBg = "bg-[#030303] border border-[#2a2a2a]";
+    hoverOverlayBg = "bg-[#BFDD25]";
+    textColorClass = "text-[#FAF9F6] group-hover:text-[#030303]";
   } else if (variant === "light") {
     defaultBg = "bg-[#FAF9F6]";
-    hoverOverlayBg = "bg-[#D4FF00]";
-    textColorClass = "text-[#0e0e0e]";
+    hoverOverlayBg = "bg-[#BFDD25]";
+    textColorClass = "text-[#030303]";
   } else if (variant === "white") {
     defaultBg = "bg-white";
     hoverOverlayBg = "bg-[#EAEAEA]";
-    textColorClass = "text-[#0e0e0e]";
+    textColorClass = "text-[#030303]";
   }
 
   const content = (

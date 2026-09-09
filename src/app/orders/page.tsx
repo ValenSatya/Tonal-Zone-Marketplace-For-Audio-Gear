@@ -269,7 +269,7 @@ export default function OrdersPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#080808] text-[#FAF9F6] font-sans selection:bg-[#D4FF00] selection:text-[#0e0e0e] flex flex-col">
+    <div className="min-h-screen bg-[#030303] text-[#FAF9F6] font-sans selection:bg-[#BFDD25] selection:text-[#030303] flex flex-col">
       <Navbar />
 
       <main className="flex-grow pt-28 pb-20 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
@@ -296,7 +296,7 @@ export default function OrdersPage() {
             }`}
           >
             Sedang Diproses
-            <span className="bg-[#141414] border border-[#222222] text-[#888888] text-[10px] px-2 py-0.5 font-bold">
+            <span className="bg-[#050505] border border-[#222222] text-[#888888] text-[10px] px-2 py-0.5 font-bold">
               {orders.filter(o => o.status === "HELD_IN_ESCROW" || o.status === "PAYMENT_PENDING").length}
             </span>
             {activeTab === "TO_SHIP" && (
@@ -312,7 +312,7 @@ export default function OrdersPage() {
             }`}
           >
             Sedang Dikirim
-            <span className="bg-[#141414] border border-[#222222] text-[#888888] text-[10px] px-2 py-0.5 font-bold">
+            <span className="bg-[#050505] border border-[#222222] text-[#888888] text-[10px] px-2 py-0.5 font-bold">
               {orders.filter(o => o.status === "IN_TRANSIT").length}
             </span>
             {activeTab === "IN_TRANSIT" && (
@@ -328,7 +328,7 @@ export default function OrdersPage() {
             }`}
           >
             Sudah Sampai
-            <span className="bg-[#141414] border border-[#222222] text-[#888888] text-[10px] px-2 py-0.5 font-bold">
+            <span className="bg-[#050505] border border-[#222222] text-[#888888] text-[10px] px-2 py-0.5 font-bold">
               {orders.filter(o => o.status === "DELIVERED").length}
             </span>
             {activeTab === "DELIVERED" && (
@@ -344,7 +344,7 @@ export default function OrdersPage() {
             }`}
           >
             Selesai
-            <span className="bg-[#141414] border border-[#222222] text-[#888888] text-[10px] px-2 py-0.5 font-bold">
+            <span className="bg-[#050505] border border-[#222222] text-[#888888] text-[10px] px-2 py-0.5 font-bold">
               {orders.filter(o => o.status === "FUNDS_RELEASED_TO_SELLER").length}
             </span>
             {activeTab === "COMPLETED" && (
@@ -360,7 +360,7 @@ export default function OrdersPage() {
             }`}
           >
             Ulasan Saya
-            <span className="bg-[#141414] border border-[#222222] text-[#888888] text-[10px] px-2 py-0.5 font-bold">
+            <span className="bg-[#050505] border border-[#222222] text-[#888888] text-[10px] px-2 py-0.5 font-bold">
               {reviews.length}
             </span>
             {activeTab === "reviews" && (
@@ -376,9 +376,9 @@ export default function OrdersPage() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 10 }}
-              className="fixed bottom-8 right-8 z-50 bg-[#111111] border border-[#333333] text-white px-5 py-4 shadow-2xl flex items-center gap-3 text-xs font-mono font-medium max-w-md"
+              className="fixed bottom-8 right-8 z-50 bg-[#050505] border border-[#333333] text-white px-5 py-4 shadow-2xl flex items-center gap-3 text-xs font-mono font-medium max-w-md"
             >
-              <span className="text-[#D4FF00] font-bold">✓</span>
+              <span className="text-[#BFDD25] font-bold">✓</span>
               <span>{saveMessage}</span>
             </motion.div>
           )}
@@ -388,7 +388,7 @@ export default function OrdersPage() {
         {activeTab !== "reviews" && (
           <div className="space-y-6">
             {isLoading ? (
-              <div className="p-12 text-center border border-[#1c1c1c] bg-[#0a0a0a] font-mono text-xs text-[#666666]">
+              <div className="p-12 text-center border border-[#1c1c1c] bg-[#050505] font-mono text-xs text-[#666666]">
                 Memuat data pesanan...
               </div>
             ) : (() => {
@@ -402,7 +402,7 @@ export default function OrdersPage() {
 
               if (filtered.length === 0) {
                 return (
-                  <div className="bg-[#0a0a0a] border border-[#1c1c1c] p-16 text-center">
+                  <div className="bg-[#050505] border border-[#1c1c1c] p-16 text-center">
                     <p className="text-xs font-mono text-[#666666] uppercase tracking-widest">
                       Belum ada pesanan di kategori ini.
                     </p>
@@ -426,18 +426,18 @@ export default function OrdersPage() {
                       key={order.id}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="bg-[#0a0a0a] border border-[#1c1c1c] hover:border-[#2a2a2a] p-6 sm:p-7 transition-colors space-y-6"
+                      className="bg-[#050505] border border-[#1c1c1c] hover:border-[#2a2a2a] p-6 sm:p-7 transition-colors space-y-6"
                     >
                       {/* Top Bar: Order ID, Date & Tracking Resi */}
                       <div className="flex flex-wrap items-center justify-between gap-4">
                         <div className="flex items-center gap-3">
-                          <span className="text-xs font-mono font-bold text-white bg-[#141414] border border-[#222222] px-2.5 py-1">
+                          <span className="text-xs font-mono font-bold text-white bg-[#050505] border border-[#222222] px-2.5 py-1">
                             #{order.orderNumber}
                           </span>
                           <span className="text-xs font-mono text-[#777777]">{order.date}</span>
                         </div>
                         {order.waybillNumber && (
-                          <span className="text-[11px] font-mono text-[#888888] bg-[#121212] px-2.5 py-1 border border-[#222222]">
+                          <span className="text-[11px] font-mono text-[#888888] bg-[#050505] px-2.5 py-1 border border-[#222222]">
                             Resi: {order.waybillNumber} ({order.courierCode || "JNE Express"})
                           </span>
                         )}
@@ -447,7 +447,7 @@ export default function OrdersPage() {
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex items-start gap-4 sm:gap-5 min-w-0 flex-1">
                           {/* Thumbnail Image */}
-                          <div className="relative w-16 h-16 sm:w-20 sm:h-20 bg-[#141414] border border-[#222222] shrink-0 overflow-hidden">
+                          <div className="relative w-16 h-16 sm:w-20 sm:h-20 bg-[#050505] border border-[#222222] shrink-0 overflow-hidden">
                             <Image
                               src={order.image || "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800"}
                               alt={order.productName}
@@ -484,7 +484,7 @@ export default function OrdersPage() {
                       {/* Logistics Info Bar */}
                       <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
                         <span className="text-white font-medium flex items-center gap-2 text-sm">
-                          <Truck className="w-4 h-4 text-[#D4FF00]" />
+                          <Truck className="w-4 h-4 text-[#BFDD25]" />
                           <span>Akan Tiba Dalam {order.etaDays || 3} Hari</span>
                         </span>
                         <span className="text-xs font-mono text-[#888888]">
@@ -500,7 +500,7 @@ export default function OrdersPage() {
                         {/* Step 1: Di Kemas */}
                         <div className="relative">
                           {/* Pin Icon 1 */}
-                          <div className="absolute -left-8 top-0.5 w-5 h-5 flex items-center justify-center text-[#777777] bg-[#0a0a0a]">
+                          <div className="absolute -left-8 top-0.5 w-5 h-5 flex items-center justify-center text-[#777777] bg-[#050505]">
                             <MapPin className="w-4 h-4" />
                           </div>
 
@@ -520,7 +520,7 @@ export default function OrdersPage() {
                         {/* Step 2: Di Jemput (Active) */}
                         <div className="relative">
                           {/* Pin Icon 2 (Active Highlight) */}
-                          <div className="absolute -left-8 top-0.5 w-5 h-5 flex items-center justify-center text-[#D4FF00] bg-[#0a0a0a]">
+                          <div className="absolute -left-8 top-0.5 w-5 h-5 flex items-center justify-center text-[#BFDD25] bg-[#050505]">
                             <MapPin className="w-4 h-4" />
                           </div>
 
@@ -528,7 +528,7 @@ export default function OrdersPage() {
                             <span className="text-sm font-sans font-semibold text-white">
                               Paket Telah Di jemput
                             </span>
-                            <span className="text-xs font-mono text-[#D4FF00] font-bold">
+                            <span className="text-xs font-mono text-[#BFDD25] font-bold">
                               18.20
                             </span>
                           </div>
@@ -558,12 +558,12 @@ export default function OrdersPage() {
                 return (
                   <div
                     key={order.id}
-                    className="bg-[#0a0a0a] border border-[#1c1c1c] p-6 hover:border-[#2a2a2a] transition-colors"
+                    className="bg-[#050505] border border-[#1c1c1c] p-6 hover:border-[#2a2a2a] transition-colors"
                   >
                     {/* Top Bar: Order ID, Date & Status */}
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#1c1c1c]">
                       <div className="flex items-center gap-3">
-                        <span className="text-xs font-mono font-bold text-white bg-[#141414] border border-[#222222] px-2.5 py-1">
+                        <span className="text-xs font-mono font-bold text-white bg-[#050505] border border-[#222222] px-2.5 py-1">
                           #{order.orderNumber}
                         </span>
                         <span className="text-xs font-mono text-[#666666]">{order.date}</span>
@@ -573,12 +573,12 @@ export default function OrdersPage() {
                         <span className="text-xs font-mono text-[#777777]">{order.storeName}</span>
                         <span className="text-[#333333]">•</span>
                         
-                        <span className="inline-flex items-center gap-2 text-xs font-mono text-[#CCCCCC] bg-[#121212] border border-[#222222] px-3 py-1 font-medium">
+                        <span className="inline-flex items-center gap-2 text-xs font-mono text-[#CCCCCC] bg-[#050505] border border-[#222222] px-3 py-1 font-medium">
                           <span className={`w-1.5 h-1.5 rounded-full ${
                             order.status === "FUNDS_RELEASED_TO_SELLER"
                               ? "bg-white"
                               : order.status === "DELIVERED"
-                              ? "bg-[#D4FF00]"
+                              ? "bg-[#BFDD25]"
                               : order.status === "DISPUTED"
                               ? "bg-red-400"
                               : "bg-[#777777]"
@@ -597,7 +597,7 @@ export default function OrdersPage() {
                     {/* Body: Product Info & Actions */}
                     <div className="pt-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
                       <div className="flex items-center gap-4">
-                        <div className="relative w-14 h-14 bg-[#141414] border border-[#222222] shrink-0 overflow-hidden">
+                        <div className="relative w-14 h-14 bg-[#050505] border border-[#222222] shrink-0 overflow-hidden">
                           <Image src={order.image || "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800"} alt={order.productName} fill className="object-cover" />
                         </div>
                         <div>
@@ -612,7 +612,7 @@ export default function OrdersPage() {
                               {formatPrice(order.price)}
                             </span>
                             {order.waybillNumber && (
-                              <span className="text-xs font-mono text-[#8E8E93] bg-[#141414] px-2 py-0.5 border border-[#222222]">
+                              <span className="text-xs font-mono text-[#8E8E93] bg-[#050505] px-2 py-0.5 border border-[#222222]">
                                 Resi: {order.waybillNumber} ({order.courierCode || "JNE"})
                               </span>
                             )}
@@ -626,14 +626,14 @@ export default function OrdersPage() {
                             <button
                               type="button"
                               onClick={() => handleConfirmDelivery(order.id)}
-                              className="px-4 py-2.5 bg-[#D4FF00] hover:bg-white text-[#080808] font-mono text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
+                              className="px-4 py-2.5 bg-[#BFDD25] hover:bg-white text-[#030303] font-mono text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
                             >
                               Konfirmasi Terima Barang
                             </button>
                             <button
                               type="button"
                               onClick={() => setDisputeOrder(order)}
-                              className="px-4 py-2.5 bg-[#141414] hover:bg-[#222222] text-[#888888] hover:text-white border border-[#262626] font-mono text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
+                              className="px-4 py-2.5 bg-[#050505] hover:bg-[#050505] text-[#888888] hover:text-white border border-[#1c1c1c] font-mono text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
                             >
                               Ajukan Komplain
                             </button>
@@ -652,7 +652,7 @@ export default function OrdersPage() {
 
                         <Link
                           href={`/messages?seller=${encodeURIComponent(order.storeName)}&orderId=${encodeURIComponent(order.orderNumber)}`}
-                          className="px-3.5 py-2 bg-[#141414] hover:bg-[#1c1c1c] text-[#CCCCCC] hover:text-white border border-[#222222] font-mono text-xs uppercase tracking-wider transition-colors cursor-pointer flex items-center gap-1.5"
+                          className="px-3.5 py-2 bg-[#050505] hover:bg-[#080808] text-[#CCCCCC] hover:text-white border border-[#222222] font-mono text-xs uppercase tracking-wider transition-colors cursor-pointer flex items-center gap-1.5"
                         >
                           <MessageSquare className="w-3.5 h-3.5" />
                           <span>Chat</span>
@@ -661,7 +661,7 @@ export default function OrdersPage() {
                         <button
                           type="button"
                           onClick={() => setSelectedOrderDetails(order)}
-                          className="px-4 py-2 bg-[#141414] hover:bg-[#1c1c1c] text-[#888888] hover:text-white border border-[#222222] font-mono text-xs uppercase tracking-wider transition-colors cursor-pointer"
+                          className="px-4 py-2 bg-[#050505] hover:bg-[#080808] text-[#888888] hover:text-white border border-[#222222] font-mono text-xs uppercase tracking-wider transition-colors cursor-pointer"
                         >
                           Detail
                         </button>
@@ -678,7 +678,7 @@ export default function OrdersPage() {
         {activeTab === "reviews" && (
           <div className="space-y-4">
             {reviews.map((rev) => (
-              <div key={rev.id} className="bg-[#0a0a0a] border border-[#1c1c1c] p-6 space-y-3">
+              <div key={rev.id} className="bg-[#050505] border border-[#1c1c1c] p-6 space-y-3">
                 <div className="flex justify-between items-start">
                   <div>
                     <span className="text-[10px] font-mono uppercase tracking-wider text-[#666666] block">
@@ -688,10 +688,10 @@ export default function OrdersPage() {
                   </div>
                   <span className="text-xs font-mono text-[#666666]">{rev.date}</span>
                 </div>
-                <div className="flex gap-1 text-[#D4FF00] text-xs">
+                <div className="flex gap-1 text-[#BFDD25] text-xs">
                   {"★".repeat(rev.rating)}
                 </div>
-                <p className="text-xs font-sans text-[#CCCCCC] bg-[#111111] p-3 border border-[#1c1c1c]">
+                <p className="text-xs font-sans text-[#CCCCCC] bg-[#050505] p-3 border border-[#1c1c1c]">
                   &ldquo;{rev.comment}&rdquo;
                 </p>
                 <div className="text-[10px] font-mono text-[#666666]">
@@ -711,11 +711,11 @@ export default function OrdersPage() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-[#0e0e0e] border border-[#262626] p-8 sm:p-10 max-w-2xl w-full text-left space-y-6 shadow-2xl relative my-8 print:border-none print:p-0 print:bg-white print:text-black"
+              className="bg-[#030303] border border-[#1c1c1c] p-8 sm:p-10 max-w-2xl w-full text-left space-y-6 shadow-2xl relative my-8 print:border-none print:p-0 print:bg-white print:text-black"
             >
               <div className="flex justify-between items-start border-b border-[#222] pb-6">
                 <div>
-                  <span className="text-xs font-mono text-[#D4FF00] font-bold tracking-[0.25em] uppercase block mb-1">
+                  <span className="text-xs font-mono text-[#BFDD25] font-bold tracking-[0.25em] uppercase block mb-1">
                     TONAL ZONE LABS
                   </span>
                   <h2 className="font-heading text-2xl font-bold uppercase tracking-tight text-white print:text-black">
@@ -744,13 +744,13 @@ export default function OrdersPage() {
                 <div>
                   <span className="text-[10px] text-[#555] uppercase block mb-1">STATUS EKSPEDISI</span>
                   <span className="text-white font-bold block">{selectedOrderDetails.courierCode || "JNE Express"}</span>
-                  <span className="text-[11px] text-[#D4FF00] font-bold">Resi: {selectedOrderDetails.waybillNumber || "Menunggu Pickup"}</span>
+                  <span className="text-[11px] text-[#BFDD25] font-bold">Resi: {selectedOrderDetails.waybillNumber || "Menunggu Pickup"}</span>
                 </div>
               </div>
 
               {/* Items Table */}
               <div className="border border-[#1f1f1f] overflow-hidden">
-                <div className="grid grid-cols-12 bg-[#141414] p-3 text-[10px] font-mono uppercase tracking-wider text-[#71717A] font-bold border-b border-[#1f1f1f]">
+                <div className="grid grid-cols-12 bg-[#050505] p-3 text-[10px] font-mono uppercase tracking-wider text-[#71717A] font-bold border-b border-[#1f1f1f]">
                   <div className="col-span-7">Deskripsi Perangkat</div>
                   <div className="col-span-2 text-center">Qty</div>
                   <div className="col-span-3 text-right">Total</div>
@@ -764,7 +764,7 @@ export default function OrdersPage() {
                     <div className="col-span-2 text-center text-[#71717A]">
                       {selectedOrderDetails.quantity || 1}x
                     </div>
-                    <div className="col-span-3 text-right font-bold text-[#D4FF00]">
+                    <div className="col-span-3 text-right font-bold text-[#BFDD25]">
                       {formatPrice(selectedOrderDetails.price)}
                     </div>
                   </div>
@@ -772,7 +772,7 @@ export default function OrdersPage() {
               </div>
 
               {/* Total & Proteksi Escrow */}
-              <div className="p-4 bg-[#141414] border border-[#1f1f1f] flex justify-between items-center text-xs font-mono">
+              <div className="p-4 bg-[#050505] border border-[#1f1f1f] flex justify-between items-center text-xs font-mono">
                 <div>
                   <span className="text-[10px] text-[#71717A] uppercase block">PROTEKSI ESCROW</span>
                   <span className="text-emerald-400 font-bold">
@@ -800,7 +800,7 @@ export default function OrdersPage() {
                 <button
                   type="button"
                   onClick={() => setSelectedOrderDetails(null)}
-                  className="px-5 py-2.5 bg-[#141414] hover:bg-[#1c1c1c] text-[#8E8E93] hover:text-white border border-[#222] font-mono text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
+                  className="px-5 py-2.5 bg-[#050505] hover:bg-[#080808] text-[#8E8E93] hover:text-white border border-[#222] font-mono text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
                 >
                   Tutup
                 </button>
@@ -818,7 +818,7 @@ export default function OrdersPage() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-[#111111] border border-[#2a2a2a] p-6 sm:p-8 max-w-lg w-full space-y-6 shadow-2xl relative"
+              className="bg-[#050505] border border-[#2a2a2a] p-6 sm:p-8 max-w-lg w-full space-y-6 shadow-2xl relative"
             >
               <div className="flex justify-between items-start border-b border-[#222222] pb-4">
                 <div>
@@ -843,7 +843,7 @@ export default function OrdersPage() {
                   <label className="block text-[#888888] uppercase tracking-wider mb-2">
                     Rating Bintang:
                   </label>
-                  <div className="flex gap-2 text-2xl text-[#D4FF00] cursor-pointer">
+                  <div className="flex gap-2 text-2xl text-[#BFDD25] cursor-pointer">
                     {[1, 2, 3, 4, 5].map((star) => (
                       <span
                         key={star}
@@ -865,7 +865,7 @@ export default function OrdersPage() {
                     value={commentInput}
                     onChange={(e) => setCommentInput(e.target.value)}
                     placeholder="Ceritakan impresi suara (bass, mid, treble, soundstage)..."
-                    className="w-full bg-[#141414] border border-[#222222] p-3 text-white focus:border-white outline-none"
+                    className="w-full bg-[#050505] border border-[#222222] p-3 text-white focus:border-white outline-none"
                   />
                 </div>
 
@@ -879,7 +879,7 @@ export default function OrdersPage() {
                   </button>
                   <button
                     type="submit"
-                    className="px-6 py-2.5 bg-[#D4FF00] text-black font-bold uppercase hover:bg-white transition-colors"
+                    className="px-6 py-2.5 bg-[#BFDD25] text-black font-bold uppercase hover:bg-white transition-colors"
                   >
                     Kirim Ulasan
                   </button>

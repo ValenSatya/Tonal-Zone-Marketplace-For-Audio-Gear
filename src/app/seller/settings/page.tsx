@@ -111,7 +111,7 @@ export default function SellerSettingsPage() {
             <h1 className="text-xl font-bold font-sans tracking-tight text-white">
               {isEn ? "Store Profile & Payout Settings" : "Profil Toko & Pengaturan Pencairan"}
             </h1>
-            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-[#141414] text-[#A1A1AA] border border-[#27272A] flex items-center gap-1.5">
+            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-[#050505] text-[#A1A1AA] border border-[#27272A] flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
               {storeData.storeType === "OFFICIAL_BRAND" ? "OFFICIAL BRAND" : "VERIFIED MERCHANT"}
             </span>
@@ -135,16 +135,16 @@ export default function SellerSettingsPage() {
       </div>
 
       {isSaved && (
-        <div className="p-4 rounded-xl bg-[#141414] border border-[#2A2A2A] text-white text-xs font-mono flex items-center gap-2">
+        <div className="p-4 rounded-xl bg-[#050505] border border-[#2A2A2A] text-white text-xs font-mono flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-emerald-400" />
           {isEn ? "Store settings and preferences saved successfully!" : "Pengaturan profil toko berhasil diperbarui!"}
         </div>
       )}
 
       {/* Store Banner & Avatar Section */}
-      <div className="bg-[#111111] border border-[#222222] rounded-xl overflow-hidden">
+      <div className="bg-[#050505] border border-[#222222] rounded-xl overflow-hidden">
         {/* Cover Banner */}
-        <div className="relative h-40 bg-[#161616] border-b border-[#222]">
+        <div className="relative h-40 bg-[#050505] border-b border-[#222]">
           {bannerPreview ? (
             <img src={bannerPreview} alt="Cover Banner" className="w-full h-full object-cover" />
           ) : (
@@ -165,7 +165,7 @@ export default function SellerSettingsPage() {
           <button
             type="button"
             onClick={() => bannerInputRef.current?.click()}
-            className="absolute top-3 right-3 px-3 py-1.5 bg-[#0D0D0D]/80 hover:bg-[#0D0D0D] backdrop-blur-md text-white text-xs font-mono rounded-lg border border-[#333] transition-colors cursor-pointer flex items-center gap-1.5"
+            className="absolute top-3 right-3 px-3 py-1.5 bg-[#030303]/80 hover:bg-[#030303] backdrop-blur-md text-white text-xs font-mono rounded-lg border border-[#333] transition-colors cursor-pointer flex items-center gap-1.5"
           >
             <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
@@ -175,9 +175,9 @@ export default function SellerSettingsPage() {
         </div>
 
         {/* Store Avatar & Quick Info Header */}
-        <div className="p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-[#141414]">
+        <div className="p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-[#050505]">
           <div className="relative -mt-12 group">
-            <div className="w-20 h-20 rounded-xl bg-[#1E1E1E] border-2 border-[#333] overflow-hidden flex items-center justify-center font-mono font-bold text-xl text-white shadow-xl">
+            <div className="w-20 h-20 rounded-xl bg-[#050505] border-2 border-[#333] overflow-hidden flex items-center justify-center font-mono font-bold text-xl text-white shadow-xl">
               {avatarPreview ? (
                 <img src={avatarPreview} alt="Avatar" className="w-full h-full object-cover" />
               ) : (
@@ -215,7 +215,7 @@ export default function SellerSettingsPage() {
             <button
               type="button"
               onClick={() => avatarInputRef.current?.click()}
-              className="px-3 py-1.5 bg-[#222] hover:bg-[#2A2A2A] text-white text-xs font-mono rounded-lg border border-[#333] transition-colors cursor-pointer"
+              className="px-3 py-1.5 bg-[#050505] hover:bg-[#050505] text-white text-xs font-mono rounded-lg border border-[#333] transition-colors cursor-pointer"
             >
               {isEn ? "Upload Store Avatar" : "Upload Foto Profil"}
             </button>
@@ -238,7 +238,7 @@ export default function SellerSettingsPage() {
       {/* 2-Column Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Card 1: Store Operating Mode & Currency Settings */}
-        <div className="bg-[#111111] border border-[#222222] rounded-xl p-5 space-y-4">
+        <div className="bg-[#050505] border border-[#222222] rounded-xl p-5 space-y-4">
           <div className="flex items-center gap-2 pb-2 border-b border-[#1E1E1E]">
             <span className="w-2 h-2 rounded-full bg-amber-400" />
             <h3 className="text-xs font-bold font-sans text-white uppercase tracking-wider">
@@ -298,7 +298,7 @@ export default function SellerSettingsPage() {
                 required
                 value={storeData.storeName}
                 onChange={(e) => setStoreData({ ...storeData, storeName: e.target.value })}
-                className="w-full bg-[#161616] border border-[#2A2A2A] rounded-lg px-3.5 py-2 text-xs font-sans text-white outline-none focus:border-white"
+                className="w-full bg-[#050505] border border-[#2A2A2A] rounded-lg px-3.5 py-2 text-xs font-sans text-white outline-none focus:border-white"
               />
             </div>
 
@@ -310,7 +310,7 @@ export default function SellerSettingsPage() {
                 type="text"
                 value={storeData.tagline}
                 onChange={(e) => setStoreData({ ...storeData, tagline: e.target.value })}
-                className="w-full bg-[#161616] border border-[#2A2A2A] rounded-lg px-3.5 py-2 text-xs font-sans text-white outline-none focus:border-white"
+                className="w-full bg-[#050505] border border-[#2A2A2A] rounded-lg px-3.5 py-2 text-xs font-sans text-white outline-none focus:border-white"
               />
             </div>
           </div>
@@ -319,7 +319,7 @@ export default function SellerSettingsPage() {
         {/* Card 2: Bank Payout & Warehouse Address */}
         <div className="space-y-6">
           {/* Bank Account */}
-          <div className="bg-[#111111] border border-[#222222] rounded-xl p-5 space-y-4">
+          <div className="bg-[#050505] border border-[#222222] rounded-xl p-5 space-y-4">
             <div className="flex items-center gap-2 pb-2 border-b border-[#1E1E1E]">
               <span className="w-2 h-2 rounded-full bg-emerald-400" />
               <h3 className="text-xs font-bold font-sans text-white uppercase tracking-wider">
@@ -356,7 +356,7 @@ export default function SellerSettingsPage() {
                     required
                     value={storeData.bankAccount}
                     onChange={(e) => setStoreData({ ...storeData, bankAccount: e.target.value })}
-                    className="w-full bg-[#161616] border border-[#2A2A2A] rounded-lg px-3.5 py-2 text-xs font-mono text-white outline-none focus:border-white"
+                    className="w-full bg-[#050505] border border-[#2A2A2A] rounded-lg px-3.5 py-2 text-xs font-mono text-white outline-none focus:border-white"
                   />
                 </div>
                 <div>
@@ -368,7 +368,7 @@ export default function SellerSettingsPage() {
                     required
                     value={storeData.accountHolder}
                     onChange={(e) => setStoreData({ ...storeData, accountHolder: e.target.value })}
-                    className="w-full bg-[#161616] border border-[#2A2A2A] rounded-lg px-3.5 py-2 text-xs font-sans text-white outline-none focus:border-white"
+                    className="w-full bg-[#050505] border border-[#2A2A2A] rounded-lg px-3.5 py-2 text-xs font-sans text-white outline-none focus:border-white"
                   />
                 </div>
               </div>
@@ -376,7 +376,7 @@ export default function SellerSettingsPage() {
           </div>
 
           {/* Warehouse Origin Shipping Address */}
-          <div className="bg-[#111111] border border-[#222222] rounded-xl p-5 space-y-3">
+          <div className="bg-[#050505] border border-[#222222] rounded-xl p-5 space-y-3">
             <label className="block text-[11px] font-mono text-[#888] uppercase mb-1">
               {isEn ? "Warehouse Shipping Origin (Indonesia)" : "Alamat Asal Gudang Pengiriman (Indonesia)"}
             </label>
@@ -384,7 +384,7 @@ export default function SellerSettingsPage() {
               rows={3}
               value={storeData.originAddress}
               onChange={(e) => setStoreData({ ...storeData, originAddress: e.target.value })}
-              className="w-full bg-[#161616] border border-[#2A2A2A] rounded-lg p-3 text-xs font-sans text-white outline-none focus:border-white resize-none"
+              className="w-full bg-[#050505] border border-[#2A2A2A] rounded-lg p-3 text-xs font-sans text-white outline-none focus:border-white resize-none"
             />
           </div>
         </div>

@@ -77,7 +77,7 @@ export default function BrandResellersPage() {
             <h1 className="text-xl font-bold font-sans tracking-tight text-white">
               {isEn ? "Authorized Resellers & Global Dealers" : "Direktori Reseller & Distributor Resmi"}
             </h1>
-            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-[#141414] text-[#A1A1AA] border border-[#27272A]">
+            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-[#050505] text-[#A1A1AA] border border-[#27272A]">
               License Management
             </span>
           </div>
@@ -100,11 +100,11 @@ export default function BrandResellersPage() {
       </div>
 
       {/* Reseller Directory Table */}
-      <div className="bg-[#111111] border border-[#222222] rounded-xl overflow-hidden">
+      <div className="bg-[#050505] border border-[#222222] rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse font-sans text-xs">
             <thead>
-              <tr className="border-b border-[#1E1E1E] bg-[#0E0E0E] text-[10px] font-mono uppercase text-[#71717A] tracking-wider">
+              <tr className="border-b border-[#1E1E1E] bg-[#030303] text-[10px] font-mono uppercase text-[#71717A] tracking-wider">
                 <th className="px-5 py-3.5">{isEn ? "Partner Name" : "Nama Toko / Mitra"}</th>
                 <th className="px-5 py-3.5">{isEn ? "Country & Region" : "Negara & Wilayah"}</th>
                 <th className="px-5 py-3.5">{isEn ? "License" : "Nomor Lisensi"}</th>
@@ -115,10 +115,10 @@ export default function BrandResellersPage() {
             </thead>
             <tbody className="divide-y divide-[#1A1A1A]">
               {resellers.map((rsl) => (
-                <tr key={rsl.id} className="hover:bg-[#161616] transition-colors">
+                <tr key={rsl.id} className="hover:bg-[#050505] transition-colors">
                   <td className="px-5 py-3.5">
                     <div className="flex items-center gap-2.5">
-                      <div className="w-7 h-7 rounded bg-[#181818] border border-[#2A2A2A] flex items-center justify-center font-mono font-bold text-xs text-white">
+                      <div className="w-7 h-7 rounded bg-[#050505] border border-[#2A2A2A] flex items-center justify-center font-mono font-bold text-xs text-white">
                         {rsl.storeName.slice(0, 2).toUpperCase()}
                       </div>
                       <div>
@@ -137,7 +137,7 @@ export default function BrandResellersPage() {
                   </td>
 
                   <td className="px-5 py-3.5">
-                    <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#161616] text-[#A1A1AA] border border-[#27272A]">
+                    <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#050505] text-[#A1A1AA] border border-[#27272A]">
                       {rsl.tier.replace(/_/g, " ")}
                     </span>
                   </td>
@@ -147,7 +147,7 @@ export default function BrandResellersPage() {
                   </td>
 
                   <td className="px-5 py-3.5 text-right">
-                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono bg-[#161616] text-[#D4D4D8] border border-[#27272A]">
+                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono bg-[#050505] text-[#D4D4D8] border border-[#27272A]">
                       <span className={`w-1.5 h-1.5 rounded-full ${rsl.status === "ACTIVE" ? "bg-emerald-400" : "bg-amber-400"}`} />
                       {rsl.status}
                     </span>

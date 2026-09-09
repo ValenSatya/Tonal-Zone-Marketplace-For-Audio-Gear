@@ -301,7 +301,7 @@ export default function CheckoutPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#080808] text-[#FAF9F6] font-sans selection:bg-[#D4FF00] selection:text-[#0e0e0e] flex flex-col relative">
+    <div className="min-h-screen bg-[#030303] text-[#FAF9F6] font-sans selection:bg-[#BFDD25] selection:text-[#030303] flex flex-col relative">
       {/* Official Midtrans Snap Script directly in Checkout */}
       <Script
         src={snapScriptUrl}
@@ -329,11 +329,11 @@ export default function CheckoutPage() {
             animate={{ opacity: 1, y: 0 }}
             className="mb-8"
           >
-            <Alert className="bg-[#141414] border-[#2a2a2a] text-[#FAF9F6] p-4 sm:p-5 shadow-sm flex items-start gap-3.5">
+            <Alert className="bg-[#050505] border-[#2a2a2a] text-[#FAF9F6] p-4 sm:p-5 shadow-sm flex items-start gap-3.5">
               <AlertTriangle className="h-5 w-5 text-amber-400 shrink-0 mt-0.5" />
               <AlertDescription className="text-xs sm:text-[13px] text-[#A0A0A5] font-sans leading-relaxed">
                 Silakan{" "}
-                <Link href="/login?redirect=/checkout" className="underline font-bold text-white hover:text-[#D4FF00] transition-colors underline-offset-2">
+                <Link href="/login?redirect=/checkout" className="underline font-bold text-white hover:text-[#BFDD25] transition-colors underline-offset-2">
                   Masuk (Login)
                 </Link>{" "}
                 ke akun Anda untuk menyimpan riwayat transaksi dan melacak nomor resi paket Anda secara otomatis.
@@ -387,7 +387,7 @@ export default function CheckoutPage() {
                     type="text"
                     value={postalCode}
                     onChange={(e) => setPostalCode(e.target.value)}
-                    className="w-full bg-[#111111] border border-[#222222] focus:border-white px-3.5 py-2.5 text-xs font-mono font-bold text-white outline-none transition-colors"
+                    className="w-full bg-[#050505] border border-[#222222] focus:border-white px-3.5 py-2.5 text-xs font-mono font-bold text-white outline-none transition-colors"
                   />
                 </div>
               </div>
@@ -402,7 +402,7 @@ export default function CheckoutPage() {
                   value={street}
                   onChange={(e) => setStreet(e.target.value)}
                   placeholder="Nama jalan, nomor rumah / gedung, RT/RW, kelurahan"
-                  className="w-full bg-[#111111] border border-[#222222] focus:border-white px-3.5 py-2.5 text-xs font-sans text-white placeholder:text-[#555555] outline-none transition-colors"
+                  className="w-full bg-[#050505] border border-[#222222] focus:border-white px-3.5 py-2.5 text-xs font-sans text-white placeholder:text-[#555555] outline-none transition-colors"
                 />
               </div>
             </div>
@@ -428,8 +428,8 @@ export default function CheckoutPage() {
                       onClick={() => setCourier(srv.id)}
                       className={`p-4 border transition-all cursor-pointer flex flex-col justify-between ${
                         isSelected
-                          ? "bg-[#141414] border-white text-white shadow-sm"
-                          : "bg-[#0e0e0e] border-[#1c1c1c] text-[#888888] hover:border-[#333333]"
+                          ? "bg-[#050505] border-white text-white shadow-sm"
+                          : "bg-[#030303] border-[#1c1c1c] text-[#888888] hover:border-[#333333]"
                       }`}
                     >
                       <div>
@@ -473,8 +473,8 @@ export default function CheckoutPage() {
                       onClick={() => setPaymentMethod(pm.id)}
                       className={`p-4 border transition-all cursor-pointer flex flex-col justify-between ${
                         isSelected
-                          ? "bg-[#141414] border-white text-white shadow-sm"
-                          : "bg-[#0e0e0e] border-[#1c1c1c] text-[#888888] hover:border-[#333333]"
+                          ? "bg-[#050505] border-white text-white shadow-sm"
+                          : "bg-[#030303] border-[#1c1c1c] text-[#888888] hover:border-[#333333]"
                       }`}
                     >
                       <div className="flex justify-between items-start mb-1.5">
@@ -495,7 +495,7 @@ export default function CheckoutPage() {
 
           {/* RIGHT AREA: CLEAN ORDER SUMMARY (5 COLS) */}
           <div className="lg:col-span-5">
-            <div className="bg-[#0e0e0e] border border-[#1c1c1c] p-6 lg:p-8 sticky top-28 space-y-5">
+            <div className="bg-[#030303] border border-[#1c1c1c] p-6 lg:p-8 sticky top-28 space-y-5">
               <h3 className="font-heading text-base font-bold uppercase tracking-wider text-white border-b border-[#1c1c1c] pb-3">
                 {t("checkout.summary")}
               </h3>
@@ -506,7 +506,7 @@ export default function CheckoutPage() {
                   { id: "mock-1", name: "Sennheiser IE 900", brand: "SENNHEISER", price: 1299.00, image: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800", variant: "4.4mm Pentaconn", quantity: 1 },
                 ]).map((item, idx) => (
                   <div key={item.id || idx} className="flex gap-3 items-center">
-                    <div className="relative w-12 h-12 bg-[#141414] border border-[#222222] overflow-hidden shrink-0">
+                    <div className="relative w-12 h-12 bg-[#050505] border border-[#222222] overflow-hidden shrink-0">
                       <Image src={item.image || "/placeholder.svg"} alt={item.name} fill className="object-cover" />
                     </div>
                     <div className="flex-grow min-w-0">
@@ -535,12 +535,12 @@ export default function CheckoutPage() {
                     value={promoCodeInput}
                     onChange={(e) => setPromoCodeInput(e.target.value)}
                     placeholder="Contoh: DEMO1RP atau TONAL10"
-                    className="bg-[#141414] border border-[#262626] focus:border-white text-xs font-mono text-white uppercase px-3 py-2 flex-1 outline-none transition-colors"
+                    className="bg-[#050505] border border-[#1c1c1c] focus:border-white text-xs font-mono text-white uppercase px-3 py-2 flex-1 outline-none transition-colors"
                   />
                   <button
                     type="button"
                     onClick={handleApplyPromo}
-                    className="bg-[#1c1c1c] hover:bg-[#282828] text-white border border-[#2a2a2a] text-xs font-mono font-bold uppercase px-3.5 py-2 transition-colors cursor-pointer"
+                    className="bg-[#1c1c1c] hover:bg-[#050505] text-white border border-[#2a2a2a] text-xs font-mono font-bold uppercase px-3.5 py-2 transition-colors cursor-pointer"
                   >
                     Terapkan
                   </button>
@@ -577,7 +577,7 @@ export default function CheckoutPage() {
                 </div>
                 <div className="flex justify-between items-center border-t border-[#1c1c1c] pt-3 text-sm font-sans">
                   <span className="font-bold text-white uppercase">{t("cart.total")}</span>
-                  <span className="font-mono text-xl font-bold text-[#D4FF00]">
+                  <span className="font-mono text-xl font-bold text-[#BFDD25]">
                     {isDemoRp1 ? "Rp 1" : formatPrice(total)}
                   </span>
                 </div>
@@ -587,7 +587,7 @@ export default function CheckoutPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full py-4 bg-[#D4FF00] hover:bg-white text-black font-mono text-xs font-bold uppercase tracking-widest transition-all cursor-pointer shadow-sm mt-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full py-4 bg-[#BFDD25] hover:bg-white text-black font-mono text-xs font-bold uppercase tracking-widest transition-all cursor-pointer shadow-sm mt-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {isSubmitting ? (
                   <>

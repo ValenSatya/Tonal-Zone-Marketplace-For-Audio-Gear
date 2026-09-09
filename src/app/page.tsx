@@ -10,11 +10,11 @@ import FigmaAuthorizedPartners from "@/components/landing/FigmaAuthorizedPartner
 
 export default function Home() {
   return (
-    <div className="flex flex-col min-h-screen w-full overflow-x-clip bg-[#090808] text-[#FAF9F6] font-sans selection:bg-[#D4FF00] selection:text-[#090808]">
+    <div className="flex flex-col min-h-screen w-full overflow-x-clip bg-[#030303] text-[#FAF9F6] font-sans selection:bg-[#BFDD25] selection:text-[#030303]">
       {/* 1. Global Navbar (Preserved from Project) */}
       <Navbar />
 
-      <main className="relative w-full">
+      <main className="relative w-full flex flex-col gap-16 lg:gap-24">
         {/* 2. Hero Section: BLESSING 3 + Moondrop Watermark (Figma Frame 17) */}
         <FigmaHero />
 

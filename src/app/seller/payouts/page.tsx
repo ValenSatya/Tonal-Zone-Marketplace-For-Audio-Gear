@@ -185,7 +185,7 @@ export default function SellerPayoutsPage() {
             <h1 className="text-xl font-bold font-sans tracking-tight text-white">
               {isEn ? "Financials & Wallet Payouts" : "Dompet Toko & Penarikan Saldo"}
             </h1>
-            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-[#1A1A1A] text-[#FAF9F6] border border-[#2E2E2E]">
+            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-[#050505] text-[#FAF9F6] border border-[#2E2E2E]">
               {currency} {isEn ? "Active Ledger" : "Buku Kas"}
             </span>
           </div>
@@ -211,7 +211,7 @@ export default function SellerPayoutsPage() {
       {/* 3 KPI Balance Telemetry Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Card 1: Available Balance */}
-        <div className="bg-[#111111] border border-[#222222] rounded-xl p-5 relative overflow-hidden flex flex-col justify-between">
+        <div className="bg-[#050505] border border-[#222222] rounded-xl p-5 relative overflow-hidden flex flex-col justify-between">
           <div className="flex items-center justify-between pb-2 border-b border-[#1E1E1E]">
             <span className="text-xs font-bold font-sans text-white uppercase tracking-wider">
               {isEn ? "Available Balance" : "Saldo Tersedia (Bisa Ditarik)"}
@@ -227,14 +227,14 @@ export default function SellerPayoutsPage() {
           <button
             type="button"
             onClick={() => setIsWithdrawModalOpen(true)}
-            className="w-full py-1.5 bg-[#181818] hover:bg-[#202020] text-white text-xs font-mono rounded border border-[#2A2A2A] transition-colors"
+            className="w-full py-1.5 bg-[#050505] hover:bg-[#050505] text-white text-xs font-mono rounded border border-[#2A2A2A] transition-colors"
           >
             {isEn ? "Withdraw Funds →" : "Tarik Dana →"}
           </button>
         </div>
 
         {/* Card 2: In-Escrow Holding */}
-        <div className="bg-[#111111] border border-[#222222] rounded-xl p-5 relative overflow-hidden flex flex-col justify-between">
+        <div className="bg-[#050505] border border-[#222222] rounded-xl p-5 relative overflow-hidden flex flex-col justify-between">
           <div className="flex items-center justify-between pb-2 border-b border-[#1E1E1E]">
             <span className="text-xs font-bold font-sans text-white uppercase tracking-wider">
               {isEn ? "Pending Settlement" : "Saldo Tertahan (Pesanan Berjalan)"}
@@ -247,13 +247,13 @@ export default function SellerPayoutsPage() {
               {isEn ? "Pending buyer delivery confirmation" : "Menunggu barang sampai dan diselesaikan pembeli"}
             </p>
           </div>
-          <div className="text-[10px] font-mono text-[#777] bg-[#141414] p-1.5 rounded border border-[#222] text-center">
+          <div className="text-[10px] font-mono text-[#777] bg-[#050505] p-1.5 rounded border border-[#222] text-center">
             {isEn ? "Releases immediately upon order completion" : "Masuk ke saldo aktif setelah pesanan selesai"}
           </div>
         </div>
 
         {/* Card 3: Total Lifetime Payouts */}
-        <div className="bg-[#111111] border border-[#222222] rounded-xl p-5 relative overflow-hidden flex flex-col justify-between">
+        <div className="bg-[#050505] border border-[#222222] rounded-xl p-5 relative overflow-hidden flex flex-col justify-between">
           <div className="flex items-center justify-between pb-2 border-b border-[#1E1E1E]">
             <span className="text-xs font-bold font-sans text-white uppercase tracking-wider">
               {isEn ? "Total Lifetime Payouts" : "Total Penarikan Sukses"}
@@ -266,15 +266,15 @@ export default function SellerPayoutsPage() {
               {isEn ? "Disbursed to BCA & Mandiri accounts" : "Telah ditransfer ke rekening bank Anda"}
             </p>
           </div>
-          <div className="text-[10px] font-mono text-[#A1A1AA] bg-[#141414] p-1.5 rounded border border-[#222222] text-center">
+          <div className="text-[10px] font-mono text-[#A1A1AA] bg-[#050505] p-1.5 rounded border border-[#222222] text-center">
             {isEn ? "100% On-Time Settlement Rate" : "Tingkat Keberhasilan Transfer 100%"}
           </div>
         </div>
       </div>
 
       {/* Transaction History Ledger Table */}
-      <div className="bg-[#111111] border border-[#222222] rounded-xl overflow-hidden">
-        <div className="p-4 border-b border-[#1E1E1E] bg-[#141414] flex items-center justify-between">
+      <div className="bg-[#050505] border border-[#222222] rounded-xl overflow-hidden">
+        <div className="p-4 border-b border-[#1E1E1E] bg-[#050505] flex items-center justify-between">
           <h3 className="text-xs font-bold text-white uppercase tracking-wider font-mono">
             {isEn ? "Wallet & Settlement History" : "Riwayat Mutasi & Transaksi Dompet"}
           </h3>
@@ -284,7 +284,7 @@ export default function SellerPayoutsPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse font-sans text-xs">
             <thead>
-              <tr className="border-b border-[#1E1E1E] bg-[#0E0E0E] text-[10px] font-mono uppercase text-[#777] tracking-wider">
+              <tr className="border-b border-[#1E1E1E] bg-[#030303] text-[10px] font-mono uppercase text-[#777] tracking-wider">
                 <th className="px-5 py-3.5">Transaction ID</th>
                 <th className="px-5 py-3.5">Date & Time</th>
                 <th className="px-5 py-3.5">Type & Description</th>
@@ -295,7 +295,7 @@ export default function SellerPayoutsPage() {
             <tbody className="divide-y divide-[#1A1A1A]">
               {transactions.length > 0 ? (
                 transactions.map((tx) => (
-                  <tr key={tx.id} className="hover:bg-[#161616] transition-colors font-mono">
+                  <tr key={tx.id} className="hover:bg-[#050505] transition-colors font-mono">
                     <td className="px-5 py-3.5 font-bold text-white text-xs">{tx.id}</td>
                     <td className="px-5 py-3.5 text-xs text-[#888]">{tx.date}</td>
                     <td className="px-5 py-3.5 font-sans">
@@ -306,7 +306,7 @@ export default function SellerPayoutsPage() {
                       {tx.amountUSD >= 0 ? `+${formatAmount(tx.amountUSD)}` : formatAmount(tx.amountUSD)}
                     </td>
                     <td className="px-5 py-3.5 text-center">
-                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono font-medium uppercase tracking-wider bg-[#161616] text-[#D4D4D8] border border-[#27272A]">
+                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono font-medium uppercase tracking-wider bg-[#050505] text-[#D4D4D8] border border-[#27272A]">
                         <span className={`w-1.5 h-1.5 rounded-full ${tx.status === "COMPLETED" ? "bg-emerald-400" : "bg-amber-400"}`} />
                         {tx.status}
                       </span>
@@ -317,7 +317,7 @@ export default function SellerPayoutsPage() {
                 <tr>
                   <td colSpan={5} className="py-16 text-center">
                     <div className="flex flex-col items-center justify-center max-w-md mx-auto space-y-3">
-                      <div className="w-12 h-12 rounded-2xl bg-[#141414] border border-[#262626] flex items-center justify-center text-[#71717A]">
+                      <div className="w-12 h-12 rounded-2xl bg-[#050505] border border-[#1c1c1c] flex items-center justify-center text-[#71717A]">
                         <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                           <rect width="20" height="14" x="2" y="5" rx="2" />
                           <path strokeLinecap="round" strokeLinejoin="round" d="M2 10h20M6 15h.01M10 15h.01" />
@@ -358,7 +358,7 @@ export default function SellerPayoutsPage() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="relative w-full max-w-md bg-[#111111] border border-[#2A2A2A] rounded-2xl shadow-2xl p-6 font-sans z-10 space-y-4"
+              className="relative w-full max-w-md bg-[#050505] border border-[#2A2A2A] rounded-2xl shadow-2xl p-6 font-sans z-10 space-y-4"
             >
               <div className="flex items-center justify-between pb-3 border-b border-[#222]">
                 <h3 className="text-sm font-bold text-white">
@@ -373,7 +373,7 @@ export default function SellerPayoutsPage() {
 
               {withdrawSuccess ? (
                 <div className="py-8 text-center space-y-2">
-                  <div className="w-12 h-12 rounded-full bg-[#1A1A1A] border border-[#2E2E2E] text-white flex items-center justify-center mx-auto text-xl font-bold">
+                  <div className="w-12 h-12 rounded-full bg-[#050505] border border-[#2E2E2E] text-white flex items-center justify-center mx-auto text-xl font-bold">
                     <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
                   </div>
                   <h4 className="text-sm font-bold text-white">{isEn ? "Disbursement Requested!" : "Permintaan Pencairan Berhasil!"}</h4>
@@ -422,12 +422,12 @@ export default function SellerPayoutsPage() {
                         value={withdrawInput}
                         onChange={(e) => setWithdrawInput(e.target.value)}
                         placeholder={currency === "IDR" ? "e.g. 5000000" : "e.g. 500"}
-                        className="w-full bg-[#161616] border border-[#2A2A2A] rounded-lg pl-9 pr-3 py-2 text-sm font-mono font-bold text-white outline-none focus:border-white"
+                        className="w-full bg-[#050505] border border-[#2A2A2A] rounded-lg pl-9 pr-3 py-2 text-sm font-mono font-bold text-white outline-none focus:border-white"
                       />
                     </div>
                   </div>
 
-                  <div className="p-3 rounded-lg bg-[#161616] border border-[#262626] space-y-1 text-xs font-mono">
+                  <div className="p-3 rounded-lg bg-[#050505] border border-[#1c1c1c] space-y-1 text-xs font-mono">
                     <div className="flex justify-between text-[#888]">
                       <span>Disbursement Fee:</span>
                       <span className="text-emerald-400 font-bold">$0.00 (Free)</span>
@@ -442,7 +442,7 @@ export default function SellerPayoutsPage() {
                     <button
                       type="button"
                       onClick={() => setIsWithdrawModalOpen(false)}
-                      className="px-3.5 py-1.5 bg-[#1A1A1A] hover:bg-[#242424] text-white text-xs font-mono rounded-lg transition-colors cursor-pointer"
+                      className="px-3.5 py-1.5 bg-[#050505] hover:bg-[#050505] text-white text-xs font-mono rounded-lg transition-colors cursor-pointer"
                     >
                       {isEn ? "Cancel" : "Batal"}
                     </button>

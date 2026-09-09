@@ -37,7 +37,7 @@ export default function BrandProfilePage() {
             <h1 className="text-xl font-bold font-sans tracking-tight text-white">
               {isEn ? "Brand Profile & Acoustic Story" : "Profil & Filosofi Brand"}
             </h1>
-            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-[#141414] text-[#A1A1AA] border border-[#27272A] flex items-center gap-1.5">
+            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-[#050505] text-[#A1A1AA] border border-[#27272A] flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
               {isEn ? "Verified Manufacturer" : "Pabrikan Resmi"}
             </span>
@@ -65,27 +65,27 @@ export default function BrandProfilePage() {
       </div>
 
       {isSaved && (
-        <div className="p-3.5 rounded-xl bg-[#141414] border border-[#2A2A2A] text-white text-xs font-mono flex items-center gap-2">
+        <div className="p-3.5 rounded-xl bg-[#050505] border border-[#2A2A2A] text-white text-xs font-mono flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-emerald-400" />
           {isEn ? "Brand profile updated successfully." : "Profil brand berhasil disimpan."}
         </div>
       )}
 
       {/* Brand Hero Card (Clean Obsidian Noir) */}
-      <div className="bg-[#111111] border border-[#222222] rounded-xl p-5 relative">
+      <div className="bg-[#050505] border border-[#222222] rounded-xl p-5 relative">
         <div className="flex flex-col md:flex-row items-start md:items-center gap-5">
           {/* Clean Logo Box */}
-          <div className="w-16 h-16 rounded-xl bg-[#161616] border border-[#2A2A2A] flex items-center justify-center font-mono font-bold text-base text-white shrink-0">
+          <div className="w-16 h-16 rounded-xl bg-[#050505] border border-[#2A2A2A] flex items-center justify-center font-mono font-bold text-base text-white shrink-0">
             TANGZU
           </div>
 
           <div className="flex-1 min-w-0">
             <div className="flex flex-wrap items-center gap-2.5">
               <h2 className="text-lg font-bold font-sans text-white">{brandData.brandName}</h2>
-              <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#181818] text-[#A1A1AA] border border-[#2A2A2A]">
+              <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#050505] text-[#A1A1AA] border border-[#2A2A2A]">
                 Official Flagship
               </span>
-              <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#181818] text-[#71717A] border border-[#262626]">
+              <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#050505] text-[#71717A] border border-[#1c1c1c]">
                 Est. {brandData.foundedYear}
               </span>
             </div>
@@ -106,7 +106,7 @@ export default function BrandProfilePage() {
         {/* Left 2 Cols: Brand Story & Tuning Standard */}
         <div className="lg:col-span-2 space-y-6">
           {/* Section 1: Acoustic Heritage */}
-          <div className="bg-[#111111] border border-[#222222] rounded-xl p-5 space-y-4">
+          <div className="bg-[#050505] border border-[#222222] rounded-xl p-5 space-y-4">
             <div className="flex items-center gap-2 pb-2 border-b border-[#1E1E1E]">
               <span className="w-1.5 h-1.5 rounded-full bg-white" />
               <h3 className="text-xs font-bold font-sans text-white uppercase tracking-wider">
@@ -123,7 +123,7 @@ export default function BrandProfilePage() {
                   type="text"
                   value={brandData.tagline}
                   onChange={(e) => setBrandData({ ...brandData, tagline: e.target.value })}
-                  className="w-full bg-[#161616] border border-[#2A2A2A] rounded-lg px-3.5 py-2 text-xs font-sans text-white outline-none focus:border-white"
+                  className="w-full bg-[#050505] border border-[#2A2A2A] rounded-lg px-3.5 py-2 text-xs font-sans text-white outline-none focus:border-white"
                 />
               </div>
 
@@ -135,14 +135,14 @@ export default function BrandProfilePage() {
                   rows={5}
                   value={brandData.biography}
                   onChange={(e) => setBrandData({ ...brandData, biography: e.target.value })}
-                  className="w-full bg-[#161616] border border-[#2A2A2A] rounded-lg p-3 text-xs font-sans text-white leading-relaxed outline-none focus:border-white resize-none"
+                  className="w-full bg-[#050505] border border-[#2A2A2A] rounded-lg p-3 text-xs font-sans text-white leading-relaxed outline-none focus:border-white resize-none"
                 />
               </div>
             </div>
           </div>
 
           {/* Section 2: Tuning Standard */}
-          <div className="bg-[#111111] border border-[#222222] rounded-xl p-5 space-y-4">
+          <div className="bg-[#050505] border border-[#222222] rounded-xl p-5 space-y-4">
             <div className="flex items-center gap-2 pb-2 border-b border-[#1E1E1E]">
               <span className="w-1.5 h-1.5 rounded-full bg-white" />
               <h3 className="text-xs font-bold font-sans text-white uppercase tracking-wider">
@@ -159,7 +159,7 @@ export default function BrandProfilePage() {
                   type="text"
                   value={brandData.houseSoundSignature}
                   onChange={(e) => setBrandData({ ...brandData, houseSoundSignature: e.target.value })}
-                  className="w-full bg-[#161616] border border-[#2A2A2A] rounded-lg px-3.5 py-2 text-xs font-mono text-white outline-none focus:border-white"
+                  className="w-full bg-[#050505] border border-[#2A2A2A] rounded-lg px-3.5 py-2 text-xs font-mono text-white outline-none focus:border-white"
                 />
               </div>
 
@@ -184,7 +184,7 @@ export default function BrandProfilePage() {
 
         {/* Right 1 Col: Contact & Licensing Channels */}
         <div className="space-y-6">
-          <div className="bg-[#111111] border border-[#222222] rounded-xl p-5 space-y-4">
+          <div className="bg-[#050505] border border-[#222222] rounded-xl p-5 space-y-4">
             <div className="flex items-center gap-2 pb-2 border-b border-[#1E1E1E]">
               <span className="w-1.5 h-1.5 rounded-full bg-white" />
               <h3 className="text-xs font-bold font-sans text-white uppercase tracking-wider">
@@ -201,7 +201,7 @@ export default function BrandProfilePage() {
                   type="text"
                   value={brandData.officialWebsite}
                   onChange={(e) => setBrandData({ ...brandData, officialWebsite: e.target.value })}
-                  className="w-full bg-[#161616] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white outline-none focus:border-white"
+                  className="w-full bg-[#050505] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white outline-none focus:border-white"
                 />
               </div>
 
@@ -213,7 +213,7 @@ export default function BrandProfilePage() {
                   type="email"
                   value={brandData.supportEmail}
                   onChange={(e) => setBrandData({ ...brandData, supportEmail: e.target.value })}
-                  className="w-full bg-[#161616] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white outline-none focus:border-white"
+                  className="w-full bg-[#050505] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white outline-none focus:border-white"
                 />
               </div>
 
@@ -225,7 +225,7 @@ export default function BrandProfilePage() {
                   type="email"
                   value={brandData.partnerInquiries}
                   onChange={(e) => setBrandData({ ...brandData, partnerInquiries: e.target.value })}
-                  className="w-full bg-[#161616] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white outline-none focus:border-white"
+                  className="w-full bg-[#050505] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white outline-none focus:border-white"
                 />
               </div>
             </div>

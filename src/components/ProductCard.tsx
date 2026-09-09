@@ -58,7 +58,7 @@ export default function ProductCard({
       className={`group cursor-pointer block flex flex-col h-full ${className}`}
     >
       {/* 1. Square Image Container with Dark Industrial Border */}
-      <div className="aspect-square border border-[#1c1c1c] group-hover:border-[#444444] bg-[#0c0c0c] relative overflow-hidden flex items-center justify-center transition-colors duration-300">
+      <div className="aspect-square border border-[#1c1c1c] group-hover:border-[#444444] bg-[#050505] relative overflow-hidden flex items-center justify-center transition-colors duration-300">
         <img
           src={product.image}
           alt={product.name}
@@ -94,7 +94,7 @@ export default function ProductCard({
 
           {/* Review at Bottom Right */}
           <div className="flex items-center gap-0.5 sm:gap-1 text-[10px] sm:text-xs font-mono text-[#7A7A80] shrink-0">
-            <span className="text-[#D4FF00]">★</span>
+            <span className="text-[#BFDD25]">★</span>
             <span className="font-medium text-[#C7C7CC]">{product.rating || 4.9}</span>
             <span className="hidden sm:inline text-[#555555]">({product.reviews || 124})</span>
           </div>

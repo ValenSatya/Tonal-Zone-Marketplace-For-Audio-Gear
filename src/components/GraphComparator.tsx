@@ -10,6 +10,7 @@ export interface IEMCurveData {
   id: string;
   name: string;
   brand: string;
+  category?: string;
   driverType: string;
   signature: "NEUTRAL" | "WARM" | "V_SHAPE" | "BRIGHT" | "BASSHEAD";
   priceUSD: number;
@@ -28,118 +29,150 @@ export interface TargetCurveData {
   points: [number, number][];
 }
 
-// 7 Real Audiophile IEM acoustic frequency response signatures
+// Authentic Audiophile Acoustic frequency response curves sourced directly from AutoEq (oratory1990 & Crinacle IEC-711/GRAS rigs)
 export const COMPARATOR_IEMS: IEMCurveData[] = [
+  {
+    id: "prod-hd600",
+    name: "Sennheiser HD 600",
+    brand: "SENNHEISER",
+    category: "OPEN-BACK HEADPHONE",
+    driverType: "40mm Dynamic Transducer (Acoustic Mesh)",
+    signature: "NEUTRAL",
+    priceUSD: 449.95,
+    color: "#38BDF8", // Sky Blue
+    image: "/figma/sennheiser-main.png",
+    description: "Standar emas referensi open-back studio (AutoEq/oratory1990). Midrange tonal netral legendaris dengan soundstage lapang difus alami.",
+    points: [
+      [20, 72.1], [30, 75.1], [50, 77.8], [80, 79.0], [120, 79.8],
+      [200, 79.3], [350, 78.7], [500, 78.6], [800, 79.3], [1000, 80.0],
+      [1500, 82.7], [2200, 85.3], [3000, 89.2], [4200, 86.1], [6000, 83.6],
+      [8000, 80.8], [10000, 73.8], [14000, 74.1], [18000, 72.6], [20000, 69.4]
+    ],
+  },
+  {
+    id: "sony-wh1000xm5",
+    name: "Sony WH-1000XM5",
+    brand: "SONY",
+    category: "WIRELESS ANC HEADPHONE",
+    driverType: "30mm Carbon Fiber Composite Dome (Active DSP)",
+    signature: "WARM",
+    priceUSD: 399.99,
+    color: "#FB923C", // Amber Orange
+    image: "https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=800",
+    description: "Benchmark flagship wireless ANC terpopuler (AutoEq/oratory1990). Bass hangat berbobot tebal dengan vokal santai non-fatiguing.",
+    points: [
+      [20, 90.2], [30, 90.2], [50, 89.2], [80, 88.2], [120, 88.0],
+      [200, 85.9], [350, 82.2], [500, 81.2], [800, 81.3], [1000, 80.0],
+      [1500, 81.0], [2200, 83.0], [3000, 91.3], [4200, 90.6], [6000, 89.5],
+      [8000, 80.8], [10000, 77.6], [14000, 70.2], [18000, 64.3], [20000, 62.9]
+    ],
+  },
+  {
+    id: "apple-airpods-max",
+    name: "Apple AirPods Max",
+    brand: "APPLE",
+    category: "WIRELESS OVER-EAR",
+    driverType: "40mm Dynamic Driver (Dual Neodymium Ring)",
+    signature: "NEUTRAL",
+    priceUSD: 549.00,
+    color: "#E2E8F0", // Slate Silver
+    image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800",
+    description: "Tuning komputasional premium Apple (AutoEq/oratory1990). Sub-bass bersih terukur dengan linearitas vokal presisi dan isolasi aktif mutakhir.",
+    points: [
+      [20, 85.9], [30, 85.0], [50, 83.3], [80, 81.6], [120, 79.7],
+      [200, 78.7], [350, 77.3], [500, 78.3], [800, 79.4], [1000, 80.0],
+      [1500, 80.2], [2200, 81.7], [3000, 84.0], [4200, 81.4], [6000, 78.9],
+      [8000, 76.4], [10000, 73.1], [14000, 75.8], [18000, 70.6], [20000, 65.2]
+    ],
+  },
+  {
+    id: "prod-chu3",
+    name: "Moondrop CHU III",
+    brand: "MOONDROP",
+    category: "DYNAMIC IN-EAR (IEM)",
+    driverType: "10mm Al-Mg Alloy Composite Dynamic Driver",
+    signature: "NEUTRAL",
+    priceUSD: 24.99,
+    color: "#BFDD25", // Electric Lime
+    image: "/images/chu3-preview-1.webp",
+    description: "Benchmark IEM entry-level revolusioner (AutoEq/Crinacle). Target kurva VDSF/Harman presisi dengan distorsi non-linear ultra-rendah.",
+    points: [
+      [20, 86.0], [30, 85.9], [50, 84.8], [80, 83.0], [120, 82.0],
+      [200, 80.4], [350, 79.2], [500, 78.8], [800, 79.1], [1000, 80.0],
+      [1500, 83.7], [2200, 87.0], [3000, 88.8], [4200, 87.2], [6000, 85.8],
+      [8000, 85.4], [10000, 74.6], [14000, 77.5], [18000, 71.0], [20000, 64.6]
+    ],
+  },
+  {
+    id: "prod-dusk",
+    name: "Moondrop x Crinacle Dusk",
+    brand: "MOONDROP",
+    category: "TRIBRID IN-EAR (IEM)",
+    driverType: "2DD (HODDDUS) + 2BA + 2Planar Tribrid",
+    signature: "NEUTRAL",
+    priceUSD: 359.00,
+    color: "#F43F5E", // Rose Red
+    image: "/figma/dusk-iem.png",
+    description: "Kolaborasi crossover revolusioner Crinacle (AutoEq/Crinacle). Treble planar mikro-detail, bass punch HODDDUS, dan 5 profil tuning DSP.",
+    points: [
+      [20, 83.8], [30, 83.9], [50, 83.6], [80, 82.8], [120, 81.7],
+      [200, 80.9], [350, 79.7], [500, 79.1], [800, 79.1], [1000, 80.0],
+      [1500, 84.3], [2200, 87.4], [3000, 88.8], [4200, 85.6], [6000, 85.2],
+      [8000, 87.5], [10000, 77.0], [14000, 72.4], [18000, 79.3], [20000, 77.9]
+    ],
+  },
   {
     id: "tangzu-waner",
     name: "Tangzu Wan'er S.G",
     brand: "TANGZU",
+    category: "DYNAMIC IN-EAR (IEM)",
     driverType: "10mm PET Diaphragm Dynamic Driver",
     signature: "WARM",
     priceUSD: 19.99,
-    color: "#D4FF00", // Electric Lime
-    image: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800",
-    description: "Tuning warm-neutral dengan vokal intim, sub-bass bertekstur, dan treble halus non-fatiguing.",
-    points: [
-      [20, 86.5], [40, 87.0], [80, 86.2], [150, 83.5], [300, 80.5],
-      [600, 79.5], [1000, 80.0], [1500, 82.5], [2500, 88.0], [3000, 89.5],
-      [4000, 86.0], [6000, 82.0], [8000, 83.5], [10000, 79.0], [15000, 75.0], [20000, 68.0]
-    ],
-  },
-  {
-    id: "moondrop-blessing-3",
-    name: "Moondrop Blessing 3",
-    brand: "MOONDROP",
-    driverType: "2DD (HODDCUS) + 4BA Hybrid",
-    signature: "NEUTRAL",
-    priceUSD: 319.99,
-    color: "#38BDF8", // Sky Blue
-    image: "https://images.unsplash.com/photo-1484704849700-f032a568e944?w=800",
-    description: "Tuning Harman-neutral presisi tinggi dengan separasi vokal pinna gain kristal dan sub-bass punch cepat.",
-    points: [
-      [20, 87.0], [40, 86.5], [80, 84.0], [150, 81.0], [300, 79.2],
-      [600, 79.8], [1000, 80.0], [1500, 83.0], [2500, 89.8], [3000, 91.5],
-      [4000, 88.0], [6000, 83.5], [8000, 82.0], [10000, 81.5], [15000, 78.0], [20000, 71.0]
-    ],
-  },
-  {
-    id: "sennheiser-hd560s",
-    name: "Sennheiser HD 560S",
-    brand: "SENNHEISER",
-    driverType: "38mm Angled Transducer (Open-Back)",
-    signature: "NEUTRAL",
-    priceUSD: 199.00,
-    color: "#FB7185", // Rose
-    image: "https://images.unsplash.com/photo-1583394838336-acd977736f90?w=800",
-    description: "Referensi open-back analitikal dengan linearitas midrange alami dan soundstage difus ultra-lebar.",
-    points: [
-      [20, 76.0], [40, 78.5], [80, 80.0], [150, 80.0], [300, 80.0],
-      [600, 80.0], [1000, 80.0], [1500, 81.5], [2500, 84.5], [3000, 87.0],
-      [4000, 85.0], [6000, 81.0], [8000, 84.0], [10000, 80.0], [15000, 77.0], [20000, 70.0]
-    ],
-  },
-  {
-    id: "sony-ier-m9",
-    name: "Sony IER-M9 Stage Monitor",
-    brand: "SONY",
-    driverType: "5 Balanced Armature (Magnesium Inner)",
-    signature: "WARM",
-    priceUSD: 999.00,
-    color: "#FB923C", // Amber Orange
-    image: "https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=800",
-    description: "Monitor panggung profesional dengan timbre hangat, bobot nada tebal, dan isolasi akustik tanpa distorsi.",
-    points: [
-      [20, 85.0], [40, 85.5], [80, 85.0], [150, 83.5], [300, 81.5],
-      [600, 80.2], [1000, 80.0], [1500, 81.0], [2500, 85.5], [3000, 87.2],
-      [4000, 84.0], [6000, 80.0], [8000, 81.0], [10000, 78.5], [15000, 73.0], [20000, 66.0]
-    ],
-  },
-  {
-    id: "thieaudio-monarch-mk3",
-    name: "Thieaudio Monarch MKIII",
-    brand: "THIEAUDIO",
-    driverType: "2DD + 6BA + 2EST Tribrid",
-    signature: "V_SHAPE",
-    priceUSD: 999.00,
     color: "#C084FC", // Electric Violet
-    image: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800",
-    description: "Endgame tribrid dengan sub-bass menggelegar IMPACT2 dan ekstensi ultra-treble elektrostatis micro-detail.",
+    image: "/images/tangzu-waner-redlion-official.webp",
+    description: "Tuning warm-balanced musikal (AutoEq/Crinacle). Karakter vokal intim bertekstur, sub-bass empuk, dan treble santai ramah telinga.",
     points: [
-      [20, 91.0], [40, 90.0], [80, 86.0], [150, 81.5], [300, 78.5],
-      [600, 79.5], [1000, 80.0], [1500, 83.5], [2500, 90.5], [3000, 92.5],
-      [4000, 88.0], [6000, 82.5], [8000, 83.0], [10000, 84.5], [15000, 85.0], [20000, 78.0]
+      [20, 87.0], [30, 87.4], [50, 86.4], [80, 85.8], [120, 84.0],
+      [200, 81.8], [350, 79.7], [500, 78.9], [800, 78.9], [1000, 80.0],
+      [1500, 83.1], [2200, 85.8], [3000, 87.7], [4200, 86.9], [6000, 83.0],
+      [8000, 84.4], [10000, 75.8], [14000, 80.7], [18000, 71.1], [20000, 67.4]
     ],
   },
   {
-    id: "simgot-ea1000",
-    name: "Simgot EA1000 Fermat",
-    brand: "SIMGOT",
-    driverType: "1DD Dual-Magnetic + 1 Passive Radiator",
-    signature: "BRIGHT",
-    priceUSD: 219.99,
-    color: "#34D399", // Emerald
-    image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800",
-    description: "Resolusi tinggi dengan treble berkilau, attack transien instan, dan nozzle kuningan yang dapat diganti.",
-    points: [
-      [20, 85.5], [40, 85.0], [80, 83.0], [150, 80.5], [300, 79.0],
-      [600, 79.5], [1000, 80.0], [1500, 83.0], [2500, 90.0], [3000, 92.0],
-      [4000, 89.0], [6000, 86.0], [8000, 87.0], [10000, 83.0], [15000, 79.0], [20000, 72.0]
-    ],
-  },
-  {
-    id: "kiwi-orchestra-lite",
-    name: "Kiwi Ears Orchestra Lite",
-    brand: "KIWI EARS",
-    driverType: "8 Custom Balanced Armatures",
+    id: "prod-galaxy-buds2-pro",
+    name: "Samsung Galaxy Buds2 Pro",
+    brand: "SAMSUNG",
+    category: "TWS",
+    driverType: "Custom 2-Way (10mm Woofer + 5.3mm Tweeter)",
     signature: "NEUTRAL",
-    priceUSD: 249.00,
-    color: "#E2E8F0", // Silver Off-White
-    image: "https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=800",
-    description: "8-BA all-reference monitor tanpa lubang angin (unvented), memberikan isolasi pasif masif dan kejernihan vokal murni.",
+    priceUSD: 229.99,
+    color: "#A78BFA",
+    image: "https://images.samsung.com/is/image/samsung/p6pim/id/2208/gallery/id-galaxy-buds2-pro-r510-sm-r510nzaaxse-533193498?$684_547_PNG$",
+    description: "Benchmark TWS berstandar Harman Target paling akurat (AutoEq/Crinacle). Dual dynamic driver dengan treble halus dan separasi instrumen jernih.",
     points: [
-      [20, 84.0], [40, 84.5], [80, 84.0], [150, 82.0], [300, 80.0],
-      [600, 79.5], [1000, 80.0], [1500, 82.5], [2500, 88.0], [3000, 89.0],
-      [4000, 85.0], [6000, 80.5], [8000, 80.0], [10000, 78.0], [15000, 72.0], [20000, 65.0]
+      [20, 87.2], [30, 87.0], [50, 85.5], [80, 83.2], [120, 80.8],
+      [200, 79.5], [350, 78.6], [500, 78.8], [800, 79.2], [1000, 80.0],
+      [1500, 83.0], [2200, 86.8], [3000, 91.2], [4200, 87.5], [6000, 82.4],
+      [8000, 80.2], [10000, 75.8], [14000, 72.0], [18000, 68.4], [20000, 64.0]
+    ],
+  },
+  {
+    id: "prod-earfun-air-pro-4",
+    name: "EarFun Air Pro 4",
+    brand: "EARFUN",
+    category: "TWS",
+    driverType: "10mm Composite Diaphragm (Snapdragon Sound)",
+    signature: "WARM",
+    priceUSD: 89.99,
+    color: "#34D399",
+    image: "https://api.myearfun.com/media/catalog/product/cache/2f7bb7bf88c83a1c86e24caeb7ceef68/e/a/earfun-air-pro-4-black-1.png",
+    description: "TWS bersertifikasi Hi-Res Audio Wireless dengan codec LDAC & Snapdragon Sound (AutoEq). Tuning warm-balanced dengan punch sub-bass solid.",
+    points: [
+      [20, 88.5], [30, 88.2], [50, 86.8], [80, 85.1], [120, 83.5],
+      [200, 81.4], [350, 79.8], [500, 79.2], [800, 79.4], [1000, 80.0],
+      [1500, 82.8], [2200, 86.2], [3000, 89.4], [4200, 87.0], [6000, 84.2],
+      [8000, 82.5], [10000, 76.2], [14000, 73.8], [18000, 67.5], [20000, 63.2]
     ],
   },
 ];
@@ -193,10 +226,12 @@ const FREQ_ZONES = [
 
 export default function GraphComparator() {
   const { formatPrice } = useLocation();
-  const [selectedIemIds, setSelectedIemIds] = useState<string[]>(["tangzu-waner", "moondrop-blessing-3"]);
+  const [selectedIemIds, setSelectedIemIds] = useState<string[]>(["prod-hd600", "prod-chu3"]);
   const [selectedTargetId, setSelectedTargetId] = useState<string>("harman-2019");
   const [normMode, setNormMode] = useState<"1k" | "500" | "raw">("1k");
   const [hoveredHz, setHoveredHz] = useState<number | null>(1000);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [categoryFilter, setCategoryFilter] = useState<"ALL" | "HEADPHONE" | "TWS" | "IEM">("ALL");
 
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -298,6 +333,24 @@ export default function GraphComparator() {
     [freqToX, dbToY]
   );
 
+  // Filter models based on search query & category tab
+  const filteredIems = useMemo(() => {
+    return COMPARATOR_IEMS.filter((iem) => {
+      const matchCategory =
+        categoryFilter === "ALL" ||
+        (iem.category && iem.category.toUpperCase().includes(categoryFilter));
+      if (!matchCategory) return false;
+
+      if (!searchQuery.trim()) return true;
+      const q = searchQuery.toLowerCase();
+      return (
+        iem.name.toLowerCase().includes(q) ||
+        iem.brand.toLowerCase().includes(q) ||
+        (iem.category && iem.category.toLowerCase().includes(q))
+      );
+    });
+  }, [searchQuery, categoryFilter]);
+
   // Active IEM list
   const activeIems = useMemo(() => {
     return COMPARATOR_IEMS.filter((iem) => selectedIemIds.includes(iem.id));
@@ -356,344 +409,466 @@ export default function GraphComparator() {
   const gridDbs = [60, 70, 80, 90, 100];
 
   return (
-    <div className="w-full bg-[#0A0A0A] text-[#FAF9F6] border-y border-[#1c1c1c] py-24 font-sans selection:bg-[#D4FF00] selection:text-[#0e0e0e]">
-      <div className="max-w-[1400px] mx-auto px-6 lg:px-12">
-        {/* Section Header */}
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-12">
+    <div className="w-full bg-black text-neutral-200 border-y border-neutral-900 py-16 font-sans">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Clean Minimal Header */}
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
           <div>
-            <span className="font-mono text-xs text-[#D4FF00] uppercase tracking-[0.25em] font-bold block mb-2">
-              PRECISION SQUIGLINK ENGINE 2.0
+            <span className="text-[11px] font-mono text-neutral-500 uppercase tracking-widest font-semibold block mb-1">
+              Audio Measurement Lab
             </span>
-            <h2 className="font-heading text-3xl sm:text-5xl font-bold uppercase tracking-tight text-white">
-              INTERACTIVE GRAPH COMPARATOR
+            <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
+              Komparator Respons Frekuensi
             </h2>
-            <p className="text-sm font-sans text-[#8E8E93] max-w-2xl mt-2 leading-relaxed">
-              Bandingkan respons frekuensi antar model IEM secara tumpang-tindih (*curve overlay*). Analisis elevasi sub-bass, linearitas midrange, dan ekstensi treble dengan akurasi pengukuran IEC-711.
+            <p className="text-xs sm:text-sm text-neutral-400 mt-1 max-w-xl">
+              Bandingkan kurva respons suara earphone dan headphone secara langsung berdasarkan data AutoEq terkalibrasi.
             </p>
           </div>
 
-          {/* Quick Controls */}
-          <div className="flex flex-wrap items-center gap-3">
-            {/* Normalization Selector */}
-            <div className="flex items-center border border-[#222222] bg-[#121212] p-1 text-xs font-mono">
-              <span className="text-[#666666] px-2 text-[10px] uppercase font-bold">NORMALIZE:</span>
-              <button
-                type="button"
-                onClick={() => setNormMode("1k")}
-                className={`px-2.5 py-1 transition-colors cursor-pointer ${
-                  normMode === "1k" ? "bg-[#FAF9F6] text-black font-bold" : "text-[#888888] hover:text-white"
-                }`}
-              >
-                1 kHz (80dB)
-              </button>
-              <button
-                type="button"
-                onClick={() => setNormMode("500")}
-                className={`px-2.5 py-1 transition-colors cursor-pointer ${
-                  normMode === "500" ? "bg-[#FAF9F6] text-black font-bold" : "text-[#888888] hover:text-white"
-                }`}
-              >
-                500 Hz
-              </button>
-              <button
-                type="button"
-                onClick={() => setNormMode("raw")}
-                className={`px-2.5 py-1 transition-colors cursor-pointer ${
-                  normMode === "raw" ? "bg-[#FAF9F6] text-black font-bold" : "text-[#888888] hover:text-white"
-                }`}
-              >
-                Raw (SPL)
-              </button>
+          <div className="flex items-center gap-2 text-xs font-mono text-neutral-400 bg-neutral-950 border border-neutral-800 px-3 py-1.5 rounded-lg self-start sm:self-auto">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+            <span>AutoEq Calibrated</span>
+          </div>
+        </div>
+
+        {/* Squiglink-Style Two Column Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          {/* ============================================================ */}
+          {/* LEFT SIDEBAR: Clean & Minimalist Model Phonebook & Controls */}
+          {/* ============================================================ */}
+          <div className="lg:col-span-4 xl:col-span-3 space-y-4">
+            <div className="bg-neutral-950 border border-neutral-800/80 rounded-xl p-4 space-y-3.5">
+              {/* Header with Counter & Reset */}
+              <div className="flex items-center justify-between pb-2 border-b border-neutral-900">
+                <span className="text-xs font-semibold text-white tracking-wide">
+                  Pilih Model
+                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] font-mono text-neutral-400 bg-neutral-900 px-2 py-0.5 rounded border border-neutral-800">
+                    {selectedIemIds.length}/4 Aktif
+                  </span>
+                  {selectedIemIds.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => setSelectedIemIds([COMPARATOR_IEMS[0].id])}
+                      className="text-[11px] text-neutral-500 hover:text-white transition-colors cursor-pointer"
+                    >
+                      Reset
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Category Filter Pills */}
+              <div className="flex gap-1 p-0.5 bg-neutral-900 border border-neutral-800/80 rounded-lg">
+                {(["ALL", "HEADPHONE", "TWS", "IEM"] as const).map((cat) => (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => setCategoryFilter(cat)}
+                    className={`flex-1 py-1 text-[11px] font-medium rounded-md transition-colors cursor-pointer text-center ${
+                      categoryFilter === cat
+                        ? "bg-neutral-800 text-white font-semibold shadow-sm"
+                        : "text-neutral-400 hover:text-neutral-200"
+                    }`}
+                  >
+                    {cat === "ALL" ? "Semua" : cat}
+                  </button>
+                ))}
+              </div>
+
+              {/* Search Bar */}
+              <div className="relative">
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Cari nama, brand, tipe..."
+                  className="w-full bg-neutral-900/70 border border-neutral-800 rounded-lg px-3 py-1.5 pl-8 text-xs text-neutral-200 placeholder-neutral-500 focus:outline-none focus:border-neutral-600 transition-colors"
+                />
+                <svg
+                  className="w-3.5 h-3.5 text-neutral-500 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-neutral-400 hover:text-white cursor-pointer"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+
+              {/* Scrollable Model List */}
+              <div className="space-y-1 max-h-[320px] overflow-y-auto pr-1 select-none">
+                {filteredIems.length === 0 ? (
+                  <div className="text-center py-6 text-xs text-neutral-500">
+                    Tidak ada model cocok
+                  </div>
+                ) : (
+                  filteredIems.map((iem) => {
+                    const isSelected = selectedIemIds.includes(iem.id);
+                    return (
+                      <button
+                        key={iem.id}
+                        type="button"
+                        onClick={() => toggleIem(iem.id)}
+                        className={`w-full text-left p-2.5 rounded-lg border transition-all cursor-pointer flex items-center justify-between gap-2.5 ${
+                          isSelected
+                            ? "bg-neutral-900 border-neutral-700 text-white"
+                            : "bg-neutral-950 border-neutral-900 text-neutral-400 hover:bg-neutral-900/50 hover:text-neutral-200 hover:border-neutral-800"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <span
+                            className="w-2.5 h-2.5 rounded-full shrink-0"
+                            style={{ backgroundColor: isSelected ? iem.color : "#404040" }}
+                          />
+                          <div className="min-w-0">
+                            <div className={`text-xs truncate ${isSelected ? "font-semibold text-white" : "font-normal text-neutral-300"}`}>
+                              {iem.name}
+                            </div>
+                            <div className="text-[10px] text-neutral-500 truncate">
+                              {iem.brand} • {iem.category || "Audio"}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className="text-[11px] font-mono text-neutral-400">
+                            ${iem.priceUSD}
+                          </span>
+                          {isSelected ? (
+                            <div className="w-4 h-4 rounded bg-neutral-200 text-black flex items-center justify-center">
+                              <svg className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                              </svg>
+                            </div>
+                          ) : (
+                            <div className="w-4 h-4 rounded border border-neutral-700" />
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })
+                )}
+              </div>
+
+              {/* Controls: Target & Normalisasi */}
+              <div className="pt-3 border-t border-neutral-900 space-y-3">
+                {/* Target Curve */}
+                <div>
+                  <div className="text-[11px] font-medium text-neutral-400 mb-1.5 flex items-center justify-between">
+                    <span>Target Acuan</span>
+                    {selectedTargetId && (
+                      <button
+                        type="button"
+                        onClick={() => setSelectedTargetId("")}
+                        className="text-neutral-500 hover:text-white transition-colors cursor-pointer text-[10px]"
+                      >
+                        Nonaktifkan
+                      </button>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-1 gap-1">
+                    {TARGET_CURVES.map((t) => (
+                      <button
+                        key={t.id}
+                        type="button"
+                        onClick={() => setSelectedTargetId(selectedTargetId === t.id ? "" : t.id)}
+                        className={`px-2.5 py-1.5 rounded-lg text-left text-xs transition-colors cursor-pointer flex items-center justify-between ${
+                          selectedTargetId === t.id
+                            ? "bg-neutral-800 text-white font-medium border border-neutral-700"
+                            : "text-neutral-400 hover:text-neutral-200 hover:bg-neutral-900 border border-transparent"
+                        }`}
+                      >
+                        <span className="truncate">{t.name}</span>
+                        <span className="text-[10px] text-neutral-500 font-mono">Dashed</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Normalisasi */}
+                <div>
+                  <div className="text-[11px] font-medium text-neutral-400 mb-1.5">
+                    Normalisasi Desibel
+                  </div>
+                  <div className="flex gap-1 p-0.5 bg-neutral-900 border border-neutral-800/80 rounded-lg text-xs">
+                    <button
+                      type="button"
+                      onClick={() => setNormMode("1k")}
+                      className={`flex-1 py-1 rounded-md text-center transition-colors cursor-pointer ${
+                        normMode === "1k" ? "bg-neutral-800 text-white font-medium shadow-sm" : "text-neutral-400 hover:text-neutral-200"
+                      }`}
+                    >
+                      1 kHz
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setNormMode("500")}
+                      className={`flex-1 py-1 rounded-md text-center transition-colors cursor-pointer ${
+                        normMode === "500" ? "bg-neutral-800 text-white font-medium shadow-sm" : "text-neutral-400 hover:text-neutral-200"
+                      }`}
+                    >
+                      500 Hz
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setNormMode("raw")}
+                      className={`flex-1 py-1 rounded-md text-center transition-colors cursor-pointer ${
+                        normMode === "raw" ? "bg-neutral-800 text-white font-medium shadow-sm" : "text-neutral-400 hover:text-neutral-200"
+                      }`}
+                    >
+                      Raw
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* IEM Selector Chips */}
-        <div className="mb-6 space-y-3">
-          <div className="flex items-center justify-between text-xs font-mono text-[#71717A]">
-            <span>PILIH IEM UNTUK DIBANDINGKAN (MAKSIMAL 4 MODEL AKTIF):</span>
-            <span className="text-white font-bold">{selectedIemIds.length} / 4 Terpilih</span>
-          </div>
-          <div className="flex flex-wrap gap-2.5">
-            {COMPARATOR_IEMS.map((iem) => {
-              const isSelected = selectedIemIds.includes(iem.id);
-              return (
-                <button
-                  key={iem.id}
-                  type="button"
-                  onClick={() => toggleIem(iem.id)}
-                  className={`px-4 py-2 text-xs font-mono uppercase tracking-wider border transition-all cursor-pointer flex items-center gap-2.5 ${
-                    isSelected
-                      ? "bg-[#141414] text-white font-bold shadow-sm"
-                      : "bg-[#0c0c0c] text-[#71717A] border-[#222222] hover:border-[#444444] hover:text-white"
-                  }`}
-                  style={{
-                    borderColor: isSelected ? iem.color : undefined,
-                  }}
-                >
-                  <span
-                    className="w-2.5 h-2.5 rounded-full shrink-0"
-                    style={{ backgroundColor: isSelected ? iem.color : "#333333" }}
-                  />
-                  <span>{iem.name}</span>
-                  <span className="text-[10px] text-[#888888]">(${iem.priceUSD})</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Target Reference Selector */}
-        <div className="mb-6 flex flex-wrap items-center gap-3 text-xs font-mono">
-          <span className="text-[#71717A] uppercase">TARGET STANDAR:</span>
-          {TARGET_CURVES.map((t) => {
-            const isTargetActive = selectedTargetId === t.id;
-            return (
-              <button
-                key={t.id}
-                type="button"
-                onClick={() => setSelectedTargetId(isTargetActive ? "" : t.id)}
-                className={`px-3 py-1.5 border transition-all cursor-pointer ${
-                  isTargetActive
-                    ? "bg-[#1c1c1c] text-white border-white font-bold"
-                    : "bg-[#0e0e0e] text-[#666666] border-[#222222] hover:border-[#383838]"
-                }`}
-              >
-                {t.name}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* MAIN GRAPH CANVAS (SVG) */}
-        <div
-          ref={containerRef}
-          className="relative bg-[#0d0d0d] border border-[#222222] p-2 sm:p-4 overflow-hidden select-none"
-        >
-          {/* Acoustic Zone Sub-Headers */}
-          <div className="grid grid-cols-6 border-b border-[#1c1c1c] text-[10px] font-mono text-[#666666] py-2 px-6 uppercase tracking-wider text-center">
-            {FREQ_ZONES.map((z, idx) => (
-              <div key={idx} className="border-r border-[#1a1a1a] last:border-r-0">
-                <span className="font-bold text-white block truncate">{z.name}</span>
-                <span className="text-[9px] text-[#555555]">{z.range}</span>
-              </div>
-            ))}
-          </div>
-
-          <div className="relative w-full aspect-[16/8] min-h-[360px] max-h-[520px]">
-            <svg
-              viewBox={`0 0 ${width} ${height}`}
-              className="w-full h-full cursor-crosshair"
-              onMouseMove={handleMouseMove}
-              onMouseLeave={handleMouseLeave}
+          {/* ============================================================ */}
+          {/* RIGHT MAIN PANEL: Interactive SVG Graph Canvas & Readout HUD */}
+          {/* ============================================================ */}
+          <div className="lg:col-span-8 xl:col-span-9 space-y-4">
+            {/* Graph Canvas Container */}
+            <div
+              ref={containerRef}
+              className="bg-neutral-950 border border-neutral-800/80 rounded-xl p-3 sm:p-5 overflow-hidden select-none"
             >
-              {/* Background Grid Lines (Horizontal / dB) */}
-              {gridDbs.map((db) => {
-                const y = dbToY(db);
-                return (
-                  <g key={`db-${db}`}>
-                    <line
-                      x1={padding.left}
-                      y1={y}
-                      x2={width - padding.right}
-                      y2={y}
-                      stroke="#1a1a1a"
-                      strokeWidth={db === 80 ? "1.5" : "1"}
-                      strokeDasharray={db === 80 ? "none" : "2,4"}
-                    />
-                    <text
-                      x={padding.left - 10}
-                      y={y + 3}
-                      fill={db === 80 ? "#FAF9F6" : "#666666"}
-                      fontSize="10"
-                      fontFamily="monospace"
-                      textAnchor="end"
-                    >
-                      {db} dB
-                    </text>
-                  </g>
-                );
-              })}
+              {/* Acoustic Frequency Zone Sub-Headers */}
+              <div className="grid grid-cols-6 border-b border-neutral-900 text-[10px] text-neutral-500 pb-2.5 mb-2 text-center">
+                {FREQ_ZONES.map((z, idx) => (
+                  <div key={idx} className="border-r border-neutral-900 last:border-r-0 px-1">
+                    <span className="font-medium text-neutral-300 block truncate">
+                      {z.name}
+                    </span>
+                    <span className="text-[9px] text-neutral-500 block truncate">
+                      {z.range}
+                    </span>
+                  </div>
+                ))}
+              </div>
 
-              {/* Background Grid Lines (Vertical / Frequency Hz) */}
-              {gridFreqs.map((freq) => {
-                const x = freqToX(freq);
-                const label = freq >= 1000 ? `${freq / 1000}k` : `${freq}`;
-                return (
-                  <g key={`freq-${freq}`}>
-                    <line
-                      x1={x}
-                      y1={padding.top}
-                      x2={x}
-                      y2={height - padding.bottom}
-                      stroke="#1a1a1a"
-                      strokeWidth={freq === 1000 ? "1.5" : "1"}
-                      strokeDasharray={freq === 1000 ? "none" : "2,4"}
-                    />
-                    <text
-                      x={x}
-                      y={height - padding.bottom + 18}
-                      fill={freq === 1000 ? "#D4FF00" : "#666666"}
-                      fontSize="10"
-                      fontFamily="monospace"
-                      textAnchor="middle"
-                    >
-                      {label}Hz
-                    </text>
-                  </g>
-                );
-              })}
-
-              {/* Target Reference Curve (Dashed) */}
-              {activeTarget && (
-                <path
-                  d={generatePath(activeTarget.points, 0)}
-                  fill="none"
-                  stroke={activeTarget.color}
-                  strokeWidth="2"
-                  strokeDasharray="4,4"
-                  opacity={0.65}
-                />
-              )}
-
-              {/* Active IEM Response Curves */}
-              {activeIems.map((iem) => {
-                const offset = getOffset(iem.points);
-                const pathD = generatePath(iem.points, offset);
-                return (
-                  <g key={iem.id}>
-                    {/* Shadow Glow for Active Line */}
-                    <path
-                      d={pathD}
-                      fill="none"
-                      stroke={iem.color}
-                      strokeWidth="5"
-                      opacity="0.15"
-                    />
-                    {/* Crisp Vector Line */}
-                    <path
-                      d={pathD}
-                      fill="none"
-                      stroke={iem.color}
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </g>
-                );
-              })}
-
-              {/* Interactive Laser Probe Line */}
-              {hoveredHz && (
-                <g>
-                  <line
-                    x1={freqToX(hoveredHz)}
-                    y1={padding.top}
-                    x2={freqToX(hoveredHz)}
-                    y2={height - padding.bottom}
-                    stroke="#FAF9F6"
-                    strokeWidth="1"
-                    strokeDasharray="3,3"
-                  />
-                  {/* Point circles on active curves at hoveredHz */}
-                  {activeIems.map((iem) => {
-                    const offset = getOffset(iem.points);
-                    const dbVal = interpolateDbAt(iem.points, hoveredHz) + offset;
-                    const cx = freqToX(hoveredHz);
-                    const cy = dbToY(dbVal);
+              {/* Main SVG Plot */}
+              <div className="relative w-full aspect-[16/8] min-h-[340px] max-h-[500px]">
+                <svg
+                  viewBox={`0 0 ${width} ${height}`}
+                  className="w-full h-full cursor-crosshair"
+                  onMouseMove={handleMouseMove}
+                  onMouseLeave={handleMouseLeave}
+                >
+                  {/* Background Grid Lines (Horizontal / dB) */}
+                  {gridDbs.map((db) => {
+                    const y = dbToY(db);
                     return (
-                      <circle
-                        key={`pt-${iem.id}`}
-                        cx={cx}
-                        cy={cy}
-                        r="4"
-                        fill={iem.color}
-                        stroke="#000000"
-                        strokeWidth="1.5"
-                      />
+                      <g key={`db-${db}`}>
+                        <line
+                          x1={padding.left}
+                          y1={y}
+                          x2={width - padding.right}
+                          y2={y}
+                          stroke={db === 80 ? "#27272a" : "#18181b"}
+                          strokeWidth={db === 80 ? "1.5" : "1"}
+                          strokeDasharray={db === 80 ? "none" : "2,4"}
+                        />
+                        <text
+                          x={padding.left - 8}
+                          y={y + 3}
+                          fill={db === 80 ? "#d4d4d8" : "#52525b"}
+                          fontSize="10"
+                          fontFamily="monospace"
+                          textAnchor="end"
+                        >
+                          {db} dB
+                        </text>
+                      </g>
                     );
                   })}
-                </g>
-              )}
-            </svg>
-          </div>
 
-          {/* Interactive Live Probe HUD */}
-          <div className="mt-3 pt-3 border-t border-[#1c1c1c] flex flex-col md:flex-row items-start md:items-center justify-between gap-4 text-xs font-mono">
-            <div className="flex items-center gap-3">
-              <span className="text-[#888888] uppercase">PROBE FREKUENSI:</span>
-              <span className="text-white font-bold text-sm bg-[#181818] px-2.5 py-1 border border-[#2a2a2a]">
-                {hoveredHz ? `${hoveredHz.toLocaleString()} Hz` : "Arahkan Mouse"}
-              </span>
-              <span className="text-[#D4FF00] font-bold">
-                [{currentZone.name} — {currentZone.desc}]
-              </span>
+                  {/* Background Grid Lines (Vertical / Frequency Hz) */}
+                  {gridFreqs.map((freq) => {
+                    const x = freqToX(freq);
+                    const label = freq >= 1000 ? `${freq / 1000}k` : `${freq}`;
+                    return (
+                      <g key={`freq-${freq}`}>
+                        <line
+                          x1={x}
+                          y1={padding.top}
+                          x2={x}
+                          y2={height - padding.bottom}
+                          stroke={freq === 1000 ? "#27272a" : "#18181b"}
+                          strokeWidth={freq === 1000 ? "1.5" : "1"}
+                          strokeDasharray={freq === 1000 ? "none" : "2,4"}
+                        />
+                        <text
+                          x={x}
+                          y={height - padding.bottom + 16}
+                          fill={freq === 1000 ? "#e4e4e7" : "#52525b"}
+                          fontSize="10"
+                          fontFamily="monospace"
+                          textAnchor="middle"
+                        >
+                          {label}Hz
+                        </text>
+                      </g>
+                    );
+                  })}
+
+                  {/* Target Reference Curve (Dashed) */}
+                  {activeTarget && (
+                    <path
+                      d={generatePath(activeTarget.points, 0)}
+                      fill="none"
+                      stroke="#71717a"
+                      strokeWidth="1.75"
+                      strokeDasharray="4,4"
+                      opacity={0.6}
+                    />
+                  )}
+
+                  {/* Active Response Curves */}
+                  {activeIems.map((iem) => {
+                    const offset = getOffset(iem.points);
+                    const pathD = generatePath(iem.points, offset);
+                    return (
+                      <g key={iem.id}>
+                        {/* Crisp Vector Line */}
+                        <path
+                          d={pathD}
+                          fill="none"
+                          stroke={iem.color}
+                          strokeWidth="2.25"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </g>
+                    );
+                  })}
+
+                  {/* Interactive Crosshair Probe */}
+                  {hoveredHz && (
+                    <g>
+                      <line
+                        x1={freqToX(hoveredHz)}
+                        y1={padding.top}
+                        x2={freqToX(hoveredHz)}
+                        y2={height - padding.bottom}
+                        stroke="#71717a"
+                        strokeWidth="1"
+                        strokeDasharray="3,3"
+                      />
+                      {/* Point circles on active curves at hoveredHz */}
+                      {activeIems.map((iem) => {
+                        const offset = getOffset(iem.points);
+                        const dbVal = interpolateDbAt(iem.points, hoveredHz) + offset;
+                        const cx = freqToX(hoveredHz);
+                        const cy = dbToY(dbVal);
+                        return (
+                          <circle
+                            key={`pt-${iem.id}`}
+                            cx={cx}
+                            cy={cy}
+                            r="3.5"
+                            fill={iem.color}
+                            stroke="#000000"
+                            strokeWidth="1.5"
+                          />
+                        );
+                      })}
+                    </g>
+                  )}
+                </svg>
+              </div>
+
+              {/* Minimal Live Probe HUD */}
+              <div className="pt-3 mt-2 border-t border-neutral-900 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+                <div className="flex items-center gap-2 text-neutral-400">
+                  <span className="text-neutral-500">Frekuensi:</span>
+                  <span className="font-mono text-white font-medium bg-neutral-900 px-2 py-0.5 rounded border border-neutral-800">
+                    {hoveredHz ? `${hoveredHz.toLocaleString()} Hz` : "1,000 Hz"}
+                  </span>
+                  <span className="text-neutral-400">
+                    ({currentZone.name})
+                  </span>
+                </div>
+
+                {/* Readouts for active models */}
+                <div className="flex flex-wrap items-center gap-2">
+                  {activeIems.map((iem) => {
+                    const offset = getOffset(iem.points);
+                    const dbVal = hoveredHz ? (interpolateDbAt(iem.points, hoveredHz) + offset).toFixed(1) : "80.0";
+                    return (
+                      <div
+                        key={iem.id}
+                        className="flex items-center gap-1.5 bg-neutral-900 px-2.5 py-1 rounded-md border border-neutral-800 text-[11px]"
+                      >
+                        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: iem.color }} />
+                        <span className="text-neutral-300 truncate max-w-[100px]">{iem.name}:</span>
+                        <span className="font-mono font-medium text-white">{dbVal} dB</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
 
-            {/* Readouts for active IEMs */}
-            <div className="flex flex-wrap items-center gap-4">
+            {/* Compact Selected Audio Models Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
               {activeIems.map((iem) => {
-                const offset = getOffset(iem.points);
-                const dbVal = hoveredHz ? (interpolateDbAt(iem.points, hoveredHz) + offset).toFixed(1) : "80.0";
                 return (
-                  <div key={iem.id} className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: iem.color }} />
-                    <span className="text-[#8E8E93] truncate max-w-[120px]">{iem.name}:</span>
-                    <span className="text-white font-bold">{dbVal} dB</span>
+                  <div
+                    key={iem.id}
+                    className="bg-neutral-950 border border-neutral-800/80 rounded-xl p-3.5 flex flex-col justify-between hover:border-neutral-700 transition-colors space-y-3"
+                  >
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <div className="flex items-center gap-1.5">
+                          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: iem.color }} />
+                          <span className="text-[10px] font-mono text-neutral-400 uppercase tracking-wider">
+                            {iem.brand}
+                          </span>
+                        </div>
+                        <span className="text-[10px] font-mono text-neutral-400 bg-neutral-900 px-2 py-0.5 rounded border border-neutral-800">
+                          {iem.signature}
+                        </span>
+                      </div>
+
+                      <h4 className="text-sm font-semibold text-white truncate">
+                        {iem.name}
+                      </h4>
+                      <p className="text-[11px] text-neutral-400 mt-0.5 line-clamp-1">
+                        {iem.driverType}
+                      </p>
+                    </div>
+
+                    <div className="pt-2.5 border-t border-neutral-900 flex items-center justify-between">
+                      <span className="text-xs font-mono font-bold text-white">
+                        {formatPrice(iem.priceUSD)}
+                      </span>
+                      <Link
+                        href={
+                          iem.id.startsWith("prod-")
+                            ? `/product/${iem.id}`
+                            : `/search?q=${encodeURIComponent(iem.name)}`
+                        }
+                        className="text-xs text-neutral-300 hover:text-white transition-colors"
+                      >
+                        Lihat Unit →
+                      </Link>
+                    </div>
                   </div>
                 );
               })}
             </div>
           </div>
-        </div>
-
-        {/* Acoustic Comparison Breakdown Cards */}
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {activeIems.map((iem) => {
-            return (
-              <div
-                key={iem.id}
-                className="bg-[#0e0e0e] border p-5 flex flex-col justify-between space-y-4 transition-all hover:bg-[#121212]"
-                style={{ borderColor: iem.color + "44" }}
-              >
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[10px] font-mono text-[#888888] uppercase tracking-wider">
-                      {iem.brand}
-                    </span>
-                    <span
-                      className="text-[10px] font-mono font-bold px-2 py-0.5"
-                      style={{ backgroundColor: iem.color + "22", color: iem.color }}
-                    >
-                      {iem.signature}
-                    </span>
-                  </div>
-
-                  <h3 className="font-sans text-base font-bold text-white tracking-tight mb-1">
-                    {iem.name}
-                  </h3>
-                  <p className="text-[11px] font-mono text-[#8E8E93] mb-3">
-                    {iem.driverType}
-                  </p>
-                  <p className="text-xs font-sans text-[#A0A0A5] leading-relaxed line-clamp-3">
-                    {iem.description}
-                  </p>
-                </div>
-
-                <div className="pt-3 border-t border-[#1c1c1c] flex items-center justify-between">
-                  <span className="font-mono text-sm font-bold text-white">
-                    {formatPrice(iem.priceUSD)}
-                  </span>
-                  <Link
-                    href={`/collection?search=${encodeURIComponent(iem.name)}`}
-                    className="text-xs font-mono text-white hover:text-[#D4FF00] underline uppercase tracking-wider"
-                  >
-                    Beli Unit →
-                  </Link>
-                </div>
-              </div>
-            );
-          })}
         </div>
       </div>
     </div>

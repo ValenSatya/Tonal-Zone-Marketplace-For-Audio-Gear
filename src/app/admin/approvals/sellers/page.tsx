@@ -170,7 +170,7 @@ export default function SellerApprovalsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#222] pb-5">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-[10px] font-mono font-bold bg-[#1C1C1C] text-[#FAF9F6] border border-[#2E2E2E] px-2 py-0.5 rounded uppercase tracking-wider">
+            <span className="text-[10px] font-mono font-bold bg-[#050505] text-[#FAF9F6] border border-[#2E2E2E] px-2 py-0.5 rounded uppercase tracking-wider">
               {isEn ? "Store Verification" : "Verifikasi Toko"}
             </span>
             <span className="text-[11px] font-mono text-[#888]">
@@ -190,7 +190,7 @@ export default function SellerApprovalsPage() {
         <div className="flex items-center gap-2.5">
           <button
             onClick={handleExport}
-            className="flex items-center gap-2 px-3.5 py-2 bg-[#141414] hover:bg-[#1f1f1f] border border-[#2a2a2a] hover:border-[#444] text-xs font-mono font-bold rounded-lg transition-colors cursor-pointer"
+            className="flex items-center gap-2 px-3.5 py-2 bg-[#050505] hover:bg-[#050505] border border-[#2a2a2a] hover:border-[#444] text-xs font-mono font-bold rounded-lg transition-colors cursor-pointer"
           >
             <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
@@ -204,7 +204,7 @@ export default function SellerApprovalsPage() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         
         {/* Card 1: Pending Verification */}
-        <div className="bg-[#111] border border-[#222] hover:border-[#333] transition-colors p-4 rounded-xl flex flex-col justify-between">
+        <div className="bg-[#050505] border border-[#222] hover:border-[#333] transition-colors p-4 rounded-xl flex flex-col justify-between">
           <div className="flex items-start justify-between gap-2">
             <div>
               <p className="text-[11px] font-mono text-[#888] uppercase tracking-wider">
@@ -227,7 +227,7 @@ export default function SellerApprovalsPage() {
         </div>
 
         {/* Card 2: Verified Merchant Stores */}
-        <div className="bg-[#111] border border-[#222] hover:border-[#333] transition-colors p-4 rounded-xl flex flex-col justify-between">
+        <div className="bg-[#050505] border border-[#222] hover:border-[#333] transition-colors p-4 rounded-xl flex flex-col justify-between">
           <div className="flex items-start justify-between gap-2">
             <div>
               <p className="text-[11px] font-mono text-[#888] uppercase tracking-wider">
@@ -250,7 +250,7 @@ export default function SellerApprovalsPage() {
         </div>
 
         {/* Card 3: Suspended / Inactive */}
-        <div className="bg-[#111] border border-[#222] hover:border-[#333] transition-colors p-4 rounded-xl flex flex-col justify-between">
+        <div className="bg-[#050505] border border-[#222] hover:border-[#333] transition-colors p-4 rounded-xl flex flex-col justify-between">
           <div className="flex items-start justify-between gap-2">
             <div>
               <p className="text-[11px] font-mono text-[#888] uppercase tracking-wider">
@@ -275,7 +275,7 @@ export default function SellerApprovalsPage() {
       </div>
 
       {/* Toolbar & Filters */}
-      <div className="bg-[#111] border border-[#222] p-3.5 rounded-xl space-y-3">
+      <div className="bg-[#050505] border border-[#222] p-3.5 rounded-xl space-y-3">
         <div className="flex flex-col md:flex-row gap-3 items-center justify-between">
           <div className="relative w-full md:w-80">
             <input
@@ -283,7 +283,7 @@ export default function SellerApprovalsPage() {
               placeholder={isEn ? "Search store, owner, email, NIK..." : "Cari toko, pemilik, email, NIK..."}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-[#161616] border border-[#2a2a2a] focus:border-white rounded-lg pl-9 pr-3.5 py-2 text-xs font-sans text-white placeholder:text-[#666] outline-none transition-colors"
+              className="w-full bg-[#050505] border border-[#2a2a2a] focus:border-white rounded-lg pl-9 pr-3.5 py-2 text-xs font-sans text-white placeholder:text-[#666] outline-none transition-colors"
             />
             <svg
               width="14"
@@ -300,7 +300,7 @@ export default function SellerApprovalsPage() {
 
           <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
             {/* Status Tabs */}
-            <div className="flex items-center bg-[#161616] p-1 rounded-lg border border-[#262626]">
+            <div className="flex items-center bg-[#050505] p-1 rounded-lg border border-[#1c1c1c]">
               {[
                 { id: "ALL", label: isEn ? "All Applicants" : "Semua Pendaftar" },
                 { id: "PENDING", label: isEn ? `Pending (${pendingCount})` : `Menunggu (${pendingCount})` },
@@ -312,8 +312,8 @@ export default function SellerApprovalsPage() {
                   onClick={() => setStatusFilter(tab.id)}
                   className={`px-3 py-1 text-xs font-mono font-medium rounded-md transition-all cursor-pointer border ${
                     statusFilter === tab.id
-                      ? "bg-[#242424] text-[#FAF9F6] font-semibold border-[#383838] shadow-sm"
-                      : "text-[#8E8E93] hover:text-[#FAF9F6] hover:bg-[#1A1A1A] border-transparent"
+                      ? "bg-[#050505] text-[#FAF9F6] font-semibold border-[#383838] shadow-sm"
+                      : "text-[#8E8E93] hover:text-[#FAF9F6] hover:bg-[#050505] border-transparent"
                   }`}
                 >
                   {tab.label}
@@ -336,7 +336,7 @@ export default function SellerApprovalsPage() {
                 { label: isEn ? "Store Name (A-Z)" : "Nama Toko (A-Z)", value: "storeName-asc" },
                 { label: isEn ? "Owner Name (A-Z)" : "Nama Pemilik (A-Z)", value: "ownerName-asc" },
               ]}
-              buttonClassName="bg-[#161616] border border-[#2a2a2a] hover:border-[#444] text-xs font-mono text-white px-3 py-1.5 rounded-lg flex items-center justify-between gap-2 cursor-pointer"
+              buttonClassName="bg-[#050505] border border-[#2a2a2a] hover:border-[#444] text-xs font-mono text-white px-3 py-1.5 rounded-lg flex items-center justify-between gap-2 cursor-pointer"
             />
           </div>
         </div>
@@ -347,7 +347,7 @@ export default function SellerApprovalsPage() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="flex items-center justify-between bg-[#181818] border border-[#333] px-3.5 py-2 rounded-lg text-xs"
+            className="flex items-center justify-between bg-[#050505] border border-[#333] px-3.5 py-2 rounded-lg text-xs"
           >
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
@@ -358,19 +358,19 @@ export default function SellerApprovalsPage() {
             <div className="flex items-center gap-2">
               <button
                 onClick={handleBulkApprove}
-                className="px-3 py-1.5 bg-[#242424] hover:bg-[#333] border border-[#383838] text-white font-mono font-bold rounded cursor-pointer transition-colors"
+                className="px-3 py-1.5 bg-[#050505] hover:bg-[#080808] border border-[#383838] text-white font-mono font-bold rounded cursor-pointer transition-colors"
               >
                 {isEn ? "Approve All" : "Setujui Semua"}
               </button>
               <button
                 onClick={handleBulkReject}
-                className="px-3 py-1.5 bg-[#1A1A1A] hover:bg-[#262626] text-white border border-[#2E2E2E] font-mono font-bold rounded cursor-pointer transition-colors"
+                className="px-3 py-1.5 bg-[#050505] hover:bg-[#050505] text-white border border-[#2E2E2E] font-mono font-bold rounded cursor-pointer transition-colors"
               >
                 {isEn ? "Reject All" : "Tolak Semua"}
               </button>
               <button
                 onClick={handleBulkSuspend}
-                className="px-3 py-1.5 bg-[#1A1A1A] hover:bg-[#262626] text-white border border-[#2E2E2E] font-mono font-bold rounded cursor-pointer transition-colors"
+                className="px-3 py-1.5 bg-[#050505] hover:bg-[#050505] text-white border border-[#2E2E2E] font-mono font-bold rounded cursor-pointer transition-colors"
               >
                 {isEn ? "Suspend" : "Nonaktifkan"}
               </button>
@@ -386,11 +386,11 @@ export default function SellerApprovalsPage() {
       </div>
 
       {/* Main Table */}
-      <div className="bg-[#111] border border-[#222] rounded-xl overflow-hidden shadow-2xl">
+      <div className="bg-[#050505] border border-[#222] rounded-xl overflow-hidden shadow-2xl">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-[#222] bg-[#141414] text-[10px] font-mono uppercase text-[#777] tracking-wider">
+              <tr className="border-b border-[#222] bg-[#050505] text-[10px] font-mono uppercase text-[#777] tracking-wider">
                 <th className="py-3 px-4 w-10">
                   <input
                     type="checkbox"
@@ -399,7 +399,7 @@ export default function SellerApprovalsPage() {
                       if (el) el.indeterminate = isIndeterminate;
                     }}
                     onChange={handleSelectAll}
-                    className="rounded border-[#333] bg-[#1e1e1e] text-white focus:ring-0 cursor-pointer"
+                    className="rounded border-[#333] bg-[#050505] text-white focus:ring-0 cursor-pointer"
                   />
                 </th>
                 <th
@@ -442,8 +442,8 @@ export default function SellerApprovalsPage() {
                   return (
                     <tr
                       key={store.id}
-                      className={`hover:bg-[#141414] transition-colors ${
-                        isSelected ? "bg-[#161616]" : ""
+                      className={`hover:bg-[#050505] transition-colors ${
+                        isSelected ? "bg-[#050505]" : ""
                       }`}
                     >
                       <td className="py-3.5 px-4">
@@ -451,7 +451,7 @@ export default function SellerApprovalsPage() {
                           type="checkbox"
                           checked={isSelected}
                           onChange={() => handleToggleSelect(store.id)}
-                          className="rounded border-[#333] bg-[#1e1e1e] text-white focus:ring-0 cursor-pointer"
+                          className="rounded border-[#333] bg-[#050505] text-white focus:ring-0 cursor-pointer"
                         />
                       </td>
 
@@ -486,7 +486,7 @@ export default function SellerApprovalsPage() {
                       </td>
 
                       <td className="py-3.5 px-4">
-                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-[#161616] text-[#D4D4D8] border border-[#27272A]">
+                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-[#050505] text-[#D4D4D8] border border-[#27272A]">
                           <span className={`w-1.5 h-1.5 rounded-full ${
                             store.status === "APPROVED" ? "bg-emerald-400" : store.status === "PENDING" ? "bg-amber-400" : "bg-rose-400"
                           }`} />
@@ -503,7 +503,7 @@ export default function SellerApprovalsPage() {
                           <button
                             onClick={() => setViewingStore(store)}
                             title={isEn ? "View Details" : "Lihat Rincian"}
-                            className="p-1.5 bg-[#1a1a1a] hover:bg-[#252525] border border-[#2e2e2e] text-[#aaa] hover:text-white rounded-lg transition-colors cursor-pointer"
+                            className="p-1.5 bg-[#050505] hover:bg-[#252525] border border-[#2e2e2e] text-[#aaa] hover:text-white rounded-lg transition-colors cursor-pointer"
                           >
                             <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
@@ -515,7 +515,7 @@ export default function SellerApprovalsPage() {
                               <button
                                 onClick={() => handleApprove(store.id)}
                                 title={isEn ? "Approve Store" : "Setujui Toko"}
-                                className="p-1.5 bg-[#1C1C1C] hover:bg-[#2A2A2A] border border-[#2E2E2E] hover:border-white text-white rounded-lg transition-colors cursor-pointer"
+                                className="p-1.5 bg-[#050505] hover:bg-[#050505] border border-[#2E2E2E] hover:border-white text-white rounded-lg transition-colors cursor-pointer"
                               >
                                 <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                                   <polyline points="20 6 9 17 4 12" />
@@ -524,7 +524,7 @@ export default function SellerApprovalsPage() {
                               <button
                                 onClick={() => handleOpenReject(store)}
                                 title={isEn ? "Reject Applicant" : "Tolak Pendaftaran"}
-                                className="p-1.5 bg-[#1C1C1C] hover:bg-[#2A2A2A] border border-[#2E2E2E] hover:border-white text-white rounded-lg transition-colors cursor-pointer"
+                                className="p-1.5 bg-[#050505] hover:bg-[#050505] border border-[#2E2E2E] hover:border-white text-white rounded-lg transition-colors cursor-pointer"
                               >
                                 <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -535,7 +535,7 @@ export default function SellerApprovalsPage() {
                           {store.status === "APPROVED" && (
                             <button
                               onClick={() => handleSuspend(store.id)}
-                              className="px-2.5 py-1 bg-[#1C1C1C] hover:bg-[#282828] text-white border border-[#2E2E2E] text-xs font-mono rounded-lg transition-colors cursor-pointer"
+                              className="px-2.5 py-1 bg-[#050505] hover:bg-[#050505] text-white border border-[#2E2E2E] text-xs font-mono rounded-lg transition-colors cursor-pointer"
                             >
                               {isEn ? "Suspend" : "Nonaktifkan"}
                             </button>
@@ -556,7 +556,7 @@ export default function SellerApprovalsPage() {
           </table>
         </div>
 
-        <div className="p-3.5 border-t border-[#1e1e1e] bg-[#141414] flex flex-col sm:flex-row items-center justify-between text-xs font-mono text-[#777] gap-2">
+        <div className="p-3.5 border-t border-[#1e1e1e] bg-[#050505] flex flex-col sm:flex-row items-center justify-between text-xs font-mono text-[#777] gap-2">
           <span>
             {isEn ? `Showing ${processedStores.length} of ${stores.length} stores` : `Menampilkan ${processedStores.length} dari ${stores.length} toko`}
           </span>
@@ -579,9 +579,9 @@ export default function SellerApprovalsPage() {
               initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 1, y: 0 }}
-              className="relative w-full max-w-lg bg-[#141414] border border-[#333] rounded-2xl p-5 sm:p-6 shadow-2xl z-10 space-y-5"
+              className="relative w-full max-w-lg bg-[#050505] border border-[#333] rounded-2xl p-5 sm:p-6 shadow-2xl z-10 space-y-5"
             >
-              <div className="flex items-center justify-between border-b border-[#262626] pb-3">
+              <div className="flex items-center justify-between border-b border-[#1c1c1c] pb-3">
                 <div>
                   <span className="text-[10px] font-mono font-bold uppercase text-amber-400">
                     {isEn ? "Store Dossier Inspection" : "Rincian Pendaftaran Toko"}
@@ -601,7 +601,7 @@ export default function SellerApprovalsPage() {
               </div>
 
               <div className="grid grid-cols-2 gap-3 text-xs">
-                <div className="bg-[#191919] p-3 rounded-xl border border-[#282828] space-y-1">
+                <div className="bg-[#050505] p-3 rounded-xl border border-[#282828] space-y-1">
                   <span className="font-mono text-[10px] text-[#777] uppercase">
                     {isEn ? "Store Owner" : "Pemilik Toko"}
                   </span>
@@ -609,7 +609,7 @@ export default function SellerApprovalsPage() {
                   <p className="text-[#aaa] text-[11px] font-mono">{viewingStore.email}</p>
                 </div>
 
-                <div className="bg-[#191919] p-3 rounded-xl border border-[#282828] space-y-1">
+                <div className="bg-[#050505] p-3 rounded-xl border border-[#282828] space-y-1">
                   <span className="font-mono text-[10px] text-[#777] uppercase">
                     {isEn ? "Brand Focus" : "Fokus Brand"}
                   </span>
@@ -617,7 +617,7 @@ export default function SellerApprovalsPage() {
                   <p className="text-[#aaa] text-[11px]">{isEn ? "Primary Niche" : "Kategori Utama Toko"}</p>
                 </div>
 
-                <div className="bg-[#191919] p-3 rounded-xl border border-[#282828] space-y-1">
+                <div className="bg-[#050505] p-3 rounded-xl border border-[#282828] space-y-1">
                   <span className="font-mono text-[10px] text-[#777] uppercase">
                     {isEn ? "National ID (NIK)" : "Nomor KTP (NIK)"}
                   </span>
@@ -627,7 +627,7 @@ export default function SellerApprovalsPage() {
                   </p>
                 </div>
 
-                <div className="bg-[#191919] p-3 rounded-xl border border-[#282828] space-y-1">
+                <div className="bg-[#050505] p-3 rounded-xl border border-[#282828] space-y-1">
                   <span className="font-mono text-[10px] text-[#777] uppercase">
                     {isEn ? "Disbursement Bank" : "Rekening Pencairan Dana"}
                   </span>
@@ -636,10 +636,10 @@ export default function SellerApprovalsPage() {
                 </div>
               </div>
 
-              <div className="bg-[#191919] p-3.5 rounded-xl border border-[#282828] flex items-center justify-between">
+              <div className="bg-[#050505] p-3.5 rounded-xl border border-[#282828] flex items-center justify-between">
                 <div>
                   <span className="text-[10px] font-mono text-[#777] uppercase block mb-1">Status</span>
-                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-mono font-medium bg-[#161616] text-[#D4D4D8] border border-[#27272A]">
+                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-mono font-medium bg-[#050505] text-[#D4D4D8] border border-[#27272A]">
                     <span className={`w-1.5 h-1.5 rounded-full ${
                       viewingStore.status === "APPROVED" ? "bg-emerald-400" : viewingStore.status === "PENDING" ? "bg-amber-400" : "bg-rose-400"
                     }`} />
@@ -664,7 +664,7 @@ export default function SellerApprovalsPage() {
                       handleOpenReject(viewingStore);
                       setViewingStore(null);
                     }}
-                    className="px-3.5 py-1.5 bg-[#1C1C1C] hover:bg-[#282828] text-white border border-[#2E2E2E] font-mono font-bold text-xs rounded-lg transition-colors cursor-pointer"
+                    className="px-3.5 py-1.5 bg-[#050505] hover:bg-[#050505] text-white border border-[#2E2E2E] font-mono font-bold text-xs rounded-lg transition-colors cursor-pointer"
                   >
                     {isEn ? "Reject" : "Tolak"}
                   </button>
@@ -690,9 +690,9 @@ export default function SellerApprovalsPage() {
               initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 1, y: 0 }}
-              className="relative w-full max-w-md bg-[#141414] border border-[#333] rounded-2xl p-5 shadow-2xl z-10 space-y-4"
+              className="relative w-full max-w-md bg-[#050505] border border-[#333] rounded-2xl p-5 shadow-2xl z-10 space-y-4"
             >
-              <div className="border-b border-[#262626] pb-3">
+              <div className="border-b border-[#1c1c1c] pb-3">
                 <span className="text-[10px] font-mono font-bold uppercase text-rose-400">
                   {isEn ? "KYC Rejection" : "Penolakan Pendaftaran"}
                 </span>
@@ -712,7 +712,7 @@ export default function SellerApprovalsPage() {
                     placeholder={isEn ? "e.g., Blurry ID photo, bank name does not match owner name..." : "Contoh: Foto KTP buram, nama rekening tidak cocok dengan nama pemilik..."}
                     value={rejectionReason}
                     onChange={(e) => setRejectionReason(e.target.value)}
-                    className="w-full bg-[#181818] border border-[#333] focus:border-rose-400 rounded-xl p-2.5 text-xs text-white outline-none resize-none"
+                    className="w-full bg-[#050505] border border-[#333] focus:border-rose-400 rounded-xl p-2.5 text-xs text-white outline-none resize-none"
                   />
                 </div>
 
@@ -720,7 +720,7 @@ export default function SellerApprovalsPage() {
                   <button
                     type="button"
                     onClick={() => setRejectingStore(null)}
-                    className="px-3.5 py-1.5 bg-[#222] hover:bg-[#333] text-white text-xs font-mono rounded-lg transition-colors cursor-pointer"
+                    className="px-3.5 py-1.5 bg-[#050505] hover:bg-[#080808] text-white text-xs font-mono rounded-lg transition-colors cursor-pointer"
                   >
                     {isEn ? "Cancel" : "Batal"}
                   </button>

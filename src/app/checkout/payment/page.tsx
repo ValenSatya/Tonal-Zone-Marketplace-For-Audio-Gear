@@ -141,7 +141,7 @@ function PaymentGatewayContent() {
     : "https://app.sandbox.midtrans.com/snap/snap.js";
 
   return (
-    <div className="min-h-[100svh] bg-[#080808] text-[#FAF9F6] font-sans flex flex-col items-center justify-center p-4 selection:bg-[#D4FF00] selection:text-[#0e0e0e]">
+    <div className="min-h-[100svh] bg-[#030303] text-[#FAF9F6] font-sans flex flex-col items-center justify-center p-4 selection:bg-[#BFDD25] selection:text-[#030303]">
       {/* Official Midtrans Snap Script */}
       <Script
         src={snapScriptUrl}
@@ -161,12 +161,12 @@ function PaymentGatewayContent() {
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md bg-[#0e0e0e] border border-[#1c1c1c] rounded-none p-6 sm:p-8 shadow-2xl relative overflow-hidden"
+        className="w-full max-w-md bg-[#030303] border border-[#1c1c1c] rounded-none p-6 sm:p-8 shadow-2xl relative overflow-hidden"
       >
         {/* Progress Bar (Timer based) */}
-        <div className="absolute top-0 left-0 h-1 bg-[#1a1a1a] w-full">
+        <div className="absolute top-0 left-0 h-1 bg-[#050505] w-full">
           <div 
-            className="h-full bg-[#D4FF00] transition-all duration-1000 ease-linear" 
+            className="h-full bg-[#BFDD25] transition-all duration-1000 ease-linear" 
             style={{ width: `${(timeLeft / (15 * 60)) * 100}%` }}
           />
         </div>
@@ -175,13 +175,13 @@ function PaymentGatewayContent() {
           <h1 className="text-[11px] font-mono uppercase tracking-widest text-[#777777] mb-2 font-bold">
             Batas Waktu Pembayaran
           </h1>
-          <div className="text-4xl font-mono font-bold text-[#D4FF00] tracking-tight">
+          <div className="text-4xl font-mono font-bold text-[#BFDD25] tracking-tight">
             {formatTime(timeLeft)}
           </div>
         </div>
 
         {/* Order Details Header */}
-        <div className="bg-[#121212] border border-[#222222] p-4 mb-5 text-left">
+        <div className="bg-[#050505] border border-[#222222] p-4 mb-5 text-left">
           <div className="flex justify-between items-start mb-2">
             <div>
               <span className="text-[10px] text-[#777777] font-mono tracking-widest uppercase">Nomor Pesanan</span>
@@ -194,7 +194,7 @@ function PaymentGatewayContent() {
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-3 mt-3 bg-[#0a0a0a] p-2.5 border border-[#1c1c1c]">
+          <div className="flex items-center gap-3 mt-3 bg-[#050505] p-2.5 border border-[#1c1c1c]">
             <div className="w-10 h-10 bg-[#1c1c1c] overflow-hidden shrink-0 relative">
               <Image src={mainItem.image || "/placeholder.svg"} alt={mainItem.name || mainItem.productName || "Product"} fill className="object-cover" />
             </div>
@@ -211,33 +211,33 @@ function PaymentGatewayContent() {
             <button
               type="button"
               onClick={openMidtransSnap}
-              className="w-full py-3.5 bg-white hover:bg-[#D4FF00] text-black font-mono font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer"
+              className="w-full py-3.5 bg-white hover:bg-[#BFDD25] text-black font-mono font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
               <span>BUKA POPUP MIDTRANS (QRIS / VA / GOPAY)</span>
             </button>
           ) : (
-            <div className="p-3 bg-[#141414] border border-[#222222] text-center text-xs font-mono text-[#888888]">
+            <div className="p-3 bg-[#050505] border border-[#222222] text-center text-xs font-mono text-[#888888]">
               Memuat saluran pembayaran Midtrans...
             </div>
           )}
 
           {/* Payment Method Badges */}
           <div className="flex flex-wrap items-center justify-center gap-2 pt-1 text-[9px] font-mono text-[#666666] uppercase">
-            <span className="border border-[#222222] px-2 py-0.5 bg-[#0a0a0a]">QRIS</span>
-            <span className="border border-[#222222] px-2 py-0.5 bg-[#0a0a0a]">GoPay</span>
-            <span className="border border-[#222222] px-2 py-0.5 bg-[#0a0a0a]">ShopeePay</span>
-            <span className="border border-[#222222] px-2 py-0.5 bg-[#0a0a0a]">BCA VA</span>
-            <span className="border border-[#222222] px-2 py-0.5 bg-[#0a0a0a]">Mandiri</span>
-            <span className="border border-[#222222] px-2 py-0.5 bg-[#0a0a0a]">BNI</span>
-            <span className="border border-[#222222] px-2 py-0.5 bg-[#0a0a0a]">Visa / MC</span>
+            <span className="border border-[#222222] px-2 py-0.5 bg-[#050505]">QRIS</span>
+            <span className="border border-[#222222] px-2 py-0.5 bg-[#050505]">GoPay</span>
+            <span className="border border-[#222222] px-2 py-0.5 bg-[#050505]">ShopeePay</span>
+            <span className="border border-[#222222] px-2 py-0.5 bg-[#050505]">BCA VA</span>
+            <span className="border border-[#222222] px-2 py-0.5 bg-[#050505]">Mandiri</span>
+            <span className="border border-[#222222] px-2 py-0.5 bg-[#050505]">BNI</span>
+            <span className="border border-[#222222] px-2 py-0.5 bg-[#050505]">Visa / MC</span>
           </div>
         </div>
 
         {/* Total Price */}
         <div className="flex justify-between items-center text-xs font-mono border-t border-[#1c1c1c] pt-4 mb-5">
           <span className="text-[#888888] uppercase tracking-wider">TOTAL TAGIHAN</span>
-          <span className="text-xl font-bold text-[#D4FF00]">
+          <span className="text-xl font-bold text-[#BFDD25]">
             {isDemoOrder ? "Rp 1" : formatPrice(calculatedTotal)}
           </span>
         </div>
@@ -247,7 +247,7 @@ function PaymentGatewayContent() {
           type="button"
           onClick={handleConfirmPayment}
           disabled={isProcessing}
-          className="w-full py-3.5 bg-[#141414] hover:bg-[#222222] text-[#CCCCCC] hover:text-white border border-[#262626] font-mono font-bold text-xs uppercase tracking-widest transition-colors cursor-pointer disabled:opacity-50"
+          className="w-full py-3.5 bg-[#050505] hover:bg-[#050505] text-[#CCCCCC] hover:text-white border border-[#1c1c1c] font-mono font-bold text-xs uppercase tracking-widest transition-colors cursor-pointer disabled:opacity-50"
         >
           {isProcessing ? "MEMPROSES PEMBAYARAN..." : isDemoOrder ? "SAYA SUDAH MEMBAYAR RP 1 (DEMO) ✓" : "SAYA SUDAH MEMBAYAR (SIMULASI) ✓"}
         </button>
@@ -269,7 +269,7 @@ function PaymentGatewayContent() {
 
 export default function PaymentGatewayPage() {
   return (
-    <React.Suspense fallback={<div className="min-h-screen bg-[#080808] flex items-center justify-center text-white font-mono text-xs">Memuat Midtrans Payment Gateway...</div>}>
+    <React.Suspense fallback={<div className="min-h-screen bg-[#030303] flex items-center justify-center text-white font-mono text-xs">Memuat Midtrans Payment Gateway...</div>}>
       <PaymentGatewayContent />
     </React.Suspense>
   );

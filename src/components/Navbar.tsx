@@ -12,18 +12,8 @@ import { useCart } from "@/context/CartContext";
 import { useNotifications, formatRelativeTime } from "@/context/NotificationContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { getAuthSession, signOutUser } from "@/app/actions/auth";
-import { fetchProductsFromDb, CatalogProduct, FALLBACK_CATALOG } from "@/lib/products-db";
-
-const SEARCH_CATALOG = [
-  { id: "s1", name: "Moondrop Blessing 3", category: "IN-EAR MONITORS", price: 319.99, image: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800", href: "/collection" },
-  { id: "s2", name: "Simgot EA1000 Fermat", category: "IN-EAR MONITORS", price: 219.99, image: "https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=800", href: "/collection" },
-  { id: "s3", name: "Kiwi Ears Orchestra Lite", category: "IN-EAR MONITORS", price: 249, image: "https://images.unsplash.com/photo-1484704849700-f032a568e944?w=800", href: "/collection" },
-  { id: "s4", name: "Sennheiser HD 560S Reference", category: "HEADPHONE", price: 199, image: "https://images.unsplash.com/photo-1583394838336-acd977736f90?w=800", href: "/collection" },
-  { id: "s5", name: "FiiO K7 Balanced DAC/AMP", category: "DAC/AMP", price: 199.99, image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800", href: "/collection" },
-  { id: "s6", name: "Sony NW-A306 Android Walkman DAP", category: "PORTABLE AUDIO", price: 349.99, image: "https://images.unsplash.com/photo-1484704849700-f032a568e944?w=800", href: "/collection" },
-  { id: "s7", name: "Thieaudio Monarch MKIII Flagship", category: "IN-EAR MONITORS", price: 999, image: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800", href: "/collection" },
-  { id: "s8", name: "Tangzu Nezha Flagship Tribrid", category: "IN-EAR MONITORS", price: 399, image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800", href: "/collection" },
-];
+import { fetchProductsFromDb, CatalogProduct, FALLBACK_CATALOG, searchCatalog } from "@/lib/products-db";
+import SearchDrawer from "@/components/SearchDrawer";
 
 const SEARCH_CATEGORIES = [
   "IN-EAR MONITORS",
@@ -172,61 +162,14 @@ export default function Navbar() {
     }
   };
 
-  const searchData = useMemo(() => {
+  const filteredSearchProducts = useMemo(() => {
     const allProducts = dbProducts && dbProducts.length > 0 ? dbProducts : FALLBACK_CATALOG;
     if (!searchQuery.trim()) {
-      return {
-        isSearching: false,
-        products: allProducts.slice(0, 4),
-        suggestedLinks: [
-          { label: "Tangzu Wan'er Studio Edition", href: "/product/prod-waner-se", brand: "TANGZU" },
-          { label: "Moondrop Blessing 3 Hybrid", href: "/product/prod-blessing-3", brand: "MOONDROP" },
-          { label: "Sony WF-1000XM5 True Wireless", href: "/product/prod-wf1000xm5", brand: "SONY" },
-          { label: "Sennheiser HD 560S Reference", href: "/product/prod-hd560s", brand: "SENNHEISER" },
-          { label: "FiiO BTR7 Balanced DAC Amp", href: "/product/prod-fiio-btr7", brand: "FIIO" },
-        ],
-        suggestedSearches: [
-          "In-Ear Monitors",
-          "TWS Noise Canceling",
-          "DAC Amp Dongle",
-          "Kabel 4.4mm Balanced",
-          "Open-Back Headphones",
-        ],
-      };
+      return allProducts.slice(0, 4);
     }
-
-    const q = searchQuery.toLowerCase().trim();
-    const matches = allProducts.filter(
-      (p) =>
-        p.name.toLowerCase().includes(q) ||
-        p.brand.toLowerCase().includes(q) ||
-        p.category.toLowerCase().includes(q) ||
-        p.soundSignature.toLowerCase().includes(q)
-    );
-
-    const directLinks = matches.slice(0, 4).map((p) => ({
-      label: p.name,
-      href: `/product/${p.id}`,
-      brand: p.brand,
-    }));
-
-    const dynamicKeywords = [
-      `${searchQuery} in-ear monitor`,
-      `${searchQuery} wireless TWS`,
-      `${searchQuery} frekuensi grafik`,
-      `${searchQuery} kabel upgrade 4.4mm`,
-      `${searchQuery} tuning filter`,
-    ];
-
-    return {
-      isSearching: true,
-      products: matches.slice(0, 4),
-      suggestedLinks: directLinks,
-      suggestedSearches: dynamicKeywords,
-    };
-  }, [searchQuery]);
-
-  const filteredSearchProducts = searchData.products;
+    const matches = searchCatalog(allProducts, searchQuery);
+    return matches.slice(0, 4);
+  }, [searchQuery, dbProducts]);
 
   const getNavClass = (isActive: boolean) => {
     if (isActive) {
@@ -841,272 +784,12 @@ export default function Navbar() {
       </div>
     </header>
 
-      {/* 3. Apple-Style Dynamic Search Overlay Modal */}
-      <AnimatePresence>
-        {isSearchOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-[100] bg-[#0a0a0a]/98 backdrop-blur-3xl overflow-y-auto flex flex-col text-[#FAF9F6]"
-          >
-            {/* Top Search Input Bar */}
-            <div className="w-full border-b border-[#1c1c1c] sticky top-0 bg-[#0a0a0a]/95 backdrop-blur-md z-10">
-              <div className="max-w-[1200px] mx-auto px-6 lg:px-12 py-6 flex items-center justify-between gap-6">
-                <form onSubmit={handleSearchSubmit} className="flex-1 flex items-center gap-4">
-                  <svg
-                    width="24"
-                    height="24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    viewBox="0 0 24 24"
-                    className="text-[#71717A] shrink-0"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                    />
-                  </svg>
-                  <input
-                    type="text"
-                    placeholder="Cari IEM, DAC, headphone, kabel..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    autoFocus
-                    className="w-full bg-transparent text-xl md:text-3xl font-light text-[#FAF9F6] placeholder-[#444444] outline-none tracking-tight"
-                  />
-                  {searchQuery && (
-                    <button
-                      type="button"
-                      onClick={() => setSearchQuery("")}
-                      className="text-xs font-mono text-[#8E8E93] hover:text-white px-2.5 py-1 bg-[#1A1A1A] hover:bg-[#262626] border border-[#2B2B2B] transition-colors cursor-pointer shrink-0"
-                    >
-                      Batal
-                    </button>
-                  )}
-                </form>
-
-                {/* Close Button */}
-                <button
-                  onClick={() => setIsSearchOpen(false)}
-                  className="text-xs font-mono text-[#8E8E93] hover:text-white border border-[#222222] hover:border-white px-4 py-2 transition-all cursor-pointer shrink-0 uppercase tracking-widest"
-                >
-                  Tutup [ESC]
-                </button>
-              </div>
-            </div>
-
-            {/* Modal Body: Dynamic Suggestions & Results */}
-            <div className="max-w-[1200px] w-full mx-auto px-6 lg:px-12 py-12 flex-1 flex flex-col gap-12">
-              
-              {/* Dynamic State 1: When User is Typing (Apple Reference Experience) */}
-              {searchData.isSearching ? (
-                <div className="space-y-12 animate-in fade-in duration-200">
-                  
-                  {/* Suggested Links (Direct Product Navigation) */}
-                  <div>
-                    <span className="text-xs font-mono text-[#71717A] tracking-[0.2em] uppercase block mb-4">
-                      Suggested Links
-                    </span>
-                    {searchData.suggestedLinks.length > 0 ? (
-                      <div className="space-y-1">
-                        {searchData.suggestedLinks.map((link, idx) => (
-                          <Link
-                            key={idx}
-                            href={link.href}
-                            onClick={() => setIsSearchOpen(false)}
-                            className="flex items-center gap-3 py-2.5 px-3 -mx-3 hover:bg-[#141414] text-[#FAF9F6] text-base md:text-lg font-light tracking-tight transition-colors group cursor-pointer"
-                          >
-                            <span className="text-[#555555] group-hover:text-white transition-colors">→</span>
-                            <span className="group-hover:translate-x-1 transition-transform">
-                              <span className="text-xs font-mono text-[#888888] mr-2">{link.brand}</span>
-                              <span className="text-[#FAF9F6]">{link.label}</span>
-                            </span>
-                          </Link>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-sm font-sans text-[#666666]">Tidak ada tautan langsung yang cocok.</p>
-                    )}
-                  </div>
-
-                  {/* Suggested Searches (Live Keyword Queries) */}
-                  <div>
-                    <span className="text-xs font-mono text-[#71717A] tracking-[0.2em] uppercase block mb-4">
-                      Suggested Searches
-                    </span>
-                    <div className="space-y-1">
-                      {searchData.suggestedSearches.map((queryText, idx) => (
-                        <button
-                          key={idx}
-                          onClick={() => {
-                            setIsSearchOpen(false);
-                            router.push(`/search?q=${encodeURIComponent(queryText)}`);
-                          }}
-                          className="w-full flex items-center gap-3 py-2.5 px-3 -mx-3 hover:bg-[#141414] text-[#A1A1AA] hover:text-white text-sm md:text-base font-light tracking-tight transition-colors text-left group cursor-pointer"
-                        >
-                          <svg
-                            width="16"
-                            height="16"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="1.75"
-                            viewBox="0 0 24 24"
-                            className="text-[#555555] group-hover:text-[#FAF9F6] transition-colors shrink-0"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                            />
-                          </svg>
-                          <span className="group-hover:translate-x-1 transition-transform">
-                            {queryText}
-                          </span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Live Matched Products Preview */}
-                  {searchData.products.length > 0 && (
-                    <div className="pt-8 border-t border-[#1a1a1a]">
-                      <div className="flex items-center justify-between mb-4">
-                        <span className="text-xs font-mono text-[#71717A] tracking-[0.2em] uppercase">
-                          Hasil Produk ({searchData.products.length})
-                        </span>
-                        <Link
-                          href={`/search?q=${encodeURIComponent(searchQuery)}`}
-                          onClick={() => setIsSearchOpen(false)}
-                          className="text-xs font-mono text-[#FAF9F6] hover:text-white border-b border-[#FAF9F6] pb-0.5"
-                        >
-                          Lihat semua hasil →
-                        </Link>
-                      </div>
-
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                        {searchData.products.map((prod) => (
-                          <Link
-                            key={prod.id}
-                            href={`/product/${prod.id}`}
-                            onClick={() => setIsSearchOpen(false)}
-                            className="group flex flex-col bg-[#0e0e0e] border border-[#1a1a1a] hover:border-[#444444] transition-all p-2.5 cursor-pointer"
-                          >
-                            <div className="relative w-full aspect-square bg-[#141414] overflow-hidden mb-2.5">
-                              <Image
-                                src={prod.image || prod.images[0]}
-                                alt={prod.name}
-                                fill
-                                className="object-cover group-hover:scale-105 transition-transform duration-500"
-                              />
-                            </div>
-                            <div className="flex flex-col min-w-0">
-                              <h4 className="text-xs font-sans font-medium text-[#FAF9F6] group-hover:text-white line-clamp-1 mb-1">
-                                {prod.name}
-                              </h4>
-                              <span className="text-xs font-mono font-bold text-[#FAF9F6]">
-                                {formatPrice(prod.price)}
-                              </span>
-                            </div>
-                          </Link>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                </div>
-              ) : (
-                /* Dynamic State 2: When Query is Empty (Quick Links & Categories) */
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start animate-in fade-in duration-200">
-                  
-                  {/* Left: Quick Links / Trending */}
-                  <div className="lg:col-span-5 space-y-4">
-                    <span className="text-xs font-mono text-[#71717A] tracking-[0.2em] uppercase block mb-4">
-                      Quick Links
-                    </span>
-                    <div className="space-y-1">
-                      {searchData.suggestedLinks.map((link, idx) => (
-                        <Link
-                          key={idx}
-                          href={link.href}
-                          onClick={() => setIsSearchOpen(false)}
-                          className="flex items-center gap-3 py-2 px-3 -mx-3 hover:bg-[#141414] text-[#A1A1AA] hover:text-[#FAF9F6] text-base font-light tracking-tight transition-colors group cursor-pointer"
-                        >
-                          <span className="text-[#555555] group-hover:text-white transition-colors">→</span>
-                          <span className="group-hover:translate-x-1 transition-transform">
-                            {link.label}
-                          </span>
-                        </Link>
-                      ))}
-                    </div>
-
-                    {/* Popular Categories */}
-                    <div className="pt-8 border-t border-[#1a1a1a]">
-                      <span className="text-xs font-mono text-[#71717A] tracking-[0.2em] uppercase block mb-4">
-                        Kategori Populer
-                      </span>
-                      <div className="flex flex-wrap gap-2">
-                        {SEARCH_CATEGORIES.map((cat) => (
-                          <button
-                            key={cat}
-                            onClick={() => {
-                              setIsSearchOpen(false);
-                              router.push(`/collection?category=${encodeURIComponent(cat)}`);
-                            }}
-                            className="px-3 py-1.5 bg-[#121212] hover:bg-[#202020] border border-[#222] text-xs font-mono text-[#8E8E93] hover:text-white transition-colors cursor-pointer uppercase"
-                          >
-                            {cat}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Right: Recommended Benchmark Models */}
-                  <div className="lg:col-span-7 space-y-4">
-                    <span className="text-xs font-mono text-[#71717A] tracking-[0.2em] uppercase block">
-                      Model Rekomendasi
-                    </span>
-
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                      {searchData.products.map((prod) => (
-                        <Link
-                          key={prod.id}
-                          href={`/product/${prod.id}`}
-                          onClick={() => setIsSearchOpen(false)}
-                          className="group flex flex-col bg-[#0e0e0e] border border-[#1a1a1a] hover:border-[#444444] transition-all p-2.5 cursor-pointer"
-                        >
-                          <div className="relative w-full aspect-square bg-[#141414] overflow-hidden mb-2.5">
-                            <Image
-                              src={prod.image || prod.images[0]}
-                              alt={prod.name}
-                              fill
-                              className="object-cover group-hover:scale-105 transition-transform duration-500"
-                            />
-                          </div>
-                          <div className="flex flex-col min-w-0">
-                            <h4 className="text-xs font-sans font-medium text-[#FAF9F6] group-hover:text-white line-clamp-1 mb-1">
-                              {prod.name}
-                            </h4>
-                            <span className="text-xs font-mono font-bold text-[#FAF9F6]">
-                              {formatPrice(prod.price)}
-                            </span>
-                          </div>
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-
-                </div>
-              )}
-
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* 3. Side Bar Search Drawer */}
+      <SearchDrawer
+        isOpen={isSearchOpen}
+        onClose={() => setIsSearchOpen(false)}
+        products={dbProducts}
+      />
 
       {/* 3.5 Mobile Full-Screen Menu Overlay */}
       <AnimatePresence>

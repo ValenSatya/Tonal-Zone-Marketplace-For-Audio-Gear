@@ -23,8 +23,8 @@ export default function AcousticBlueprint() {
         <div className="absolute inset-0 border border-dashed border-[#0e0e0e]/25 rounded-full animate-[spin_80s_linear_infinite]"></div>
         <div className="absolute w-3/4 h-3/4 border border-dotted border-[#0e0e0e]/25 rounded-full animate-[spin_100s_linear_infinite_reverse]"></div>
         <div className="absolute w-1/2 h-1/2 border border-dashed border-[#0e0e0e]/20 rounded-full animate-[spin_60s_linear_infinite]"></div>
-        <div className="absolute w-full h-[1px] bg-[#0e0e0e]/10"></div>
-        <div className="absolute h-full w-[1px] bg-[#0e0e0e]/10"></div>
+        <div className="absolute w-full h-[1px] bg-[#030303]/10"></div>
+        <div className="absolute h-full w-[1px] bg-[#030303]/10"></div>
       </div>
     </div>
   );

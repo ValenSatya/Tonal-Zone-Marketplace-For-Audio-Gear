@@ -88,11 +88,11 @@ export default function CartPage() {
   }, [subtotal, discountAmount, shipping, isDemoRp1]);
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#080808] text-[#FAF9F6] font-sans selection:bg-[#D4FF00] selection:text-[#0e0e0e]">
+    <div className="flex flex-col min-h-screen bg-[#030303] text-[#FAF9F6] font-sans selection:bg-[#BFDD25] selection:text-[#030303]">
       <Navbar />
 
       {/* Breadcrumb & Header */}
-      <section className="w-full bg-[#0a0a0a] border-b border-[#1c1c1c] pt-16 pb-10 px-6 lg:px-12">
+      <section className="w-full bg-[#030303] border-b border-[#1c1c1c] pt-16 pb-10 px-6 lg:px-12">
         <div className="max-w-[1200px] mx-auto">
           <nav className="text-[11px] font-mono text-[#777777] uppercase tracking-widest mb-4 flex items-center gap-2">
             <Link href="/" className="hover:text-white transition-colors">BERANDA</Link>
@@ -140,13 +140,13 @@ export default function CartPage() {
                       initial={{ opacity: 0, y: 15 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
-                      className="bg-[#0e0e0e] border border-[#1c1c1c] hover:border-[#2a2a2a] p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 transition-all shadow-md group"
+                      className="bg-[#030303] border border-[#1c1c1c] hover:border-[#2a2a2a] p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 transition-all shadow-md group"
                     >
                       {/* Product Image & Details */}
                       <div className="flex items-center gap-5 w-full sm:w-auto">
                         <Link
                           href={`/product/${item.productId || item.id}`}
-                          className="relative w-24 h-24 sm:w-28 sm:h-28 bg-[#141414] border border-[#222222] overflow-hidden shrink-0 flex items-center justify-center group-hover:border-[#444444] transition-colors"
+                          className="relative w-24 h-24 sm:w-28 sm:h-28 bg-[#050505] border border-[#222222] overflow-hidden shrink-0 flex items-center justify-center group-hover:border-[#444444] transition-colors"
                         >
                           <Image
                             src={item.image || "/placeholder.svg"}
@@ -162,7 +162,7 @@ export default function CartPage() {
                           </span>
                           <Link
                             href={`/product/${item.productId || item.id}`}
-                            className="font-sans text-base font-medium tracking-tight text-white hover:text-[#D4FF00] transition-colors leading-snug"
+                            className="font-sans text-base font-medium tracking-tight text-white hover:text-[#BFDD25] transition-colors leading-snug"
                           >
                             {item.name}
                           </Link>
@@ -178,10 +178,10 @@ export default function CartPage() {
                       {/* Quantity Stepper & Price / Remove */}
                       <div className="flex sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto gap-4 border-t sm:border-t-0 border-[#1c1c1c] pt-4 sm:pt-0">
                         <div className="flex items-center gap-3">
-                          <div className="flex items-center border border-[#262626] bg-[#141414] overflow-hidden">
+                          <div className="flex items-center border border-[#1c1c1c] bg-[#050505] overflow-hidden">
                             <button
                               onClick={() => updateQuantity(item.id, -1)}
-                              className="w-8 h-8 flex items-center justify-center text-[#888888] hover:text-white hover:bg-[#222] transition-colors font-mono text-sm font-medium cursor-pointer"
+                              className="w-8 h-8 flex items-center justify-center text-[#888888] hover:text-white hover:bg-[#080808] transition-colors font-mono text-sm font-medium cursor-pointer"
                               aria-label="Decrease quantity"
                             >
                               -
@@ -191,7 +191,7 @@ export default function CartPage() {
                             </span>
                             <button
                               onClick={() => updateQuantity(item.id, 1)}
-                              className="w-8 h-8 flex items-center justify-center text-[#888888] hover:text-white hover:bg-[#222] transition-colors font-mono text-sm font-medium cursor-pointer"
+                              className="w-8 h-8 flex items-center justify-center text-[#888888] hover:text-white hover:bg-[#080808] transition-colors font-mono text-sm font-medium cursor-pointer"
                               aria-label="Increase quantity"
                             >
                               +
@@ -200,7 +200,7 @@ export default function CartPage() {
 
                           <button
                             onClick={() => removeFromCart(item.id)}
-                            className="p-2 text-[#666666] hover:text-red-400 hover:bg-[#1a1a1a] transition-colors cursor-pointer"
+                            className="p-2 text-[#666666] hover:text-red-400 hover:bg-[#050505] transition-colors cursor-pointer"
                             title="Hapus barang"
                             aria-label="Hapus barang"
                           >
@@ -219,9 +219,9 @@ export default function CartPage() {
                 </AnimatePresence>
 
                 {/* Return to Shop Banner */}
-                <div className="mt-4 p-6 bg-[#0a0a0a] border border-[#1c1c1c] flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="mt-4 p-6 bg-[#050505] border border-[#1c1c1c] flex flex-col sm:flex-row items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-[#141414] border border-[#222222] flex items-center justify-center text-white shrink-0">
+                    <div className="w-10 h-10 bg-[#050505] border border-[#222222] flex items-center justify-center text-white shrink-0">
                       <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" />
                       </svg>
@@ -237,7 +237,7 @@ export default function CartPage() {
                   </div>
                   <Link
                     href="/collection"
-                    className="font-mono text-xs font-bold uppercase tracking-wider text-white hover:text-[#D4FF00] underline whitespace-nowrap transition-colors"
+                    className="font-mono text-xs font-bold uppercase tracking-wider text-white hover:text-[#BFDD25] underline whitespace-nowrap transition-colors"
                   >
                     Tambah Produk Lain →
                   </Link>
@@ -246,7 +246,7 @@ export default function CartPage() {
 
               {/* RIGHT COLUMN: Order Summary & Checkout Action */}
               <div className="w-full lg:w-1/3">
-                <div className="bg-[#0e0e0e] border border-[#1c1c1c] p-6 lg:p-8 space-y-6 sticky top-28">
+                <div className="bg-[#030303] border border-[#1c1c1c] p-6 lg:p-8 space-y-6 sticky top-28">
                   <div className="border-b border-[#1c1c1c] pb-4">
                     <h3 className="font-heading text-lg font-bold uppercase tracking-wider text-white">
                       {t("cart.summary")}
@@ -267,11 +267,11 @@ export default function CartPage() {
                         value={promoCode}
                         onChange={(e) => setPromoCode(e.target.value)}
                         placeholder="Contoh: TONAL10"
-                        className="bg-[#141414] border border-[#262626] focus:border-white text-xs font-mono text-white uppercase px-3 py-2.5 flex-1 outline-none transition-colors"
+                        className="bg-[#050505] border border-[#1c1c1c] focus:border-white text-xs font-mono text-white uppercase px-3 py-2.5 flex-1 outline-none transition-colors"
                       />
                       <button
                         type="submit"
-                        className="bg-[#1c1c1c] hover:bg-[#282828] text-white border border-[#2a2a2a] text-xs font-mono font-bold uppercase px-4 py-2.5 transition-colors cursor-pointer"
+                        className="bg-[#1c1c1c] hover:bg-[#050505] text-white border border-[#2a2a2a] text-xs font-mono font-bold uppercase px-4 py-2.5 transition-colors cursor-pointer"
                       >
                         Gunakan
                       </button>
@@ -309,7 +309,7 @@ export default function CartPage() {
 
                     <div className="flex justify-between items-center border-t border-[#1c1c1c] pt-4 text-sm font-sans">
                       <span className="font-bold text-white uppercase">{t("cart.total")}</span>
-                      <span className="font-mono text-xl font-bold text-[#D4FF00]">
+                      <span className="font-mono text-xl font-bold text-[#BFDD25]">
                         {isDemoRp1 ? "Rp 1" : formatPrice(total)}
                       </span>
                     </div>
@@ -333,8 +333,8 @@ export default function CartPage() {
             </div>
           ) : (
             /* EMPTY CART STATE */
-            <div className="text-center py-20 bg-[#0e0e0e] border border-[#1c1c1c] max-w-xl mx-auto p-8 space-y-6">
-              <div className="w-16 h-16 bg-[#141414] border border-[#222222] flex items-center justify-center mx-auto text-white">
+            <div className="text-center py-20 bg-[#030303] border border-[#1c1c1c] max-w-xl mx-auto p-8 space-y-6">
+              <div className="w-16 h-16 bg-[#050505] border border-[#222222] flex items-center justify-center mx-auto text-white">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                   <circle cx="9" cy="21" r="1"></circle>
                   <circle cx="20" cy="21" r="1"></circle>

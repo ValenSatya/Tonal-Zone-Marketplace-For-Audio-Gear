@@ -1,4 +1,4 @@
-﻿# Tonal Zone — Design System & UI Guidelines
+# Tonal Zone — Design System & UI Guidelines
 
 ## 1. Filosofi Desain (Core Philosophy)
 Tonal Zone mengusung estetika **Swiss Editorial Minimalism & Industrial Noir** yang terinspirasi oleh standar hardware audio kelas atas (*Teenage Engineering, AIAIAI Audio, Bang & Olufsen*) dan prinsip desain internasional (*Dieter Rams, Swiss International Typographic Style*).
@@ -13,11 +13,12 @@ Tonal Zone mengusung estetika **Swiss Editorial Minimalism & Industrial Noir** y
 
 | Token | Hex Code | Peran & Penggunaan |
 | :--- | :--- | :--- |
-| **Canvas Background** | `#0E0E0E` / `#0A0A0A` | Latar belakang utama seluruh aplikasi. Hitam pekat netral. |
+| **Canvas Background** | `#030303` | Latar belakang utama seluruh aplikasi. Hitam pekat pekat ultra-noir. |
+| **Surface Card** | `#050505` | Kontainer kartu, modul pilihan/tier, input box, dan item list. |
 | **Primary Text** | `#FAF9F6` | Teks utama, judul, dan elemen aktif berkontras tinggi. |
 | **Secondary Text** | `#8E8E93` / `#71717A` | Subjudul, deskripsi paragraf, dan metadata sekunder. |
 | **Hairline Dividers** | `#1C1C1C` / `#222222` | Garis batas struktural 1px yang halus dan tidak mencolok. |
-| **Accent Lime** | `#D4FF00` | Digunakan secara **sangat hemat** (tombol checkout utama, titik status aktif penting). |
+| **Accent Lime** | `#BFDD25` | Digunakan secara **sangat hemat** (tombol checkout utama, titik status aktif penting, highlight). |
 
 ---
 
@@ -48,4 +49,4 @@ Tonal Zone mengusung estetika **Swiss Editorial Minimalism & Industrial Noir** y
 * **DILARANG** menggunakan simbol klise seperti `//`, `[]`, atau `•` pada judul, badge, atau label teks.
 * **DILARANG** membuat tata letak 3 kartu sejajar identik dengan gradasi background berat dan border neon tebal.
 * **DILARANG** menambahkan telemetri palsu, widget osiloskop penuh stiker, atau gimmick visual yang membebani mata.
-* **DILARANG** menggunakan warna hijau neon `#D4FF00` secara berlebihan hingga mendominasi layar.
+* **DILARANG** menggunakan warna hijau neon `#BFDD25` secara berlebihan hingga mendominasi layar.

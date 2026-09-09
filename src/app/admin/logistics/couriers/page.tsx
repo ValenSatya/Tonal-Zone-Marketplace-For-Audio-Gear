@@ -163,7 +163,7 @@ export default function CourierPartnersAdminPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#222] pb-5">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-[10px] font-mono font-bold bg-[#1C1C1C] text-[#FAF9F6] border border-[#2E2E2E] px-2 py-0.5 rounded uppercase tracking-wider">
+            <span className="text-[10px] font-mono font-bold bg-[#050505] text-[#FAF9F6] border border-[#2E2E2E] px-2 py-0.5 rounded uppercase tracking-wider">
               {isEn ? "Courier Fleet" : "Daftar Ekspedisi"}
             </span>
             <span className="text-[11px] font-mono text-[#888]">
@@ -183,7 +183,7 @@ export default function CourierPartnersAdminPage() {
         <div className="flex items-center gap-2.5">
           <button
             onClick={handleExport}
-            className="flex items-center gap-2 px-3.5 py-2 bg-[#141414] hover:bg-[#1f1f1f] border border-[#2a2a2a] hover:border-[#444] text-xs font-mono font-bold rounded-lg transition-colors cursor-pointer"
+            className="flex items-center gap-2 px-3.5 py-2 bg-[#050505] hover:bg-[#050505] border border-[#2a2a2a] hover:border-[#444] text-xs font-mono font-bold rounded-lg transition-colors cursor-pointer"
           >
             <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
@@ -193,7 +193,7 @@ export default function CourierPartnersAdminPage() {
 
           <button
             onClick={handleOpenAdd}
-            className="flex items-center gap-2 px-4 py-2 bg-[#222222] hover:bg-[#333333] border border-[#3E3E3E] text-white text-xs font-mono font-bold rounded-lg transition-colors cursor-pointer shadow-sm"
+            className="flex items-center gap-2 px-4 py-2 bg-[#050505] hover:bg-[#333333] border border-[#3E3E3E] text-white text-xs font-mono font-bold rounded-lg transition-colors cursor-pointer shadow-sm"
           >
             <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -207,7 +207,7 @@ export default function CourierPartnersAdminPage() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         
         {/* Card 1: Active Partners */}
-        <div className="bg-[#111] border border-[#222] hover:border-[#333] transition-colors p-4 rounded-xl flex flex-col justify-between">
+        <div className="bg-[#050505] border border-[#222] hover:border-[#333] transition-colors p-4 rounded-xl flex flex-col justify-between">
           <div className="flex items-start justify-between gap-2">
             <div>
               <p className="text-[11px] font-mono text-[#888] uppercase tracking-wider">
@@ -230,7 +230,7 @@ export default function CourierPartnersAdminPage() {
         </div>
 
         {/* Card 2: Domestic Coverage */}
-        <div className="bg-[#111] border border-[#222] hover:border-[#333] transition-colors p-4 rounded-xl flex flex-col justify-between">
+        <div className="bg-[#050505] border border-[#222] hover:border-[#333] transition-colors p-4 rounded-xl flex flex-col justify-between">
           <div className="flex items-start justify-between gap-2">
             <div>
               <p className="text-[11px] font-mono text-[#888] uppercase tracking-wider">
@@ -253,7 +253,7 @@ export default function CourierPartnersAdminPage() {
         </div>
 
         {/* Card 3: International Priority */}
-        <div className="bg-[#111] border border-[#222] hover:border-[#333] transition-colors p-4 rounded-xl flex flex-col justify-between">
+        <div className="bg-[#050505] border border-[#222] hover:border-[#333] transition-colors p-4 rounded-xl flex flex-col justify-between">
           <div className="flex items-start justify-between gap-2">
             <div>
               <p className="text-[11px] font-mono text-[#888] uppercase tracking-wider">
@@ -278,7 +278,7 @@ export default function CourierPartnersAdminPage() {
       </div>
 
       {/* Toolbar & Filter Bar */}
-      <div className="bg-[#111] border border-[#222] p-3.5 rounded-xl space-y-3">
+      <div className="bg-[#050505] border border-[#222] p-3.5 rounded-xl space-y-3">
         <div className="flex flex-col md:flex-row gap-3 items-center justify-between">
           <div className="relative w-full md:w-80">
             <input
@@ -286,7 +286,7 @@ export default function CourierPartnersAdminPage() {
               placeholder={isEn ? "Search courier name, code, tier..." : "Cari nama ekspedisi, kode, layanan..."}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-[#161616] border border-[#2a2a2a] focus:border-white rounded-lg pl-9 pr-3.5 py-2 text-xs font-sans text-white placeholder:text-[#666] outline-none transition-colors"
+              className="w-full bg-[#050505] border border-[#2a2a2a] focus:border-white rounded-lg pl-9 pr-3.5 py-2 text-xs font-sans text-white placeholder:text-[#666] outline-none transition-colors"
             />
             <svg
               width="14"
@@ -303,7 +303,7 @@ export default function CourierPartnersAdminPage() {
 
           <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
             {/* Type Filters */}
-            <div className="flex items-center bg-[#161616] p-1 rounded-lg border border-[#262626]">
+            <div className="flex items-center bg-[#050505] p-1 rounded-lg border border-[#1c1c1c]">
               {[
                 { id: "ALL", label: isEn ? "All Couriers" : "Semua Ekspedisi" },
                 { id: "DOMESTIC", label: isEn ? "Domestic" : "Domestik" },
@@ -315,8 +315,8 @@ export default function CourierPartnersAdminPage() {
                   onClick={() => setTypeFilter(tab.id)}
                   className={`px-3 py-1 text-xs font-mono font-medium rounded-md transition-all cursor-pointer border ${
                     typeFilter === tab.id
-                      ? "bg-[#242424] text-[#FAF9F6] font-semibold border-[#383838] shadow-sm"
-                      : "text-[#8E8E93] hover:text-[#FAF9F6] hover:bg-[#1A1A1A] border-transparent"
+                      ? "bg-[#050505] text-[#FAF9F6] font-semibold border-[#383838] shadow-sm"
+                      : "text-[#8E8E93] hover:text-[#FAF9F6] hover:bg-[#050505] border-transparent"
                   }`}
                 >
                   {tab.label}
@@ -337,7 +337,7 @@ export default function CourierPartnersAdminPage() {
                 { label: "International Express", value: "International Express" },
                 { label: "Cargo Heavy", value: "Cargo Heavy" },
               ]}
-              buttonClassName="bg-[#161616] border border-[#2a2a2a] hover:border-[#444] text-xs font-mono text-white px-3 py-1.5 rounded-lg flex items-center justify-between gap-2 cursor-pointer"
+              buttonClassName="bg-[#050505] border border-[#2a2a2a] hover:border-[#444] text-xs font-mono text-white px-3 py-1.5 rounded-lg flex items-center justify-between gap-2 cursor-pointer"
             />
           </div>
         </div>
@@ -348,14 +348,14 @@ export default function CourierPartnersAdminPage() {
         {filteredCouriers.map((c) => (
           <div
             key={c.id}
-            className={`bg-[#111] border rounded-xl p-5 flex flex-col justify-between transition-all group ${
+            className={`bg-[#050505] border rounded-xl p-5 flex flex-col justify-between transition-all group ${
               c.active ? "border-[#222] hover:border-[#3a3a3a]" : "border-[#1e1e1e] opacity-60"
             }`}
           >
             <div>
               <div className="flex items-start justify-between gap-2 mb-3">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-[#1a1a1a] border border-[#2e2e2e] flex items-center justify-center font-mono font-bold text-xs text-white">
+                  <div className="w-8 h-8 rounded-lg bg-[#050505] border border-[#2e2e2e] flex items-center justify-center font-mono font-bold text-xs text-white">
                     {c.code.slice(0, 3)}
                   </div>
                   <div>
@@ -372,7 +372,7 @@ export default function CourierPartnersAdminPage() {
                   onClick={() => toggleCourierStatus(c.id)}
                   title={c.active ? (isEn ? "Disable courier" : "Nonaktifkan kurir") : (isEn ? "Enable courier" : "Aktifkan kurir")}
                   className={`w-9 h-5 rounded-full p-0.5 transition-colors cursor-pointer border ${
-                    c.active ? "bg-white border-white" : "bg-[#222] border-[#333]"
+                    c.active ? "bg-white border-white" : "bg-[#050505] border-[#333]"
                   }`}
                 >
                   <div
@@ -383,7 +383,7 @@ export default function CourierPartnersAdminPage() {
                 </button>
               </div>
 
-              <div className="bg-[#161616] p-3 rounded-lg border border-[#222] space-y-2 text-xs font-sans mb-4">
+              <div className="bg-[#050505] p-3 rounded-lg border border-[#222] space-y-2 text-xs font-sans mb-4">
                 <div className="flex justify-between items-center text-[#aaa]">
                   <span className="font-mono text-[11px]">{isEn ? "Service Tier" : "Tipe Layanan"}</span>
                   <span className="font-medium text-white">{c.type}</span>
@@ -400,7 +400,7 @@ export default function CourierPartnersAdminPage() {
                 </div>
                 <div className="flex justify-between items-center text-[#aaa] pt-1 border-t border-[#222]">
                   <span className="font-mono text-[11px]">{isEn ? "Cargo Insurance" : "Asuransi Barang"}</span>
-                  <span className={`font-mono text-[10px] px-1.5 py-0.5 rounded ${c.insuranceRequired ? "bg-[#141414] text-[#D4D4D8] border border-[#27272A]" : "bg-[#222] text-[#888]"}`}>
+                  <span className={`font-mono text-[10px] px-1.5 py-0.5 rounded ${c.insuranceRequired ? "bg-[#050505] text-[#D4D4D8] border border-[#27272A]" : "bg-[#050505] text-[#888]"}`}>
                     {c.insuranceRequired ? (isEn ? "Mandatory Insurance" : "Wajib Asuransi") : (isEn ? "Optional" : "Opsional")}
                   </span>
                 </div>
@@ -410,13 +410,13 @@ export default function CourierPartnersAdminPage() {
             <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#1e1e1e]">
               <button
                 onClick={() => handleOpenEdit(c)}
-                className="px-3 py-1.5 bg-[#181818] hover:bg-[#222] border border-[#2e2e2e] hover:border-[#444] text-xs font-mono font-bold text-white rounded-lg transition-colors cursor-pointer"
+                className="px-3 py-1.5 bg-[#050505] hover:bg-[#080808] border border-[#2e2e2e] hover:border-[#444] text-xs font-mono font-bold text-white rounded-lg transition-colors cursor-pointer"
               >
                 {isEn ? "Edit Rate" : "Ubah Tarif"}
               </button>
               <button
                 onClick={() => setDeletingCourier(c)}
-                className="p-1.5 bg-[#181818] hover:bg-[#262626] border border-[#2E2E2E] hover:border-white text-[#A1A1AA] hover:text-white rounded-lg transition-colors cursor-pointer"
+                className="p-1.5 bg-[#050505] hover:bg-[#050505] border border-[#2E2E2E] hover:border-white text-[#A1A1AA] hover:text-white rounded-lg transition-colors cursor-pointer"
               >
                 <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
@@ -445,9 +445,9 @@ export default function CourierPartnersAdminPage() {
               initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 1, y: 0 }}
-              className="relative w-full max-w-md bg-[#141414] border border-[#333] rounded-2xl p-5 shadow-2xl z-10 space-y-4"
+              className="relative w-full max-w-md bg-[#050505] border border-[#333] rounded-2xl p-5 shadow-2xl z-10 space-y-4"
             >
-              <div className="border-b border-[#262626] pb-3">
+              <div className="border-b border-[#1c1c1c] pb-3">
                 <span className="text-[10px] font-mono font-bold uppercase text-white/60">
                   {editingCourier
                     ? (isEn ? "Edit Courier Partner" : "Ubah Data Ekspedisi")
@@ -470,7 +470,7 @@ export default function CourierPartnersAdminPage() {
                       placeholder={isEn ? "e.g., J&T Cargo" : "Contoh: J&T Cargo"}
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full bg-[#181818] border border-[#333] focus:border-white rounded-lg p-2 text-white outline-none"
+                      className="w-full bg-[#050505] border border-[#333] focus:border-white rounded-lg p-2 text-white outline-none"
                     />
                   </div>
                   <div>
@@ -483,7 +483,7 @@ export default function CourierPartnersAdminPage() {
                       placeholder={isEn ? "e.g., JNT" : "Contoh: JNT"}
                       value={formData.code}
                       onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
-                      className="w-full bg-[#181818] border border-[#333] focus:border-white rounded-lg p-2 text-white outline-none font-mono"
+                      className="w-full bg-[#050505] border border-[#333] focus:border-white rounded-lg p-2 text-white outline-none font-mono"
                     />
                   </div>
                 </div>
@@ -513,7 +513,7 @@ export default function CourierPartnersAdminPage() {
                       min={1}
                       value={formData.baseRateUSD}
                       onChange={(e) => setFormData({ ...formData, baseRateUSD: parseFloat(e.target.value) || 0 })}
-                      className="w-full bg-[#181818] border border-[#333] focus:border-white rounded-lg p-2 text-white outline-none font-mono"
+                      className="w-full bg-[#050505] border border-[#333] focus:border-white rounded-lg p-2 text-white outline-none font-mono"
                     />
                   </div>
                 </div>
@@ -528,7 +528,7 @@ export default function CourierPartnersAdminPage() {
                     placeholder={isEn ? "e.g., 1-2 Business Days" : "Contoh: 1-2 Hari Kerja"}
                     value={formData.estimatedDays}
                     onChange={(e) => setFormData({ ...formData, estimatedDays: e.target.value })}
-                    className="w-full bg-[#181818] border border-[#333] focus:border-white rounded-lg p-2 text-white outline-none font-mono"
+                    className="w-full bg-[#050505] border border-[#333] focus:border-white rounded-lg p-2 text-white outline-none font-mono"
                   />
                 </div>
 
@@ -538,7 +538,7 @@ export default function CourierPartnersAdminPage() {
                     id="insReq"
                     checked={formData.insuranceRequired}
                     onChange={(e) => setFormData({ ...formData, insuranceRequired: e.target.checked })}
-                    className="rounded border-[#333] bg-[#1e1e1e] text-white focus:ring-0 cursor-pointer"
+                    className="rounded border-[#333] bg-[#050505] text-white focus:ring-0 cursor-pointer"
                   />
                   <label htmlFor="insReq" className="text-xs text-[#aaa] cursor-pointer">
                     {isEn
@@ -554,13 +554,13 @@ export default function CourierPartnersAdminPage() {
                       setIsAddModalOpen(false);
                       setEditingCourier(null);
                     }}
-                    className="px-3.5 py-1.5 bg-[#222] hover:bg-[#333] text-white text-xs font-mono rounded-lg transition-colors cursor-pointer"
+                    className="px-3.5 py-1.5 bg-[#050505] hover:bg-[#080808] text-white text-xs font-mono rounded-lg transition-colors cursor-pointer"
                   >
                     {isEn ? "Cancel" : "Batal"}
                   </button>
                   <button
                     type="submit"
-                    className="px-3.5 py-1.5 bg-[#242424] hover:bg-[#333] border border-[#383838] text-white font-mono font-bold text-xs rounded-lg transition-colors cursor-pointer shadow-sm"
+                    className="px-3.5 py-1.5 bg-[#050505] hover:bg-[#080808] border border-[#383838] text-white font-mono font-bold text-xs rounded-lg transition-colors cursor-pointer shadow-sm"
                   >
                     {editingCourier
                       ? (isEn ? "Save Changes" : "Simpan Perubahan")
@@ -588,7 +588,7 @@ export default function CourierPartnersAdminPage() {
               initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 1, y: 0 }}
-              className="relative w-full max-w-sm bg-[#141414] border border-[#333] rounded-2xl p-5 shadow-2xl z-10 space-y-4"
+              className="relative w-full max-w-sm bg-[#050505] border border-[#333] rounded-2xl p-5 shadow-2xl z-10 space-y-4"
             >
               <h3 className="text-sm font-bold text-white font-sans">
                 {isEn ? `Delete ${deletingCourier.name}?` : `Hapus Ekspedisi ${deletingCourier.name}?`}
@@ -603,7 +603,7 @@ export default function CourierPartnersAdminPage() {
                 <button
                   type="button"
                   onClick={() => setDeletingCourier(null)}
-                  className="px-3.5 py-1.5 bg-[#222] hover:bg-[#333] text-white text-xs font-mono rounded-lg transition-colors cursor-pointer"
+                  className="px-3.5 py-1.5 bg-[#050505] hover:bg-[#080808] text-white text-xs font-mono rounded-lg transition-colors cursor-pointer"
                 >
                   {isEn ? "Cancel" : "Batal"}
                 </button>

@@ -248,7 +248,7 @@ export default function UsersPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#222] pb-5">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-[10px] font-mono font-bold bg-[#1C1C1C] text-[#FAF9F6] border border-[#2E2E2E] px-2 py-0.5 rounded uppercase tracking-wider">
+            <span className="text-[10px] font-mono font-bold bg-[#050505] text-[#FAF9F6] border border-[#2E2E2E] px-2 py-0.5 rounded uppercase tracking-wider">
               {isEn ? "User Management" : "Daftar Pengguna"}
             </span>
             <span className="text-[11px] font-mono text-[#888]">
@@ -273,7 +273,7 @@ export default function UsersPage() {
               setImportError("");
               setIsImportModalOpen(true);
             }}
-            className="px-3.5 py-2 bg-[#141414] hover:bg-[#1f1f1f] border border-[#2a2a2a] hover:border-[#444] text-xs font-mono font-bold text-white rounded-lg transition-colors flex items-center gap-2 cursor-pointer"
+            className="px-3.5 py-2 bg-[#050505] hover:bg-[#050505] border border-[#2a2a2a] hover:border-[#444] text-xs font-mono font-bold text-white rounded-lg transition-colors flex items-center gap-2 cursor-pointer"
             title={isEn ? "Import users from CSV" : "Import data pengguna dari CSV"}
           >
             <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -285,7 +285,7 @@ export default function UsersPage() {
           {/* Export CSV */}
           <button
             onClick={handleExport}
-            className="px-3.5 py-2 bg-[#141414] hover:bg-[#1f1f1f] border border-[#2a2a2a] hover:border-[#444] text-xs font-mono font-bold text-white rounded-lg transition-colors flex items-center gap-2 cursor-pointer"
+            className="px-3.5 py-2 bg-[#050505] hover:bg-[#050505] border border-[#2a2a2a] hover:border-[#444] text-xs font-mono font-bold text-white rounded-lg transition-colors flex items-center gap-2 cursor-pointer"
             title={isEn ? "Export CSV" : "Unduh CSV"}
           >
             <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -297,7 +297,7 @@ export default function UsersPage() {
           {/* Add User */}
           <button
             onClick={handleOpenAdd}
-            className="px-4 py-2 bg-[#222222] hover:bg-[#333333] border border-[#3E3E3E] text-white text-xs font-mono font-bold rounded-lg transition-colors flex items-center gap-1.5 shadow-sm cursor-pointer"
+            className="px-4 py-2 bg-[#050505] hover:bg-[#333333] border border-[#3E3E3E] text-white text-xs font-mono font-bold rounded-lg transition-colors flex items-center gap-1.5 shadow-sm cursor-pointer"
           >
             <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
@@ -310,7 +310,7 @@ export default function UsersPage() {
       {/* User Metrics Overview with Micro-Sparklines */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {/* Card 1: Active Users */}
-        <div className="bg-[#111] border border-[#222] hover:border-[#333] transition-colors p-4 rounded-xl flex flex-col justify-between">
+        <div className="bg-[#050505] border border-[#222] hover:border-[#333] transition-colors p-4 rounded-xl flex flex-col justify-between">
           <div className="flex items-start justify-between gap-2">
             <div>
               <p className="text-[11px] font-mono text-[#888] uppercase tracking-wider">
@@ -345,7 +345,7 @@ export default function UsersPage() {
         </div>
 
         {/* Card 2: Total Sellers */}
-        <div className="bg-[#111] border border-[#222] hover:border-[#333] transition-colors p-4 rounded-xl flex flex-col justify-between">
+        <div className="bg-[#050505] border border-[#222] hover:border-[#333] transition-colors p-4 rounded-xl flex flex-col justify-between">
           <div className="flex items-start justify-between gap-2">
             <div>
               <p className="text-[11px] font-mono text-[#888] uppercase tracking-wider">
@@ -380,7 +380,7 @@ export default function UsersPage() {
         </div>
 
         {/* Card 3: Suspended Users */}
-        <div className="bg-[#111] border border-[#222] hover:border-[#333] transition-colors p-4 rounded-xl flex flex-col justify-between">
+        <div className="bg-[#050505] border border-[#222] hover:border-[#333] transition-colors p-4 rounded-xl flex flex-col justify-between">
           <div className="flex items-start justify-between gap-2">
             <div>
               <p className="text-[11px] font-mono text-[#888] uppercase tracking-wider">
@@ -416,10 +416,10 @@ export default function UsersPage() {
       </div>
 
       {/* Main Container */}
-      <div className="bg-[#111] border border-[#222] rounded-2xl overflow-hidden flex flex-col shadow-2xl">
+      <div className="bg-[#050505] border border-[#222] rounded-2xl overflow-hidden flex flex-col shadow-2xl">
         
         {/* Filter, Search & Sort Bar */}
-        <div className="p-4 sm:p-5 border-b border-[#222] flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-[#141414]">
+        <div className="p-4 sm:p-5 border-b border-[#222] flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-[#050505]">
           
           {/* Search Box */}
           <div className="relative flex-1 max-w-md">
@@ -431,7 +431,7 @@ export default function UsersPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={isEn ? "Search user, email, location, ID..." : "Cari user, email, lokasi, ID..."}
-              className="w-full bg-[#161616] border border-[#2a2a2a] rounded-lg pl-10 pr-8 py-2 text-xs font-sans text-white placeholder:text-[#666] focus:outline-none focus:border-white/40 transition-colors"
+              className="w-full bg-[#050505] border border-[#2a2a2a] rounded-lg pl-10 pr-8 py-2 text-xs font-sans text-white placeholder:text-[#666] focus:outline-none focus:border-white/40 transition-colors"
             />
             {searchQuery && (
               <button onClick={() => setSearchQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white p-1">
@@ -445,7 +445,7 @@ export default function UsersPage() {
           {/* Filters & Sort Controls */}
           <div className="flex flex-wrap items-center gap-2.5">
             {/* Sort Dropdown */}
-            <div className="flex items-center bg-[#161616] rounded-lg p-1 border border-[#262626] text-xs">
+            <div className="flex items-center bg-[#050505] rounded-lg p-1 border border-[#1c1c1c] text-xs">
               <span className="text-[10px] uppercase font-mono text-[#777] px-2">{isEn ? "Sort:" : "Urutkan:"}</span>
               <CustomSelect
                 variant="compact"
@@ -467,7 +467,7 @@ export default function UsersPage() {
             </div>
 
             {/* Role Filter */}
-            <div className="flex items-center bg-[#161616] rounded-lg p-1 border border-[#262626] text-xs">
+            <div className="flex items-center bg-[#050505] rounded-lg p-1 border border-[#1c1c1c] text-xs">
               <span className="text-[10px] uppercase font-mono text-[#71717A] px-2">{isEn ? "Role:" : "Peran:"}</span>
               {[
                 { id: "ALL", label: isEn ? "All" : "Semua" },
@@ -481,8 +481,8 @@ export default function UsersPage() {
                   onClick={() => setRoleFilter(r.id)}
                   className={`px-2.5 py-1 rounded-md text-[11px] font-sans font-medium transition-all cursor-pointer border ${
                     roleFilter === r.id
-                      ? "bg-[#242424] text-[#FAF9F6] font-semibold border-[#383838] shadow-sm"
-                      : "text-[#8E8E93] hover:text-[#FAF9F6] hover:bg-[#1A1A1A] border-transparent"
+                      ? "bg-[#050505] text-[#FAF9F6] font-semibold border-[#383838] shadow-sm"
+                      : "text-[#8E8E93] hover:text-[#FAF9F6] hover:bg-[#050505] border-transparent"
                   }`}
                 >
                   {r.label}
@@ -491,7 +491,7 @@ export default function UsersPage() {
             </div>
 
             {/* Status Filter */}
-            <div className="flex items-center bg-[#161616] rounded-lg p-1 border border-[#262626] text-xs">
+            <div className="flex items-center bg-[#050505] rounded-lg p-1 border border-[#1c1c1c] text-xs">
               <span className="text-[10px] uppercase font-mono text-[#71717A] px-2">Status:</span>
               {[
                 { id: "ALL", label: isEn ? "All" : "Semua" },
@@ -503,8 +503,8 @@ export default function UsersPage() {
                   onClick={() => setStatusFilter(s.id)}
                   className={`px-2.5 py-1 rounded-md text-[11px] font-sans font-medium transition-all cursor-pointer border ${
                     statusFilter === s.id
-                      ? "bg-[#242424] text-[#FAF9F6] font-semibold border-[#383838] shadow-sm"
-                      : "text-[#8E8E93] hover:text-[#FAF9F6] hover:bg-[#1A1A1A] border-transparent"
+                      ? "bg-[#050505] text-[#FAF9F6] font-semibold border-[#383838] shadow-sm"
+                      : "text-[#8E8E93] hover:text-[#FAF9F6] hover:bg-[#050505] border-transparent"
                   }`}
                 >
                   {s.label}
@@ -521,10 +521,10 @@ export default function UsersPage() {
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: "auto", opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              className="bg-[#181818] text-[#FAF9F6] px-6 py-3 flex flex-wrap items-center justify-between gap-3 font-sans border-b border-[#2a2a2a] overflow-hidden"
+              className="bg-[#050505] text-[#FAF9F6] px-6 py-3 flex flex-wrap items-center justify-between gap-3 font-sans border-b border-[#2a2a2a] overflow-hidden"
             >
               <div className="flex items-center gap-3">
-                <span className="text-xs font-bold font-mono bg-[#282828] text-white border border-[#3a3a3a] px-2 py-0.5 rounded">
+                <span className="text-xs font-bold font-mono bg-[#050505] text-white border border-[#3a3a3a] px-2 py-0.5 rounded">
                   {isEn ? `${selectedIds.length} selected` : `${selectedIds.length} terpilih`}
                 </span>
                 <span className="text-xs text-[#888]">{isEn ? "Bulk Actions:" : "Aksi Masal:"}</span>
@@ -533,19 +533,19 @@ export default function UsersPage() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => handleBulkStatus("Active")}
-                  className="px-3 py-1.5 bg-[#242424] hover:bg-[#333] border border-[#383838] text-white text-xs font-bold rounded-lg transition-colors shadow-sm cursor-pointer"
+                  className="px-3 py-1.5 bg-[#050505] hover:bg-[#080808] border border-[#383838] text-white text-xs font-bold rounded-lg transition-colors shadow-sm cursor-pointer"
                 >
                   {isEn ? "Activate All" : "Aktifkan Semua"}
                 </button>
                 <button
                   onClick={() => handleBulkStatus("Suspended")}
-                  className="px-3 py-1.5 bg-[#181818] hover:bg-[#242424] text-[#ccc] text-xs font-medium rounded-lg transition-colors border border-[#333] cursor-pointer"
+                  className="px-3 py-1.5 bg-[#050505] hover:bg-[#050505] text-[#ccc] text-xs font-medium rounded-lg transition-colors border border-[#333] cursor-pointer"
                 >
                   {isEn ? "Suspend All" : "Tangguhkan (Suspend)"}
                 </button>
                 <button
                   onClick={handleBulkDelete}
-                  className="px-3 py-1.5 bg-[#1A1A1A] hover:bg-[#262626] text-white text-xs font-medium rounded-lg transition-colors border border-[#2E2E2E] cursor-pointer"
+                  className="px-3 py-1.5 bg-[#050505] hover:bg-[#050505] text-white text-xs font-medium rounded-lg transition-colors border border-[#2E2E2E] cursor-pointer"
                 >
                   {isEn ? `Delete (${selectedIds.length})` : `Hapus (${selectedIds.length})`}
                 </button>
@@ -564,16 +564,16 @@ export default function UsersPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-[#222] bg-[#141414] text-[10px] font-mono uppercase text-[#777] tracking-wider">
+              <tr className="border-b border-[#222] bg-[#050505] text-[10px] font-mono uppercase text-[#777] tracking-wider">
                 <th className="w-12 px-6 py-4">
                   <div
                     onClick={handleSelectAll}
                     className={`w-4 h-4 rounded border flex items-center justify-center cursor-pointer transition-all ${
                       isAllSelected
-                        ? "bg-[#242424] border-[#4A4A4A] text-white shadow-sm"
+                        ? "bg-[#050505] border-[#4A4A4A] text-white shadow-sm"
                         : isIndeterminate
-                        ? "bg-[#1E1E1E] border-[#444] text-white"
-                        : "bg-[#141414] border-[#2A2A2A] hover:border-[#444]"
+                        ? "bg-[#050505] border-[#444] text-white"
+                        : "bg-[#050505] border-[#2A2A2A] hover:border-[#444]"
                     }`}
                   >
                     {isAllSelected && (
@@ -674,8 +674,8 @@ export default function UsersPage() {
                           onClick={() => handleToggleSelect(user.id)}
                           className={`w-4 h-4 rounded border flex items-center justify-center cursor-pointer transition-all ${
                             isSelected
-                              ? "bg-[#242424] border-[#4A4A4A] text-white shadow-sm"
-                              : "bg-[#141414] border-[#2A2A2A] hover:border-[#444]"
+                              ? "bg-[#050505] border-[#4A4A4A] text-white shadow-sm"
+                              : "bg-[#050505] border-[#2A2A2A] hover:border-[#444]"
                           }`}
                         >
                           {isSelected && (
@@ -701,7 +701,7 @@ export default function UsersPage() {
 
                       {/* Role */}
                       <td className="px-6 py-4">
-                        <span className="px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-[#161616] text-[#D4D4D8] border border-[#27272A]">
+                        <span className="px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-[#050505] text-[#D4D4D8] border border-[#27272A]">
                           {user.role}
                         </span>
                       </td>
@@ -716,7 +716,7 @@ export default function UsersPage() {
 
                       {/* Status */}
                       <td className="px-6 py-4">
-                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-[#161616] text-[#D4D4D8] border border-[#27272A]">
+                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-[#050505] text-[#D4D4D8] border border-[#27272A]">
                           <span className={`w-1.5 h-1.5 rounded-full ${
                             user.status === "Active" ? "bg-emerald-400" : user.status === "Suspended" ? "bg-rose-400" : "bg-[#666]"
                           }`} />
@@ -740,7 +740,7 @@ export default function UsersPage() {
                           </button>
                           <button
                             onClick={() => setDeletingUser(user)}
-                            className="px-2.5 py-1 bg-white/5 hover:bg-[#262626] text-white/40 hover:text-white border border-white/10 rounded text-[11px] font-medium transition-colors cursor-pointer"
+                            className="px-2.5 py-1 bg-white/5 hover:bg-[#050505] text-white/40 hover:text-white border border-white/10 rounded text-[11px] font-medium transition-colors cursor-pointer"
                           >
                             {isEn ? "Delete" : "Hapus"}
                           </button>
@@ -802,7 +802,7 @@ export default function UsersPage() {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-[#141414] border border-white/10 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl"
+              className="bg-[#050505] border border-white/10 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl"
             >
               <div className="p-6 border-b border-white/10 flex items-center justify-between">
                 <div>
@@ -893,7 +893,7 @@ export default function UsersPage() {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-[#141414] border border-white/10 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl"
+              className="bg-[#050505] border border-white/10 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl"
             >
               <div className="p-6 border-b border-white/10 flex items-center justify-between">
                 <h3 className="font-bold text-white text-base">
@@ -1025,9 +1025,9 @@ export default function UsersPage() {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-[#141414] border border-white/10 rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl p-6 text-center"
+              className="bg-[#050505] border border-white/10 rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl p-6 text-center"
             >
-              <div className="w-12 h-12 rounded-full bg-[#1A1A1A] border border-[#2E2E2E] text-white flex items-center justify-center mx-auto mb-4">
+              <div className="w-12 h-12 rounded-full bg-[#050505] border border-[#2E2E2E] text-white flex items-center justify-center mx-auto mb-4">
                 <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2.25 2.25 0 0116.138 21H7.862a2.25 2.25 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>

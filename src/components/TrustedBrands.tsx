@@ -16,10 +16,10 @@ const BRANDS = [
 
 export default function TrustedBrands() {
   return (
-    <section className="w-full bg-[#0a0a0a] border-y border-[#222] py-16 overflow-hidden relative">
+    <section className="w-full bg-[#030303] border-y border-[#222] py-16 overflow-hidden relative">
       {/* Fade Edges */}
-      <div className="absolute top-0 left-0 w-32 h-full bg-gradient-to-r from-[#0a0a0a] to-transparent z-10 pointer-events-none"></div>
-      <div className="absolute top-0 right-0 w-32 h-full bg-gradient-to-l from-[#0a0a0a] to-transparent z-10 pointer-events-none"></div>
+      <div className="absolute top-0 left-0 w-32 h-full bg-gradient-to-r from-[#030303] to-transparent z-10 pointer-events-none"></div>
+      <div className="absolute top-0 right-0 w-32 h-full bg-gradient-to-l from-[#030303] to-transparent z-10 pointer-events-none"></div>
       
       <div className="max-w-[1400px] mx-auto px-6 mb-12 text-center z-20 relative">
         <p className="font-mono text-[10px] md:text-xs uppercase tracking-[0.4em] text-[#666] font-bold">Trusted by Top Audiophile Brands</p>

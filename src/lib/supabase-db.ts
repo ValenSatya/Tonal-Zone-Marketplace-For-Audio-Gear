@@ -282,6 +282,7 @@ export const categoryRepo = {
 // -------------------------------------------------------------
 export const productRepo = {
   async create(product: {
+    id?: string;
     name: string;
     storeId: string;
     brandId: string;
@@ -294,7 +295,7 @@ export const productRepo = {
     images?: string[];
   }): Promise<DbProduct | null> {
     const payload = {
-      id: `prod-${Date.now()}-${Math.random().toString(36).substring(7)}`,
+      id: product.id || `prod-${Date.now()}-${Math.random().toString(36).substring(7)}`,
       name: product.name,
       storeId: product.storeId,
       brandId: product.brandId,
@@ -313,6 +314,48 @@ export const productRepo = {
     const { data, error } = await supabase.from("Product").insert(payload).select().single();
     if (error) {
       console.error("[Supabase DB] create product error:", error.message);
+      return null;
+    }
+    return data;
+  },
+
+  async upsert(product: {
+    id: string;
+    name: string;
+    storeId: string;
+    brandId: string;
+    categoryId: string;
+    description?: string;
+    price: number;
+    stock: number;
+    experienceLevel?: any;
+    soundSignature?: any;
+    images?: string[];
+  }): Promise<DbProduct | null> {
+    const payload = {
+      id: product.id,
+      name: product.name,
+      storeId: product.storeId,
+      brandId: product.brandId,
+      categoryId: product.categoryId,
+      description: product.description || "",
+      price: product.price,
+      stock: product.stock,
+      experienceLevel: product.experienceLevel || "INTERMEDIATE",
+      soundSignature: product.soundSignature || "NEUTRAL",
+      status: "APPROVED",
+      images: product.images || ["https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800"],
+      updatedAt: new Date().toISOString(),
+    };
+
+    const { data, error } = await supabase
+      .from("Product")
+      .upsert(payload, { onConflict: "id" })
+      .select()
+      .single();
+
+    if (error) {
+      console.error("[Supabase DB] upsert product error:", error.message);
       return null;
     }
     return data;

@@ -39,22 +39,69 @@ export default function ProductDetailPage() {
   const [isOffersOpen, setIsOffersOpen] = useState(false);
   const [selectedOfferId, setSelectedOfferId] = useState<string>("off-1");
 
+  const availableTerminations = useMemo(() => {
+    if (!product) return ["3.5mm SE", "4.4mm BAL"];
+    const term = (product.cableTermination || "").toLowerCase();
+    const cat = (product.category || "").toLowerCase();
+
+    if (term.includes("bluetooth") || term.includes("wireless") || cat.includes("tws")) {
+      return ["Wireless Bluetooth (aptX Adaptive)", "3.5mm Wired Analog"];
+    }
+    if (term.includes("freedsp") || term.includes("usb-c")) {
+      return ["FreeDSP USB-C (Interactive DSP)", "3.5mm SE Analog", "4.4mm BAL (Pentaconn)"];
+    }
+    if (term.includes("modular") || (term.includes("3.5") && term.includes("4.4"))) {
+      return ["3.5mm SE (Modular Plug)", "4.4mm BAL (Balanced Plug)"];
+    }
+    if (term.includes("6.35")) {
+      return ["3.5mm SE (with 6.35mm Adapter)", "4.4mm BAL (Pentaconn)"];
+    }
+    return ["3.5mm SE (Standard)", "4.4mm BAL (Pentaconn)"];
+  }, [product]);
+
   useEffect(() => {
+    if (availableTerminations.length > 0 && !availableTerminations.includes(selectedTermination)) {
+      setSelectedTermination(availableTerminations[0]);
+    }
+  }, [availableTerminations, selectedTermination]);
+
+  useEffect(() => {
+    setSelectedVariant(0);
     async function loadProductData() {
       setIsLoading(true);
+      // 1. Authoritative lookup by ID / alias
+      let found = await fetchProductByIdFromDb(rawId);
+
+      // 2. Secondary fallback / recommendations loading
       const all = await fetchProductsFromDb();
-      let found: CatalogProduct | null | undefined = all.find((p) => p.id === rawId);
-      if (!found) {
-        found = await fetchProductByIdFromDb(rawId);
-      }
       if (!found && all.length > 0) {
-        found = all[0];
+        const norm = rawId.toLowerCase().replace(/[^a-z0-9]/g, "");
+        const norm3 = norm.replace(/iii/g, "3").replace(/ii/g, "2");
+        found =
+          all.find((p) => {
+            const pNorm = p.id.toLowerCase().replace(/[^a-z0-9]/g, "");
+            const pNorm3 = pNorm.replace(/iii/g, "3").replace(/ii/g, "2");
+            const pNameNorm = p.name.toLowerCase().replace(/[^a-z0-9]/g, "").replace(/iii/g, "3").replace(/ii/g, "2");
+            return (
+              p.id === rawId ||
+              pNorm === norm ||
+              pNorm3 === norm3 ||
+              pNorm3.includes(norm3) ||
+              norm3.includes(pNorm3) ||
+              pNameNorm.includes(norm3)
+            );
+          }) || null;
       }
 
       setProduct(found || null);
       if (found) {
-        const others = all.filter((p) => p.id !== found!.id).slice(0, 4);
+        const sameCategory = all.filter((p) => p.id !== found!.id && p.category === found!.category);
+        const others = sameCategory.length >= 4
+          ? sameCategory.slice(0, 4)
+          : [...sameCategory, ...all.filter((p) => p.id !== found!.id && p.category !== found!.category)].slice(0, 4);
         setRelatedProducts(others);
+      } else {
+        setRelatedProducts(all.slice(0, 4));
       }
       setIsLoading(false);
     }
@@ -71,14 +118,21 @@ export default function ProductDetailPage() {
   const handleAddToCart = () => {
     if (!product) return;
     const chosenPrice = currentOffer ? currentOffer.price : product.price;
+    const sellerName = currentOffer ? currentOffer.sellerName : (product.storeName || "Official Merchant");
+    const sellerId = currentOffer ? currentOffer.id : (product.storeName ? `store-${product.id}` : "official");
+    const cartItemId = `${product.id}-${currentOffer?.id || "default"}-${selectedTermination.replace(/\s+/g, "_")}`;
     addToCart({
-      id: product.id,
+      id: cartItemId,
+      productId: product.id,
       name: `${product.name} (${selectedTermination})`,
+      brand: product.brand,
+      category: product.category,
       price: chosenPrice,
+      variant: selectedTermination,
+      sellerId: sellerId,
+      sellerName: sellerName,
       image: product.image,
-      quantity: 1,
-      storeName: currentOffer ? currentOffer.sellerName : (product.storeName || "Official Merchant"),
-    } as any);
+    });
     openCart();
     showToast(`${product.name} added to cart!`);
   };
@@ -86,14 +140,21 @@ export default function ProductDetailPage() {
   const handleBuyNow = () => {
     if (!product) return;
     const chosenPrice = currentOffer ? currentOffer.price : product.price;
+    const sellerName = currentOffer ? currentOffer.sellerName : (product.storeName || "Official Merchant");
+    const sellerId = currentOffer ? currentOffer.id : (product.storeName ? `store-${product.id}` : "official");
+    const cartItemId = `${product.id}-${currentOffer?.id || "default"}-${selectedTermination.replace(/\s+/g, "_")}`;
     addToCart({
-      id: product.id,
+      id: cartItemId,
+      productId: product.id,
       name: `${product.name} (${selectedTermination})`,
+      brand: product.brand,
+      category: product.category,
       price: chosenPrice,
+      variant: selectedTermination,
+      sellerId: sellerId,
+      sellerName: sellerName,
       image: product.image,
-      quantity: 1,
-      storeName: currentOffer ? currentOffer.sellerName : (product.storeName || "Official Merchant"),
-    } as any);
+    });
     router.push("/checkout");
   };
 
@@ -158,20 +219,36 @@ export default function ProductDetailPage() {
     return baseOffers;
   }, [product]);
 
+  const variants = useMemo(() => {
+    if (!product) return [];
+    const imgs = Array.isArray(product.images) && product.images.length > 0 ? product.images : [product.image];
+    const defaultLabels = [
+      "OVERVIEW",
+      "DETAIL VIEW",
+      "ACOUSTIC CAVITY",
+      "ACCESSORIES & PACKAGING",
+      "EXPLODED BLUEPRINT",
+    ];
+    return imgs.map((img, idx) => ({
+      label: defaultLabels[idx] || `VIEW 0${idx + 1}`,
+      image: img,
+    }));
+  }, [product]);
+
   const currentOffer = offers.find((o) => o.id === selectedOfferId) || offers[0];
 
-  if (isLoading || !product) {
+  if (isLoading) {
     return (
-      <main className="min-h-screen bg-[#080808] text-[#FAF9F6] font-sans">
+      <main className="min-h-screen bg-[#030303] text-[#FAF9F6] font-sans">
         <Navbar />
         <div className="max-w-[1400px] mx-auto px-6 lg:px-12 py-24">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 animate-pulse">
-            <div className="aspect-square bg-[#0e0e0e] border border-[#1c1c1c]" />
+            <div className="aspect-square bg-[#030303] border border-[#1c1c1c]" />
             <div className="space-y-6">
-              <div className="h-6 w-32 bg-[#181818]" />
-              <div className="h-12 w-3/4 bg-[#181818]" />
-              <div className="h-20 w-full bg-[#111111]" />
-              <div className="h-10 w-48 bg-[#181818]" />
+              <div className="h-6 w-32 bg-[#050505]" />
+              <div className="h-12 w-3/4 bg-[#050505]" />
+              <div className="h-20 w-full bg-[#050505]" />
+              <div className="h-10 w-48 bg-[#050505]" />
             </div>
           </div>
         </div>
@@ -180,14 +257,58 @@ export default function ProductDetailPage() {
     );
   }
 
-  const variants = [
-    { label: "VARIAN 1", image: product.image },
-    { label: "VARIAN 2", image: product.image },
-    { label: "VARIAN 3", image: product.image },
-  ];
+  if (!product) {
+    return (
+      <main className="min-h-screen bg-[#030303] text-[#FAF9F6] font-sans flex flex-col justify-between">
+        <Navbar />
+        <div className="max-w-[800px] mx-auto px-6 py-28 text-center flex-1 flex flex-col items-center justify-center">
+          <div className="w-16 h-16 rounded-2xl bg-[#050505] border border-[#1c1c1c] flex items-center justify-center mb-6 text-2xl shadow-xl">
+            🔍
+          </div>
+          <span className="text-xs font-mono text-[#BFDD25] uppercase tracking-widest block mb-2 font-semibold">
+            Katalog IEM Tonal Zone
+          </span>
+          <h1 className="text-3xl sm:text-4xl font-heading font-bold text-white mb-4 uppercase tracking-tight">
+            Produk Tidak Ditemukan
+          </h1>
+          <p className="text-sm text-[#888] font-sans max-w-md mx-auto mb-8 leading-relaxed">
+            Produk yang Anda tuju tidak tersedia dalam katalog atau tautan pencarian tidak lagi aktif.
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-4">
+            <Link
+              href="/collection"
+              className="px-6 py-3.5 bg-[#BFDD25] hover:bg-white text-black font-mono font-bold text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer shadow-lg hover:shadow-[0_0_20px_rgba(191,221,37,0.3)]"
+            >
+              Jelajahi Semua Koleksi
+            </Link>
+            <Link
+              href="/search"
+              className="px-6 py-3.5 bg-[#050505] hover:bg-[#080808] border border-[#1c1c1c] hover:border-[#333] text-white font-mono text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer"
+            >
+              Buka Pencarian Catalog →
+            </Link>
+          </div>
+
+          {relatedProducts.length > 0 && (
+            <div className="mt-20 w-full text-left border-t border-[#1c1c1c] pt-10">
+              <h3 className="text-xs font-mono uppercase tracking-widest text-[#777] mb-6">
+                Rekomendasi Audiophile Teratas
+              </h3>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                {relatedProducts.map((p) => (
+                  <ProductCard key={p.id} product={p} />
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+        <Footer />
+      </main>
+    );
+  }
 
   return (
-    <main className="min-h-screen bg-[#080808] text-[#FAF9F6] selection:bg-[#FAF9F6] selection:text-[#080808] font-sans">
+    <main className="min-h-screen bg-[#030303] text-[#FAF9F6] selection:bg-[#FAF9F6] selection:text-[#030303] font-sans">
       <Navbar />
 
       {/* Toast Notification */}
@@ -197,7 +318,7 @@ export default function ProductDetailPage() {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="fixed top-24 right-6 z-50 bg-[#111111] border border-[#444444] text-[#FAF9F6] px-5 py-3 shadow-2xl flex items-center gap-3 font-mono text-xs"
+            className="fixed top-24 right-6 z-50 bg-[#050505] border border-[#444444] text-[#FAF9F6] px-5 py-3 shadow-2xl flex items-center gap-3 font-mono text-xs"
           >
             <span className="w-2 h-2 bg-white" />
             <span>{toastMessage}</span>
@@ -220,7 +341,7 @@ export default function ProductDetailPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
           {/* Left Column: Image Display with Variants */}
           <div className="lg:col-span-6 space-y-4">
-            <div className="aspect-square border border-[#1c1c1c] bg-[#0c0c0c] relative overflow-hidden flex items-center justify-center group">
+            <div className="aspect-square border border-[#1c1c1c] bg-[#050505] relative overflow-hidden flex items-center justify-center group">
               <img
                 src={variants[selectedVariant]?.image || product.image}
                 alt={product.name}
@@ -255,7 +376,7 @@ export default function ProductDetailPage() {
                     className="flex flex-col items-center gap-2 group cursor-pointer"
                   >
                     <div
-                      className={`w-20 h-20 sm:w-24 sm:h-24 bg-[#0e0e0e] border ${
+                      className={`w-20 h-20 sm:w-24 sm:h-24 bg-[#030303] border ${
                         isSelected
                           ? "border-white"
                           : "border-[#1c1c1c] group-hover:border-[#444444]"
@@ -293,7 +414,7 @@ export default function ProductDetailPage() {
                 </span>
               </div>
               <div className="flex items-center gap-2 text-sm">
-                <div className="flex text-[#D4FF00]">
+                <div className="flex text-[#BFDD25]">
                   <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
                 </div>
                 <span className="font-mono text-[#555555] text-xs mt-0.5">
@@ -313,28 +434,23 @@ export default function ProductDetailPage() {
                 Select Cable Termination
               </div>
               <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  onClick={() => setSelectedTermination("3.5mm SE")}
-                  className={`px-4 py-2.5 border font-mono text-xs uppercase tracking-widest transition-colors cursor-pointer ${
-                    selectedTermination === "3.5mm SE"
-                      ? "border-white bg-[#141414] text-[#FAF9F6] font-bold"
-                      : "border-[#222222] bg-[#0c0c0c] text-[#555555] hover:border-[#444444] hover:text-[#FAF9F6]"
-                  }`}
-                >
-                  3.5mm SE (Standard)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSelectedTermination("4.4mm BAL")}
-                  className={`px-4 py-2.5 border font-mono text-xs uppercase tracking-widest transition-colors cursor-pointer ${
-                    selectedTermination === "4.4mm BAL"
-                      ? "border-white bg-[#141414] text-[#FAF9F6] font-bold"
-                      : "border-[#222222] bg-[#0c0c0c] text-[#555555] hover:border-[#444444] hover:text-[#FAF9F6]"
-                  }`}
-                >
-                  4.4mm BAL (Pentaconn)
-                </button>
+                {availableTerminations.map((termOption) => {
+                  const isChosen = selectedTermination === termOption;
+                  return (
+                    <button
+                      key={termOption}
+                      type="button"
+                      onClick={() => setSelectedTermination(termOption)}
+                      className={`px-4 py-2.5 border font-mono text-xs uppercase tracking-widest transition-colors cursor-pointer ${
+                        isChosen
+                          ? "border-white bg-[#050505] text-[#FAF9F6] font-bold"
+                          : "border-[#222222] bg-[#050505] text-[#555555] hover:border-[#444444] hover:text-[#FAF9F6]"
+                      }`}
+                    >
+                      {termOption}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
@@ -374,8 +490,8 @@ export default function ProductDetailPage() {
                 <button
                   type="button"
                   onClick={() => setIsOffersOpen(!isOffersOpen)}
-                  className={`w-full bg-[#101010] border rounded-xl p-3.5 text-left flex items-center justify-between transition-all cursor-pointer outline-none focus:outline-none ${
-                    isOffersOpen ? "border-[#444] bg-[#141414]" : "border-[#222222] hover:border-[#383838]"
+                  className={`w-full bg-[#050505] border rounded-xl p-3.5 text-left flex items-center justify-between transition-all cursor-pointer outline-none focus:outline-none ${
+                    isOffersOpen ? "border-[#444] bg-[#050505]" : "border-[#222222] hover:border-[#383838]"
                   }`}
                 >
                   <div className="min-w-0 flex-1 pr-3">
@@ -389,12 +505,12 @@ export default function ProductDetailPage() {
                         </span>
                       )}
                       {currentOffer?.sellerType === "AUTHORIZED" && (
-                        <span className="text-[10px] font-mono text-[#aaa] bg-[#222] px-1.5 py-0.5 rounded shrink-0">
+                        <span className="text-[10px] font-mono text-[#aaa] bg-[#050505] px-1.5 py-0.5 rounded shrink-0">
                           Authorized
                         </span>
                       )}
                       {currentOffer?.sellerType === "INDIVIDUAL" && (
-                        <span className="text-[10px] font-mono text-[#888] bg-[#1a1a1a] px-1.5 py-0.5 rounded shrink-0">
+                        <span className="text-[10px] font-mono text-[#888] bg-[#050505] px-1.5 py-0.5 rounded shrink-0">
                           Pre-loved
                         </span>
                       )}
@@ -431,7 +547,7 @@ export default function ProductDetailPage() {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -4 }}
                       transition={{ duration: 0.12 }}
-                      className="absolute left-0 right-0 top-full mt-1.5 bg-[#121212] border border-[#262626] rounded-xl shadow-2xl z-50 overflow-hidden p-1.5 space-y-1"
+                      className="absolute left-0 right-0 top-full mt-1.5 bg-[#050505] border border-[#1c1c1c] rounded-xl shadow-2xl z-50 overflow-hidden p-1.5 space-y-1"
                     >
                       {offers.map((offer) => {
                         const isSelected = selectedOfferId === offer.id;
@@ -446,7 +562,7 @@ export default function ProductDetailPage() {
                             className={`w-full flex items-center justify-between p-3 rounded-lg text-left cursor-pointer transition-colors outline-none focus:outline-none ${
                               isSelected
                                 ? "bg-[#1c1c1c] text-white"
-                                : "text-[#888] hover:bg-[#181818] hover:text-white"
+                                : "text-[#888] hover:bg-[#050505] hover:text-white"
                             }`}
                           >
                             <div className="min-w-0 flex-1 pr-3">
@@ -460,12 +576,12 @@ export default function ProductDetailPage() {
                                   </span>
                                 )}
                                 {offer.sellerType === "AUTHORIZED" && (
-                                  <span className="text-[9px] font-mono text-[#aaa] bg-[#222] px-1.5 py-0.5 rounded shrink-0">
+                                  <span className="text-[9px] font-mono text-[#aaa] bg-[#050505] px-1.5 py-0.5 rounded shrink-0">
                                     Authorized
                                   </span>
                                 )}
                                 {offer.sellerType === "INDIVIDUAL" && (
-                                  <span className="text-[9px] font-mono text-[#888] bg-[#1a1a1a] px-1.5 py-0.5 rounded shrink-0">
+                                  <span className="text-[9px] font-mono text-[#888] bg-[#050505] px-1.5 py-0.5 rounded shrink-0">
                                     Pre-loved
                                   </span>
                                 )}
@@ -499,7 +615,7 @@ export default function ProductDetailPage() {
               <button
                 type="button"
                 onClick={handleChatSeller}
-                className="w-full mt-2.5 py-2.5 px-4 bg-[#101010] hover:bg-[#161616] border border-[#222222] hover:border-[#383838] text-[#888888] hover:text-white font-sans text-xs font-medium rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer outline-none focus:outline-none"
+                className="w-full mt-2.5 py-2.5 px-4 bg-[#050505] hover:bg-[#050505] border border-[#222222] hover:border-[#383838] text-[#888888] hover:text-white font-sans text-xs font-medium rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer outline-none focus:outline-none"
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white">
                   <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
@@ -509,7 +625,7 @@ export default function ProductDetailPage() {
             </div>
 
             {/* Action Buttons with Motion Diagonal Wipe Animations */}
-            <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="grid grid-cols-2 gap-4 mb-4">
               <MotionButton
                 onClick={handleBuyNow}
                 variant="light"
@@ -526,6 +642,30 @@ export default function ProductDetailPage() {
               </MotionButton>
             </div>
 
+            {/* Squiglink Frequency Response Secondary CTA (PRD FR-03 & Design Guide) */}
+            {product.squiglinkUrl && (
+              <a
+                href={product.squiglinkUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full mb-6 py-3 px-4 border border-[#333333] hover:border-[#BFDD25] bg-[#050505] hover:bg-[#0a0a0a] text-[#c4c7c8] hover:text-white transition-all flex items-center justify-between group cursor-pointer"
+              >
+                <div className="flex items-center gap-2.5">
+                  {/* Waveform vector icon */}
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#BFDD25]">
+                    <path d="M2 12h3l2-6 4 12 4-8 2 5 3-3h2" />
+                  </svg>
+                  <span className="font-mono text-xs uppercase tracking-widest font-semibold">
+                    Cek Tonal Graph di Squiglink
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5 text-xs font-mono text-[#888888] group-hover:text-[#BFDD25] transition-colors">
+                  <span>Open Target</span>
+                  <span>↗</span>
+                </div>
+              </a>
+            )}
+
             {/* Security Notice with Crisp Vector Icons */}
             <div className="flex flex-col gap-3 pt-4 border-t border-[#1c1c1c] mb-8">
               <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest text-[#555555]">
@@ -533,10 +673,10 @@ export default function ProductDetailPage() {
                 <span>SECURE ENCRYPTED TRANSACTION</span>
               </div>
               <div className="flex items-center gap-2 text-[#555555]">
-                <div className="px-2 py-1 border border-[#222222] bg-[#0c0c0c] flex items-center justify-center text-[9px] font-mono tracking-widest">VISA</div>
-                <div className="px-2 py-1 border border-[#222222] bg-[#0c0c0c] flex items-center justify-center text-[9px] font-mono tracking-widest">MASTERCARD</div>
-                <div className="px-2 py-1 border border-[#222222] bg-[#0c0c0c] flex items-center justify-center text-[9px] font-mono tracking-widest">BCA VIRTUAL</div>
-                <div className="px-2 py-1 border border-[#222222] bg-[#0c0c0c] flex items-center justify-center text-[9px] font-mono tracking-widest">QRIS</div>
+                <div className="px-2 py-1 border border-[#222222] bg-[#050505] flex items-center justify-center text-[9px] font-mono tracking-widest">VISA</div>
+                <div className="px-2 py-1 border border-[#222222] bg-[#050505] flex items-center justify-center text-[9px] font-mono tracking-widest">MASTERCARD</div>
+                <div className="px-2 py-1 border border-[#222222] bg-[#050505] flex items-center justify-center text-[9px] font-mono tracking-widest">BCA VIRTUAL</div>
+                <div className="px-2 py-1 border border-[#222222] bg-[#050505] flex items-center justify-center text-[9px] font-mono tracking-widest">QRIS</div>
               </div>
             </div>
 
@@ -565,70 +705,102 @@ export default function ProductDetailPage() {
 
       {/* 2. DETAIL SPECIFICATIONS */}
       <section className="max-w-[1400px] mx-auto px-6 lg:px-12 py-16 border-t border-[#1c1c1c]">
-        <h2 className="font-heading text-2xl md:text-3xl uppercase tracking-wider text-white mb-8 pb-4 border-b border-[#1c1c1c]">
-          DETAIL SPECIFICATIONS
-        </h2>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-4 border-b border-[#1c1c1c]">
+          <h2 className="font-heading text-2xl md:text-3xl uppercase tracking-wider text-white">
+            DETAIL SPECIFICATIONS
+          </h2>
+          {product.squiglinkUrl && (
+            <a
+              href={product.squiglinkUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 font-mono text-xs text-[#BFDD25] hover:underline"
+            >
+              <span>Explore Squiglink Tonal Response</span>
+              <span>↗</span>
+            </a>
+          )}
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Card 1: SPESIFICATION */}
-          <div className="bg-[#0a0a0a] border border-[#1c1c1c] p-6 space-y-4">
+          {/* Card 1: ACOUSTIC ENGINE & DRIVERS */}
+          <div className="bg-[#050505] border border-[#1c1c1c] p-6 space-y-4">
             <span className="text-[#888888] font-mono text-xs uppercase tracking-[0.2em] font-bold block mb-4">
-              ACOUSTIC ENGINE
+              ACOUSTIC ENGINE & DRIVERS
             </span>
             <div className="space-y-3 text-xs font-mono">
+              <div className="flex justify-between items-start py-1.5 border-b border-[#141414] gap-2">
+                <span className="text-[#555555] shrink-0">Driver Config</span>
+                <span className="text-white font-medium text-right">{product.driverType || "High-Resolution Dynamic Driver"}</span>
+              </div>
+              <div className="flex justify-between items-start py-1.5 border-b border-[#141414] gap-2">
+                <span className="text-[#555555] shrink-0">Tuning Profile</span>
+                <span className="text-white font-medium text-right">{product.tuning || `${product.soundSignature || "Neutral"} Target`}</span>
+              </div>
               <div className="flex justify-between items-center py-1.5 border-b border-[#141414]">
                 <span className="text-[#555555]">Sound Profile</span>
-                <span className="text-white font-medium">{product.soundSignature ? `${product.soundSignature.replace(/_/g, " ")} Tuned` : "Triple-Beryllium DD"}</span>
+                <span className="text-[#BFDD25] font-medium">{product.soundSignature ? `${product.soundSignature.replace(/_/g, " ")} Tuned` : "Neutral Reference"}</span>
               </div>
               <div className="flex justify-between items-center py-1.5 border-b border-[#141414]">
                 <span className="text-[#555555]">Experience Tier</span>
                 <span className="text-white font-medium">{product.experienceLevel ? `${product.experienceLevel} Tier` : "Audiophile Reference"}</span>
               </div>
+            </div>
+          </div>
+
+          {/* Card 2: ELECTRICAL & ACOUSTIC RESPONSE */}
+          <div className="bg-[#050505] border border-[#1c1c1c] p-6 space-y-4">
+            <span className="text-[#888888] font-mono text-xs uppercase tracking-[0.2em] font-bold block mb-4">
+              ELECTRICAL & FREQUENCY SPECS
+            </span>
+            <div className="space-y-3 text-xs font-mono">
               <div className="flex justify-between items-center py-1.5 border-b border-[#141414]">
-                <span className="text-[#555555]">Gear Category</span>
-                <span className="text-white font-medium">{product.category || "In-Ear Monitor"}</span>
+                <span className="text-[#555555]">Freq Response</span>
+                <span className="text-white font-medium">{product.frequencyResponse || "20Hz – 20,000Hz"}</span>
+              </div>
+              <div className="flex justify-between items-center py-1.5 border-b border-[#141414]">
+                <span className="text-[#555555]">Impedance</span>
+                <span className="text-white font-medium">{product.impedance || "16Ω – 32Ω (@1kHz)"}</span>
+              </div>
+              <div className="flex justify-between items-center py-1.5 border-b border-[#141414]">
+                <span className="text-[#555555]">Sensitivity</span>
+                <span className="text-white font-medium">{product.sensitivity || "119dB/Vrms (@1kHz)"}</span>
+              </div>
+              <div className="flex justify-between items-start py-1.5 border-b border-[#141414] gap-2">
+                <span className="text-[#555555] shrink-0">Termination</span>
+                <span className="text-white font-medium text-right">{product.cableTermination || "3.5mm SE / 0.78mm 2-Pin"}</span>
               </div>
             </div>
           </div>
 
-          {/* Card 2: WARRANTY */}
-          <div className="bg-[#0a0a0a] border border-[#1c1c1c] p-6 space-y-4">
+          {/* Card 3: CHASSIS & SQUIGLINK ACCESS */}
+          <div className="bg-[#050505] border border-[#1c1c1c] p-6 space-y-4">
             <span className="text-[#888888] font-mono text-xs uppercase tracking-[0.2em] font-bold block mb-4">
-              WARRANTY & AUTHENTICITY
+              CHASSIS & SQUIGLINK GRAPH
             </span>
             <div className="space-y-3 text-xs font-mono">
-              <div className="flex justify-between items-center py-1.5 border-b border-[#141414]">
-                <span className="text-[#555555]">Coverage</span>
-                <span className="text-white font-medium">1-Year Limited Disty Warranty</span>
+              <div className="flex justify-between items-start py-1.5 border-b border-[#141414] gap-2">
+                <span className="text-[#555555] shrink-0">Chassis Build</span>
+                <span className="text-white font-medium text-right">{product.material || "Precision CNC Acoustic Resin"}</span>
               </div>
               <div className="flex justify-between items-center py-1.5 border-b border-[#141414]">
-                <span className="text-[#555555]">Cable Warranty</span>
-                <span className="text-white font-medium">6-Months Replacement</span>
+                <span className="text-[#555555]">Warranty</span>
+                <span className="text-white font-medium">1-Year Official Distributor</span>
               </div>
               <div className="flex justify-between items-center py-1.5 border-b border-[#141414]">
-                <span className="text-[#555555]">Serial Verification</span>
-                <span className="text-white font-medium">Original Authenticity Card</span>
+                <span className="text-[#555555]">Authenticity</span>
+                <span className="text-white font-medium">Verified Serial Card</span>
               </div>
-            </div>
-          </div>
-
-          {/* Card 3: BUILD SPECS */}
-          <div className="bg-[#0a0a0a] border border-[#1c1c1c] p-6 space-y-4">
-            <span className="text-[#888888] font-mono text-xs uppercase tracking-[0.2em] font-bold block mb-4">
-              CHASSIS & TERMINATION
-            </span>
-            <div className="space-y-3 text-xs font-mono">
-              <div className="flex justify-between items-center py-1.5 border-b border-[#141414]">
-                <span className="text-[#555555]">Chassis Shell</span>
-                <span className="text-white font-medium">Machined Aluminum / Resin</span>
-              </div>
-              <div className="flex justify-between items-center py-1.5 border-b border-[#141414]">
-                <span className="text-[#555555]">Connector Type</span>
-                <span className="text-white font-medium">2-Pin 0.78mm Flush</span>
-              </div>
-              <div className="flex justify-between items-center py-1.5 border-b border-[#141414]">
-                <span className="text-[#555555]">Finish</span>
-                <span className="text-white font-medium">Matte Anodized Gunmetal</span>
+              <div className="pt-2">
+                <a
+                  href={product.squiglinkUrl || "https://squig.link"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full py-2.5 px-3 bg-[#111111] hover:bg-[#BFDD25] text-[#c4c7c8] hover:text-black border border-[#262626] flex items-center justify-center gap-2 transition-all font-mono text-[11px] font-bold uppercase tracking-wider"
+                >
+                  <span>Buka Squiglink Graph</span>
+                  <span>↗</span>
+                </a>
               </div>
             </div>
           </div>
@@ -642,16 +814,16 @@ export default function ProductDetailPage() {
         </h2>
 
         {/* Rating Summary Header */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center mb-12 p-8 bg-[#0a0a0a] border border-[#1c1c1c]">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center mb-12 p-8 bg-[#050505] border border-[#1c1c1c]">
           {/* Left: Overall Score */}
           <div>
             <div className="flex items-center gap-3">
               <span className="font-heading text-6xl md:text-7xl font-bold text-white leading-none">
                 {product.rating || 4.9}
               </span>
-              <span className="text-[#D4FF00] text-3xl">★</span>
+              <span className="text-[#BFDD25] text-3xl">★</span>
             </div>
-            <div className="mt-3 inline-block px-3 py-1 bg-[#141414] border border-[#222222] text-[10px] font-mono text-[#777777] uppercase tracking-widest font-bold">
+            <div className="mt-3 inline-block px-3 py-1 bg-[#050505] border border-[#222222] text-[10px] font-mono text-[#777777] uppercase tracking-widest font-bold">
               {product.reviews || 128} COMMUNITY REVIEWS
             </div>
           </div>
@@ -667,10 +839,10 @@ export default function ProductDetailPage() {
             ].map((bar) => (
               <div key={bar.star} className="flex items-center gap-3">
                 <span className="w-3 text-[#555555]">{bar.star}</span>
-                <div className="flex-1 h-2 bg-[#141414] overflow-hidden">
+                <div className="flex-1 h-2 bg-[#050505] overflow-hidden">
                   <div
                     style={{ width: bar.pct }}
-                    className="h-full bg-[#D4FF00]"
+                    className="h-full bg-[#BFDD25]"
                   />
                 </div>
               </div>
@@ -683,19 +855,23 @@ export default function ProductDetailPage() {
               CUSTOMER DESK & RIG SHOTS
             </span>
             <div className="grid grid-cols-4 gap-2">
-              {[...Array(7)].map((_, i) => (
-                <div
-                  key={i}
-                  className="aspect-square bg-[#111111] border border-[#1c1c1c] overflow-hidden"
-                >
-                  <img
-                    src={product.image}
-                    alt="Customer review setup"
-                    className="w-full h-full object-cover opacity-70"
-                  />
-                </div>
-              ))}
-              <div className="aspect-square bg-[#141414] border border-[#222222] flex items-center justify-center font-mono text-xs font-bold text-white cursor-pointer hover:border-[#444444] transition-colors">
+              {[...Array(7)].map((_, i) => {
+                const gallery = Array.isArray(product.images) && product.images.length > 0 ? product.images : [product.image];
+                const shotImg = gallery[i % gallery.length];
+                return (
+                  <div
+                    key={i}
+                    className="aspect-square bg-[#050505] border border-[#1c1c1c] overflow-hidden"
+                  >
+                    <img
+                      src={shotImg}
+                      alt="Customer review setup"
+                      className="w-full h-full object-cover opacity-70 hover:opacity-100 transition-opacity"
+                    />
+                  </div>
+                );
+              })}
+              <div className="aspect-square bg-[#050505] border border-[#222222] flex items-center justify-center font-mono text-xs font-bold text-white cursor-pointer hover:border-[#444444] transition-colors">
                 +14
               </div>
             </div>
@@ -704,12 +880,12 @@ export default function ProductDetailPage() {
 
         {/* 3 Authentic Audiophile Review Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-[#0a0a0a] border border-[#1c1c1c] p-6 space-y-4">
+          <div className="bg-[#050505] border border-[#1c1c1c] p-6 space-y-4">
             <div className="flex justify-between items-center">
               <span className="text-white font-mono text-xs uppercase tracking-wider font-bold">
                 @AUDIO_SURABAYA
               </span>
-              <span className="text-[#D4FF00] text-xs">★★★★★</span>
+              <span className="text-[#BFDD25] text-xs">★★★★★</span>
             </div>
             <p className="text-xs font-sans text-[#777777] leading-relaxed italic">
               &ldquo;Tested paired with FiiO KA13 & SpinFit CP145. Pinna gain at 3kHz is well-controlled with zero harsh sibilance on female vocal tracks like Norah Jones.&rdquo;
@@ -717,12 +893,12 @@ export default function ProductDetailPage() {
             <span className="text-[9px] font-mono text-[#444444] block">Verified Buyer • 4.4mm Balanced</span>
           </div>
 
-          <div className="bg-[#0a0a0a] border border-[#1c1c1c] p-6 space-y-4">
+          <div className="bg-[#050505] border border-[#1c1c1c] p-6 space-y-4">
             <div className="flex justify-between items-center">
               <span className="text-white font-mono text-xs uppercase tracking-wider font-bold">
                 @VALEN_ACOUSTIC
               </span>
-              <span className="text-[#D4FF00] text-xs">★★★★★</span>
+              <span className="text-[#BFDD25] text-xs">★★★★★</span>
             </div>
             <p className="text-xs font-sans text-[#777777] leading-relaxed italic">
               &ldquo;Solid CNC metal shell with zero pin wobble on the 2-pin socket. Sub-bass punch has clean texture without bleeding into lower-mids.&rdquo;
@@ -730,12 +906,12 @@ export default function ProductDetailPage() {
             <span className="text-[9px] font-mono text-[#444444] block">Verified Buyer • 3.5mm SE</span>
           </div>
 
-          <div className="bg-[#0a0a0a] border border-[#1c1c1c] p-6 space-y-4">
+          <div className="bg-[#050505] border border-[#1c1c1c] p-6 space-y-4">
             <div className="flex justify-between items-center">
               <span className="text-white font-mono text-xs uppercase tracking-wider font-bold">
                 @HEADFI_JKT
               </span>
-              <span className="text-[#D4FF00] text-xs">★★★★★</span>
+              <span className="text-[#BFDD25] text-xs">★★★★★</span>
             </div>
             <p className="text-xs font-sans text-[#777777] leading-relaxed italic">
               &ldquo;Separation and layer positioning across busy orchestral passages is surprisingly accurate. Excellent value for this price bracket.&rdquo;

@@ -65,11 +65,11 @@ export default function MistralText({ text, className = "", speed = 20 }: Mistra
               opacity: 1,
               filter: "blur(0px)",
               y: 0,
-              color: isResolved ? "#FAF9F6" : "#D4FF00",
+              color: isResolved ? "#FAF9F6" : "#BFDD25",
             }}
             transition={{ duration: 0.2, delay: index * 0.015, ease: [0.16, 1, 0.3, 1] }}
             className={`inline-block transition-colors duration-200 ${
-              isResolved ? "text-[#FAF9F6]" : "text-[#D4FF00] font-mono"
+              isResolved ? "text-[#FAF9F6]" : "text-[#BFDD25] font-mono"
             }`}
           >
             {char}

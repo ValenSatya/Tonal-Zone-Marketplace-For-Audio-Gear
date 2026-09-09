@@ -28,7 +28,7 @@ export default function ParallaxImage({ src, alt, className = "", overlay = fals
   return (
     <div 
       ref={containerRef} 
-      className={`relative overflow-hidden bg-[#0e0e0e] ${className}`}
+      className={`relative overflow-hidden bg-[#030303] ${className}`}
     >
       <motion.div
         initial={{ scale: 1.2, opacity: 0 }}

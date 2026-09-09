@@ -85,7 +85,7 @@ function CheckoutFailedContent() {
   };
 
   return (
-    <div className="min-h-screen bg-[#080808] text-[#FAF9F6] font-sans selection:bg-[#FF334B] selection:text-white flex flex-col relative">
+    <div className="min-h-screen bg-[#030303] text-[#FAF9F6] font-sans selection:bg-[#FF334B] selection:text-white flex flex-col relative">
       <Navbar />
 
       <main className="flex-grow pt-28 pb-20 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 w-full relative z-10">
@@ -93,7 +93,7 @@ function CheckoutFailedContent() {
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          className="max-w-xl mx-auto py-12 px-8 bg-[#111111] border border-[#261818] rounded-none text-center mb-16 space-y-6 shadow-2xl relative overflow-hidden"
+          className="max-w-xl mx-auto py-12 px-8 bg-[#050505] border border-[#261818] rounded-none text-center mb-16 space-y-6 shadow-2xl relative overflow-hidden"
         >
           {/* Top Red Status Accent Line */}
           <div className="absolute top-0 left-0 h-1 bg-[#FF334B] w-full" />
@@ -121,7 +121,7 @@ function CheckoutFailedContent() {
           </div>
 
           {/* Breakdown Info */}
-          <div className="p-5 bg-[#141414] text-left text-xs font-mono space-y-3 text-[#FAF9F6]/80 border border-[#222222]">
+          <div className="p-5 bg-[#050505] text-left text-xs font-mono space-y-3 text-[#FAF9F6]/80 border border-[#222222]">
             <div className="flex justify-between items-start gap-4">
               <span className="text-[#666666] shrink-0 uppercase">STATUS TAGIHAN</span>
               <span className="font-semibold text-right text-[#FF334B]">
@@ -183,9 +183,9 @@ function CheckoutFailedContent() {
               <Link
                 key={prod.id}
                 href={`/product/${prod.id}`}
-                className="group bg-[#0e0e0e] border border-[#1c1c1c] hover:border-[#333333] transition-all p-4 flex flex-col justify-between"
+                className="group bg-[#030303] border border-[#1c1c1c] hover:border-[#333333] transition-all p-4 flex flex-col justify-between"
               >
-                <div className="relative aspect-square w-full bg-[#141414] overflow-hidden mb-4 border border-[#1a1a1a]">
+                <div className="relative aspect-square w-full bg-[#050505] overflow-hidden mb-4 border border-[#1a1a1a]">
                   <Image
                     src={prod.image}
                     alt={prod.name}
@@ -197,7 +197,7 @@ function CheckoutFailedContent() {
                   <span className="text-[10px] font-mono text-[#666666] uppercase block mb-1">
                     {prod.brand}
                   </span>
-                  <h4 className="font-sans text-xs font-semibold text-white group-hover:text-[#D4FF00] transition-colors truncate">
+                  <h4 className="font-sans text-xs font-semibold text-white group-hover:text-[#BFDD25] transition-colors truncate">
                     {prod.name}
                   </h4>
                   <p className="font-mono text-xs font-bold text-white mt-2">
@@ -217,7 +217,7 @@ function CheckoutFailedContent() {
 
 export default function CheckoutFailedPage() {
   return (
-    <React.Suspense fallback={<div className="min-h-screen bg-[#080808] flex items-center justify-center text-white font-mono text-xs">Memuat status transaksi...</div>}>
+    <React.Suspense fallback={<div className="min-h-screen bg-[#030303] flex items-center justify-center text-white font-mono text-xs">Memuat status transaksi...</div>}>
       <CheckoutFailedContent />
     </React.Suspense>
   );

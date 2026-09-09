@@ -124,7 +124,7 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0d0d0d] text-[#FAF9F6] font-sans selection:bg-[#D4FF00] selection:text-[#0e0e0e] flex flex-col relative">
+    <div className="min-h-screen bg-[#030303] text-[#FAF9F6] font-sans selection:bg-[#BFDD25] selection:text-[#030303] flex flex-col relative">
       <Navbar />
 
       <main className="max-w-[1200px] mx-auto px-6 lg:px-12 py-16 w-full flex-1">
@@ -133,7 +133,7 @@ export default function ProfilePage() {
             HOME
           </Link>
           <span>/</span>
-          <span className="text-[#D4FF00]">{t("settings.accountProfile")}</span>
+          <span className="text-[#BFDD25]">{t("settings.accountProfile")}</span>
         </div>
 
         {/* Status Alert Notification */}
@@ -145,14 +145,14 @@ export default function ProfilePage() {
               exit={{ opacity: 0, y: -10 }}
               className={`mb-6 p-4 rounded-2xl border text-xs font-mono flex items-center justify-between ${
                 statusMessage.type === "success"
-                  ? "bg-[#161616] border-[#D4FF00]/40 text-[#D4FF00]"
-                  : "bg-[#161616] border-red-500/40 text-red-300"
+                  ? "bg-[#050505] border-[#BFDD25]/40 text-[#BFDD25]"
+                  : "bg-[#050505] border-red-500/40 text-red-300"
               }`}
             >
               <div className="flex items-center gap-2.5">
                 <div
                   className={`w-2 h-2 rounded-full ${
-                    statusMessage.type === "success" ? "bg-[#D4FF00]" : "bg-red-400"
+                    statusMessage.type === "success" ? "bg-[#BFDD25]" : "bg-red-400"
                   }`}
                 />
                 <span>{statusMessage.text}</span>
@@ -168,12 +168,12 @@ export default function ProfilePage() {
           )}
         </AnimatePresence>
 
-        <div className="bg-[#141414] border border-[#262626] rounded-3xl p-8 lg:p-12 shadow-2xl">
+        <div className="bg-[#050505] border border-[#1c1c1c] rounded-3xl p-8 lg:p-12 shadow-2xl">
           <div className="flex flex-col sm:flex-row items-center sm:items-start justify-between gap-8 pb-10 border-b border-[#222]">
             
             {/* AVATAR UPLOAD SECTION */}
             <div className="relative group/avatar shrink-0">
-              <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full bg-[#181818] border-2 border-[#333] group-hover/avatar:border-[#D4FF00] overflow-hidden transition-all duration-300 shadow-xl relative flex items-center justify-center">
+              <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full bg-[#050505] border-2 border-[#333] group-hover/avatar:border-[#BFDD25] overflow-hidden transition-all duration-300 shadow-xl relative flex items-center justify-center">
                 {user?.avatar && user.avatar !== "/placeholder.svg" ? (
                   <img
                     src={user.avatar}
@@ -193,7 +193,7 @@ export default function ProfilePage() {
                   disabled={isUploading}
                   className="absolute inset-0 bg-black/70 opacity-0 group-hover/avatar:opacity-100 transition-opacity flex flex-col items-center justify-center text-white cursor-pointer"
                 >
-                  <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" className="mb-1 text-[#D4FF00]">
+                  <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" className="mb-1 text-[#BFDD25]">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
@@ -207,7 +207,7 @@ export default function ProfilePage() {
               <button
                 type="button"
                 onClick={() => setIsModalOpen(true)}
-                className="absolute bottom-1 right-1 p-2 bg-[#222] hover:bg-[#D4FF00] text-white hover:text-black rounded-full border border-[#444] transition-colors cursor-pointer shadow-lg"
+                className="absolute bottom-1 right-1 p-2 bg-[#050505] hover:bg-[#BFDD25] text-white hover:text-black rounded-full border border-[#444] transition-colors cursor-pointer shadow-lg"
                 title="Ganti Foto Profil"
               >
                 <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -219,13 +219,13 @@ export default function ProfilePage() {
             {/* USER INFO */}
             <div className="space-y-2 text-center sm:text-left flex-1">
               <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
-                <div className="inline-block px-3 py-1 bg-[#222] border border-[#333] rounded-md text-[11px] font-mono uppercase tracking-wider text-white font-semibold">
+                <div className="inline-block px-3 py-1 bg-[#050505] border border-[#333] rounded-md text-[11px] font-mono uppercase tracking-wider text-white font-semibold">
                   {user?.role || "BUYER"}
                 </div>
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(true)}
-                  className="text-[11px] font-mono text-[#D4FF00] hover:underline cursor-pointer ml-1"
+                  className="text-[11px] font-mono text-[#BFDD25] hover:underline cursor-pointer ml-1"
                 >
                   [ Ubah Foto Profil ]
                 </button>
@@ -237,10 +237,10 @@ export default function ProfilePage() {
               <p className="font-mono text-xs text-[#888]">{user?.email || "alex.rivera@audiophile.io"}</p>
 
               <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 text-xs font-mono pt-2">
-                <span className="px-3 py-1.5 bg-[#181818] border border-[#262626] rounded-lg text-[#aaa]">
+                <span className="px-3 py-1.5 bg-[#050505] border border-[#1c1c1c] rounded-lg text-[#aaa]">
                   Tuning: <strong className="text-white">{user?.tuning || "Reference / Neutral"}</strong>
                 </span>
-                <span className="px-3 py-1.5 bg-[#181818] border border-[#262626] rounded-lg text-[#aaa]">
+                <span className="px-3 py-1.5 bg-[#050505] border border-[#1c1c1c] rounded-lg text-[#aaa]">
                   Gear: <strong className="text-white">{user?.gear || "Dedicated DAC/AMP"}</strong>
                 </span>
               </div>
@@ -255,7 +255,7 @@ export default function ProfilePage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-10">
-            <div className="bg-[#181818] border border-[#262626] rounded-2xl p-6">
+            <div className="bg-[#050505] border border-[#1c1c1c] rounded-2xl p-6">
               <span className="text-[10px] font-mono text-[#FAF9F6]/40 uppercase tracking-widest block mb-2 font-bold">
                 {t("orders.title")}
               </span>
@@ -263,7 +263,7 @@ export default function ProfilePage() {
               <p className="font-sans text-xs text-[#FAF9F6]/60">Sennheiser IE 900 & Effect Audio Ares S</p>
             </div>
 
-            <div className="bg-[#181818] border border-[#262626] rounded-2xl p-6">
+            <div className="bg-[#050505] border border-[#1c1c1c] rounded-2xl p-6">
               <span className="text-[10px] font-mono text-[#FAF9F6]/40 uppercase tracking-widest block mb-2 font-bold">
                 SAVED EQ PRESETS
               </span>
@@ -271,11 +271,11 @@ export default function ProfilePage() {
               <p className="font-sans text-xs text-[#FAF9F6]/60">Harman Target 2019, Diffuse Field, Custom V-Shape</p>
             </div>
 
-            <div className="bg-[#181818] border border-[#262626] rounded-2xl p-6">
+            <div className="bg-[#050505] border border-[#1c1c1c] rounded-2xl p-6">
               <span className="text-[10px] font-mono text-[#FAF9F6]/40 uppercase tracking-widest block mb-2 font-bold">
                 VIP STATUS
               </span>
-              <h4 className="font-heading text-2xl font-bold text-[#D4FF00] mb-1">ACTIVE</h4>
+              <h4 className="font-heading text-2xl font-bold text-[#BFDD25] mb-1">ACTIVE</h4>
               <p className="font-sans text-xs text-[#FAF9F6]/60">Free express worldwide shipping & 15% discount active</p>
             </div>
           </div>
@@ -290,11 +290,11 @@ export default function ProfilePage() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="w-full max-w-md bg-[#141414] border border-[#262626] rounded-3xl p-6 shadow-2xl relative"
+              className="w-full max-w-md bg-[#050505] border border-[#1c1c1c] rounded-3xl p-6 shadow-2xl relative"
             >
               <div className="flex items-center justify-between pb-4 border-b border-[#222] mb-6">
                 <div>
-                  <span className="text-[10px] font-mono text-[#D4FF00] uppercase tracking-widest block font-bold">
+                  <span className="text-[10px] font-mono text-[#BFDD25] uppercase tracking-widest block font-bold">
                     Identity Customization
                   </span>
                   <h3 className="text-lg font-bold text-white">Pilih atau Unggah Foto Profil</h3>
@@ -302,7 +302,7 @@ export default function ProfilePage() {
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="p-2 text-[#888] hover:text-white rounded-lg hover:bg-[#222] transition-colors cursor-pointer"
+                  className="p-2 text-[#888] hover:text-white rounded-lg hover:bg-[#080808] transition-colors cursor-pointer"
                 >
                   ✕
                 </button>
@@ -321,12 +321,12 @@ export default function ProfilePage() {
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={isUploading}
-                  className="w-full py-4 border-2 border-dashed border-[#333] hover:border-[#D4FF00] bg-[#181818] rounded-2xl flex flex-col items-center justify-center text-center transition-all cursor-pointer group"
+                  className="w-full py-4 border-2 border-dashed border-[#333] hover:border-[#BFDD25] bg-[#050505] rounded-2xl flex flex-col items-center justify-center text-center transition-all cursor-pointer group"
                 >
-                  <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24" className="text-[#888] group-hover:text-[#D4FF00] mb-2 transition-colors">
+                  <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24" className="text-[#888] group-hover:text-[#BFDD25] mb-2 transition-colors">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
                   </svg>
-                  <span className="text-xs font-bold text-white group-hover:text-[#D4FF00]">
+                  <span className="text-xs font-bold text-white group-hover:text-[#BFDD25]">
                     Upload Foto dari Komputer / HP
                   </span>
                   <span className="text-[10px] text-[#777] font-mono mt-0.5">
@@ -347,9 +347,9 @@ export default function ProfilePage() {
                       type="button"
                       onClick={() => handleAvatarSelect(preset.url)}
                       disabled={isUploading}
-                      className="flex flex-col items-center gap-1.5 p-2 rounded-xl border border-[#262626] hover:border-[#D4FF00] bg-[#181818] hover:bg-[#202020] transition-all cursor-pointer group"
+                      className="flex flex-col items-center gap-1.5 p-2 rounded-xl border border-[#1c1c1c] hover:border-[#BFDD25] bg-[#050505] hover:bg-[#050505] transition-all cursor-pointer group"
                     >
-                      <div className="w-12 h-12 rounded-full overflow-hidden border border-[#333] group-hover:border-[#D4FF00]">
+                      <div className="w-12 h-12 rounded-full overflow-hidden border border-[#333] group-hover:border-[#BFDD25]">
                         <img src={preset.url} alt={preset.name} className="w-full h-full object-cover" />
                       </div>
                       <span className="text-[9px] font-mono text-[#888] group-hover:text-white truncate max-w-full text-center">
@@ -371,12 +371,12 @@ export default function ProfilePage() {
                     placeholder="https://example.com/avatar.jpg"
                     value={customUrlInput}
                     onChange={(e) => setCustomUrlInput(e.target.value)}
-                    className="flex-1 bg-[#181818] border border-[#2b2b2b] focus:border-[#D4FF00] rounded-xl px-3 py-2 text-xs text-white placeholder:text-[#555] outline-none font-mono"
+                    className="flex-1 bg-[#050505] border border-[#1c1c1c] focus:border-[#BFDD25] rounded-xl px-3 py-2 text-xs text-white placeholder:text-[#555] outline-none font-mono"
                   />
                   <button
                     type="submit"
                     disabled={isUploading || !customUrlInput.trim()}
-                    className="px-4 py-2 bg-white hover:bg-[#D4FF00] text-black rounded-xl text-xs font-mono font-bold uppercase transition-colors cursor-pointer disabled:opacity-40"
+                    className="px-4 py-2 bg-white hover:bg-[#BFDD25] text-black rounded-xl text-xs font-mono font-bold uppercase transition-colors cursor-pointer disabled:opacity-40"
                   >
                     Terapkan
                   </button>

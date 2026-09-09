@@ -80,7 +80,7 @@ export default function BrandCampaignsPage() {
             <h1 className="text-xl font-bold font-sans tracking-tight text-white">
               {isEn ? "Pre-Order & Group-Buy Campaigns" : "Kampanye Pre-Order & Peluncuran"}
             </h1>
-            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-[#141414] text-[#A1A1AA] border border-[#27272A]">
+            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-[#050505] text-[#A1A1AA] border border-[#27272A]">
               Direct-To-Consumer
             </span>
           </div>
@@ -108,7 +108,7 @@ export default function BrandCampaignsPage() {
           const percentFilled = Math.round((camp.reservedSlots / camp.targetSlots) * 100);
 
           return (
-            <div key={camp.id} className="bg-[#111111] border border-[#222222] rounded-xl p-5 space-y-5">
+            <div key={camp.id} className="bg-[#050505] border border-[#222222] rounded-xl p-5 space-y-5">
               {/* Header: Model Code & Title */}
               <div className="flex items-start justify-between gap-4 pb-3 border-b border-[#1C1C1C]">
                 <div>
@@ -118,7 +118,7 @@ export default function BrandCampaignsPage() {
                   <h3 className="text-sm font-semibold text-white leading-snug">{camp.title}</h3>
                 </div>
                 <div className="text-right shrink-0">
-                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono bg-[#161616] border border-[#2A2A2A] text-[#D4D4D8]">
+                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono bg-[#050505] border border-[#2A2A2A] text-[#D4D4D8]">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
                     {camp.daysRemaining} {isEn ? "days left" : "hari tersisa"}
                   </span>
@@ -126,7 +126,7 @@ export default function BrandCampaignsPage() {
               </div>
 
               {/* Price & Target Telemetry */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-3 rounded-lg bg-[#0E0E0E] border border-[#1E1E1E] font-mono text-xs">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-3 rounded-lg bg-[#030303] border border-[#1E1E1E] font-mono text-xs">
                 <div>
                   <span className="text-[10px] text-[#71717A] uppercase block">
                     {isEn ? "Early Bird" : "Harga Pre-Order"}
@@ -165,7 +165,7 @@ export default function BrandCampaignsPage() {
                   <span>{isEn ? "Allocation Progress" : "Progres Kuota"}</span>
                   <span className="text-[#D4D4D8]">{percentFilled}%</span>
                 </div>
-                <div className="w-full bg-[#181818] h-1 rounded-full overflow-hidden">
+                <div className="w-full bg-[#050505] h-1 rounded-full overflow-hidden">
                   <div
                     className="bg-[#D4D4D8] h-full rounded-full transition-all duration-300"
                     style={{ width: `${percentFilled}%` }}
@@ -196,7 +196,7 @@ export default function BrandCampaignsPage() {
                               ? "bg-white"
                               : isCurrent
                               ? "bg-white"
-                              : "bg-[#222222]"
+                              : "bg-[#050505]"
                           }`}
                         />
                         {/* Step Label */}

@@ -594,7 +594,7 @@ export default function SellerProductsPage() {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="p-4 rounded-xl bg-[#141414] border border-[#2E2E2E] text-white text-xs font-mono flex items-center justify-between shadow-xl"
+            className="p-4 rounded-xl bg-[#050505] border border-[#2E2E2E] text-white text-xs font-mono flex items-center justify-between shadow-xl"
           >
             <div className="flex items-center gap-2.5">
               <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
@@ -620,7 +620,7 @@ export default function SellerProductsPage() {
                 ? (isEn ? "TANGZU Audio Official Lineup" : "Katalog Resmi TANGZU Audio")
                 : (isEn ? "Store Product Catalog & Inventory" : "Katalog Produk & Inventaris Toko")}
             </h1>
-            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#1A1A1A] text-[#FAF9F6] border border-[#2E2E2E]">
+            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#050505] text-[#FAF9F6] border border-[#2E2E2E]">
               {filteredProducts.length} {isEn ? "Products" : "Produk"}
             </span>
           </div>
@@ -652,7 +652,7 @@ export default function SellerProductsPage() {
 
           <Link
             href="/seller/products/new"
-            className="inline-flex items-center gap-1.5 bg-[#141414] hover:bg-[#1C1C1C] text-white border border-[#2E2E2E] hover:border-white px-3.5 py-1.5 rounded-lg text-xs font-sans font-medium transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 bg-[#050505] hover:bg-[#050505] text-white border border-[#2E2E2E] hover:border-white px-3.5 py-1.5 rounded-lg text-xs font-sans font-medium transition-colors cursor-pointer"
           >
             <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -663,7 +663,7 @@ export default function SellerProductsPage() {
           <button
             type="button"
             onClick={handleExportCSV}
-            className="inline-flex items-center gap-1.5 bg-[#141414] hover:bg-[#1C1C1C] text-[#FAF9F6] border border-[#262626] hover:border-[#3E3E3E] px-3.5 py-1.5 rounded-lg text-xs font-sans font-medium transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 bg-[#050505] hover:bg-[#050505] text-[#FAF9F6] border border-[#1c1c1c] hover:border-[#3E3E3E] px-3.5 py-1.5 rounded-lg text-xs font-sans font-medium transition-colors cursor-pointer"
           >
             <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
@@ -674,7 +674,7 @@ export default function SellerProductsPage() {
           <button
             type="button"
             onClick={() => setIsImportModalOpen(true)}
-            className="inline-flex items-center gap-1.5 bg-[#141414] hover:bg-[#1C1C1C] text-white border border-[#2E2E2E] hover:border-white px-3.5 py-1.5 rounded-lg text-xs font-sans font-medium transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 bg-[#050505] hover:bg-[#050505] text-white border border-[#2E2E2E] hover:border-white px-3.5 py-1.5 rounded-lg text-xs font-sans font-medium transition-colors cursor-pointer"
           >
             <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
@@ -685,9 +685,9 @@ export default function SellerProductsPage() {
       </div>
 
       {/* Main Table Card Container */}
-      <div className="bg-[#111111] border border-[#222222] rounded-xl overflow-hidden flex flex-col">
+      <div className="bg-[#050505] border border-[#222222] rounded-xl overflow-hidden flex flex-col">
         {/* Toolbar: Search, Filters & Tabs */}
-        <div className="p-4 border-b border-[#1E1E1E] bg-[#141414] flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div className="p-4 border-b border-[#1E1E1E] bg-[#050505] flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           {/* Status Tabs */}
           <div className="flex items-center gap-1.5 overflow-x-auto pb-1 lg:pb-0">
             {[
@@ -702,8 +702,8 @@ export default function SellerProductsPage() {
                 onClick={() => setActiveTab(tab.id as any)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-sans transition-all cursor-pointer whitespace-nowrap border ${
                   activeTab === tab.id
-                    ? "bg-[#242424] text-[#FAF9F6] font-semibold border-[#383838] shadow-sm"
-                    : "text-[#8E8E93] hover:text-[#FAF9F6] hover:bg-[#1A1A1A] border-transparent"
+                    ? "bg-[#050505] text-[#FAF9F6] font-semibold border-[#383838] shadow-sm"
+                    : "text-[#8E8E93] hover:text-[#FAF9F6] hover:bg-[#050505] border-transparent"
                 }`}
               >
                 {tab.label}
@@ -739,7 +739,7 @@ export default function SellerProductsPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={isEn ? "Search model, brand, specs..." : "Cari produk, brand, spek..."}
-                className="w-full bg-[#111] border border-[#2A2A2A] rounded-lg pl-9 pr-8 py-1.5 text-xs font-sans text-white placeholder:text-[#666] focus:outline-none focus:border-[#555] transition-colors"
+                className="w-full bg-[#050505] border border-[#2A2A2A] rounded-lg pl-9 pr-8 py-1.5 text-xs font-sans text-white placeholder:text-[#666] focus:outline-none focus:border-[#555] transition-colors"
               />
               {searchQuery && (
                 <button
@@ -760,7 +760,7 @@ export default function SellerProductsPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse font-sans text-xs">
             <thead>
-              <tr className="border-b border-[#1E1E1E] bg-[#0E0E0E] text-[10px] font-mono uppercase text-[#777] tracking-wider">
+              <tr className="border-b border-[#1E1E1E] bg-[#030303] text-[10px] font-mono uppercase text-[#777] tracking-wider">
                 <th className="px-5 py-3.5">{isEn ? "Product & Gallery" : "Produk & Galeri"}</th>
                 <th className="px-5 py-3.5">{isEn ? "Brand / Category" : "Brand / Kategori"}</th>
                 <th className="px-5 py-3.5 text-right">{isEn ? "Price" : "Harga Jual"}</th>
@@ -787,12 +787,12 @@ export default function SellerProductsPage() {
 
                   return (
                     <React.Fragment key={prod.id}>
-                      <tr className="hover:bg-[#161616] transition-colors">
+                      <tr className="hover:bg-[#050505] transition-colors">
                         {/* Product Thumbnail & Name & Specs */}
                         <td className="px-5 py-3.5">
                           <div className="flex items-center gap-3">
                             {/* Product Image / Placeholder Graphic with Photo Count Pill */}
-                            <div className="w-12 h-12 rounded-lg bg-[#181818] border border-[#2A2A2A] overflow-hidden flex items-center justify-center text-[#777] shrink-0 relative group shadow-inner">
+                            <div className="w-12 h-12 rounded-lg bg-[#050505] border border-[#2A2A2A] overflow-hidden flex items-center justify-center text-[#777] shrink-0 relative group shadow-inner">
                               {coverImage ? (
                                 <img src={coverImage} alt={prod.name} className="w-full h-full object-cover" />
                               ) : (
@@ -833,7 +833,7 @@ export default function SellerProductsPage() {
                                   <button
                                     type="button"
                                     onClick={() => toggleExpandVariants(prod.id)}
-                                    className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-[#222] hover:bg-[#2A2A2A] text-[#AAA] border border-[#333] transition-colors cursor-pointer flex items-center gap-1"
+                                    className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-[#050505] hover:bg-[#050505] text-[#AAA] border border-[#333] transition-colors cursor-pointer flex items-center gap-1"
                                   >
                                     <span>{prod.variants!.length} {isEn ? "Variants" : "Varian"}</span>
                                     <svg
@@ -884,7 +884,7 @@ export default function SellerProductsPage() {
 
                         {/* Status */}
                         <td className="px-5 py-3.5 text-center whitespace-nowrap">
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[10px] font-mono font-medium uppercase tracking-wider bg-[#161616] text-[#D4D4D8] border border-[#27272A]">
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[10px] font-mono font-medium uppercase tracking-wider bg-[#050505] text-[#D4D4D8] border border-[#27272A]">
                             <span
                               className={`w-1.5 h-1.5 rounded-full ${
                                 prod.status === "APPROVED"
@@ -908,14 +908,14 @@ export default function SellerProductsPage() {
                             <button
                               type="button"
                               onClick={() => setEditProduct(prod)}
-                              className="px-2.5 py-1 bg-[#1A1A1A] hover:bg-[#262626] border border-[#2E2E2E] text-white text-[11px] font-mono rounded transition-colors cursor-pointer"
+                              className="px-2.5 py-1 bg-[#050505] hover:bg-[#050505] border border-[#2E2E2E] text-white text-[11px] font-mono rounded transition-colors cursor-pointer"
                             >
                               {isEn ? "Quick Edit" : "Edit Cepat"}
                             </button>
                             <button
                               type="button"
                               onClick={() => setDeleteProduct(prod)}
-                              className="p-1 bg-[#1A1A1A] hover:bg-[#262626] border border-[#2E2E2E] hover:border-white text-[#888] hover:text-white rounded transition-colors cursor-pointer"
+                              className="p-1 bg-[#050505] hover:bg-[#050505] border border-[#2E2E2E] hover:border-white text-[#888] hover:text-white rounded transition-colors cursor-pointer"
                               title={isEn ? "Delete Product" : "Hapus Produk"}
                             >
                               <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -928,7 +928,7 @@ export default function SellerProductsPage() {
 
                       {/* EXPANDED VARIANTS SUB-ROWS */}
                       {hasVariants && isExpanded && (
-                        <tr className="bg-[#0C0C0C]">
+                        <tr className="bg-[#030303]">
                           <td colSpan={6} className="px-5 py-3 border-y border-[#1A1A1A]">
                             <div className="space-y-2 pl-14">
                               <span className="text-[10px] font-mono uppercase text-[#777] tracking-wider block">
@@ -938,7 +938,7 @@ export default function SellerProductsPage() {
                                 {prod.variants!.map((v) => (
                                   <div
                                     key={v.id}
-                                    className="p-2.5 rounded-lg bg-[#141414] border border-[#222] flex items-center justify-between text-xs font-mono"
+                                    className="p-2.5 rounded-lg bg-[#050505] border border-[#222] flex items-center justify-between text-xs font-mono"
                                   >
                                     <div>
                                       <p className="text-white font-medium text-[11px]">{v.name}</p>
@@ -962,7 +962,7 @@ export default function SellerProductsPage() {
                 <tr>
                   <td colSpan={6} className="py-16 text-center">
                     <div className="flex flex-col items-center justify-center max-w-md mx-auto space-y-3">
-                      <div className="w-12 h-12 rounded-2xl bg-[#141414] border border-[#262626] flex items-center justify-center text-[#71717A]">
+                      <div className="w-12 h-12 rounded-2xl bg-[#050505] border border-[#1c1c1c] flex items-center justify-center text-[#71717A]">
                         <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" />
                         </svg>
@@ -993,7 +993,7 @@ export default function SellerProductsPage() {
                         </button>
                         <Link
                           href="/seller/products/new"
-                          className="px-4 py-2 bg-[#161616] hover:bg-[#202020] text-white border border-[#2E2E2E] text-xs font-sans rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer"
+                          className="px-4 py-2 bg-[#050505] hover:bg-[#050505] text-white border border-[#2E2E2E] text-xs font-sans rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer"
                         >
                           <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -1003,7 +1003,7 @@ export default function SellerProductsPage() {
                         <button
                           type="button"
                           onClick={() => setIsImportModalOpen(true)}
-                          className="px-4 py-2 bg-[#161616] hover:bg-[#202020] text-white border border-[#2E2E2E] text-xs font-mono rounded-lg transition-colors cursor-pointer"
+                          className="px-4 py-2 bg-[#050505] hover:bg-[#050505] text-white border border-[#2E2E2E] text-xs font-mono rounded-lg transition-colors cursor-pointer"
                         >
                           {isEn ? "Import CSV" : "Import File CSV"}
                         </button>
@@ -1033,7 +1033,7 @@ export default function SellerProductsPage() {
               initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
-              className="relative w-full max-w-2xl bg-[#111111] border border-[#2A2A2A] rounded-2xl shadow-2xl p-6 font-sans z-10 max-h-[90vh] overflow-y-auto"
+              className="relative w-full max-w-2xl bg-[#050505] border border-[#2A2A2A] rounded-2xl shadow-2xl p-6 font-sans z-10 max-h-[90vh] overflow-y-auto"
             >
               <div className="flex items-center justify-between pb-4 border-b border-[#222]">
                 <div>
@@ -1061,7 +1061,7 @@ export default function SellerProductsPage() {
               <div className="mt-5 space-y-4">
                 <div
                   onClick={() => fileInputRef.current?.click()}
-                  className="border-2 border-dashed border-[#333] hover:border-[#555] bg-[#141414] hover:bg-[#181818] rounded-xl p-8 flex flex-col items-center justify-center text-center cursor-pointer transition-all"
+                  className="border-2 border-dashed border-[#333] hover:border-[#555] bg-[#050505] hover:bg-[#050505] rounded-xl p-8 flex flex-col items-center justify-center text-center cursor-pointer transition-all"
                 >
                   <input
                     ref={fileInputRef}
@@ -1074,7 +1074,7 @@ export default function SellerProductsPage() {
                       }
                     }}
                   />
-                  <div className="w-12 h-12 rounded-full bg-[#1E1E1E] border border-[#333] flex items-center justify-center text-emerald-400 mb-3">
+                  <div className="w-12 h-12 rounded-full bg-[#050505] border border-[#333] flex items-center justify-center text-emerald-400 mb-3">
                     <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
                     </svg>
@@ -1110,9 +1110,9 @@ export default function SellerProductsPage() {
                       </span>
                     </div>
 
-                    <div className="max-h-48 overflow-y-auto border border-[#2A2A2A] rounded-lg bg-[#0E0E0E]">
+                    <div className="max-h-48 overflow-y-auto border border-[#2A2A2A] rounded-lg bg-[#030303]">
                       <table className="w-full text-left text-[11px] font-sans">
-                        <thead className="bg-[#181818] border-b border-[#2A2A2A] font-mono text-[9px] uppercase text-[#777]">
+                        <thead className="bg-[#050505] border-b border-[#2A2A2A] font-mono text-[9px] uppercase text-[#777]">
                           <tr>
                             <th className="px-3 py-2">Name</th>
                             <th className="px-3 py-2">Brand</th>
@@ -1123,7 +1123,7 @@ export default function SellerProductsPage() {
                         </thead>
                         <tbody className="divide-y divide-[#1E1E1E]">
                           {parsedCsvData.map((item, idx) => (
-                            <tr key={idx} className="hover:bg-[#141414]">
+                            <tr key={idx} className="hover:bg-[#050505]">
                               <td className="px-3 py-2 text-white font-medium">{item.name}</td>
                               <td className="px-3 py-2 text-[#AAA]">{item.brand}</td>
                               <td className="px-3 py-2 text-[#888] font-mono text-[10px]">{item.category}</td>
@@ -1143,7 +1143,7 @@ export default function SellerProductsPage() {
                 <button
                   type="button"
                   onClick={() => setIsImportModalOpen(false)}
-                  className="px-4 py-2 bg-[#1A1A1A] hover:bg-[#242424] text-white text-xs font-mono rounded-lg transition-colors cursor-pointer"
+                  className="px-4 py-2 bg-[#050505] hover:bg-[#050505] text-white text-xs font-mono rounded-lg transition-colors cursor-pointer"
                 >
                   {isEn ? "Cancel" : "Batal"}
                 </button>
@@ -1177,7 +1177,7 @@ export default function SellerProductsPage() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="relative w-full max-w-lg bg-[#111111] border border-[#2A2A2A] rounded-2xl shadow-2xl p-6 font-sans z-10 space-y-5 max-h-[90vh] overflow-y-auto"
+              className="relative w-full max-w-lg bg-[#050505] border border-[#2A2A2A] rounded-2xl shadow-2xl p-6 font-sans z-10 space-y-5 max-h-[90vh] overflow-y-auto"
             >
               {/* Header */}
               <div className="flex items-center justify-between pb-3 border-b border-[#222]">
@@ -1195,7 +1195,7 @@ export default function SellerProductsPage() {
               </div>
 
               {/* Multi-Image Gallery Manager in Quick Edit */}
-              <div className="space-y-3 p-3.5 rounded-xl bg-[#161616] border border-[#262626]">
+              <div className="space-y-3 p-3.5 rounded-xl bg-[#050505] border border-[#1c1c1c]">
                 <div className="flex items-center justify-between">
                   <div>
                     <h4 className="text-xs font-bold text-white">
@@ -1220,7 +1220,7 @@ export default function SellerProductsPage() {
                   <button
                     type="button"
                     onClick={() => editImageInputRef.current?.click()}
-                    className="px-2.5 py-1 bg-[#1C1C1C] hover:bg-[#282828] text-white border border-[#2E2E2E] hover:border-white text-[10px] font-mono font-bold rounded-lg transition-colors cursor-pointer flex items-center gap-1"
+                    className="px-2.5 py-1 bg-[#050505] hover:bg-[#050505] text-white border border-[#2E2E2E] hover:border-white text-[10px] font-mono font-bold rounded-lg transition-colors cursor-pointer flex items-center gap-1"
                   >
                     <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -1235,8 +1235,8 @@ export default function SellerProductsPage() {
                     {editProduct.images.map((img, idx) => (
                       <div
                         key={idx}
-                        className={`relative rounded-lg overflow-hidden border h-20 bg-[#141414] group ${
-                          idx === 0 ? "border-white/50" : "border-[#262626]"
+                        className={`relative rounded-lg overflow-hidden border h-20 bg-[#050505] group ${
+                          idx === 0 ? "border-white/50" : "border-[#1c1c1c]"
                         }`}
                       >
                         <img src={img} alt={`Gallery ${idx + 1}`} className="w-full h-full object-cover" />
@@ -1250,7 +1250,7 @@ export default function SellerProductsPage() {
                             <button
                               type="button"
                               onClick={() => handleSetPrimaryImageInEdit(idx)}
-                              className="w-full py-0.5 bg-[#2A2A2A] hover:bg-[#383838] text-white text-[8px] font-mono rounded border border-[#444]"
+                              className="w-full py-0.5 bg-[#050505] hover:bg-[#050505] text-white text-[8px] font-mono rounded border border-[#444]"
                               title="Set as Main Cover"
                             >
                               {isEn ? "Set Main" : "Utama"}
@@ -1259,7 +1259,7 @@ export default function SellerProductsPage() {
                           <button
                             type="button"
                             onClick={() => handleRemoveImageInEdit(idx)}
-                            className="w-full py-0.5 bg-[#1C1C1C] hover:bg-[#282828] text-white text-[8px] font-mono rounded border border-[#2E2E2E]"
+                            className="w-full py-0.5 bg-[#050505] hover:bg-[#050505] text-white text-[8px] font-mono rounded border border-[#2E2E2E]"
                           >
                             {isEn ? "Delete" : "Hapus"}
                           </button>
@@ -1275,7 +1275,7 @@ export default function SellerProductsPage() {
                     <button
                       type="button"
                       onClick={() => editImageInputRef.current?.click()}
-                      className="px-3 py-1.5 bg-[#222] hover:bg-[#2A2A2A] text-white text-xs font-mono rounded-lg border border-[#333]"
+                      className="px-3 py-1.5 bg-[#050505] hover:bg-[#050505] text-white text-xs font-mono rounded-lg border border-[#333]"
                     >
                       {isEn ? "Upload More Images" : "Tambah Foto Lagi"}
                     </button>
@@ -1283,7 +1283,7 @@ export default function SellerProductsPage() {
                 ) : (
                   <div
                     onClick={() => editImageInputRef.current?.click()}
-                    className="p-4 rounded-lg border border-dashed border-[#333] hover:border-[#555] bg-[#121212] text-center cursor-pointer"
+                    className="p-4 rounded-lg border border-dashed border-[#333] hover:border-[#555] bg-[#050505] text-center cursor-pointer"
                   >
                     <p className="text-xs text-[#888]">{isEn ? "Click to upload product gallery images" : "Klik untuk unggah foto galeri produk"}</p>
                   </div>
@@ -1302,7 +1302,7 @@ export default function SellerProductsPage() {
                       type="number"
                       value={editProduct.priceUSD}
                       onChange={(e) => setEditProduct({ ...editProduct, priceUSD: parseFloat(e.target.value) || 0 })}
-                      className="w-full bg-[#161616] border border-[#2A2A2A] rounded-lg pl-7 pr-3 py-2 text-xs font-mono text-white outline-none focus:border-white font-bold text-emerald-400"
+                      className="w-full bg-[#050505] border border-[#2A2A2A] rounded-lg pl-7 pr-3 py-2 text-xs font-mono text-white outline-none focus:border-white font-bold text-emerald-400"
                     />
                   </div>
                   {currency === "IDR" && (
@@ -1315,11 +1315,11 @@ export default function SellerProductsPage() {
                   <label className="block text-[10px] font-mono text-[#888] uppercase mb-1">
                     {isEn ? "Base Stock Count" : "Jumlah Stok Utama"}
                   </label>
-                  <div className="flex items-center bg-[#161616] border border-[#2A2A2A] rounded-lg overflow-hidden">
+                  <div className="flex items-center bg-[#050505] border border-[#2A2A2A] rounded-lg overflow-hidden">
                     <button
                       type="button"
                       onClick={() => setEditProduct({ ...editProduct, stock: Math.max(0, editProduct.stock - 1) })}
-                      className="px-3 py-2 text-[#888] hover:text-white hover:bg-[#222] transition-colors font-mono"
+                      className="px-3 py-2 text-[#888] hover:text-white hover:bg-[#080808] transition-colors font-mono"
                     >
                       -
                     </button>
@@ -1332,7 +1332,7 @@ export default function SellerProductsPage() {
                     <button
                       type="button"
                       onClick={() => setEditProduct({ ...editProduct, stock: editProduct.stock + 1 })}
-                      className="px-3 py-2 text-[#888] hover:text-white hover:bg-[#222] transition-colors font-mono"
+                      className="px-3 py-2 text-[#888] hover:text-white hover:bg-[#080808] transition-colors font-mono"
                     >
                       +
                     </button>
@@ -1354,7 +1354,7 @@ export default function SellerProductsPage() {
                   <button
                     type="button"
                     onClick={handleAddVariantInEdit}
-                    className="px-2.5 py-1 bg-[#1C1C1C] hover:bg-[#282828] text-white border border-[#2E2E2E] hover:border-white text-[10px] font-mono font-bold rounded-lg transition-colors cursor-pointer flex items-center gap-1"
+                    className="px-2.5 py-1 bg-[#050505] hover:bg-[#050505] text-white border border-[#2E2E2E] hover:border-white text-[10px] font-mono font-bold rounded-lg transition-colors cursor-pointer flex items-center gap-1"
                   >
                     <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -1369,7 +1369,7 @@ export default function SellerProductsPage() {
                     {editProduct.variants.map((v) => (
                       <div
                         key={v.id}
-                        className="p-2.5 rounded-lg bg-[#161616] border border-[#2A2A2A] flex items-center gap-2 text-xs font-mono"
+                        className="p-2.5 rounded-lg bg-[#050505] border border-[#2A2A2A] flex items-center gap-2 text-xs font-mono"
                       >
                         <div className="flex-1">
                           <input
@@ -1377,7 +1377,7 @@ export default function SellerProductsPage() {
                             value={v.name}
                             onChange={(e) => handleUpdateVariantInEdit(v.id, "name", e.target.value)}
                             placeholder="Variant Name"
-                            className="w-full bg-[#111] border border-[#333] rounded px-2 py-1 text-[11px] text-white outline-none focus:border-white"
+                            className="w-full bg-[#050505] border border-[#333] rounded px-2 py-1 text-[11px] text-white outline-none focus:border-white"
                           />
                         </div>
                         <div className="w-24 relative">
@@ -1387,14 +1387,14 @@ export default function SellerProductsPage() {
                             value={v.priceUSD}
                             onChange={(e) => handleUpdateVariantInEdit(v.id, "priceUSD", parseFloat(e.target.value) || 0)}
                             placeholder="Price"
-                            className="w-full bg-[#111] border border-[#333] rounded pl-5 pr-2 py-1 text-[11px] text-emerald-400 font-bold outline-none focus:border-white text-right"
+                            className="w-full bg-[#050505] border border-[#333] rounded pl-5 pr-2 py-1 text-[11px] text-emerald-400 font-bold outline-none focus:border-white text-right"
                           />
                         </div>
-                        <div className="w-24 flex items-center bg-[#111] border border-[#333] rounded overflow-hidden">
+                        <div className="w-24 flex items-center bg-[#050505] border border-[#333] rounded overflow-hidden">
                           <button
                             type="button"
                             onClick={() => handleUpdateVariantInEdit(v.id, "stock", Math.max(0, (v.stock || 0) - 1))}
-                            className="px-1.5 py-1 text-[#888] hover:text-white hover:bg-[#222] transition-colors"
+                            className="px-1.5 py-1 text-[#888] hover:text-white hover:bg-[#080808] transition-colors"
                           >
                             -
                           </button>
@@ -1408,7 +1408,7 @@ export default function SellerProductsPage() {
                           <button
                             type="button"
                             onClick={() => handleUpdateVariantInEdit(v.id, "stock", (v.stock || 0) + 1)}
-                            className="px-1.5 py-1 text-[#888] hover:text-white hover:bg-[#222] transition-colors"
+                            className="px-1.5 py-1 text-[#888] hover:text-white hover:bg-[#080808] transition-colors"
                           >
                             +
                           </button>
@@ -1427,7 +1427,7 @@ export default function SellerProductsPage() {
                     ))}
                   </div>
                 ) : (
-                  <div className="p-4 rounded-lg bg-[#141414] border border-[#222] text-center text-[11px] font-mono text-[#666]">
+                  <div className="p-4 rounded-lg bg-[#050505] border border-[#222] text-center text-[11px] font-mono text-[#666]">
                     {isEn ? "No variants added yet. Click '+ Add Variant' above." : "Belum ada varian. Klik '+ Tambah Varian' di atas."}
                   </div>
                 )}
@@ -1438,7 +1438,7 @@ export default function SellerProductsPage() {
                 <button
                   type="button"
                   onClick={() => setEditProduct(null)}
-                  className="px-3.5 py-1.5 bg-[#1A1A1A] hover:bg-[#242424] text-white text-xs font-mono rounded-lg transition-colors cursor-pointer"
+                  className="px-3.5 py-1.5 bg-[#050505] hover:bg-[#050505] text-white text-xs font-mono rounded-lg transition-colors cursor-pointer"
                 >
                   {isEn ? "Cancel" : "Batal"}
                 </button>
@@ -1474,10 +1474,10 @@ export default function SellerProductsPage() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="relative w-full max-w-md bg-[#111111] border border-[#2E2E2E] rounded-2xl shadow-2xl p-6 font-sans z-10 space-y-4"
+              className="relative w-full max-w-md bg-[#050505] border border-[#2E2E2E] rounded-2xl shadow-2xl p-6 font-sans z-10 space-y-4"
             >
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-[#1A1A1A] border border-[#2E2E2E] flex items-center justify-center text-white shrink-0">
+                <div className="w-10 h-10 rounded-full bg-[#050505] border border-[#2E2E2E] flex items-center justify-center text-white shrink-0">
                   <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.008v.008H12v-.008z" />
                   </svg>
@@ -1498,7 +1498,7 @@ export default function SellerProductsPage() {
                 <button
                   type="button"
                   onClick={() => setDeleteProduct(null)}
-                  className="px-3.5 py-1.5 bg-[#1A1A1A] hover:bg-[#242424] text-white text-xs font-mono rounded-lg transition-colors cursor-pointer"
+                  className="px-3.5 py-1.5 bg-[#050505] hover:bg-[#050505] text-white text-xs font-mono rounded-lg transition-colors cursor-pointer"
                 >
                   {isEn ? "Cancel" : "Batal"}
                 </button>
@@ -1536,7 +1536,7 @@ export default function SellerProductsPage() {
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              className="relative w-full max-w-4xl bg-[#111111] border border-[#2E2E2E] rounded-2xl shadow-2xl p-6 font-sans z-10 max-h-[90vh] overflow-y-auto flex flex-col space-y-4 custom-scrollbar"
+              className="relative w-full max-w-4xl bg-[#050505] border border-[#2E2E2E] rounded-2xl shadow-2xl p-6 font-sans z-10 max-h-[90vh] overflow-y-auto flex flex-col space-y-4 custom-scrollbar"
             >
               {/* Modal Header */}
               <div className="flex items-start justify-between pb-4 border-b border-[#222]">
@@ -1640,7 +1640,7 @@ export default function SellerProductsPage() {
                                 {p.experienceLevel && ` • ${p.experienceLevel}`}
                               </div>
 
-                              <h4 className="text-sm font-medium text-white truncate group-hover:text-[#D4FF00] transition-colors leading-snug">
+                              <h4 className="text-sm font-medium text-white truncate group-hover:text-[#BFDD25] transition-colors leading-snug">
                                 {p.name}
                               </h4>
                             </div>
@@ -1719,7 +1719,7 @@ export default function SellerProductsPage() {
                         min="1"
                         value={claimPriceUSD}
                         onChange={(e) => setClaimPriceUSD(parseFloat(e.target.value) || 0)}
-                        className="w-full bg-[#161616] border border-[#2E2E2E] rounded px-3.5 py-2 text-xs font-mono font-bold text-emerald-400 outline-none focus:border-white"
+                        className="w-full bg-[#050505] border border-[#2E2E2E] rounded px-3.5 py-2 text-xs font-mono font-bold text-emerald-400 outline-none focus:border-white"
                       />
                       <p className="text-[10px] font-mono text-[#666] mt-1">
                         {isEn ? `Est: ${formatPrice(claimPriceUSD)}` : `Setara: ${formatPrice(claimPriceUSD)}`}
@@ -1742,7 +1742,7 @@ export default function SellerProductsPage() {
                           setClaimVariant1Stock(Math.ceil(val / 2));
                           setClaimVariant2Stock(Math.floor(val / 2));
                         }}
-                        className="w-full bg-[#161616] border border-[#2E2E2E] rounded px-3.5 py-2 text-xs font-mono font-bold text-white outline-none focus:border-white"
+                        className="w-full bg-[#050505] border border-[#2E2E2E] rounded px-3.5 py-2 text-xs font-mono font-bold text-white outline-none focus:border-white"
                       />
                       <p className="text-[10px] font-mono text-[#666] mt-1">
                         {isEn ? "Available physical stock" : "Stok siap kirim"}
@@ -1783,7 +1783,7 @@ export default function SellerProductsPage() {
                             min="0"
                             value={claimVariant1Stock}
                             onChange={(e) => setClaimVariant1Stock(parseInt(e.target.value) || 0)}
-                            className="w-20 bg-[#161616] border border-[#2E2E2E] rounded px-2.5 py-1.5 text-xs font-mono text-center text-white outline-none focus:border-white"
+                            className="w-20 bg-[#050505] border border-[#2E2E2E] rounded px-2.5 py-1.5 text-xs font-mono text-center text-white outline-none focus:border-white"
                           />
                           <span className="text-[10px] font-mono text-[#777]">unit</span>
                         </div>
@@ -1800,7 +1800,7 @@ export default function SellerProductsPage() {
                             min="0"
                             value={claimVariant2Stock}
                             onChange={(e) => setClaimVariant2Stock(parseInt(e.target.value) || 0)}
-                            className="w-20 bg-[#161616] border border-[#2E2E2E] rounded px-2.5 py-1.5 text-xs font-mono text-center text-white outline-none focus:border-white"
+                            className="w-20 bg-[#050505] border border-[#2E2E2E] rounded px-2.5 py-1.5 text-xs font-mono text-center text-white outline-none focus:border-white"
                           />
                           <span className="text-[10px] font-mono text-[#777]">unit</span>
                         </div>

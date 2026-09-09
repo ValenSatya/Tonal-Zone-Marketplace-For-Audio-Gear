@@ -4,6 +4,8 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 
+import { fetchProductsFromDb, cleanProductName, CatalogProduct } from "@/lib/products-db";
+
 interface BestSellerProduct {
   id: string;
   brand: string;
@@ -13,42 +15,42 @@ interface BestSellerProduct {
   href: string;
 }
 
-const PRODUCTS: BestSellerProduct[] = [
+const DEFAULT_PRODUCTS: BestSellerProduct[] = [
   {
-    id: "sennheiser-main",
-    brand: "SENNHEISER",
-    title: "SENNHEISER",
+    id: "prod-waner-sg2",
+    brand: "TANGZU",
+    title: "TANGZU WAN'ER SG 2",
     description:
-      "Lorem ipsum tellus aliquam sagittis orci a viverra enim mattis dolor mattis egestas ornare lectus ac eget hendrerit et nullam.",
-    image: "/figma/sennheiser-main.png",
-    href: "/collection",
+      "The highly anticipated successor featuring a dual-cavity dynamic driver and artisan Red Lion faceplate, delivering lush musical warmth and smooth vocal presence.",
+    image: "/images/tangzu-waner-redlion-official.webp",
+    href: "/product/prod-waner-sg2",
   },
   {
-    id: "sennheiser-sec",
-    brand: "SENNHEISER",
-    title: "SENNHEISER MOMENTUM 4",
-    description:
-      "Signature Sennheiser audiophile transducer system with adaptive noise cancellation, crystal-clear calls, and up to 60-hour battery life.",
-    image: "/figma/sennheiser-sec.png",
-    href: "/collection",
-  },
-  {
-    id: "blessing-3",
+    id: "prod-chu3",
     brand: "MOONDROP",
-    title: "MOONDROP BLESSING 3",
+    title: "MOONDROP CHU III",
     description:
-      "Dual dynamic drivers and four balanced armatures engineered for reference acoustic neutrality and expansive spatial imaging.",
-    image: "/figma/hero-bg.png",
-    href: "/product/prod-blessing-3",
+      "Next-generation 10mm high-performance composite diaphragm dynamic driver with alloy casting acoustic cavity, brass CNC acoustic nozzle, and pure reference clarity.",
+    image: "/images/Headphone-Zone-Moondrop-Chu-III-Homepage-Desktop-Banner-02.webp",
+    href: "/product/prod-chu3",
   },
   {
-    id: "dusk",
-    brand: "CRINACLE",
-    title: "MOONDROP DUSK",
+    id: "prod-tanchjim-nora",
+    brand: "TANCHJIM",
+    title: "TANCHJIM NORA",
     description:
-      "Groundbreaking collaboration crossover featuring dual dynamic, dual balanced armature, and dual planar magnetic drivers.",
-    image: "/figma/dusk-blueprint.png",
-    href: "/product/prod-blessing-3",
+      "Dual-magnetic dynamic driver architecture powered by Tanchjim's patented DMT acoustic cavity, reproducing pristine instrumental separation and transparent vocal clarity.",
+    image: "/images/tanchjim-nora-showcase.webp",
+    href: "/product/prod-tanchjim-nora",
+  },
+  {
+    id: "prod-kiwi-cadenza",
+    brand: "KIWI EARS",
+    title: "KIWI EARS CADENZA",
+    description:
+      "Acclaimed 10mm beryllium-coated dynamic driver housed in an artisan medical-grade 3D printed resin shell, celebrated for punchy bass authority and natural musical timbre.",
+    image: "/images/kiwi-ears-cadenza-gallery.webp",
+    href: "/product/prod-kiwi-cadenza",
   },
 ];
 
@@ -56,6 +58,7 @@ const AUTO_SLIDE_DURATION = 5000; // 5 seconds per slide
 const PROGRESS_INTERVAL = 50; // 50ms interval
 
 export default function FigmaBestSellers() {
+  const [products, setProducts] = useState<BestSellerProduct[]>(DEFAULT_PRODUCTS);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [progress, setProgress] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
@@ -65,6 +68,38 @@ export default function FigmaBestSellers() {
   const firstCardRef = useRef<HTMLDivElement>(null);
   const cursorRef = useRef<HTMLDivElement>(null);
   const [cardOffset, setCardOffset] = useState(1210);
+
+  useEffect(() => {
+    async function loadBestSellers() {
+      const dbAll = await fetchProductsFromDb();
+      if (dbAll && dbAll.length > 0) {
+        const targetIds = ["prod-waner-sg2", "prod-chu3", "prod-tanchjim-nora", "prod-kiwi-cadenza"];
+        const loaded: BestSellerProduct[] = [];
+
+        for (const tid of targetIds) {
+          const found = dbAll.find((p) => p.id === tid);
+          const fallbackItem = DEFAULT_PRODUCTS.find((p) => p.id === tid);
+          if (found && fallbackItem) {
+            loaded.push({
+              id: found.id,
+              brand: found.brand.toUpperCase(),
+              title: cleanProductName(found.name, found.id).toUpperCase(),
+              description: found.description || fallbackItem.description,
+              image: fallbackItem.image || found.image,
+              href: `/product/${found.id}`,
+            });
+          } else if (fallbackItem) {
+            loaded.push(fallbackItem);
+          }
+        }
+
+        if (loaded.length === 4) {
+          setProducts(loaded);
+        }
+      }
+    }
+    loadBestSellers();
+  }, []);
 
   const updateCardOffset = useCallback(() => {
     if (firstCardRef.current) {
@@ -83,12 +118,12 @@ export default function FigmaBestSellers() {
   }, [updateCardOffset]);
 
   const prevSlide = useCallback(() => {
-    setCurrentSlide((prev) => (prev > 0 ? prev - 1 : PRODUCTS.length - 1));
-  }, []);
+    setCurrentSlide((prev) => (prev > 0 ? prev - 1 : products.length - 1));
+  }, [products.length]);
 
   const nextSlide = useCallback(() => {
-    setCurrentSlide((prev) => (prev + 1) % PRODUCTS.length);
-  }, []);
+    setCurrentSlide((prev) => (prev + 1) % products.length);
+  }, [products.length]);
 
   // Slide Timer & Circular Progress Bar
   useEffect(() => {
@@ -177,7 +212,7 @@ export default function FigmaBestSellers() {
   const strokeDashoffset = circumference * (1 - progress / 100);
 
   return (
-    <section className="w-full bg-[#090808] py-32 lg:py-40 overflow-hidden select-none">
+    <section className="w-full bg-[#030303] py-32 lg:py-40 overflow-hidden select-none">
       {/* Custom Floating Cursor (Visible on Hover) */}
       <div
         ref={cursorRef}
@@ -271,7 +306,7 @@ export default function FigmaBestSellers() {
             transform: `translate3d(-${currentSlide * cardOffset}px, 0, 0)`,
           }}
         >
-          {PRODUCTS.map((prod, idx) => {
+          {products.map((prod, idx) => {
             const isActive = idx === currentSlide;
 
             return (
@@ -286,7 +321,7 @@ export default function FigmaBestSellers() {
                     setCursorDirection("right");
                   }
                 }}
-                className="relative w-[88vw] md:w-[82vw] lg:w-[1180px] h-[520px] sm:h-[600px] lg:h-[671px] bg-[#161616] overflow-hidden group shrink-0"
+                className="relative w-[88vw] md:w-[82vw] lg:w-[1180px] h-[520px] sm:h-[600px] lg:h-[671px] bg-[#050505] overflow-hidden group shrink-0"
               >
                 {/* Product Banner Image */}
                 <Image
@@ -334,7 +369,7 @@ export default function FigmaBestSellers() {
                   <Link
                     href={prod.href}
                     onClick={(e) => e.stopPropagation()}
-                    className="w-[176px] h-[50px] bg-[#d9d9d9] hover:bg-[#D4FF00] hover:text-black transition-colors flex items-center justify-center shadow-md cursor-pointer group/btn"
+                    className="w-[176px] h-[50px] bg-[#d9d9d9] hover:bg-[#BFDD25] hover:text-black transition-colors flex items-center justify-center shadow-md cursor-pointer group/btn"
                   >
                     <span className="font-sans font-bold text-[12px] leading-[13px] tracking-[2.2px] text-[#131313] uppercase">
                       SHOP NOW
@@ -349,7 +384,7 @@ export default function FigmaBestSellers() {
 
       {/* Slide Indicators (Centered Below the Slider) */}
       <div className="flex items-center justify-center gap-2.5 mt-8 lg:mt-12">
-        {PRODUCTS.map((p, pIdx) => (
+        {products.map((p, pIdx) => (
           <button
             key={p.id}
             onClick={() => {

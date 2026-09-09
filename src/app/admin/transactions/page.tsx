@@ -218,7 +218,7 @@ export default function TransactionsAdminPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#222] pb-5">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-[10px] font-mono font-bold bg-[#1C1C1C] text-[#FAF9F6] border border-[#2E2E2E] px-2 py-0.5 rounded uppercase tracking-wider">
+            <span className="text-[10px] font-mono font-bold bg-[#050505] text-[#FAF9F6] border border-[#2E2E2E] px-2 py-0.5 rounded uppercase tracking-wider">
               {isEn ? "Escrow Vault" : "Rekening Bersama"}
             </span>
             <span className="text-[11px] font-mono text-[#888]">
@@ -238,7 +238,7 @@ export default function TransactionsAdminPage() {
         <div className="flex items-center gap-2.5">
           <button
             onClick={handleExport}
-            className="flex items-center gap-2 px-3.5 py-2 bg-[#141414] hover:bg-[#1f1f1f] border border-[#2a2a2a] hover:border-[#444] text-xs font-mono font-bold rounded-lg transition-colors cursor-pointer"
+            className="flex items-center gap-2 px-3.5 py-2 bg-[#050505] hover:bg-[#050505] border border-[#2a2a2a] hover:border-[#444] text-xs font-mono font-bold rounded-lg transition-colors cursor-pointer"
           >
             <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
@@ -252,7 +252,7 @@ export default function TransactionsAdminPage() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         
         {/* Card 1: Escrow In Vault */}
-        <div className="bg-[#111] border border-[#222] hover:border-[#333] transition-colors p-4 rounded-xl flex flex-col justify-between">
+        <div className="bg-[#050505] border border-[#222] hover:border-[#333] transition-colors p-4 rounded-xl flex flex-col justify-between">
           <div className="flex items-start justify-between gap-2">
             <div>
               <p className="text-[11px] font-mono text-[#888] uppercase tracking-wider">
@@ -275,7 +275,7 @@ export default function TransactionsAdminPage() {
         </div>
 
         {/* Card 2: Settled Payouts */}
-        <div className="bg-[#111] border border-[#222] hover:border-[#333] transition-colors p-4 rounded-xl flex flex-col justify-between">
+        <div className="bg-[#050505] border border-[#222] hover:border-[#333] transition-colors p-4 rounded-xl flex flex-col justify-between">
           <div className="flex items-start justify-between gap-2">
             <div>
               <p className="text-[11px] font-mono text-[#888] uppercase tracking-wider">
@@ -298,7 +298,7 @@ export default function TransactionsAdminPage() {
         </div>
 
         {/* Card 3: Total GMV */}
-        <div className="bg-[#111] border border-[#222] hover:border-[#333] transition-colors p-4 rounded-xl flex flex-col justify-between">
+        <div className="bg-[#050505] border border-[#222] hover:border-[#333] transition-colors p-4 rounded-xl flex flex-col justify-between">
           <div className="flex items-start justify-between gap-2">
             <div>
               <p className="text-[11px] font-mono text-[#888] uppercase tracking-wider">
@@ -323,7 +323,7 @@ export default function TransactionsAdminPage() {
       </div>
 
       {/* Interactive Telemetry Chart */}
-      <div className="bg-[#111] border border-[#222] p-5 rounded-xl">
+      <div className="bg-[#050505] border border-[#222] p-5 rounded-xl">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
           <div>
             <h3 className="text-sm font-bold text-white tracking-tight font-sans">
@@ -336,15 +336,15 @@ export default function TransactionsAdminPage() {
             </p>
           </div>
 
-          <div className="flex items-center bg-[#161616] p-1 rounded-lg border border-[#262626] self-start sm:self-auto">
+          <div className="flex items-center bg-[#050505] p-1 rounded-lg border border-[#1c1c1c] self-start sm:self-auto">
             {(["7D", "30D", "90D", "ALL"] as const).map((r) => (
               <button
                 key={r}
                 onClick={() => setChartRange(r)}
                 className={`px-3 py-1 text-xs font-mono font-medium rounded-md transition-all cursor-pointer border ${
                   chartRange === r
-                    ? "bg-[#242424] text-[#FAF9F6] font-semibold border-[#383838] shadow-sm"
-                    : "text-[#8E8E93] hover:text-[#FAF9F6] hover:bg-[#1A1A1A] border-transparent"
+                    ? "bg-[#050505] text-[#FAF9F6] font-semibold border-[#383838] shadow-sm"
+                    : "text-[#8E8E93] hover:text-[#FAF9F6] hover:bg-[#050505] border-transparent"
                 }`}
               >
                 {r === "7D" ? (isEn ? "7 Days" : "7 Hari") : r === "30D" ? (isEn ? "30 Days" : "30 Hari") : r === "90D" ? (isEn ? "90 Days" : "90 Hari") : (isEn ? "All" : "Semua")}
@@ -376,7 +376,7 @@ export default function TransactionsAdminPage() {
       </div>
 
       {/* Filters Toolbar */}
-      <div className="bg-[#111] border border-[#222] p-3.5 rounded-xl space-y-3">
+      <div className="bg-[#050505] border border-[#222] p-3.5 rounded-xl space-y-3">
         <div className="flex flex-col md:flex-row gap-3 items-center justify-between">
           <div className="relative w-full md:w-80">
             <input
@@ -384,7 +384,7 @@ export default function TransactionsAdminPage() {
               placeholder={isEn ? "Search order ID, buyer, store, tracking..." : "Cari no pesanan, pembeli, toko, resi..."}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-[#161616] border border-[#2a2a2a] focus:border-white rounded-lg pl-9 pr-3.5 py-2 text-xs font-sans text-white placeholder:text-[#666] outline-none transition-colors"
+              className="w-full bg-[#050505] border border-[#2a2a2a] focus:border-white rounded-lg pl-9 pr-3.5 py-2 text-xs font-sans text-white placeholder:text-[#666] outline-none transition-colors"
             />
             <svg
               width="14"
@@ -401,7 +401,7 @@ export default function TransactionsAdminPage() {
 
           <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
             {/* Status Pills */}
-            <div className="flex items-center bg-[#161616] p-1 rounded-lg border border-[#262626]">
+            <div className="flex items-center bg-[#050505] p-1 rounded-lg border border-[#1c1c1c]">
               {[
                 { id: "ALL", label: isEn ? "All Orders" : "Semua Pesanan" },
                 { id: "PAID", label: isEn ? "Held in Escrow" : "Ditahan di Rekber" },
@@ -414,8 +414,8 @@ export default function TransactionsAdminPage() {
                   onClick={() => setStatusFilter(tab.id)}
                   className={`px-3 py-1 text-xs font-mono font-medium rounded-md transition-all cursor-pointer border ${
                     statusFilter === tab.id
-                      ? "bg-[#242424] text-[#FAF9F6] font-semibold border-[#383838] shadow-sm"
-                      : "text-[#8E8E93] hover:text-[#FAF9F6] hover:bg-[#1A1A1A] border-transparent"
+                      ? "bg-[#050505] text-[#FAF9F6] font-semibold border-[#383838] shadow-sm"
+                      : "text-[#8E8E93] hover:text-[#FAF9F6] hover:bg-[#050505] border-transparent"
                   }`}
                 >
                   {tab.label}
@@ -439,18 +439,18 @@ export default function TransactionsAdminPage() {
                 { label: isEn ? "Lowest Amount" : "Nominal Terendah", value: "totalAmount-asc" },
                 { label: isEn ? "Order Number" : "Nomor Pesanan", value: "orderNumber-asc" },
               ]}
-              buttonClassName="bg-[#161616] border border-[#2a2a2a] hover:border-[#444] text-xs font-mono text-white px-3 py-1.5 rounded-lg flex items-center justify-between gap-2 cursor-pointer"
+              buttonClassName="bg-[#050505] border border-[#2a2a2a] hover:border-[#444] text-xs font-mono text-white px-3 py-1.5 rounded-lg flex items-center justify-between gap-2 cursor-pointer"
             />
           </div>
         </div>
       </div>
 
       {/* Main Escrow Ledger Table */}
-      <div className="bg-[#111] border border-[#222] rounded-xl overflow-hidden shadow-2xl">
+      <div className="bg-[#050505] border border-[#222] rounded-xl overflow-hidden shadow-2xl">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-[#222] bg-[#141414] text-[10px] font-mono uppercase text-[#777] tracking-wider">
+              <tr className="border-b border-[#222] bg-[#050505] text-[10px] font-mono uppercase text-[#777] tracking-wider">
                 <th
                   onClick={() => handleSortToggle("orderNumber")}
                   className="py-3 px-4 cursor-pointer hover:text-white transition-colors"
@@ -479,7 +479,7 @@ export default function TransactionsAdminPage() {
             <tbody className="divide-y divide-[#1e1e1e] text-xs font-sans">
               {paginatedOrders.length > 0 ? (
                 paginatedOrders.map((ord) => (
-                  <tr key={ord.id} className="hover:bg-[#141414] transition-colors">
+                  <tr key={ord.id} className="hover:bg-[#050505] transition-colors">
                     <td className="py-3.5 px-4">
                       <div className="flex flex-col">
                         <span
@@ -521,7 +521,7 @@ export default function TransactionsAdminPage() {
                     </td>
 
                     <td className="py-3.5 px-4">
-                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-[#161616] text-[#D4D4D8] border border-[#27272A]">
+                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-[#050505] text-[#D4D4D8] border border-[#27272A]">
                         <span className={`w-1.5 h-1.5 rounded-full ${
                           ord.status === "COMPLETED" ? "bg-emerald-400" : ord.status === "CANCELLED" ? "bg-rose-400" : "bg-amber-400"
                         }`} />
@@ -538,7 +538,7 @@ export default function TransactionsAdminPage() {
                     <td className="py-3.5 px-4 text-right">
                       <button
                         onClick={() => setSettlingOrder(ord)}
-                        className="px-2.5 py-1 bg-[#1c1c1c] hover:bg-[#282828] border border-[#333] hover:border-white text-xs font-mono font-semibold text-white rounded-lg transition-colors cursor-pointer"
+                        className="px-2.5 py-1 bg-[#1c1c1c] hover:bg-[#050505] border border-[#333] hover:border-white text-xs font-mono font-semibold text-white rounded-lg transition-colors cursor-pointer"
                       >
                         {isEn ? "Settle Escrow" : "Kelola Dana"}
                       </button>
@@ -557,7 +557,7 @@ export default function TransactionsAdminPage() {
         </div>
 
         {/* Footer info & Pagination */}
-        <div className="p-3.5 border-t border-[#1e1e1e] bg-[#141414] flex flex-col sm:flex-row items-center justify-between text-xs font-mono text-[#777] gap-3">
+        <div className="p-3.5 border-t border-[#1e1e1e] bg-[#050505] flex flex-col sm:flex-row items-center justify-between text-xs font-mono text-[#777] gap-3">
           <div className="flex items-center gap-2">
             <span>
               {isEn
@@ -571,7 +571,7 @@ export default function TransactionsAdminPage() {
               <button
                 disabled={currentPage === 1}
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                className="px-2.5 py-1 rounded bg-[#1c1c1c] hover:bg-[#262626] border border-[#2a2a2a] disabled:opacity-30 disabled:cursor-not-allowed text-white font-mono text-xs transition-colors cursor-pointer"
+                className="px-2.5 py-1 rounded bg-[#1c1c1c] hover:bg-[#050505] border border-[#2a2a2a] disabled:opacity-30 disabled:cursor-not-allowed text-white font-mono text-xs transition-colors cursor-pointer"
               >
                 {isEn ? "Previous" : "Sebelumnya"}
               </button>
@@ -581,7 +581,7 @@ export default function TransactionsAdminPage() {
               <button
                 disabled={currentPage === totalPages}
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                className="px-2.5 py-1 rounded bg-[#1c1c1c] hover:bg-[#262626] border border-[#2a2a2a] disabled:opacity-30 disabled:cursor-not-allowed text-white font-mono text-xs transition-colors cursor-pointer"
+                className="px-2.5 py-1 rounded bg-[#1c1c1c] hover:bg-[#050505] border border-[#2a2a2a] disabled:opacity-30 disabled:cursor-not-allowed text-white font-mono text-xs transition-colors cursor-pointer"
               >
                 {isEn ? "Next" : "Selanjutnya"}
               </button>
@@ -605,9 +605,9 @@ export default function TransactionsAdminPage() {
               initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 1, y: 0 }}
-              className="relative w-full max-w-xl bg-[#141414] border border-[#333] rounded-2xl p-5 sm:p-6 shadow-2xl z-10 space-y-5"
+              className="relative w-full max-w-xl bg-[#050505] border border-[#333] rounded-2xl p-5 sm:p-6 shadow-2xl z-10 space-y-5"
             >
-              <div className="flex items-center justify-between border-b border-[#262626] pb-3">
+              <div className="flex items-center justify-between border-b border-[#1c1c1c] pb-3">
                 <div>
                   <span className="text-[10px] font-mono font-bold uppercase text-amber-400">
                     {isEn ? "Escrow Vault Settlement" : "Penyelesaian Rekening Bersama"}
@@ -627,7 +627,7 @@ export default function TransactionsAdminPage() {
               </div>
 
               <div className="grid grid-cols-2 gap-3 text-xs">
-                <div className="bg-[#191919] p-3 rounded-xl border border-[#282828] space-y-1">
+                <div className="bg-[#050505] p-3 rounded-xl border border-[#282828] space-y-1">
                   <span className="font-mono text-[10px] text-[#777] uppercase">
                     {isEn ? "Buyer Information" : "Informasi Pembeli"}
                   </span>
@@ -635,7 +635,7 @@ export default function TransactionsAdminPage() {
                   <p className="text-[#aaa] text-[11px] font-mono">{settlingOrder.buyerEmail}</p>
                 </div>
 
-                <div className="bg-[#191919] p-3 rounded-xl border border-[#282828] space-y-1">
+                <div className="bg-[#050505] p-3 rounded-xl border border-[#282828] space-y-1">
                   <span className="font-mono text-[10px] text-[#777] uppercase">
                     {isEn ? "Seller Store Name" : "Nama Toko Penjual"}
                   </span>
@@ -643,7 +643,7 @@ export default function TransactionsAdminPage() {
                   <p className="text-[#aaa] text-[11px]">{isEn ? "Verified Merchant" : "Penjual Terverifikasi"}</p>
                 </div>
 
-                <div className="bg-[#191919] p-3 rounded-xl border border-[#282828] space-y-1">
+                <div className="bg-[#050505] p-3 rounded-xl border border-[#282828] space-y-1">
                   <span className="font-mono text-[10px] text-[#777] uppercase">
                     {isEn ? "Total Escrow Amount" : "Total Dana di Rekber"}
                   </span>
@@ -653,7 +653,7 @@ export default function TransactionsAdminPage() {
                   </p>
                 </div>
 
-                <div className="bg-[#191919] p-3 rounded-xl border border-[#282828] space-y-1">
+                <div className="bg-[#050505] p-3 rounded-xl border border-[#282828] space-y-1">
                   <span className="font-mono text-[10px] text-[#777] uppercase">
                     {isEn ? "Courier & Resi AWB" : "Ekspedisi & Nomor Resi"}
                   </span>
@@ -663,7 +663,7 @@ export default function TransactionsAdminPage() {
               </div>
 
               {/* Settlement Actions */}
-              <div className="bg-[#191919] p-3.5 rounded-xl border border-[#282828] space-y-2.5">
+              <div className="bg-[#050505] p-3.5 rounded-xl border border-[#282828] space-y-2.5">
                 <span className="text-[10px] font-mono text-[#777] uppercase block">
                   {isEn ? "Admin Vault Settlement Controls:" : "Tindakan Admin untuk Dana Rekber:"}
                 </span>
@@ -683,7 +683,7 @@ export default function TransactionsAdminPage() {
                     <button
                       type="button"
                       onClick={() => handleOpenRefund(settlingOrder)}
-                      className="px-3.5 py-2 bg-[#181818] hover:bg-[#262626] text-white border border-[#2E2E2E] font-mono font-bold text-xs rounded-lg transition-colors cursor-pointer"
+                      className="px-3.5 py-2 bg-[#050505] hover:bg-[#050505] text-white border border-[#2E2E2E] font-mono font-bold text-xs rounded-lg transition-colors cursor-pointer"
                     >
                       {isEn ? "Refund Buyer (100%)" : "Kembalikan Dana ke Pembeli"}
                     </button>
@@ -692,7 +692,7 @@ export default function TransactionsAdminPage() {
                   <button
                     type="button"
                     onClick={() => handleOpenDispute(settlingOrder)}
-                    className="px-3.5 py-2 bg-[#181818] hover:bg-[#262626] text-white border border-[#2E2E2E] font-mono font-bold text-xs rounded-lg transition-colors cursor-pointer"
+                    className="px-3.5 py-2 bg-[#050505] hover:bg-[#050505] text-white border border-[#2E2E2E] font-mono font-bold text-xs rounded-lg transition-colors cursor-pointer"
                   >
                     {isEn ? "Mediate Dispute" : "Penyelesaian Komplain"}
                   </button>
@@ -703,7 +703,7 @@ export default function TransactionsAdminPage() {
                 <button
                   type="button"
                   onClick={() => setSettlingOrder(null)}
-                  className="px-3.5 py-1.5 bg-[#222] hover:bg-[#333] text-white text-xs font-mono rounded-lg transition-colors cursor-pointer"
+                  className="px-3.5 py-1.5 bg-[#050505] hover:bg-[#080808] text-white text-xs font-mono rounded-lg transition-colors cursor-pointer"
                 >
                   {isEn ? "Close" : "Tutup"}
                 </button>
@@ -728,7 +728,7 @@ export default function TransactionsAdminPage() {
               initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 1, y: 0 }}
-              className="relative w-full max-w-md bg-[#141414] border border-[#333] rounded-2xl p-5 shadow-2xl z-10 space-y-4"
+              className="relative w-full max-w-md bg-[#050505] border border-[#333] rounded-2xl p-5 shadow-2xl z-10 space-y-4"
             >
               <h3 className="text-sm font-bold text-white font-sans">
                 {isEn
@@ -756,7 +756,7 @@ export default function TransactionsAdminPage() {
                     placeholder={isEn ? "e.g., Package lost in transit, seller cancelled shipment..." : "Contoh: Paket hilang dalam pengiriman, seller batal kirim, atau kesepakatan return..."}
                     value={refundReason}
                     onChange={(e) => setRefundReason(e.target.value)}
-                    className="w-full bg-[#181818] border border-[#333] focus:border-rose-400 rounded-lg p-2.5 text-xs text-white outline-none resize-none"
+                    className="w-full bg-[#050505] border border-[#333] focus:border-rose-400 rounded-lg p-2.5 text-xs text-white outline-none resize-none"
                   />
                 </div>
 
@@ -764,7 +764,7 @@ export default function TransactionsAdminPage() {
                   <button
                     type="button"
                     onClick={() => setRefundingOrder(null)}
-                    className="px-3.5 py-1.5 bg-[#222] hover:bg-[#333] text-white text-xs font-mono rounded-lg transition-colors cursor-pointer"
+                    className="px-3.5 py-1.5 bg-[#050505] hover:bg-[#080808] text-white text-xs font-mono rounded-lg transition-colors cursor-pointer"
                   >
                     {isEn ? "Cancel" : "Batal"}
                   </button>
@@ -796,9 +796,9 @@ export default function TransactionsAdminPage() {
               initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 1, y: 0 }}
-              className="relative w-full max-w-md bg-[#141414] border border-[#333] rounded-2xl p-5 shadow-2xl z-10 space-y-4"
+              className="relative w-full max-w-md bg-[#050505] border border-[#333] rounded-2xl p-5 shadow-2xl z-10 space-y-4"
             >
-              <div className="border-b border-[#262626] pb-3">
+              <div className="border-b border-[#1c1c1c] pb-3">
                 <span className="text-[10px] font-mono font-bold uppercase text-amber-400">
                   {isEn ? "Order Dispute Mediation" : "Penyelesaian Komplain Pesanan"}
                 </span>
@@ -838,7 +838,7 @@ export default function TransactionsAdminPage() {
                     placeholder={isEn ? "Summarize unboxing video review, courier check, or arbitration justification..." : "Tuliskan ringkasan bukti video unboxing, hasil mediasi, atau alasan keputusan..."}
                     value={disputeNotes}
                     onChange={(e) => setDisputeNotes(e.target.value)}
-                    className="w-full bg-[#181818] border border-[#333] focus:border-amber-400 rounded-lg p-2.5 text-white outline-none resize-none"
+                    className="w-full bg-[#050505] border border-[#333] focus:border-amber-400 rounded-lg p-2.5 text-white outline-none resize-none"
                   />
                 </div>
 
@@ -846,13 +846,13 @@ export default function TransactionsAdminPage() {
                   <button
                     type="button"
                     onClick={() => setDisputeOrder(null)}
-                    className="px-3.5 py-1.5 bg-[#222] hover:bg-[#333] text-white text-xs font-mono rounded-lg transition-colors cursor-pointer"
+                    className="px-3.5 py-1.5 bg-[#050505] hover:bg-[#080808] text-white text-xs font-mono rounded-lg transition-colors cursor-pointer"
                   >
                     {isEn ? "Cancel" : "Batal"}
                   </button>
                   <button
                     type="submit"
-                    className="px-3.5 py-1.5 bg-[#262626] hover:bg-[#333333] text-[#FAF9F6] border border-[#3E3E3E] font-mono font-bold text-xs rounded-lg transition-colors cursor-pointer shadow-sm"
+                    className="px-3.5 py-1.5 bg-[#050505] hover:bg-[#333333] text-[#FAF9F6] border border-[#3E3E3E] font-mono font-bold text-xs rounded-lg transition-colors cursor-pointer shadow-sm"
                   >
                     {isEn ? "Save Ruling" : "Simpan Keputusan"}
                   </button>

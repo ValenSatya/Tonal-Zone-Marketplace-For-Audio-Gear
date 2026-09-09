@@ -40,7 +40,7 @@ const DEFAULT_PAGES = [
       image: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800",
     },
     small1: {
-      id: "prod-blessing-3",
+      id: "prod-blessing3",
       name: "Moondrop Blessing 3 Hybrid",
       price: 319.99,
       image: "https://images.unsplash.com/photo-1484704849700-f032a568e944?w=800",
@@ -127,12 +127,12 @@ export default function BestSellers() {
   };
 
   return (
-    <section id="bestseller" className="w-full bg-[#0e0e0e] py-40 border-b border-[#444748]">
+    <section id="bestseller" className="w-full bg-[#030303] py-40 border-b border-[#444748]">
       <div className="max-w-[1400px] mx-auto px-6 lg:px-12">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6 sm:gap-0 mb-12">
           <div>
-            <h2 className="font-heading text-4xl sm:text-5xl tracking-wide mb-3 hover:text-[#D4FF00] transition-colors duration-300 cursor-default text-[#FAF9F6]">
+            <h2 className="font-heading text-4xl sm:text-5xl tracking-wide mb-3 hover:text-[#BFDD25] transition-colors duration-300 cursor-default text-[#FAF9F6]">
               {t("home.bestSellers")}
             </h2>
             <p className="text-base sm:text-[17px] text-[#FAF9F6]/70 max-w-md leading-relaxed">
@@ -144,7 +144,7 @@ export default function BestSellers() {
           <div className="flex items-center gap-2">
             <button
               onClick={handlePrev}
-              className="w-10 h-10 border border-[#444748] flex items-center justify-center text-[#FAF9F6] hover:border-[#D4FF00] hover:bg-[#D4FF00] hover:text-[#0e0e0e] active:scale-95 transition-all duration-300 group cursor-pointer"
+              className="w-10 h-10 border border-[#444748] flex items-center justify-center text-[#FAF9F6] hover:border-[#BFDD25] hover:bg-[#BFDD25] hover:text-[#030303] active:scale-95 transition-all duration-300 group cursor-pointer"
               aria-label="Previous best sellers"
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="group-hover:-translate-x-0.5 transition-transform">
@@ -153,7 +153,7 @@ export default function BestSellers() {
             </button>
             <button
               onClick={handleNext}
-              className="w-10 h-10 border border-[#444748] flex items-center justify-center text-[#FAF9F6] hover:border-[#D4FF00] hover:bg-[#D4FF00] hover:text-[#0e0e0e] active:scale-95 transition-all duration-300 group cursor-pointer"
+              className="w-10 h-10 border border-[#444748] flex items-center justify-center text-[#FAF9F6] hover:border-[#BFDD25] hover:bg-[#BFDD25] hover:text-[#030303] active:scale-95 transition-all duration-300 group cursor-pointer"
               aria-label="Next best sellers"
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="group-hover:translate-x-0.5 transition-transform">
@@ -172,7 +172,7 @@ export default function BestSellers() {
                 initial={{ opacity: 1 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 1 }}
-                className="relative aspect-[16/9] border border-[#444748] group overflow-hidden bg-[#0a0a0a] flex items-center justify-center cursor-pointer hover:border-[#D4FF00] transition-all duration-500 w-full h-full"
+                className="relative aspect-[16/9] border border-[#444748] group overflow-hidden bg-[#030303] flex items-center justify-center cursor-pointer hover:border-[#BFDD25] transition-all duration-500 w-full h-full"
               >
                 {/* Solid Neon Yellow Shutter Block Reveal (Tanpa Glow) */}
                 <motion.div
@@ -186,7 +186,7 @@ export default function BestSellers() {
                     transition: { duration: 0.55, ease: [0.7, 0, 0.3, 1] } 
                   }}
                   style={{ originX: 0 }}
-                  className="absolute inset-0 bg-[#D4FF00] z-50 pointer-events-none"
+                  className="absolute inset-0 bg-[#BFDD25] z-50 pointer-events-none"
                 />
 
                 {/* Product Background Image */}
@@ -210,7 +210,7 @@ export default function BestSellers() {
                   <p className="font-heading text-3xl uppercase tracking-wide mb-1 group-hover:translate-x-2 transition-transform duration-300">
                     {current.large.name}
                   </p>
-                  <p className="text-[#D4FF00] font-mono text-lg font-medium tracking-wide group-hover:translate-x-2 transition-transform duration-300 delay-75">
+                  <p className="text-[#BFDD25] font-mono text-lg font-medium tracking-wide group-hover:translate-x-2 transition-transform duration-300 delay-75">
                     {formatPrice(current.large.price)}
                   </p>
                 </motion.div>
@@ -225,7 +225,7 @@ export default function BestSellers() {
                   initial={{ opacity: 1 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 1 }}
-                  className="relative h-full border border-[#444748] group overflow-hidden bg-[#0a0a0a] flex items-center justify-center min-h-[200px] cursor-pointer hover:border-[#D4FF00] transition-all duration-500"
+                  className="relative h-full border border-[#444748] group overflow-hidden bg-[#030303] flex items-center justify-center min-h-[200px] cursor-pointer hover:border-[#BFDD25] transition-all duration-500"
                 >
                   {/* Solid Neon Yellow Shutter Block Reveal (Tanpa Glow) */}
                   <motion.div
@@ -239,7 +239,7 @@ export default function BestSellers() {
                       transition: { duration: 0.55, ease: [0.7, 0, 0.3, 1] } 
                     }}
                     style={{ originX: 0 }}
-                    className="absolute inset-0 bg-[#D4FF00] z-50 pointer-events-none"
+                    className="absolute inset-0 bg-[#BFDD25] z-50 pointer-events-none"
                   />
 
                   {/* Product Background Image */}
@@ -263,7 +263,7 @@ export default function BestSellers() {
                     <p className="font-heading text-xl uppercase tracking-wide mb-1 group-hover:translate-x-1 transition-transform duration-300">
                       {current.small1.name}
                     </p>
-                    <p className="text-[#D4FF00] font-mono text-sm font-medium tracking-wide group-hover:translate-x-1 transition-transform duration-300 delay-75">
+                    <p className="text-[#BFDD25] font-mono text-sm font-medium tracking-wide group-hover:translate-x-1 transition-transform duration-300 delay-75">
                       {formatPrice(current.small1.price)}
                     </p>
                   </motion.div>
@@ -276,7 +276,7 @@ export default function BestSellers() {
                   initial={{ opacity: 1 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 1 }}
-                  className="relative h-full border border-[#444748] group overflow-hidden bg-[#0a0a0a] flex items-center justify-center min-h-[200px] cursor-pointer hover:border-[#D4FF00] transition-all duration-500"
+                  className="relative h-full border border-[#444748] group overflow-hidden bg-[#030303] flex items-center justify-center min-h-[200px] cursor-pointer hover:border-[#BFDD25] transition-all duration-500"
                 >
                   {/* Solid Neon Yellow Shutter Block Reveal (Tanpa Glow) */}
                   <motion.div
@@ -290,7 +290,7 @@ export default function BestSellers() {
                       transition: { duration: 0.55, ease: [0.7, 0, 0.3, 1] } 
                     }}
                     style={{ originX: 0 }}
-                    className="absolute inset-0 bg-[#D4FF00] z-50 pointer-events-none"
+                    className="absolute inset-0 bg-[#BFDD25] z-50 pointer-events-none"
                   />
 
                   {/* Product Background Image */}
@@ -314,7 +314,7 @@ export default function BestSellers() {
                     <p className="font-heading text-xl uppercase tracking-wide mb-1 group-hover:translate-x-1 transition-transform duration-300">
                       {current.small2.name}
                     </p>
-                    <p className="text-[#D4FF00] font-mono text-sm font-medium tracking-wide group-hover:translate-x-1 transition-transform duration-300 delay-75">
+                    <p className="text-[#BFDD25] font-mono text-sm font-medium tracking-wide group-hover:translate-x-1 transition-transform duration-300 delay-75">
                       {formatPrice(current.small2.price)}
                     </p>
                   </motion.div>

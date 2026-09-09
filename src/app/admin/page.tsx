@@ -134,7 +134,7 @@ export default function AdminDashboard() {
               : "Pantau perputaran penjualan toko, status rekening bersama, dan daftar persetujuan produk."}
           </p>
         </div>
-        <div className="flex items-center gap-2 bg-[#121212] border border-[#262626] px-3 py-1.5 rounded-md">
+        <div className="flex items-center gap-2 bg-[#050505] border border-[#1c1c1c] px-3 py-1.5 rounded-md">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
           <span className="text-[10px] font-mono text-[#FAF9F6] uppercase tracking-wider font-semibold">
             {isEn ? "Live Telemetry Connected" : "Data Terhubung Real-Time"}
@@ -146,7 +146,7 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
         
         {/* Main GMV Card (Spans 2 cols) */}
-        <div className="col-span-1 md:col-span-2 bg-[#0E0E0E] border border-[#1E1E1E] rounded-xl p-5 sm:p-6 flex flex-col justify-between relative overflow-hidden group hover:border-[#2C2C2C] transition-all">
+        <div className="col-span-1 md:col-span-2 bg-[#030303] border border-[#1E1E1E] rounded-xl p-5 sm:p-6 flex flex-col justify-between relative overflow-hidden group hover:border-[#2C2C2C] transition-all">
           <div className="relative z-10 flex items-start justify-between">
             <div>
               <div className="flex items-center gap-2 mb-1.5">
@@ -176,7 +176,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Verified Merchants Card */}
-        <div className="bg-[#0E0E0E] border border-[#1E1E1E] rounded-xl p-5 flex flex-col justify-between hover:border-[#2C2C2C] transition-all group relative overflow-hidden">
+        <div className="bg-[#030303] border border-[#1E1E1E] rounded-xl p-5 flex flex-col justify-between hover:border-[#2C2C2C] transition-all group relative overflow-hidden">
           <div className="flex items-start justify-between">
             <h3 className="text-[11px] font-mono font-bold text-[#A1A1AA] uppercase tracking-wider">
               {isEn ? "Verified Stores" : "Toko Terverifikasi"}
@@ -205,7 +205,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Curated Catalog Items Card */}
-        <div className="bg-[#0E0E0E] border border-[#1E1E1E] rounded-xl p-5 flex flex-col justify-between hover:border-[#2C2C2C] transition-all group relative overflow-hidden">
+        <div className="bg-[#030303] border border-[#1E1E1E] rounded-xl p-5 flex flex-col justify-between hover:border-[#2C2C2C] transition-all group relative overflow-hidden">
           <div className="flex items-start justify-between">
             <h3 className="text-[11px] font-mono font-bold text-[#A1A1AA] uppercase tracking-wider">
               {isEn ? "Active Catalog Products" : "Daftar Produk Aktif"}
@@ -234,7 +234,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Moderation Action Required (Spans 2 cols on large) */}
-        <div className="col-span-1 md:col-span-3 lg:col-span-2 bg-[#0E0E0E] border border-[#1E1E1E] rounded-xl p-5 sm:p-6 flex flex-col justify-between hover:border-[#2C2C2C] transition-all">
+        <div className="col-span-1 md:col-span-3 lg:col-span-2 bg-[#030303] border border-[#1E1E1E] rounded-xl p-5 sm:p-6 flex flex-col justify-between hover:border-[#2C2C2C] transition-all">
           <div className="flex justify-between items-start">
             <div className="flex items-center gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-white"></span>
@@ -243,12 +243,12 @@ export default function AdminDashboard() {
               </h3>
             </div>
             {totalPending > 0 ? (
-              <span className="inline-flex items-center gap-1.5 text-[9px] font-mono font-medium text-[#FAF9F6] bg-[#1A1A1A] px-2 py-0.5 rounded border border-[#2E2E2E]">
+              <span className="inline-flex items-center gap-1.5 text-[9px] font-mono font-medium text-[#FAF9F6] bg-[#050505] px-2 py-0.5 rounded border border-[#2E2E2E]">
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
                 {totalPending} {isEn ? "Pending Moderation" : "Menunggu Persetujuan"}
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1.5 text-[9px] font-mono font-medium text-[#FAF9F6] bg-[#1A1A1A] px-2 py-0.5 rounded border border-[#2E2E2E]">
+              <span className="inline-flex items-center gap-1.5 text-[9px] font-mono font-medium text-[#FAF9F6] bg-[#050505] px-2 py-0.5 rounded border border-[#2E2E2E]">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
                 {isEn ? "Queue Clear" : "Semua Sudah Selesai"}
               </span>
@@ -269,7 +269,7 @@ export default function AdminDashboard() {
           <div className="flex flex-wrap gap-2 pt-3 border-t border-[#1A1A1A]">
             <Link
               href="/admin/approvals/sellers"
-              className="inline-flex items-center gap-1.5 text-xs font-sans font-medium bg-[#1E1E1E] hover:bg-[#282828] text-[#FAF9F6] px-3.5 py-1.5 rounded-md transition-colors border border-[#333333]"
+              className="inline-flex items-center gap-1.5 text-xs font-sans font-medium bg-[#050505] hover:bg-[#050505] text-[#FAF9F6] px-3.5 py-1.5 rounded-md transition-colors border border-[#333333]"
             >
               {isEn ? "Review Stores" : "Periksa Toko"} ({pendingStoresCount})
               <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
@@ -278,13 +278,13 @@ export default function AdminDashboard() {
             </Link>
             <Link
               href="/admin/approvals/products"
-              className="inline-flex items-center gap-1.5 text-xs font-sans font-medium bg-[#141414] hover:bg-[#1C1C1C] text-[#FAF9F6] px-3.5 py-1.5 rounded-md transition-colors border border-[#262626]"
+              className="inline-flex items-center gap-1.5 text-xs font-sans font-medium bg-[#050505] hover:bg-[#050505] text-[#FAF9F6] px-3.5 py-1.5 rounded-md transition-colors border border-[#1c1c1c]"
             >
               {isEn ? "Review Products" : "Periksa Produk"} ({pendingProductsCount})
             </Link>
             <Link
               href="/admin/approvals/brands"
-              className="inline-flex items-center gap-1.5 text-xs font-sans font-medium bg-[#141414] hover:bg-[#1C1C1C] text-[#FAF9F6] px-3.5 py-1.5 rounded-md transition-colors border border-[#262626]"
+              className="inline-flex items-center gap-1.5 text-xs font-sans font-medium bg-[#050505] hover:bg-[#050505] text-[#FAF9F6] px-3.5 py-1.5 rounded-md transition-colors border border-[#1c1c1c]"
             >
               {isEn ? "Review Brands" : "Periksa Brand"} ({pendingBrandsCount})
             </Link>
@@ -292,12 +292,12 @@ export default function AdminDashboard() {
         </div>
 
         {/* User Base Registry Metric */}
-        <div className="bg-[#0E0E0E] border border-[#1E1E1E] rounded-xl p-5 flex flex-col justify-between hover:border-[#2C2C2C] transition-all">
+        <div className="bg-[#030303] border border-[#1E1E1E] rounded-xl p-5 flex flex-col justify-between hover:border-[#2C2C2C] transition-all">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-mono font-bold text-[#A1A1AA] uppercase">
               {isEn ? "Total Users" : "Total Pengguna"}
             </span>
-            <span className="inline-flex items-center gap-1.5 text-[9px] font-mono font-medium text-[#FAF9F6] bg-[#1A1A1A] px-2 py-0.5 rounded border border-[#2E2E2E]">
+            <span className="inline-flex items-center gap-1.5 text-[9px] font-mono font-medium text-[#FAF9F6] bg-[#050505] px-2 py-0.5 rounded border border-[#2E2E2E]">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
               {isEn ? "Active Accounts" : "Akun Aktif"}
             </span>
@@ -320,7 +320,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Registered Brands Metric */}
-        <div className="bg-[#0E0E0E] border border-[#1E1E1E] rounded-xl p-5 flex flex-col justify-between hover:border-[#2C2C2C] transition-all">
+        <div className="bg-[#030303] border border-[#1E1E1E] rounded-xl p-5 flex flex-col justify-between hover:border-[#2C2C2C] transition-all">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-mono font-bold text-[#A1A1AA] uppercase">
               {isEn ? "Official Brands" : "Daftar Brand Resmi"}
@@ -345,7 +345,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Interactive GMV Revenue Chart Module */}
-        <div className="col-span-1 md:col-span-3 lg:col-span-4 bg-[#0E0E0E] border border-[#1E1E1E] rounded-xl p-5 sm:p-6">
+        <div className="col-span-1 md:col-span-3 lg:col-span-4 bg-[#030303] border border-[#1E1E1E] rounded-xl p-5 sm:p-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             <div>
               <div className="flex items-center gap-2">
@@ -364,15 +364,15 @@ export default function AdminDashboard() {
             </div>
             
             {/* Range Toggle Pills */}
-            <div className="flex items-center gap-1 bg-[#141414] p-1 rounded-md border border-[#222]">
+            <div className="flex items-center gap-1 bg-[#050505] p-1 rounded-md border border-[#222]">
               {(["7D", "30D", "ALL"] as const).map((r) => (
                 <button
                   key={r}
                   onClick={() => setTimeRange(r)}
                   className={`px-3 py-1 text-xs font-mono font-semibold rounded transition-all border ${
                     timeRange === r
-                      ? "bg-[#242424] text-[#FAF9F6] border-[#383838] shadow-sm"
-                      : "text-[#71717A] hover:text-[#FAF9F6] hover:bg-[#1A1A1A] border-transparent"
+                      ? "bg-[#050505] text-[#FAF9F6] border-[#383838] shadow-sm"
+                      : "text-[#71717A] hover:text-[#FAF9F6] hover:bg-[#050505] border-transparent"
                   }`}
                 >
                   {r === "7D" ? (isEn ? "7 Days" : "7 Hari") : r === "30D" ? (isEn ? "30 Days" : "30 Hari") : (isEn ? "All Time" : "Semua")}
@@ -392,7 +392,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Sound Signature & Escrow Breakdown Modules */}
-        <div className="col-span-1 md:col-span-2 bg-[#0E0E0E] border border-[#1E1E1E] rounded-xl p-5 sm:p-6">
+        <div className="col-span-1 md:col-span-2 bg-[#030303] border border-[#1E1E1E] rounded-xl p-5 sm:p-6">
           <div className="flex items-center justify-between mb-1">
             <h3 className="text-sm font-bold text-[#FAF9F6] font-sans tracking-tight">
               {isEn ? "Catalog Acoustic Signatures" : "Karakter Suara Produk (Sound Signature)"}
@@ -416,7 +416,7 @@ export default function AdminDashboard() {
                     <span className="font-medium text-[#FAF9F6]">{sig}</span>
                     <span className="font-mono text-[#FAF9F6] font-semibold">{count} {isEn ? "items" : "produk"} ({pct}%)</span>
                   </div>
-                  <div className="w-full h-1.5 bg-[#1A1A1A] rounded-full overflow-hidden">
+                  <div className="w-full h-1.5 bg-[#050505] rounded-full overflow-hidden">
                     <div
                       className="h-full bg-white transition-all duration-500 rounded-full"
                       style={{ width: `${pct}%` }}
@@ -429,7 +429,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Escrow Liquidity Breakdown */}
-        <div className="col-span-1 md:col-span-2 bg-[#0E0E0E] border border-[#1E1E1E] rounded-xl p-5 sm:p-6">
+        <div className="col-span-1 md:col-span-2 bg-[#030303] border border-[#1E1E1E] rounded-xl p-5 sm:p-6">
           <div className="flex items-center justify-between mb-1">
             <h3 className="text-sm font-bold text-[#FAF9F6] font-sans tracking-tight">
               {isEn ? "Escrow Settlement Stages" : "Status Dana Pembayaran (Rekening Bersama)"}
@@ -466,7 +466,7 @@ export default function AdminDashboard() {
                     </div>
                     <span className="font-mono text-[#FAF9F6] font-semibold">{count} {isEn ? "orders" : "pesanan"} ({pct}%)</span>
                   </div>
-                  <div className="w-full h-1.5 bg-[#1A1A1A] rounded-full overflow-hidden">
+                  <div className="w-full h-1.5 bg-[#050505] rounded-full overflow-hidden">
                     <div
                       className="h-full bg-white/80 transition-all duration-500 rounded-full"
                       style={{ width: `${pct}%` }}
@@ -479,7 +479,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Live Audit Log Stream */}
-        <div className="col-span-1 md:col-span-3 lg:col-span-4 bg-[#0E0E0E] border border-[#1E1E1E] rounded-xl p-5 sm:p-6">
+        <div className="col-span-1 md:col-span-3 lg:col-span-4 bg-[#030303] border border-[#1E1E1E] rounded-xl p-5 sm:p-6">
           <div className="flex items-center justify-between mb-4 pb-3 border-b border-[#1A1A1A]">
             <div>
               <div className="flex items-center gap-2">
@@ -504,7 +504,7 @@ export default function AdminDashboard() {
               auditLogs.map((log) => (
                 <div
                   key={log.id}
-                  className="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-[#121212] hover:bg-[#181818] transition-colors rounded-lg border border-[#1E1E1E] font-mono text-xs gap-2"
+                  className="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-[#050505] hover:bg-[#050505] transition-colors rounded-lg border border-[#1E1E1E] font-mono text-xs gap-2"
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
                     <span className="w-1.5 h-1.5 rounded-full bg-white shrink-0"></span>

@@ -128,7 +128,7 @@ function LoginContent() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-[#0a0a0a] text-[#FAF9F6] font-sans flex flex-col justify-between selection:bg-[#D4FF00] selection:text-[#0a0a0a] relative overflow-hidden">
+    <div className="min-h-screen w-full bg-[#030303] text-[#FAF9F6] font-sans flex flex-col justify-between selection:bg-[#BFDD25] selection:text-[#030303] relative overflow-hidden">
       
       {/* 1. AUTHENTIC TONALZONE NAVBAR */}
       <Navbar />
@@ -147,13 +147,13 @@ function LoginContent() {
 
           {/* Feedback Messages */}
           {errorMessage && (
-            <div className="w-full mb-5 p-3.5 bg-[#161616] text-red-400 text-xs font-sans text-left border-l-2 border-red-500">
+            <div className="w-full mb-5 p-3.5 bg-[#050505] text-red-400 text-xs font-sans text-left border-l-2 border-red-500">
               {errorMessage}
             </div>
           )}
 
           {successMessage && (
-            <div className="w-full mb-5 p-3.5 bg-[#161616] text-[#D4FF00] text-xs font-mono text-left border-l-2 border-[#D4FF00]">
+            <div className="w-full mb-5 p-3.5 bg-[#050505] text-[#BFDD25] text-xs font-mono text-left border-l-2 border-[#BFDD25]">
               {successMessage}
             </div>
           )}
@@ -163,7 +163,7 @@ function LoginContent() {
             type="button"
             onClick={handleGoogleAuth}
             disabled={isSubmitting}
-            className="w-full bg-[#161616] hover:bg-[#202020] active:scale-[0.99] text-white py-3.5 px-4 text-xs font-mono font-semibold uppercase tracking-wider flex items-center justify-center gap-3 transition-colors cursor-pointer mb-5 disabled:opacity-50"
+            className="w-full bg-[#050505] hover:bg-[#050505] active:scale-[0.99] text-white py-3.5 px-4 text-xs font-mono font-semibold uppercase tracking-wider flex items-center justify-center gap-3 transition-colors cursor-pointer mb-5 disabled:opacity-50"
           >
             <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17Z" />
@@ -176,9 +176,9 @@ function LoginContent() {
 
           {/* Minimal Divider */}
           <div className="w-full flex items-center gap-3 mb-5">
-            <div className="flex-1 h-px bg-[#1f1f1f]" />
+            <div className="flex-1 h-px bg-[#050505]" />
             <span className="text-[10px] font-mono text-[#555] uppercase tracking-widest">atau</span>
-            <div className="flex-1 h-px bg-[#1f1f1f]" />
+            <div className="flex-1 h-px bg-[#050505]" />
           </div>
 
           {/* LOGIN FORM STACK */}
@@ -189,7 +189,7 @@ function LoginContent() {
               placeholder="Email"
               value={loginEmail}
               onChange={(e) => setLoginEmail(e.target.value)}
-              className="w-full bg-[#161616] hover:bg-[#1a1a1a] focus:bg-[#202020] text-white text-sm px-4.5 py-4 outline-none placeholder:text-[#555] transition-colors rounded-none font-sans"
+              className="w-full bg-[#050505] hover:bg-[#050505] focus:bg-[#050505] text-white text-sm px-4.5 py-4 outline-none placeholder:text-[#555] transition-colors rounded-none font-sans"
             />
 
             <div className="relative w-full">
@@ -199,7 +199,7 @@ function LoginContent() {
                 placeholder="Password"
                 value={loginPassword}
                 onChange={(e) => setLoginPassword(e.target.value)}
-                className="w-full bg-[#161616] hover:bg-[#1a1a1a] focus:bg-[#202020] text-white text-sm px-4.5 py-4 pr-12 outline-none placeholder:text-[#555] transition-colors rounded-none font-sans"
+                className="w-full bg-[#050505] hover:bg-[#050505] focus:bg-[#050505] text-white text-sm px-4.5 py-4 pr-12 outline-none placeholder:text-[#555] transition-colors rounded-none font-sans"
               />
               <button
                 type="button"
@@ -232,7 +232,7 @@ function LoginContent() {
               </button>
               <Link
                 href="/signup"
-                className="text-xs font-sans text-[#888] hover:text-[#D4FF00] transition-colors cursor-pointer"
+                className="text-xs font-sans text-[#888] hover:text-[#BFDD25] transition-colors cursor-pointer"
               >
                 Belum punya akun? <span className="underline font-semibold">Daftar sekarang</span>
               </Link>
@@ -245,9 +245,9 @@ function LoginContent() {
             <button
               type="button"
               onClick={() => handleDemoLogin("buyer")}
-              className="text-[11px] font-mono text-[#888] hover:text-[#D4FF00] transition-colors cursor-pointer flex items-center gap-1"
+              className="text-[11px] font-mono text-[#888] hover:text-[#BFDD25] transition-colors cursor-pointer flex items-center gap-1"
             >
-              <Sparkles size={11} className="text-[#D4FF00]" />
+              <Sparkles size={11} className="text-[#BFDD25]" />
               <span>Buyer</span>
             </button>
             <span className="text-[#333]">/</span>
@@ -278,7 +278,7 @@ export default function LoginPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen w-full bg-[#0a0a0a] flex items-center justify-center font-mono text-xs uppercase tracking-widest text-[#888]">
+        <div className="min-h-screen w-full bg-[#030303] flex items-center justify-center font-mono text-xs uppercase tracking-widest text-[#888]">
           Memuat Autentikasi...
         </div>
       }

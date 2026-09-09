@@ -29,7 +29,7 @@ const WorldMap = () => {
   const [hoveredMarker, setHoveredMarker] = useState<string | null>(null);
 
   return (
-    <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-[#0d0d0d] overflow-hidden pointer-events-auto cursor-grab active:cursor-grabbing">
+    <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-[#030303] overflow-hidden pointer-events-auto cursor-grab active:cursor-grabbing">
       <ComposableMap 
         projectionConfig={{ scale: 160 }} 
         className="w-full h-full opacity-80"
@@ -73,7 +73,7 @@ const WorldMap = () => {
                 <circle 
                   r={8} 
                   fill="transparent"
-                  stroke="#D4FF00"
+                  stroke="#BFDD25"
                   strokeWidth={0.5}
                   className="animate-ping origin-center" 
                   style={{ animationDuration: '2s', opacity: 0.8 }}
@@ -82,9 +82,9 @@ const WorldMap = () => {
               {/* The solid center dot with a subtle glow */}
               <circle 
                 r={hoveredMarker === name ? 4 : 3} 
-                fill="#D4FF00" 
+                fill="#BFDD25" 
                 style={{ 
-                  filter: hoveredMarker === name ? 'drop-shadow(0px 0px 8px #D4FF00)' : 'drop-shadow(0px 0px 3px #D4FF00)',
+                  filter: hoveredMarker === name ? 'drop-shadow(0px 0px 8px #BFDD25)' : 'drop-shadow(0px 0px 3px #BFDD25)',
                   transition: 'all 0.3s ease'
                 }} 
               />
