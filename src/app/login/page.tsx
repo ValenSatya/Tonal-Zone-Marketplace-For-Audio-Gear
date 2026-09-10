@@ -119,11 +119,13 @@ function LoginContent() {
         };
 
     localStorage.setItem("tonalzone_user", JSON.stringify(userObj));
+    document.cookie = `tonalzone_session=${encodeURIComponent(JSON.stringify(userObj))}; path=/; max-age=604800; SameSite=Lax`;
     setSuccessMessage(`Masuk sebagai ${role === "seller" ? "Seller Store" : "Audiophile Member"}! Mengalihkan...`);
     window.dispatchEvent(new Event("userLoginChange"));
 
     setTimeout(() => {
-      router.push(role === "seller" ? "/seller" : redirectUrl);
+      const dest = redirectUrl && redirectUrl !== "/" ? redirectUrl : (role === "seller" ? "/seller" : "/");
+      router.push(dest);
     }, 350);
   };
 
