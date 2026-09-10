@@ -221,7 +221,29 @@ export default function SellerProductsPage() {
           }));
           setProducts(mapped);
         } else {
-          // RETAIL_MERCHANT mode: New store starts with 0 products unless seller added custom products
+          // RETAIL_MERCHANT mode: Fetch products from database via /api/seller/products
+          let userStored: any = null;
+          try {
+            const raw = localStorage.getItem("tonalzone_user");
+            if (raw) userStored = JSON.parse(raw);
+          } catch (e) {}
+
+          const queryParams = new URLSearchParams();
+          if (userStored?.email) queryParams.set("sellerEmail", userStored.email);
+          if (userStored?.storeId) queryParams.set("storeId", userStored.storeId);
+
+          try {
+            const res = await fetch(`/api/seller/products?${queryParams.toString()}`);
+            const data = await res.json();
+            if (data.success && Array.isArray(data.products) && data.products.length > 0) {
+              setProducts(data.products);
+              return;
+            }
+          } catch (err) {
+            console.warn("Failed to fetch /api/seller/products, checking fallback:", err);
+          }
+
+          // Fallback to local storage if API returned empty or offline
           const custom = localStorage.getItem("tonalzone_custom_products");
           if (custom) {
             try {
@@ -250,9 +272,15 @@ export default function SellerProductsPage() {
   };
 
   // Handle confirming claim into store
-  const handleConfirmClaim = (e: React.FormEvent) => {
+  const handleConfirmClaim = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedMasterProduct) return;
+
+    let userStored: any = null;
+    try {
+      const raw = localStorage.getItem("tonalzone_user");
+      if (raw) userStored = JSON.parse(raw);
+    } catch (e) {}
 
     const newClaimedItem: SellerProductItem = {
       id: `PRD-CLAIM-${Date.now()}`,
@@ -273,8 +301,30 @@ export default function SellerProductsPage() {
       ],
     };
 
-    const updated = [newClaimedItem, ...products];
-    setProducts(updated);
+    setProducts((prev) => [newClaimedItem, ...prev]);
+
+    // Persist to Supabase backend API
+    try {
+      await fetch("/api/seller/products", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: newClaimedItem.name,
+          brand: newClaimedItem.brand,
+          category: newClaimedItem.category,
+          priceUSD: newClaimedItem.priceUSD,
+          stock: newClaimedItem.stock,
+          images: newClaimedItem.images,
+          experienceLevel: selectedMasterProduct.experienceLevel || "INTERMEDIATE",
+          soundSignature: selectedMasterProduct.soundSignature || "NEUTRAL",
+          description: selectedMasterProduct.description || "",
+          sellerEmail: userStored?.email,
+          storeId: userStored?.storeId,
+        }),
+      });
+    } catch (err) {
+      console.warn("Failed to persist claim to Supabase API:", err);
+    }
 
     try {
       const existing = localStorage.getItem("tonalzone_custom_products");
@@ -290,7 +340,7 @@ export default function SellerProductsPage() {
     triggerAppNotification({
       type: "system",
       title: "Katalog Produk Berhasil Aktif",
-      message: `${selectedMasterProduct.name} (${selectedMasterProduct.brand}) berhasil ditambahkan ke etalase toko Anda. Listing langsung aktif tanpa antre QC.`,
+      message: `${selectedMasterProduct.name} (${selectedMasterProduct.brand}) berhasil ditambahkan ke etalase toko Anda. Listing langsung aktif di Supabase.`,
       actionLink: "/seller/products",
       meta: {
         productName: selectedMasterProduct.name,
@@ -1444,9 +1494,51 @@ export default function SellerProductsPage() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => {
-                    setProducts((prev) => prev.map((p) => (p.id === editProduct.id ? editProduct : p)));
+                  onClick={async () => {
+                    if (!editProduct) return;
+                    const targetId = editProduct.id;
+                    const updatedItem = { ...editProduct };
+
+                    // Optimistic update
+                    setProducts((prev) => prev.map((p) => (p.id === targetId ? updatedItem : p)));
                     setEditProduct(null);
+
+                    try {
+                      const res = await fetch(`/api/seller/products/${targetId}`, {
+                        method: "PATCH",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          priceUSD: updatedItem.priceUSD,
+                          stock: updatedItem.stock,
+                          images: updatedItem.images,
+                          status: updatedItem.status,
+                        }),
+                      });
+                      const data = await res.json();
+                      if (data.success) {
+                        triggerAppNotification({
+                          type: "system",
+                          title: isEn ? "Product Updated" : "Produk Berhasil Diperbarui",
+                          message: isEn ? `${updatedItem.name} updated in Supabase.` : `${updatedItem.name} berhasil diperbarui di database.`,
+                          actionLink: "/seller/products",
+                        });
+                      }
+                    } catch (e) {
+                      console.warn("Failed to patch product in Supabase:", e);
+                    }
+
+                    // Keep local storage in sync
+                    try {
+                      const raw = localStorage.getItem("tonalzone_custom_products");
+                      if (raw) {
+                        const list = JSON.parse(raw);
+                        const idx = list.findIndex((p: any) => p.id === targetId);
+                        if (idx !== -1) {
+                          list[idx] = updatedItem;
+                          localStorage.setItem("tonalzone_custom_products", JSON.stringify(list));
+                        }
+                      }
+                    } catch (e) {}
                   }}
                   className="px-3.5 py-1.5 bg-[#FAF9F6] text-black hover:bg-[#E5E5E5] text-xs font-bold font-sans rounded-lg transition-colors cursor-pointer"
                 >
@@ -1504,9 +1596,41 @@ export default function SellerProductsPage() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => {
-                    setProducts((prev) => prev.filter((p) => p.id !== deleteProduct.id));
+                  onClick={async () => {
+                    if (!deleteProduct) return;
+                    const targetId = deleteProduct.id;
+                    const prodName = deleteProduct.name;
+
+                    // Optimistic update
+                    setProducts((prev) => prev.filter((p) => p.id !== targetId));
                     setDeleteProduct(null);
+
+                    try {
+                      const res = await fetch(`/api/seller/products/${targetId}`, {
+                        method: "DELETE",
+                      });
+                      const data = await res.json();
+                      if (data.success) {
+                        triggerAppNotification({
+                          type: "system",
+                          title: isEn ? "Product Deleted" : "Produk Dihapus",
+                          message: isEn ? `${prodName} has been removed from store.` : `${prodName} telah berhasil dihapus dari etalase.`,
+                          actionLink: "/seller/products",
+                        });
+                      }
+                    } catch (e) {
+                      console.warn("Failed to delete product in Supabase:", e);
+                    }
+
+                    // Keep local storage in sync
+                    try {
+                      const raw = localStorage.getItem("tonalzone_custom_products");
+                      if (raw) {
+                        const list = JSON.parse(raw);
+                        const updated = list.filter((p: any) => p.id !== targetId);
+                        localStorage.setItem("tonalzone_custom_products", JSON.stringify(updated));
+                      }
+                    } catch (e) {}
                   }}
                   className="px-3.5 py-1.5 bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs font-sans rounded-lg transition-colors cursor-pointer shadow-sm"
                 >

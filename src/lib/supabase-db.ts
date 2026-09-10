@@ -361,6 +361,81 @@ export const productRepo = {
     return data;
   },
 
+  async findById(id: string): Promise<any | null> {
+    const { data, error } = await supabase
+      .from("Product")
+      .select(`
+        *,
+        brand:Brand(id, name),
+        category:Category(id, name),
+        store:Store(id, storeName, address)
+      `)
+      .eq("id", id)
+      .maybeSingle();
+
+    if (error || !data) return null;
+    return data;
+  },
+
+  async findByStoreId(storeId?: string | null): Promise<any[]> {
+    if (!storeId) return [];
+
+    const { data, error } = await supabase
+      .from("Product")
+      .select(`
+        *,
+        brand:Brand(id, name),
+        category:Category(id, name),
+        store:Store(id, storeName, address)
+      `)
+      .eq("storeId", storeId)
+      .order("createdAt", { ascending: false });
+
+    if (error || !data) {
+      console.error("[Supabase DB] findByStoreId error:", error?.message);
+      return [];
+    }
+    return data;
+  },
+
+  async update(id: string, updates: Partial<DbProduct>): Promise<any | null> {
+    const payload = {
+      ...updates,
+      updatedAt: new Date().toISOString(),
+    };
+
+    const { data, error } = await supabase
+      .from("Product")
+      .update(payload)
+      .eq("id", id)
+      .select(`
+        *,
+        brand:Brand(id, name),
+        category:Category(id, name),
+        store:Store(id, storeName, address)
+      `)
+      .single();
+
+    if (error) {
+      console.error("[Supabase DB] update product error:", error.message);
+      return null;
+    }
+    return data;
+  },
+
+  async delete(id: string): Promise<boolean> {
+    const { error } = await supabase
+      .from("Product")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      console.error("[Supabase DB] delete product error:", error.message);
+      return false;
+    }
+    return true;
+  },
+
   async deleteMany() {
     await supabase.from("OrderItem").delete().neq("id", "0");
     await supabase.from("Product").delete().neq("id", "0");

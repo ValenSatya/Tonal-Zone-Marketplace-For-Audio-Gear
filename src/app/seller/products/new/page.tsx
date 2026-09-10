@@ -143,9 +143,17 @@ export default function AddNewProductPage() {
     setVariants(variants.map((v) => (v.id === varId ? { ...v, [field]: value } : v)));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+
+    let userStored: any = null;
+    try {
+      const raw = localStorage.getItem("tonalzone_user");
+      if (raw) userStored = JSON.parse(raw);
+    } catch (e) {}
+
+    const imgList = productImages.length > 0 ? productImages : ["/model-iem-untuk-hero.webp"];
 
     const newProd = {
       id: `PRD-NEW-${Date.now()}`,
@@ -158,14 +166,42 @@ export default function AddNewProductPage() {
       condition: formData.condition,
       status: "APPROVED" as const,
       createdAt: new Date().toISOString().split("T")[0],
-      images: productImages.length > 0 ? productImages : ["/model-iem-untuk-hero.webp"],
-      image: productImages.length > 0 ? productImages[0] : "/model-iem-untuk-hero.webp",
+      images: imgList,
+      image: imgList[0],
       variants: variants.length > 0 ? variants : [
         { id: `var-1-${Date.now()}`, name: "Standard 3.5mm SE", priceUSD: formData.priceUSD, stock: Math.ceil(formData.stock / 2), sku: `${formData.sku}-35` },
         { id: `var-2-${Date.now()}`, name: "Balanced 4.4mm Pentaconn", priceUSD: formData.priceUSD, stock: Math.floor(formData.stock / 2), sku: `${formData.sku}-44` },
       ],
     };
 
+    // 1. Persist directly to Supabase via Backend API
+    try {
+      const res = await fetch("/api/seller/products", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: formData.name,
+          brand: formData.brand,
+          category: formData.category,
+          priceUSD: formData.priceUSD,
+          stock: formData.stock,
+          description: formData.description || `${formData.driverType || "Audiophile Driver"} • ${formData.impedance || "16Ω"}`,
+          images: imgList,
+          experienceLevel: "INTERMEDIATE",
+          soundSignature: "NEUTRAL",
+          sellerEmail: userStored?.email,
+          storeId: userStored?.storeId,
+        }),
+      });
+      const data = await res.json();
+      if (data.product?.id) {
+        newProd.id = data.product.id;
+      }
+    } catch (err) {
+      console.warn("Failed to persist new product via /api/seller/products:", err);
+    }
+
+    // 2. Keep local storage fallback in sync
     try {
       const existing = localStorage.getItem("tonalzone_custom_products");
       const list = existing ? JSON.parse(existing) : [];
@@ -174,13 +210,11 @@ export default function AddNewProductPage() {
       window.dispatchEvent(new Event("storage"));
     } catch (err) {}
 
+    setIsSubmitting(false);
+    setSuccessBanner(true);
     setTimeout(() => {
-      setIsSubmitting(false);
-      setSuccessBanner(true);
-      setTimeout(() => {
-        router.push("/seller/products");
-      }, 1200);
-    }, 600);
+      router.push("/seller/products");
+    }, 1000);
   };
 
   const handleCategoryChange = (cat: string) => {

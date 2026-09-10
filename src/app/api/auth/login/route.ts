@@ -37,6 +37,8 @@ export async function POST(request: Request) {
       role: dbUser?.role || (isSeller ? "SELLER" : "BUYER"),
       isSeller,
       sellerStatus: storeStatus,
+      storeId: dbUser?.store?.id || null,
+      storeName: dbUser?.store?.storeName || null,
       tuning: dbUser?.tuningPreference || "Reference / Neutral",
       experience: "Intermediate / Audiophile",
       createdAt: dbUser?.createdAt || new Date().toISOString(),
