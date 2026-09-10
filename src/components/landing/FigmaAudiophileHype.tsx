@@ -11,160 +11,164 @@ export default function FigmaAudiophileHype() {
   const { formatPrice } = useLocation();
 
   useEffect(() => {
-    async function loadDusk() {
-      const p = await fetchProductByIdFromDb("prod-dusk");
+    async function loadProduct() {
+      const p = await fetchProductByIdFromDb("prod-sparxie");
       if (p) setProduct(p);
     }
-    loadDusk();
+    loadProduct();
   }, []);
 
-  const duskId = product?.id || "prod-dusk";
-  const duskPrice = product ? formatPrice(product.price) : "RP 6.444.360,11";
-  const duskDriver = product?.driverType || "2DD+2BA+2Planar";
-  const duskMaterial = product?.material || "3D-Printed Medical Resin";
+  const sparxieId = product?.id || "prod-sparxie";
+  const sparxiePrice = product ? formatPrice(product.price) : "$89.99";
+  const sparxieDriver = product?.driverType || "10mm Wood Dome Dynamic Driver";
+  const sparxieMaterial = product?.material || "Sparkle Sculpted Housing + Acrylic Stand";
 
   return (
-    <section className="w-full bg-[#030303] py-32 lg:py-40">
+    <section id="collab" className="w-full bg-[#030303] py-32 lg:py-40 scroll-mt-20">
       <div className="w-full max-w-[1500px] mx-auto px-6 sm:px-10 lg:px-16">
-        {/* Main 2-Column Grid matching Figma: Left Container (471px) + Right Container (665px) */}
+        {/* Main 2-Column Grid: Left Container + Right Container */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
-          {/* Left Column (471px on 1280px canvas -> 5-6 cols) */}
+          {/* Left Column */}
           <div className="lg:col-span-5 flex flex-col">
             {/* Vertical Accent Border with Tag + Title + Price */}
             <div className="border-l-2 border-[#BFDD25] pl-6 mb-8 flex flex-col items-start">
-              {/* Heading 3: "HYPE FOR AUDIOPHILE" - General Sans */}
+              {/* Heading 3: "OFFICIAL COLLABORATION" */}
               <span className="font-sans font-medium text-[12px] leading-[14px] tracking-[4.8px] text-[#c4c7c8] uppercase mb-4 block">
-                HYPE FOR AUDIOPHILE
+                HONKAI: STAR RAIL × MOONDROP
               </span>
 
-              {/* Heading 2: "MOONDROP X CRINACLE DUSK" - General Sans Bold */}
-              <h2 className="font-sans font-bold text-4xl sm:text-5xl lg:text-[64px] leading-[58px] tracking-[-3.2px] text-[#f0f0f0] mb-6">
-                MOONDROP<br />X<br />CRINACLE DUSK
+              {/* Heading 2: "SPARXIE RT-ADAPTIVE ANC TWS" */}
+              <h2 className="font-sans font-bold text-4xl sm:text-5xl lg:text-[56px] leading-[54px] tracking-[-2.5px] text-[#f0f0f0] mb-6">
+                SPARXIE<br />RT-ADAPTIVE<br />ANC MINI TWS
               </h2>
 
-              {/* Price Box: Rectangle 7 (w: 317, h: 59, fill: #e5e2e1, stroke: #6b7280) - General Sans */}
-              <div className="w-full max-w-[317px] h-[59px] bg-[#e5e2e1] border border-[#6b7280] flex items-center justify-center px-6">
+              {/* Price Box */}
+              <div className="w-full max-w-[317px] h-[59px] bg-[#e5e2e1] border border-[#6b7280] flex items-center justify-center px-6 shadow-sm">
                 <span className="font-sans font-bold text-[16px] leading-[14px] tracking-[4.8px] text-black uppercase">
-                  {duskPrice}
+                  {sparxiePrice}
                 </span>
               </div>
             </div>
 
-            {/* Paragraph Text 1: Drivers Headline - General Sans */}
+            {/* Paragraph Text 1: Drivers Headline */}
             <div className="mb-6">
-              <p className="font-sans font-normal text-base sm:text-[20px] leading-[33px] text-[#c4c7c8]">
+              <p className="font-sans font-normal text-base sm:text-[19px] leading-[30px] text-[#c4c7c8]">
                 {product?.driverType
-                  ? `${product.driverType} • Triplicate Hybrid Three-Way Frequency Crossover`
-                  : "Two Dynamic Drivers + Two Balanced Armatures + Two Planar Drivers + Triplicate Hybrid Three-Way Frequency Crossover"}
+                  ? `${product.driverType} • Bluetooth 6.0 LHDC-V`
+                  : "10mm Wide-Band Wood Dome Dynamic Driver • Bluetooth 6.0 LHDC-V Low-Latency Hi-Fi"}
               </p>
             </div>
 
-            {/* Paragraph Text 2: Tuning Description - General Sans */}
+            {/* Paragraph Text 2: Tuning Description */}
             <div className="mb-8">
-              <p className="font-sans font-normal text-sm sm:text-[18px] leading-[33px] text-[#c4c7c8] text-justify">
-                {product?.description || "Building on Blessing 3’s split-composite physical frequency separation framework, DUSK replaces the balanced armature treble driver with low-distortion, smooth-response planar treble driver and further optimizes the treble timbre through collaborative tuning, resulting in more natural treble definition."}
+              <p className="font-sans font-normal text-sm sm:text-[17px] leading-[30px] text-[#a1a1aa] text-justify">
+                {product?.description ||
+                  "Kolaborasi resmi HoYoverse Honkai: Star Rail bersama Moondrop menghadirkan TWS audiophile edisi karakter Sparkle. Ditenagai chip cerdas 22nm Moondrop TWS-2 dengan RT-Adaptive ANC, driver dinamis wood-dome 10mm bersuspensi redaman impedansi variabel, mode latensi rendah 60ms, DSP parametrik EQ 10-band, serta suara pemandu eksklusif karakter Sparkle."}
               </p>
             </div>
 
-            {/* Horizontal Specs Bar: DRIVER & MATERIAL - General Sans */}
+            {/* Horizontal Specs Bar: DRIVER & CONNECTIVITY / MATERIAL */}
             <div className="grid grid-cols-2 gap-6 pt-6 border-t border-[#444748] mb-8">
               <div>
                 <span className="font-sans font-medium text-[12px] leading-[14px] tracking-[1.2px] text-[#BFDD25] uppercase block mb-1">
                   DRIVER
                 </span>
                 <span
-                  className="font-sans font-medium text-base sm:text-[20px] leading-[28px] text-white block line-clamp-2"
-                  title={duskDriver}
+                  className="font-sans font-medium text-sm sm:text-base leading-[24px] text-white block line-clamp-2"
+                  title={sparxieDriver}
                 >
-                  {duskDriver}
+                  {sparxieDriver}
                 </span>
               </div>
 
               <div>
                 <span className="font-sans font-medium text-[12px] leading-[14px] tracking-[1.2px] text-[#BFDD25] uppercase block mb-1">
-                  MATERIAL
+                  EDISI & MATERIAL
                 </span>
                 <span
-                  className="font-sans font-medium text-base sm:text-[20px] leading-[28px] text-white block line-clamp-2"
-                  title={duskMaterial}
+                  className="font-sans font-medium text-sm sm:text-base leading-[24px] text-white block line-clamp-2"
+                  title={sparxieMaterial}
                 >
-                  {duskMaterial}
+                  {sparxieMaterial}
                 </span>
               </div>
             </div>
 
-            {/* Action Buttons: SHOP NOW & SQUIGLINK GRAPH */}
+            {/* Action Buttons: SHOP NOW & OFFICIAL STORE */}
             <div className="flex flex-wrap items-center gap-4">
               <Link
-                href={`/product/${duskId}`}
+                href={`/product/${sparxieId}`}
                 className="w-[176px] h-[50px] bg-[#d9d9d9] hover:bg-[#BFDD25] transition-colors flex items-center justify-center cursor-pointer shadow-md"
               >
                 <span className="font-sans font-bold text-[12px] leading-[13px] tracking-[2.2px] text-[#131313] uppercase">
                   SHOP NOW
                 </span>
               </Link>
-              {product?.squiglinkUrl && (
-                <a
-                  href={product.squiglinkUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="h-[50px] px-5 border border-[#444748] hover:border-[#BFDD25] bg-[#050505] text-[#c4c7c8] hover:text-white transition-colors flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  <span className="font-mono text-[11px] uppercase tracking-wider">TONAL GRAPH ↗</span>
-                </a>
-              )}
+              <a
+                href={product?.squiglinkUrl || "https://shenzhenaudio.com/products/honkai-star-rail-x-moondrop-sparxie-rt-adaptive-anc-mini-hi-fi-tws"}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="h-[50px] px-5 border border-[#444748] hover:border-[#BFDD25] bg-[#050505] text-[#c4c7c8] hover:text-white transition-colors flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <span className="font-mono text-[11px] uppercase tracking-wider">OFFICIAL PAGE ↗</span>
+              </a>
             </div>
           </div>
 
-          {/* Right Column (665px on 1280px canvas -> 7 cols) */}
+          {/* Right Column */}
           <div className="lg:col-span-7 flex flex-col gap-6">
-            {/* Top Blueprint Card (w: 665, h: 374, stroke: #444748) */}
-            <div className="relative w-full aspect-[16/10] bg-[#050505] border border-[#444748] overflow-hidden group">
+            {/* Top Showcase Banner Card */}
+            <div className="relative w-full aspect-[16/10] bg-[#050505] border border-[#333333] overflow-hidden group rounded-sm">
               <Image
-                src="/figma/dusk-blueprint.png"
-                alt="Visual Blueprint 0.1A"
+                src="https://cdn.shopify.com/s/files/1/0013/3896/6076/files/1_588ae6a9-9f9c-4160-8013-ec97beac8304.jpg?v=1788923488"
+                alt="HONKAI: STAR RAIL × MOONDROP Sparxie TWS"
                 fill
                 sizes="(max-width: 1024px) 100vw, 665px"
                 className="object-cover group-hover:scale-105 transition-transform duration-700"
+                priority
               />
 
-              {/* Tag: "VISUAL BLUEPRINT 0.1A" - General Sans */}
-              <div className="absolute bottom-4 left-4 bg-black/80 backdrop-blur-sm border border-[#444748] px-4 py-2">
-                <span className="font-sans font-medium text-[10px] leading-[15px] tracking-[1px] text-white uppercase">
-                  VISUAL BLUEPRINT 0.1A
+              {/* Badge: "HONKAI: STAR RAIL SPECIAL COLLABORATION" */}
+              <div className="absolute bottom-4 left-4 bg-black/85 backdrop-blur-md border border-[#444748] px-4 py-2">
+                <span className="font-sans font-medium text-[11px] leading-[15px] tracking-[1.5px] text-[#BFDD25] uppercase font-mono">
+                  SPARKLE COLLABORATION 0.1A
                 </span>
               </div>
             </div>
 
-            {/* Bottom 2 Split Cards (w: 325 each) */}
+            {/* Bottom 2 Split Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              {/* Left Photo Card (w: 325, h: 325, bg: #201f1f, stroke: #444748) */}
-              <div className="relative aspect-square w-full bg-[#050505] border border-[#444748] overflow-hidden flex items-center justify-center p-6 group">
-                <div className="relative w-[275px] h-[275px]">
-                  <Image
-                    src="/figma/dusk-iem.png"
-                    alt="Moondrop Dusk Shell"
-                    fill
-                    sizes="(max-width: 640px) 100vw, 325px"
-                    className="object-contain group-hover:scale-105 transition-transform duration-700"
-                  />
-                </div>
+              {/* Left Photo Card */}
+              <div className="relative aspect-square w-full bg-[#050505] border border-[#333333] overflow-hidden flex items-center justify-center p-4 group rounded-sm">
+                <Image
+                  src="https://cdn.shopify.com/s/files/1/0013/3896/6076/files/2_1_7b581902-261e-4cca-bd6b-46748f5aeced.jpg?v=1788923488"
+                  alt="Moondrop Sparxie Case & Earbuds"
+                  fill
+                  sizes="(max-width: 640px) 100vw, 325px"
+                  className="object-cover group-hover:scale-105 transition-transform duration-700"
+                />
               </div>
 
-              {/* Right Detail Card linking to /product/prod-dusk */}
+              {/* Right Detail Card linking to /product/prod-sparxie */}
               <Link
-                href={`/product/${duskId}`}
-                className="relative aspect-square w-full bg-[#050505] border border-[#444748] hover:border-[#BFDD25] p-8 flex flex-col justify-between group transition-colors cursor-pointer"
+                href={`/product/${sparxieId}`}
+                className="relative aspect-square w-full bg-[#080808] border border-[#333333] hover:border-[#BFDD25] p-8 flex flex-col justify-between group transition-colors cursor-pointer rounded-sm"
               >
                 <div>
-                  <span className="font-sans font-medium text-[12px] leading-[15px] tracking-[3.6px] text-[#c4c7c8] group-hover:text-white uppercase block leading-relaxed">
-                    SEE DETAIL SPESIFICATION
+                  <span className="text-[10px] font-mono text-[#BFDD25] uppercase tracking-widest block mb-2">
+                    Edisi Spesial Sparkle
                   </span>
+                  <span className="font-sans font-semibold text-[14px] leading-[20px] tracking-[2px] text-white group-hover:text-[#BFDD25] uppercase block">
+                    LIHAT SPESIFIKASI LENGKAP & BUNDLE AKSESORIS
+                  </span>
+                  <p className="text-xs text-[#8E8E93] mt-3 leading-relaxed">
+                    Termasuk stand akrilik Sparkle, pendant, custom protective case, lanyard, dan voice prompt eksklusif.
+                  </p>
                 </div>
 
-                <div className="flex items-center justify-between text-[#c4c7c8] group-hover:text-[#BFDD25] transition-colors">
-                  <span className="font-sans text-xs uppercase tracking-widest">Detail Produk</span>
-                  <span>→</span>
+                <div className="flex items-center justify-between text-[#c4c7c8] group-hover:text-[#BFDD25] transition-colors pt-4 border-t border-[#222222]">
+                  <span className="font-sans text-xs uppercase tracking-widest font-semibold">Buka Halaman Produk</span>
+                  <span className="text-lg">→</span>
                 </div>
               </Link>
             </div>

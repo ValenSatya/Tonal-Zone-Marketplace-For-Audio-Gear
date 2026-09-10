@@ -70,6 +70,10 @@ async function runComprehensiveVerification() {
     { input: "wf-1000xm5", expectedId: "prod-wf1000xm5", expectedNamePart: "WF-1000XM5" },
     { input: "airpods-pro-2", expectedId: "prod-airpods-pro2", expectedNamePart: "AirPods Pro 2" },
     { input: "galaxy-buds2-pro", expectedId: "prod-galaxy-buds2-pro", expectedNamePart: "Galaxy Buds2 Pro" },
+    { input: "prod-sparxie", expectedId: "prod-sparxie", expectedNamePart: "Sparxie" },
+    { input: "sparxie", expectedId: "prod-sparxie", expectedNamePart: "Sparxie" },
+    { input: "sparkle", expectedId: "prod-sparxie", expectedNamePart: "Sparxie" },
+    { input: "honkai-sparxie", expectedId: "prod-sparxie", expectedNamePart: "Sparxie" },
   ];
 
   for (const { input, expectedId, expectedNamePart } of aliasTests) {
@@ -116,6 +120,18 @@ async function runComprehensiveVerification() {
     `${dusk?.images?.length} images`
   );
 
+  const sparxie = await fetchProductByIdFromDb("prod-sparxie");
+  assert(
+    !!sparxie?.driverType?.includes("Wood Dome"),
+    "Honkai Star Rail x Moondrop Sparxie has Wood Dome dynamic driver specs",
+    sparxie?.driverType
+  );
+  assert(
+    Array.isArray(sparxie?.images) && sparxie.images.length >= 5,
+    "Moondrop Sparxie has rich multi-image gallery (7 authentic photos)",
+    `${sparxie?.images?.length} images`
+  );
+
   // ----------------------------------------------------
   // 5. AUDIOPHILE SEARCH ENGINE VERIFICATION
   // ----------------------------------------------------
@@ -130,6 +146,9 @@ async function runComprehensiveVerification() {
     { query: "al-mg", expectedIds: ["prod-chu3"], minCount: 1 },
     { query: "mimisbrunnr", expectedIds: ["prod-mimisbrunnr"], minCount: 1 },
     { query: "sonion", expectedIds: ["prod-mimisbrunnr"], minCount: 1 },
+    { query: "sparxie", expectedIds: ["prod-sparxie"], minCount: 1 },
+    { query: "sparkle", expectedIds: ["prod-sparxie"], minCount: 1 },
+    { query: "wood dome", expectedIds: ["prod-sparxie"], minCount: 1 },
   ];
 
   for (const { query, expectedIds, minCount } of searchQueries) {
