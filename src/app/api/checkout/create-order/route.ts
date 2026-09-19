@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { splitOrderForCheckout, createMidtransSnapTransaction, CartItemCheckoutInput, PaymentMethod } from "@/lib/escrow";
-import { orderRepo } from "@/lib/supabase-db";
+import { orderRepo, productRepo } from "@/lib/supabase-db";
 
 export async function POST(request: Request) {
   try {
@@ -33,6 +33,43 @@ export async function POST(request: Request) {
       );
     }
 
+    // --- REAL-TIME INVENTORY & STOCK VALIDATION ---
+    for (const item of cartItems) {
+      const pId = item.productId || item.id;
+      const requestedQty = Number(item.quantity) || 1;
+      const availableStock = await productRepo.getStock(pId);
+
+      if (availableStock < requestedQty) {
+        const prodName = item.name || item.productName || "Produk pilihan";
+        return NextResponse.json(
+          {
+            success: false,
+            error: `Stok produk "${prodName}" tidak mencukupi. Tersedia: ${availableStock} unit, diminta: ${requestedQty} unit.`,
+          },
+          { status: 400 }
+        );
+      }
+    }
+
+    // --- ATOMIC STOCK DEDUCTION WITH ROLLBACK ---
+    const deductedItems: { productId: string; quantity: number }[] = [];
+    for (const item of cartItems) {
+      const pId = item.productId || item.id;
+      const requestedQty = Number(item.quantity) || 1;
+      const deductRes = await productRepo.deductStock(pId, requestedQty);
+      if (!deductRes.success) {
+        // Rollback all items previously deducted in this transaction
+        for (const prev of deductedItems) {
+          await productRepo.restoreStock(prev.productId, prev.quantity);
+        }
+        return NextResponse.json(
+          { success: false, error: deductRes.error || "Gagal mengalokasikan stok barang." },
+          { status: 400 }
+        );
+      }
+      deductedItems.push({ productId: pId, quantity: requestedQty });
+    }
+
     // 1. Split order by Store & compute shipping + platform escrow fees
     const parentOrder = splitOrderForCheckout({
       buyerId: buyerId || `usr-${Date.now()}`,
@@ -61,6 +98,7 @@ export async function POST(request: Request) {
     for (const sub of parentOrder.subOrders) {
       await orderRepo.create({
         id: sub.id,
+        parentOrderId: parentOrder.id,
         buyerId: parentOrder.buyerId,
         buyerName: parentOrder.buyerName,
         buyerEmail: parentOrder.buyerEmail,
@@ -84,10 +122,15 @@ export async function POST(request: Request) {
           itemTotal: it.itemTotalUSD,
         })),
         itemsSubtotal: sub.itemsSubtotalUSD,
-        shippingFee: sub.shippingFeeUSD,
-        insuranceFee: sub.insuranceFeeUSD,
-        totalAmount: sub.grossAmountUSD,
-        courierCode: sub.courierCode,
+        shippingFee: Number(body.shippingFee) >= 0 ? Number(body.shippingFee) : sub.shippingFeeUSD,
+        insuranceFee: body.isInsured === false ? 0 : (Number(body.insuranceFee) || sub.insuranceFeeUSD),
+        isInsured: body.isInsured !== false && (Boolean(body.isInsured) || sub.insuranceFeeUSD > 0),
+        platformFee: Number(body.platformFee) || 0.1,
+        platformCommissionRate: 0.03,
+        platformCommissionFee: Math.round(sub.itemsSubtotalUSD * 0.03 * 100) / 100,
+        netSellerPayout: Math.round((sub.grossAmountUSD - (sub.itemsSubtotalUSD * 0.03)) * 100) / 100,
+        totalAmount: isDemoPromo ? 0.0000625 : Math.max(0, sub.itemsSubtotalUSD + (Number(body.shippingFee) >= 0 ? Number(body.shippingFee) : sub.shippingFeeUSD) + (body.isInsured === false ? 0 : (Number(body.insuranceFee) || sub.insuranceFeeUSD)) + (Number(body.platformFee) || 0.1)),
+        courierCode: body.courierName || body.courierCode || sub.courierCode || "JNE Express",
         serviceTier: sub.serviceTier,
         paymentMethod: parentOrder.paymentMethod,
         paymentStatus: "PENDING",
@@ -104,7 +147,8 @@ export async function POST(request: Request) {
       success: true,
       message: `Order created successfully! Split into ${parentOrder.subOrders.length} merchant package(s).`,
       order: parentOrder,
-      orderId: parentOrder.subOrders[0]?.id || parentOrder.id,
+      orderId: parentOrder.id,
+      subOrderId: parentOrder.subOrders[0]?.id || parentOrder.id,
       snapToken: snapResult.snapToken,
       redirectUrl: snapResult.redirectUrl,
     });

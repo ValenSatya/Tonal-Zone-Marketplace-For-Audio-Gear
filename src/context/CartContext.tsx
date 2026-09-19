@@ -18,6 +18,17 @@ export interface CartItem {
 
 interface CartContextType {
   items: CartItem[];
+  selectedItemIds: string[];
+  selectedItems: CartItem[];
+  isAllSelected: boolean;
+  selectedCount: number;
+  selectedSubtotal: number;
+  toggleSelectItem: (id: string) => void;
+  selectAllItems: () => void;
+  unselectAllItems: () => void;
+  toggleSelectAll: () => void;
+  removeSelectedItems: () => void;
+  clearSelectedFromCart: () => void;
   addToCart: (item: Omit<CartItem, "quantity">, quantity?: number) => void;
   removeFromCart: (id: string) => void;
   updateQuantity: (id: string, delta: number) => void;
@@ -33,18 +44,30 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 const CART_STORAGE_KEY = "tonalzone_cart";
+const SELECTED_STORAGE_KEY = "tonalzone_cart_selected";
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
+  const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // Load cart from localStorage on mount
+  // Load cart and selection from localStorage on mount
   useEffect(() => {
     try {
       const stored = localStorage.getItem(CART_STORAGE_KEY);
-      if (stored) {
-        setItems(JSON.parse(stored));
+      const parsedItems: CartItem[] = stored ? JSON.parse(stored) : [];
+      setItems(parsedItems);
+
+      const storedSelected = localStorage.getItem(SELECTED_STORAGE_KEY);
+      if (storedSelected) {
+        const parsedSelected: string[] = JSON.parse(storedSelected);
+        // Only keep selections that actually exist in items
+        const validSelected = parsedSelected.filter((id) => parsedItems.some((i) => i.id === id));
+        setSelectedItemIds(validSelected);
+      } else {
+        // Default: select all items
+        setSelectedItemIds(parsedItems.map((i) => i.id));
       }
     } catch (e) {
       console.error("Failed to load cart from storage", e);
@@ -63,6 +86,16 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   }, [items, isLoaded]);
 
+  // Save selection to localStorage whenever selectedItemIds change
+  useEffect(() => {
+    if (!isLoaded) return;
+    try {
+      localStorage.setItem(SELECTED_STORAGE_KEY, JSON.stringify(selectedItemIds));
+    } catch (e) {
+      console.error("Failed to save selection to storage", e);
+    }
+  }, [selectedItemIds, isLoaded]);
+
   const addToCart = useCallback((itemData: Omit<CartItem, "quantity">, quantity = 1) => {
     setItems((prev) => {
       const existingIndex = prev.findIndex((i) => i.id === itemData.id);
@@ -77,11 +110,50 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         return [...prev, { ...itemData, quantity }];
       }
     });
+    // Auto-select the newly added item
+    setSelectedItemIds((prev) => (prev.includes(itemData.id) ? prev : [...prev, itemData.id]));
   }, []);
 
   const removeFromCart = useCallback((id: string) => {
     setItems((prev) => prev.filter((item) => item.id !== id));
+    setSelectedItemIds((prev) => prev.filter((itemId) => itemId !== id));
   }, []);
+
+  const toggleSelectItem = useCallback((id: string) => {
+    setSelectedItemIds((prev) =>
+      prev.includes(id) ? prev.filter((itemId) => itemId !== id) : [...prev, id]
+    );
+  }, []);
+
+  const selectAllItems = useCallback(() => {
+    setSelectedItemIds(items.map((i) => i.id));
+  }, [items]);
+
+  const unselectAllItems = useCallback(() => {
+    setSelectedItemIds([]);
+  }, []);
+
+  const isAllSelected = useMemo(() => {
+    return items.length > 0 && items.every((i) => selectedItemIds.includes(i.id));
+  }, [items, selectedItemIds]);
+
+  const toggleSelectAll = useCallback(() => {
+    if (isAllSelected) {
+      setSelectedItemIds([]);
+    } else {
+      setSelectedItemIds(items.map((i) => i.id));
+    }
+  }, [isAllSelected, items]);
+
+  const removeSelectedItems = useCallback(() => {
+    setItems((prev) => prev.filter((item) => !selectedItemIds.includes(item.id)));
+    setSelectedItemIds([]);
+  }, [selectedItemIds]);
+
+  const clearSelectedFromCart = useCallback(() => {
+    setItems((prev) => prev.filter((item) => !selectedItemIds.includes(item.id)));
+    setSelectedItemIds([]);
+  }, [selectedItemIds]);
 
   const updateQuantity = useCallback((id: string, delta: number) => {
     setItems((prev) =>
@@ -99,7 +171,20 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const clearCart = useCallback(() => {
     setItems([]);
+    setSelectedItemIds([]);
   }, []);
+
+  const selectedItems = useMemo(() => {
+    return items.filter((i) => selectedItemIds.includes(i.id));
+  }, [items, selectedItemIds]);
+
+  const selectedCount = useMemo(() => {
+    return selectedItems.reduce((acc, item) => acc + item.quantity, 0);
+  }, [selectedItems]);
+
+  const selectedSubtotal = useMemo(() => {
+    return selectedItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
+  }, [selectedItems]);
 
   const totalCount = useMemo(() => {
     return items.reduce((acc, item) => acc + item.quantity, 0);
@@ -115,6 +200,17 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo(
     () => ({
       items,
+      selectedItemIds,
+      selectedItems,
+      isAllSelected,
+      selectedCount,
+      selectedSubtotal,
+      toggleSelectItem,
+      selectAllItems,
+      unselectAllItems,
+      toggleSelectAll,
+      removeSelectedItems,
+      clearSelectedFromCart,
       addToCart,
       removeFromCart,
       updateQuantity,
@@ -126,7 +222,29 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       openCart,
       closeCart,
     }),
-    [items, addToCart, removeFromCart, updateQuantity, clearCart, totalCount, subtotal, isCartOpen, openCart, closeCart]
+    [
+      items,
+      selectedItemIds,
+      selectedItems,
+      isAllSelected,
+      selectedCount,
+      selectedSubtotal,
+      toggleSelectItem,
+      selectAllItems,
+      unselectAllItems,
+      toggleSelectAll,
+      removeSelectedItems,
+      clearSelectedFromCart,
+      addToCart,
+      removeFromCart,
+      updateQuantity,
+      clearCart,
+      totalCount,
+      subtotal,
+      isCartOpen,
+      openCart,
+      closeCart,
+    ]
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

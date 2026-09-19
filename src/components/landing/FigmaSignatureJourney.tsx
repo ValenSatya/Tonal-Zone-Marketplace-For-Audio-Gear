@@ -70,7 +70,7 @@ export default function FigmaSignatureJourney() {
 
   return (
     <section className="w-full bg-[#030303] py-32 lg:py-40">
-      <div className="w-full max-w-[1500px] mx-auto px-6 sm:px-10 lg:px-16">
+      <div className="w-full max-w-[1360px] mx-auto px-5 sm:px-8 lg:px-12">
         {/* Section Title: "START YOUR JOURNEY HERE" - General Sans */}
         <div className="mb-16 lg:mb-20">
           <h2 className="font-sans font-semibold text-4xl sm:text-5xl text-white tracking-[2px] leading-none uppercase">

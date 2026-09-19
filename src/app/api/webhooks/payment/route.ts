@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { verifyMidtransSignature, MidtransWebhookPayload } from "@/lib/escrow";
+import { orderRepo } from "@/lib/supabase-db";
 
 export async function POST(request: Request) {
   try {
@@ -64,7 +65,12 @@ export async function POST(request: Request) {
       targetEscrowStatus = "REFUNDED_TO_BUYER";
     }
 
-    // 3. Return 200 OK acknowledgment to Midtrans
+    // 3. Persist Escrow State Transition to Database
+    if (targetEscrowStatus === "ESCROW_HOLDING") {
+      await orderRepo.markAsPaid(order_id);
+    }
+
+    // 4. Return 200 OK acknowledgment to Midtrans
     return NextResponse.json({
       status: "success",
       message: `Midtrans webhook processed. Order ${order_id} transitioned to ${targetEscrowStatus}.`,

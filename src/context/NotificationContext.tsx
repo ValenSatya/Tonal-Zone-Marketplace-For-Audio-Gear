@@ -4,10 +4,13 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 
 export interface NotificationItem {
   id: string;
+  recipientEmail?: string;
+  recipientRole?: "buyer" | "seller" | "admin" | "all";
+  storeId?: string;
   type: "order" | "chat" | "system" | "promo";
   title: string;
   message: string;
-  createdAt: number;
+  createdAt: number | string;
   unread: boolean;
   actionLink: string;
   meta?: {
@@ -21,21 +24,27 @@ export interface NotificationItem {
 interface NotificationContextType {
   notifications: NotificationItem[];
   unreadCount: number;
+  isLoading: boolean;
   addNotification: (
     item: Omit<NotificationItem, "id" | "createdAt" | "unread"> & {
       unread?: boolean;
+      recipientEmail?: string;
+      recipientRole?: "buyer" | "seller" | "admin" | "all";
+      storeId?: string;
     }
   ) => string;
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;
   deleteNotification: (id: string) => void;
   clearAllNotifications: () => void;
+  refreshNotifications: () => Promise<void>;
 }
 
 const STORAGE_KEY = "tonalzone_notifications";
 
-export const formatRelativeTime = (timestamp: number): string => {
-  const diff = Date.now() - timestamp;
+export const formatRelativeTime = (timestamp: number | string): string => {
+  const time = typeof timestamp === "string" ? new Date(timestamp).getTime() : timestamp;
+  const diff = Date.now() - (isNaN(time) ? Date.now() : time);
   const seconds = Math.floor(diff / 1000);
   if (seconds < 60) return "Baru saja";
   const minutes = Math.floor(seconds / 60);
@@ -45,122 +54,95 @@ export const formatRelativeTime = (timestamp: number): string => {
   const days = Math.floor(hours / 24);
   if (days === 1) return "Kemarin";
   if (days < 7) return `${days} hari lalu`;
-  return new Date(timestamp).toLocaleDateString("id-ID", {
+  return new Date(time).toLocaleDateString("id-ID", {
     day: "numeric",
     month: "short",
   });
 };
 
-const DEFAULT_NOTIFICATIONS: NotificationItem[] = [
-  {
-    id: "notif-init-1",
-    type: "order",
-    title: "Pesanan Sedang Dikirim",
-    message: "Pesanan #TZ-92841 (MOONDROP BLESSING 3) sedang dalam perjalanan menuju alamat Anda via JNE Express.",
-    createdAt: Date.now() - 1000 * 60 * 45, // 45 mins ago
-    unread: true,
-    actionLink: "/orders",
-    meta: {
-      orderId: "TZ-92841",
-      productName: "MOONDROP BLESSING 3 Hybrid",
-      storeName: "Moondrop Official",
-      image: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800",
-    },
-  },
-  {
-    id: "notif-init-2",
-    type: "chat",
-    title: "Pesan Baru dari Moondrop Official",
-    message: "Halo kak! Unit pesanan Anda sudah kami packing kayu dengan bubble tebal, resi sudah diupdate ya.",
-    createdAt: Date.now() - 1000 * 60 * 120, // 2 hours ago
-    unread: true,
-    actionLink: "/messages?seller=Moondrop%20Official",
-    meta: {
-      storeName: "Moondrop Official",
-    },
-  },
-  {
-    id: "notif-init-3",
-    type: "system",
-    title: "Proteksi Escrow Aktif",
-    message: "Selamat datang di TonalZone! Seluruh transaksi Anda terlindungi 100% oleh sistem Rekening Bersama Escrow.",
-    createdAt: Date.now() - 1000 * 60 * 60 * 24, // 1 day ago
-    unread: false,
-    actionLink: "/orders",
-  },
-];
-
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
 
 export function NotificationProvider({ children }: { children: React.ReactNode }) {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
-  const [isInitialized, setIsInitialized] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Load from localStorage on mount
+  // Fetch notifications from real backend API for current logged-in user
+  const refreshNotifications = useCallback(async () => {
+    try {
+      let email = "all";
+      let storeId: string | undefined = undefined;
+
+      if (typeof window !== "undefined") {
+        const storedUser = localStorage.getItem("tonalzone_user");
+        if (storedUser) {
+          try {
+            const u = JSON.parse(storedUser);
+            if (u?.email) email = u.email;
+            if (u?.store?.id || u?.storeId) storeId = u?.store?.id || u?.storeId;
+          } catch {}
+        }
+      }
+
+      const params = new URLSearchParams({ email });
+      if (storeId) params.set("storeId", storeId);
+
+      const res = await fetch(`/api/notifications?${params.toString()}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && Array.isArray(data.notifications)) {
+          setNotifications(data.notifications);
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(data.notifications));
+          return;
+        }
+      }
+    } catch (err) {
+      console.error("Failed to fetch live notifications from database:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  // Initial load
   useEffect(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
+        if (Array.isArray(parsed)) {
           setNotifications(parsed);
-          setIsInitialized(true);
-          return;
         }
       }
-      // Set defaults if empty
-      setNotifications(DEFAULT_NOTIFICATIONS);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_NOTIFICATIONS));
-    } catch (err) {
-      console.error("Failed to load notifications:", err);
-      setNotifications(DEFAULT_NOTIFICATIONS);
-    } finally {
-      setIsInitialized(true);
-    }
-  }, []);
+    } catch {}
 
-  // Sync state to localStorage whenever notifications change (after initialization)
-  useEffect(() => {
-    if (!isInitialized) return;
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(notifications));
-    } catch (err) {
-      console.error("Failed to persist notifications:", err);
-    }
-  }, [notifications, isInitialized]);
+    refreshNotifications();
+  }, [refreshNotifications]);
 
   // Listen for updates from external triggers or other tabs
   useEffect(() => {
     const handleExternalUpdate = () => {
-      try {
-        const saved = localStorage.getItem(STORAGE_KEY);
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed)) {
-            setNotifications((current) => {
-              if (current.length === parsed.length && current[0]?.id === parsed[0]?.id) {
-                return current;
-              }
-              return parsed;
-            });
-          }
-        }
-      } catch (err) {}
+      refreshNotifications();
     };
 
     window.addEventListener("tonalzone_notifications_external_trigger", handleExternalUpdate);
-    window.addEventListener("storage", handleExternalUpdate);
+    window.addEventListener("storage", (e) => {
+      if (e.key === "tonalzone_user" || e.key === STORAGE_KEY) {
+        refreshNotifications();
+      }
+    });
 
     return () => {
       window.removeEventListener("tonalzone_notifications_external_trigger", handleExternalUpdate);
       window.removeEventListener("storage", handleExternalUpdate);
     };
-  }, []);
+  }, [refreshNotifications]);
 
   const addNotification = useCallback(
     (
       item: Omit<NotificationItem, "id" | "createdAt" | "unread"> & {
         unread?: boolean;
+        recipientEmail?: string;
+        recipientRole?: "buyer" | "seller" | "admin" | "all";
+        storeId?: string;
       }
     ): string => {
       const id = `notif-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
@@ -171,7 +153,39 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
         ...item,
       };
 
+      // Optimistic state
       setNotifications((prev) => [newNotif, ...prev]);
+
+      // Fire asynchronous database persistence
+      let email = item.recipientEmail;
+      if (!email && typeof window !== "undefined") {
+        try {
+          const stored = localStorage.getItem("tonalzone_user");
+          if (stored) {
+            const u = JSON.parse(stored);
+            if (u?.email) email = u.email;
+          }
+        } catch {}
+      }
+
+      fetch("/api/notifications", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...item,
+          recipientEmail: email || "all",
+        }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data?.success && data?.notification) {
+            setNotifications((prev) =>
+              prev.map((n) => (n.id === id ? data.notification : n))
+            );
+          }
+        })
+        .catch((e) => console.error("Error creating notification in DB:", e));
+
       return id;
     },
     []
@@ -181,18 +195,67 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     setNotifications((prev) =>
       prev.map((n) => (n.id === id ? { ...n, unread: false } : n))
     );
+
+    fetch("/api/notifications", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "markAsRead", id }),
+    }).catch((e) => console.error("Error marking notification read in DB:", e));
   }, []);
 
   const markAllAsRead = useCallback(() => {
     setNotifications((prev) => prev.map((n) => ({ ...n, unread: false })));
+
+    let email = "all";
+    let storeId: string | undefined = undefined;
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem("tonalzone_user");
+        if (stored) {
+          const u = JSON.parse(stored);
+          if (u?.email) email = u.email;
+          if (u?.store?.id || u?.storeId) storeId = u?.store?.id || u?.storeId;
+        }
+      } catch {}
+    }
+
+    fetch("/api/notifications", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "markAllAsRead", email, storeId }),
+    }).catch((e) => console.error("Error marking all read in DB:", e));
   }, []);
 
   const deleteNotification = useCallback((id: string) => {
     setNotifications((prev) => prev.filter((n) => n.id !== id));
+
+    fetch(`/api/notifications?id=${encodeURIComponent(id)}&action=delete`, {
+      method: "DELETE",
+    }).catch((e) => console.error("Error deleting notification in DB:", e));
   }, []);
 
   const clearAllNotifications = useCallback(() => {
     setNotifications([]);
+
+    let email = "all";
+    let storeId: string | undefined = undefined;
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem("tonalzone_user");
+        if (stored) {
+          const u = JSON.parse(stored);
+          if (u?.email) email = u.email;
+          if (u?.store?.id || u?.storeId) storeId = u?.store?.id || u?.storeId;
+        }
+      } catch {}
+    }
+
+    const params = new URLSearchParams({ action: "clearAll", email });
+    if (storeId) params.set("storeId", storeId);
+
+    fetch(`/api/notifications?${params.toString()}`, {
+      method: "DELETE",
+    }).catch((e) => console.error("Error clearing notifications in DB:", e));
   }, []);
 
   const unreadCount = notifications.filter((n) => n.unread).length;
@@ -202,11 +265,13 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       value={{
         notifications,
         unreadCount,
+        isLoading,
         addNotification,
         markAsRead,
         markAllAsRead,
         deleteNotification,
         clearAllNotifications,
+        refreshNotifications,
       }}
     >
       {children}
@@ -222,26 +287,68 @@ export function useNotifications() {
   return context;
 }
 
-// Standalone global trigger helper (usable even without React context hook)
-export function triggerAppNotification(
+// Standalone global trigger helper (usable anywhere in the app)
+export async function triggerAppNotification(
   item: Omit<NotificationItem, "id" | "createdAt" | "unread"> & {
     unread?: boolean;
+    recipientEmail?: string;
+    recipientRole?: "buyer" | "seller" | "admin" | "all";
+    storeId?: string;
   }
-) {
-  if (typeof window === "undefined") return;
+): Promise<string> {
+  if (typeof window === "undefined") return "";
+
+  let email = item.recipientEmail;
+  if (!email) {
+    try {
+      const stored = localStorage.getItem("tonalzone_user");
+      if (stored) {
+        const u = JSON.parse(stored);
+        if (u?.email) email = u.email;
+      }
+    } catch {}
+  }
+  if (!email) email = "all";
+
+  try {
+    const res = await fetch("/api/notifications", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ...item,
+        recipientEmail: email,
+      }),
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      if (data.success && data.notification) {
+        window.dispatchEvent(
+          new CustomEvent("tonalzone_notifications_external_trigger", {
+            detail: data.notification,
+          })
+        );
+        return data.notification.id;
+      }
+    }
+  } catch (err) {
+    console.error("Error triggering notification to backend DB:", err);
+  }
+
+  // Fallback
+  const id = `notif-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     const list: NotificationItem[] = saved ? JSON.parse(saved) : [];
     const newNotif: NotificationItem = {
-      id: `notif-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      id,
       createdAt: Date.now(),
       unread: item.unread !== undefined ? item.unread : true,
+      recipientEmail: email,
       ...item,
     };
-    const updated = [newNotif, ...list];
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify([newNotif, ...list]));
     window.dispatchEvent(new Event("tonalzone_notifications_external_trigger"));
-  } catch (e) {
-    console.error("Error triggering app notification:", e);
-  }
+  } catch {}
+  return id;
 }

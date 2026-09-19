@@ -42,28 +42,18 @@ export async function GET(request: Request) {
       }
     }
 
-    // If still no storeId, fetch either the first available store or all products
+    // Scoped products by storeId (100% multi-tenant isolation)
     let rawProducts: any[] = [];
     if (storeId) {
       rawProducts = await productRepo.findByStoreId(storeId);
     } else {
-      // Fallback: get products from the main official store or latest merchant products
-      const { data: stores } = await supabase.from("Store").select("id").limit(1);
-      if (stores && stores.length > 0 && stores[0].id) {
-        storeId = String(stores[0].id);
+      // If no storeId from query or session, fall back to official Moondrop store
+      const moondropStore = await storeRepo.findById("store-moondrop-official");
+      if (moondropStore) {
+        storeId = moondropStore.id;
         rawProducts = await productRepo.findByStoreId(storeId);
       } else {
-        const { data } = await supabase
-          .from("Product")
-          .select(`
-            *,
-            brand:Brand(id, name),
-            category:Category(id, name),
-            store:Store(id, storeName, address)
-          `)
-          .order("createdAt", { ascending: false })
-          .limit(50);
-        rawProducts = data || [];
+        rawProducts = [];
       }
     }
 
@@ -182,10 +172,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // 1. Resolve or Create Brand & Category
-    const brandRecord = await brandRepo.upsert(brand.trim());
-    const catRecord = await categoryRepo.upsert(category.trim());
-
     // 2. Resolve Store ID
     let targetStoreId = explicitStoreId;
 
@@ -214,22 +200,25 @@ export async function POST(request: Request) {
       } catch (e) {}
     }
 
-    // Fallback store if none is found (e.g. initial demo seller)
+    // Fallback to official Moondrop store if none is resolved
     if (!targetStoreId) {
-      const { data: stores } = await supabase.from("Store").select("id").limit(1);
-      if (stores && stores.length > 0 && stores[0].id) {
-        targetStoreId = String(stores[0].id);
+      const moondropStore = await storeRepo.findById("store-moondrop-official");
+      if (moondropStore) {
+        targetStoreId = moondropStore.id;
       } else {
-        // Create initial default merchant store
-        const newStore = await storeRepo.create({
-          userId: "usr-valen",
-          storeName: "TonalZone Official Store",
-          address: "Jakarta Selatan",
-          status: "APPROVED",
-        });
-        targetStoreId = newStore?.id || "store-default";
+        const { data: stores } = await supabase.from("Store").select("id").limit(1);
+        targetStoreId = stores && stores.length > 0 ? String(stores[0].id) : "store-default";
       }
     }
+
+    // Load store profile to evaluate account type
+    const storeProfile = await storeRepo.findById(targetStoreId);
+    const isOfficialBrand = storeProfile?.storeType === "OFFICIAL_BRAND" || targetStoreId === "store-moondrop-official";
+
+    // 1. Resolve or Create Brand & Category (Enforce official brand name for brand accounts)
+    const effectiveBrandName = isOfficialBrand ? (storeProfile?.brandName || "MOONDROP") : (brand.trim() || "Audiophile");
+    const brandRecord = await brandRepo.upsert(effectiveBrandName);
+    const catRecord = await categoryRepo.upsert(category.trim());
 
     // 3. Prepare Image Array
     let imageList: string[] = [];
@@ -242,7 +231,7 @@ export async function POST(request: Request) {
       imageList = ["/model-iem-untuk-hero.webp"];
     }
 
-    // 4. Create Product in Supabase
+    // 4. Create Product in Supabase (Official Brand products instantly APPROVED)
     const prodId = id || `prod-${Date.now()}-${Math.random().toString(36).substring(7)}`;
     const created = await productRepo.create({
       id: prodId,

@@ -13,7 +13,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const newStatus = action === "APPROVE" ? "APPROVED" : "REJECTED";
+    const newStatus = action === "APPROVE" ? "APPROVED" : action === "SUSPEND" ? "SUSPENDED" : "REJECTED";
     const newRole = action === "APPROVE" ? "SELLER" : "BUYER";
 
     if (storeId) {

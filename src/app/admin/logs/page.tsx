@@ -21,19 +21,19 @@ export default function AdminLogsPage() {
   }, [auditLogs, searchQuery]);
 
   return (
-    <div className="space-y-6 text-[#FAF9F6] selection:bg-white selection:text-black">
+    <div className="space-y-6 text-[#FAF9F6] selection:bg-[#BFDD25] selection:text-black">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#222] pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-[10px] font-mono font-medium bg-[#050505] text-[#A1A1AA] border border-[#27272A] px-2 py-0.5 rounded uppercase tracking-wider">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-[10px] font-mono font-bold bg-[#141414] text-[#BFDD25] px-3 py-1 rounded-full uppercase tracking-wider">
               {isEn ? "System Audit Trail" : "Log Aktivitas Sistem"}
             </span>
           </div>
-          <h1 className="text-xl font-bold tracking-tight text-white font-sans">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white font-sans">
             {isEn ? "Administrative Event Logs" : "Riwayat Aktivitas & Keputusan Admin"}
           </h1>
-          <p className="text-xs text-[#71717A] font-sans mt-0.5">
+          <p className="text-xs text-[#71717A] font-sans mt-1">
             {isEn
               ? "Immutable audit trail of seller approvals, product moderations, and dispute settlements."
               : "Catatan riwayat verifikasi toko, persetujuan produk, dan pencairan dana rekber oleh admin."}
@@ -46,28 +46,28 @@ export default function AdminLogsPage() {
             placeholder={isEn ? "Search audit logs..." : "Cari riwayat log..."}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-[#050505] border border-[#2A2A2A] rounded-lg px-3.5 py-2 text-xs font-sans text-white placeholder:text-[#666] outline-none focus:border-white"
+            className="w-full bg-[#0A0A0A] focus:bg-[#141414] rounded-full px-4 py-2.5 text-xs font-sans text-white placeholder:text-[#666] outline-none focus:ring-1 focus:ring-[#BFDD25] transition-all"
           />
         </div>
       </div>
 
       {/* Logs Table */}
-      <div className="bg-[#050505] border border-[#222222] rounded-xl overflow-hidden">
+      <div className="bg-[#0A0A0A] rounded-2xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse font-sans text-xs">
             <thead>
-              <tr className="border-b border-[#1E1E1E] bg-[#030303] text-[10px] font-mono uppercase text-[#71717A] tracking-wider">
-                <th className="px-5 py-3.5">Timestamp</th>
-                <th className="px-5 py-3.5">Admin Actor</th>
-                <th className="px-5 py-3.5">Action Executed</th>
-                <th className="px-5 py-3.5">Target Entity</th>
-                <th className="px-5 py-3.5 text-right">Status</th>
+              <tr className="bg-[#121212] text-[10px] font-mono uppercase text-[#71717A] tracking-wider">
+                <th className="px-5 py-4">Timestamp</th>
+                <th className="px-5 py-4">Admin Actor</th>
+                <th className="px-5 py-4">Action Executed</th>
+                <th className="px-5 py-4">Target Entity</th>
+                <th className="px-5 py-4 text-right">Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#1A1A1A]">
+            <tbody>
               {filteredLogs.length > 0 ? (
                 filteredLogs.map((log) => (
-                  <tr key={log.id} className="hover:bg-[#050505] transition-colors font-mono">
+                  <tr key={log.id} className="hover:bg-[#121212] transition-colors font-mono">
                     <td className="px-5 py-3.5 text-[#71717A] text-[11px] whitespace-nowrap">
                       {log.timestamp}
                     </td>
@@ -85,8 +85,8 @@ export default function AdminLogsPage() {
                     </td>
 
                     <td className="px-5 py-3.5 text-right">
-                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-[#050505] text-[#D4D4D8] border border-[#27272A]">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-mono font-bold bg-[#BFDD25]/10 text-[#BFDD25]">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#BFDD25] shadow-[0_0_6px_rgba(191,221,37,0.8)]" />
                         SUCCESS
                       </span>
                     </td>

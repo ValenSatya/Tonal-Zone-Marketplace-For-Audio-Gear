@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { userRepo } from "@/lib/supabase-db";
 import { cookies } from "next/headers";
+import { sanitizeAvatarForCookie } from "@/lib/auth/roles";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
@@ -20,11 +21,15 @@ export async function GET(request: Request) {
       const avatar = meta.avatar_url || meta.picture || "/placeholder.svg";
       const email = user.email || "";
 
-      // Check existing user in DB first so we don't overwrite role, tuning, avatar, or name
+      // Check existing user in DB first so we don't overwrite custom avatar, custom name, or role
       const existingUser = (await userRepo.findById(user.id)) || (await userRepo.findByEmail(email));
 
-      const finalName = existingUser?.name || fullName;
-      const finalAvatar = existingUser?.avatar || avatar;
+      const googleAvatar = meta.avatar_url || meta.picture;
+      const isExistingPlaceholder = !existingUser?.avatar || existingUser.avatar === "/placeholder.svg" || existingUser.avatar.includes("placeholder");
+      const finalAvatar = isExistingPlaceholder && googleAvatar ? googleAvatar : (existingUser?.avatar || googleAvatar || "/placeholder.svg");
+
+      const isDefaultName = !existingUser?.name || existingUser.name === email.split("@")[0] || existingUser.name === "Audiophile Member";
+      const finalName = isDefaultName && fullName ? fullName : (existingUser?.name || fullName);
       const finalTuning = existingUser?.tuningPreference || meta.tuning_preference || "Reference / Neutral";
       const finalLocation = existingUser?.location || meta.location || "Indonesia";
       const finalLanguage = existingUser?.language || meta.language || "id";
@@ -46,7 +51,7 @@ export async function GET(request: Request) {
         id: dbUser.id,
         name: dbUser.name || finalName,
         email,
-        avatar: dbUser.avatar || finalAvatar,
+        avatar: sanitizeAvatarForCookie(dbUser.avatar || finalAvatar),
         role: (dbUser.role || finalRole) as any,
         isSeller: dbUser.role === "SELLER" || dbUser.store?.status === "APPROVED",
         sellerStatus: dbUser.store?.status || "NONE",

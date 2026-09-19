@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
+    "dev": "node --max-http-header-size=131072 ./node_modules/next/dist/bin/next dev",
+    "build": "node --max-http-header-size=131072 ./node_modules/next/dist/bin/next build",
+    "start": "node --max-http-header-size=131072 ./node_modules/next/dist/bin/next start",
     "lint": "eslint",
     "db:import": "npx tsx import-csv-to-db.ts"
   },
@@ -14,6 +14,7 @@
     "@number-flow/react": "^0.6.2",
     "@supabase/ssr": "^0.12.4",
     "@supabase/supabase-js": "^2.112.1",
+    "@types/qrcode": "^1.5.6",
     "@visx/curve": "^4.0.1-alpha.0",
     "@visx/event": "^4.0.1-alpha.0",
     "@visx/gradient": "^4.0.1-alpha.0",
@@ -33,6 +34,7 @@
     "motion": "^12.42.2",
     "next": "16.2.11",
     "postprocessing": "^6.39.4",
+    "qrcode": "^1.5.4",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "react-simple-maps": "^3.0.0",

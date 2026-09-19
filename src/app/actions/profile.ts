@@ -2,6 +2,7 @@
 
 import { userRepo } from "@/lib/supabase-db";
 import { cookies } from "next/headers";
+import { sanitizeAvatarForCookie } from "@/lib/auth/roles";
 
 export interface UpdateProfileInput {
   email?: string;
@@ -56,12 +57,14 @@ export async function updateUserProfile(data: UpdateProfileInput) {
       });
     }
 
-    // 2. Build updated session payload
+    const resolvedAvatar = data.avatar ?? dbUser?.avatar ?? currentSession?.avatar ?? "/placeholder.svg";
+
+    // 2. Build updated session payload with safe avatar for cookie storage
     const updatedSession = {
       id: dbUser?.id || currentSession?.id || "usr-" + Date.now(),
       name: data.name ?? dbUser?.name ?? currentSession?.name ?? email.split("@")[0],
       email,
-      avatar: data.avatar ?? dbUser?.avatar ?? currentSession?.avatar ?? "/placeholder.svg",
+      avatar: sanitizeAvatarForCookie(resolvedAvatar),
       role: dbUser?.role || currentSession?.role || "BUYER",
       isSeller: dbUser?.role === "SELLER" || dbUser?.store?.status === "APPROVED" || currentSession?.isSeller || false,
       sellerStatus: dbUser?.store?.status || currentSession?.sellerStatus || "NONE",
@@ -71,7 +74,7 @@ export async function updateUserProfile(data: UpdateProfileInput) {
       language: data.language ?? dbUser?.language ?? currentSession?.language ?? "id",
     };
 
-    // 3. Persist to server cookies for SSR and middleware
+    // 3. Persist to server cookies for SSR and middleware (compact, safe from HTTP 431)
     cookieStore.set("tonalzone_session", encodeURIComponent(JSON.stringify(updatedSession)), {
       path: "/",
       maxAge: 60 * 60 * 24 * 7,
@@ -81,7 +84,10 @@ export async function updateUserProfile(data: UpdateProfileInput) {
     return {
       success: true,
       message: "Profil dan foto berhasil diperbarui!",
-      user: updatedSession,
+      user: {
+        ...updatedSession,
+        avatar: resolvedAvatar,
+      },
     };
   } catch (error: unknown) {
     const errorMsg = error instanceof Error ? error.message : "Gagal memperbarui profil pengguna.";

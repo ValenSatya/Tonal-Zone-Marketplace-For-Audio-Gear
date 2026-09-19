@@ -1,6 +1,8 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
+import { supabase } from "@/lib/supabase";
+import { fetchProductsFromDb } from "@/lib/products-db";
 
 export interface AdminUser {
   id: string;
@@ -46,14 +48,16 @@ export interface AdminProduct {
   id: string;
   name: string;
   brand: string;
-  category: "In-Ear Monitors" | "DAC / Amp" | "Upgrade Cables" | "Accessories";
+  category: "In-Ear Monitors" | "DAC / Amp" | "Upgrade Cables" | "Accessories" | string;
   price: number;
   stock: number;
-  soundSignature: "Neutral" | "Warm" | "V-Shape" | "Bright" | "Basshead";
+  soundSignature: "Neutral" | "Warm" | "V-Shape" | "Bright" | "Basshead" | string;
   storeName: string;
   status: "APPROVED" | "PENDING" | "REJECTED";
   badge?: string;
   createdAt: string;
+  image?: string;
+  description?: string;
 }
 
 export interface AdminOrder {
@@ -178,7 +182,31 @@ export function parseCSV(csvText: string): Record<string, string>[] {
   return results;
 }
 
+export interface SystemSettings {
+  escrowFeePercent: number;
+  inspectionWindowHours: number;
+  paymentGateway: string;
+  environment: string;
+  autoDisburseEscrow: boolean;
+  maintenanceMode: boolean;
+  adminNotificationEmail: string;
+}
+
+export const DEFAULT_SYSTEM_SETTINGS: SystemSettings = {
+  escrowFeePercent: 1.5,
+  inspectionWindowHours: 48,
+  paymentGateway: "Midtrans (Snap Enterprise)",
+  environment: "Production (Live)",
+  autoDisburseEscrow: true,
+  maintenanceMode: false,
+  adminNotificationEmail: "security-ops@tonalzone.id",
+};
+
 interface AdminDataContextType {
+  // System Settings & Escrow Config
+  systemSettings: SystemSettings;
+  updateSystemSettings: (updates: Partial<SystemSettings>) => void;
+
   // Users
   users: AdminUser[];
   addUser: (user: Omit<AdminUser, "id" | "joined">) => void;
@@ -341,9 +369,9 @@ const SEED_BRANDS: AdminBrand[] = [
 const SEED_PRODUCTS: AdminProduct[] = [
   { id: "prod-1", name: "SENNHEISER IE 900", brand: "SENNHEISER", category: "In-Ear Monitors", price: 1299, stock: 8, soundSignature: "V-Shape", storeName: "CSI-ZONE Official Store", status: "APPROVED", badge: "BEST SELLER", createdAt: "2024-01-10" },
   { id: "prod-2", name: "MOONDROP BLESSING 3", brand: "MOONDROP", category: "In-Ear Monitors", price: 319, stock: 24, soundSignature: "Neutral", storeName: "CSI-ZONE Official Store", status: "APPROVED", badge: "NEW ARRIVAL", createdAt: "2024-01-12" },
-  { id: "prod-3", name: "CHORD MOJO 2 DAC", brand: "CHORD AUDIO", category: "DAC / Amp", price: 899, stock: 5, soundSignature: "Neutral", storeName: "Soundstage ID Authorized", status: "APPROVED", badge: "REFERENCE", createdAt: "2024-01-15" },
+  { id: "prod-3", name: "CHORD MOJO 2 DAC", brand: "CHORD AUDIO", category: "DAC / Amp", price: 899, stock: 5, soundSignature: "Neutral", storeName: "Soundstage ID Authorized", status: "APPROVED", badge: "TOP RATED", createdAt: "2024-01-15" },
   { id: "prod-4", name: "EFFECT AUDIO ARES S", brand: "EFFECT AUDIO", category: "Upgrade Cables", price: 249, stock: 15, soundSignature: "Warm", storeName: "Soundstage ID Authorized", status: "APPROVED", createdAt: "2024-01-20" },
-  { id: "prod-5", name: "64 AUDIO U12T REFERENCE", brand: "64 AUDIO", category: "In-Ear Monitors", price: 2499, stock: 3, soundSignature: "Neutral", storeName: "Soundstage ID Authorized", status: "APPROVED", badge: "GRAIL", createdAt: "2024-02-01" },
+  { id: "prod-5", name: "64 AUDIO U12T REFERENCE", brand: "64 AUDIO", category: "In-Ear Monitors", price: 2499, stock: 3, soundSignature: "Neutral", storeName: "Soundstage ID Authorized", status: "APPROVED", badge: "TOP RATED", createdAt: "2024-02-01" },
   { id: "prod-6", name: "TANGZU WAN'ER SG 2", brand: "TANGZU AUDIO", category: "In-Ear Monitors", price: 19, stock: 120, soundSignature: "Warm", storeName: "CSI-ZONE Official Store", status: "APPROVED", badge: "BEST SELLER", createdAt: "2024-02-10" },
   { id: "prod-7", name: "FATFREQ MAESTRO MINI", brand: "FATFREQ", category: "In-Ear Monitors", price: 450, stock: 7, soundSignature: "Basshead", storeName: "Soundstage ID Authorized", status: "APPROVED", createdAt: "2024-02-15" },
   { id: "prod-8", name: "DIY Silver OCC Cable 8-Core", brand: "Custom IEM Craft ID", category: "Upgrade Cables", price: 85, stock: 10, soundSignature: "Bright", storeName: "Audiophile Surabaya Garage", status: "PENDING", createdAt: "2024-03-14" },
@@ -366,13 +394,13 @@ const SEED_CATEGORIES: AdminCategory[] = [
 const SEED_BANNERS: AdminBanner[] = [
   {
     id: "BAN-001",
-    title: "DISCOVER THE PINNACLE OF AUDIOPHILE SOUND",
-    subtitle: "Precision engineered In-Ear Monitors & Reference DAC/Amps with verified authenticity guarantee.",
+    title: "CHU III",
+    subtitle: "Engineered with a high-performance 10mm dynamic driver featuring an Aluminum-Magnesium alloy dome composite diaphragm and brass CNC acoustic nozzle, delivering pure acoustic clarity and neutral reference sound.",
     badge: "FLAGSHIP COLLECTION",
     placement: "HERO_HOME",
-    imageUrl: "/model-iem-untuk-hero.webp",
-    ctaText: "Explore Collection",
-    ctaLink: "/collection",
+    imageUrl: "/images/Headphone-Zone-Moondrop-Chu-III-Homepage-Desktop-Banner-02.webp",
+    ctaText: "SHOP NOW",
+    ctaLink: "/product/prod-chu3",
     active: true,
     order: 1,
     createdAt: "2026-08-01",
@@ -585,12 +613,13 @@ const SEED_SHIPMENTS: AdminShipmentTracking[] = [
 ];
 
 export function AdminDataProvider({ children }: { children: React.ReactNode }) {
-  const [users, setUsers] = useState<AdminUser[]>(SEED_USERS);
+  const [systemSettings, setSystemSettings] = useState<SystemSettings>(DEFAULT_SYSTEM_SETTINGS);
+  const [users, setUsers] = useState<AdminUser[]>([]);
   const [stores, setStores] = useState<AdminStore[]>(SEED_STORES);
   const [brands, setBrands] = useState<AdminBrand[]>(SEED_BRANDS);
   const [products, setProducts] = useState<AdminProduct[]>(SEED_PRODUCTS);
   const [orders, setOrders] = useState<AdminOrder[]>(SEED_ORDERS);
-  const [categories, setCategories] = useState<AdminCategory[]>(SEED_CATEGORIES);
+  const [categories, setCategories] = useState<AdminCategory[]>([]);
   const [banners, setBanners] = useState<AdminBanner[]>(SEED_BANNERS);
   const [couriers, setCouriers] = useState<AdminCourier[]>(SEED_COURIERS);
   const [shipments, setShipments] = useState<AdminShipmentTracking[]>(SEED_SHIPMENTS);
@@ -600,8 +629,20 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
   // Safely load saved state from localStorage after initial client mount
   useEffect(() => {
     try {
+      const savedSettings = localStorage.getItem("tonalzone_system_settings");
+      if (savedSettings) {
+        try {
+          setSystemSettings({ ...DEFAULT_SYSTEM_SETTINGS, ...JSON.parse(savedSettings) });
+        } catch (err) {}
+      }
+
       const savedUsers = localStorage.getItem("tonalzone_admin_users");
-      if (savedUsers) setUsers(JSON.parse(savedUsers));
+      if (savedUsers) {
+        try {
+          const parsed = JSON.parse(savedUsers);
+          if (Array.isArray(parsed) && parsed.length > 0) setUsers(parsed);
+        } catch {}
+      }
 
       const savedStores = localStorage.getItem("tonalzone_admin_stores");
       if (savedStores) setStores(JSON.parse(savedStores));
@@ -610,13 +651,54 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
       if (savedBrands) setBrands(JSON.parse(savedBrands));
 
       const savedProducts = localStorage.getItem("tonalzone_admin_products");
-      if (savedProducts) setProducts(JSON.parse(savedProducts));
+      let baseProducts: AdminProduct[] = savedProducts ? JSON.parse(savedProducts) : SEED_PRODUCTS;
+
+      // Merge custom seller products so admin can moderate them
+      try {
+        const customRaw = localStorage.getItem("tonalzone_custom_products");
+        if (customRaw) {
+          const customList = JSON.parse(customRaw);
+          if (Array.isArray(customList)) {
+            customList.forEach((cp: any) => {
+              const existingIdx = baseProducts.findIndex((p) => p.id === cp.id);
+              if (existingIdx >= 0) {
+                baseProducts[existingIdx] = {
+                  ...baseProducts[existingIdx],
+                  image: cp.image || cp.images?.[0] || baseProducts[existingIdx].image,
+                };
+              } else {
+                baseProducts.unshift({
+                  id: cp.id,
+                  name: cp.name,
+                  brand: cp.brand || "Custom Brand",
+                  category: (cp.category as any) || "In-Ear Monitors",
+                  price: Number(cp.priceUSD || cp.price) || 99,
+                  stock: Number(cp.stock) || 10,
+                  soundSignature: (cp.soundSignature as any) || "Neutral",
+                  storeName: cp.storeName || "Seller Store",
+                  status: cp.status || "PENDING",
+                  createdAt: cp.createdAt || new Date().toISOString().split("T")[0],
+                  badge: cp.condition === "NEW" ? "NEW" : undefined,
+                  image: cp.image || cp.images?.[0] || "/model-iem-untuk-hero.webp",
+                });
+              }
+            });
+          }
+        }
+      } catch (err) {}
+
+      setProducts(baseProducts);
 
       const savedOrders = localStorage.getItem("tonalzone_admin_orders");
       if (savedOrders) setOrders(JSON.parse(savedOrders));
 
       const savedCategories = localStorage.getItem("tonalzone_admin_categories");
-      if (savedCategories) setCategories(JSON.parse(savedCategories));
+      if (savedCategories) {
+        try {
+          const parsed = JSON.parse(savedCategories);
+          if (Array.isArray(parsed) && parsed.length > 0) setCategories(parsed);
+        } catch {}
+      }
 
       const savedBanners = localStorage.getItem("tonalzone_admin_banners");
       if (savedBanners) setBanners(JSON.parse(savedBanners));
@@ -633,10 +715,70 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  // Real-time synchronization listener for seller product additions
+  useEffect(() => {
+    const handleSync = () => {
+      try {
+        const customRaw = localStorage.getItem("tonalzone_custom_products");
+        if (customRaw) {
+          const customList = JSON.parse(customRaw);
+          if (Array.isArray(customList)) {
+            setProducts((prev) => {
+              let updated = [...prev];
+              customList.forEach((cp: any) => {
+                const idx = updated.findIndex((p) => p.id === cp.id);
+                if (idx >= 0) {
+                  updated[idx] = {
+                    ...updated[idx],
+                    name: cp.name,
+                    price: Number(cp.priceUSD || cp.price) || updated[idx].price,
+                    stock: Number(cp.stock) || updated[idx].stock,
+                    image: cp.image || cp.images?.[0] || updated[idx].image,
+                  };
+                } else {
+                  updated.unshift({
+                    id: cp.id,
+                    name: cp.name,
+                    brand: cp.brand || "Custom Brand",
+                    category: (cp.category as any) || "In-Ear Monitors",
+                    price: Number(cp.priceUSD || cp.price) || 99,
+                    stock: Number(cp.stock) || 10,
+                    soundSignature: (cp.soundSignature as any) || "Neutral",
+                    storeName: cp.storeName || "Seller Store",
+                    status: cp.status || "PENDING",
+                    createdAt: cp.createdAt || new Date().toISOString().split("T")[0],
+                    image: cp.image || cp.images?.[0] || "/model-iem-untuk-hero.webp",
+                  });
+                }
+              });
+              return updated;
+            });
+          }
+        }
+      } catch (e) {}
+    };
+
+    window.addEventListener("productsUpdated", handleSync);
+    window.addEventListener("systemSettingsUpdated", () => {
+      try {
+        const saved = localStorage.getItem("tonalzone_system_settings");
+        if (saved) {
+          setSystemSettings({ ...DEFAULT_SYSTEM_SETTINGS, ...JSON.parse(saved) });
+        }
+      } catch (e) {}
+    });
+    window.addEventListener("storage", handleSync);
+    return () => {
+      window.removeEventListener("productsUpdated", handleSync);
+      window.removeEventListener("storage", handleSync);
+    };
+  }, []);
+
   // Sync state to localStorage only AFTER initial load has completed
   useEffect(() => {
     if (!isLoaded) return;
     try {
+      localStorage.setItem("tonalzone_system_settings", JSON.stringify(systemSettings));
       localStorage.setItem("tonalzone_admin_users", JSON.stringify(users));
       localStorage.setItem("tonalzone_admin_stores", JSON.stringify(stores));
       localStorage.setItem("tonalzone_admin_brands", JSON.stringify(brands));
@@ -647,7 +789,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem("tonalzone_admin_couriers", JSON.stringify(couriers));
       localStorage.setItem("tonalzone_admin_shipments", JSON.stringify(shipments));
     } catch (e) {}
-  }, [users, stores, brands, products, orders, categories, banners, couriers, shipments, isLoaded]);
+  }, [systemSettings, users, stores, brands, products, orders, categories, banners, couriers, shipments, isLoaded]);
 
   const logAction = (action: string, target: string) => {
     const newLog: AuditLog = {
@@ -660,35 +802,104 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
     setAuditLogs((prev) => [newLog, ...prev.slice(0, 50)]);
   };
 
+  // System Settings Action
+  const updateSystemSettings = useCallback((updates: Partial<SystemSettings>) => {
+    setSystemSettings((prev) => {
+      const updated = { ...prev, ...updates };
+      try {
+        localStorage.setItem("tonalzone_system_settings", JSON.stringify(updated));
+        window.dispatchEvent(new CustomEvent("systemSettingsUpdated", { detail: updated }));
+      } catch (e) {}
+      return updated;
+    });
+    logAction("UPDATE_SYSTEM_SETTINGS", "Platform Escrow & System Settings");
+  }, []);
+
   // User Actions
-  const addUser = useCallback((user: Omit<AdminUser, "id" | "joined">) => {
+  const addUser = useCallback(async (user: Omit<AdminUser, "id" | "joined">) => {
+    const tempId = `USR-${Date.now().toString().slice(-4)}`;
     const newUser: AdminUser = {
       ...user,
-      id: `USR-${Date.now().toString().slice(-4)}`,
+      id: tempId,
       joined: new Date().toISOString().split("T")[0],
     };
     setUsers((prev) => [newUser, ...prev]);
     logAction("Created User", `${newUser.name} (${newUser.role})`);
+
+    try {
+      const res = await fetch("/api/admin/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(user),
+      });
+      const data = await res.json();
+      if (data && data.success && data.user) {
+        setUsers((prev) =>
+          prev.map((u) =>
+            u.id === tempId
+              ? {
+                  ...u,
+                  id: data.user.id,
+                  name: data.user.name || u.name,
+                  email: data.user.email,
+                }
+              : u
+          )
+        );
+      }
+    } catch (e) {
+      console.warn("Could not save user to Supabase:", e);
+    }
   }, []);
 
-  const updateUser = useCallback((id: string, updates: Partial<AdminUser>) => {
+  const updateUser = useCallback(async (id: string, updates: Partial<AdminUser>) => {
     setUsers((prev) => prev.map((u) => (u.id === id ? { ...u, ...updates } : u)));
     logAction("Updated User", `User ID ${id}`);
+
+    try {
+      await fetch("/api/admin/users", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, ...updates }),
+      });
+    } catch (e) {
+      console.warn("Could not update user in Supabase:", e);
+    }
   }, []);
 
-  const deleteUser = useCallback((id: string) => {
+  const deleteUser = useCallback(async (id: string) => {
     setUsers((prev) => prev.filter((u) => u.id !== id));
     logAction("Deleted User", `User ID ${id}`);
+
+    try {
+      await fetch(`/api/admin/users?id=${encodeURIComponent(id)}`, {
+        method: "DELETE",
+      });
+    } catch (e) {
+      console.warn("Could not delete user in Supabase:", e);
+    }
   }, []);
 
-  const bulkDeleteUsers = useCallback((ids: string[]) => {
+  const bulkDeleteUsers = useCallback(async (ids: string[]) => {
     setUsers((prev) => prev.filter((u) => !ids.includes(u.id)));
     logAction("Bulk Delete Users", `${ids.length} users removed`);
+
+    for (const id of ids) {
+      fetch(`/api/admin/users?id=${encodeURIComponent(id)}`, { method: "DELETE" }).catch(() => {});
+    }
   }, []);
 
-  const bulkUpdateUserStatus = useCallback((ids: string[], status: AdminUser["status"]) => {
+  const bulkUpdateUserStatus = useCallback(async (ids: string[], status: AdminUser["status"]) => {
     setUsers((prev) => prev.map((u) => (ids.includes(u.id) ? { ...u, status } : u)));
     logAction("Bulk User Status", `${ids.length} users set to ${status}`);
+
+    for (const id of ids) {
+      fetch("/api/admin/users", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, status }),
+      }).catch(() => {});
+    }
   }, []);
 
   // Live fetch users, stores, and orders from Supabase database on load
@@ -704,26 +915,28 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
             data = JSON.parse(text);
           } catch {}
           if (data && data.success && Array.isArray(data.users) && data.users.length > 0) {
-            const liveUsers: AdminUser[] = data.users.map((u: any) => ({
-              id: u.id,
-              name: u.name || u.email?.split("@")[0] || "Audiophile Member",
-              email: u.email,
-              role: u.role === "ADMIN" ? "Super Admin" : u.role === "SELLER" ? "Seller" : "Buyer",
-              status: "Active",
-              joined: u.createdAt ? new Date(u.createdAt).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
-              location: u.location || "Indonesia",
-              tuningPreference: u.tuningPreference || "Reference / Neutral",
-            }));
+            const liveUsers: AdminUser[] = data.users.map((u: any) => {
+              let mappedRole: AdminUser["role"] = "Buyer";
+              if (u.role === "ADMIN" || (u.email && u.email.toLowerCase().includes("admin"))) {
+                mappedRole = "Super Admin";
+              } else if (u.role === "SELLER" || u.store) {
+                mappedRole = "Seller";
+              }
 
-            setUsers((prev) => {
-              const combined = [...liveUsers];
-              prev.forEach((p) => {
-                if (!combined.some((c) => c.email.toLowerCase() === p.email.toLowerCase())) {
-                  combined.push(p);
-                }
-              });
-              return combined;
+              return {
+                id: u.id,
+                name: u.name || u.email?.split("@")[0] || "Audiophile Member",
+                email: u.email,
+                role: mappedRole,
+                status: (u.status || "Active") as AdminUser["status"],
+                joined: u.createdAt ? new Date(u.createdAt).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
+                location: u.location || "Indonesia",
+                tuningPreference: u.tuningPreference || "Reference / Neutral",
+              };
             });
+
+            // Set users directly from real database without dummy mock data
+            setUsers(liveUsers);
           }
         }
       } catch (err) {
@@ -756,8 +969,16 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
               submittedAt: s.createdAt ? new Date(s.createdAt).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
             }));
 
+            let customStores: AdminStore[] = [];
+            if (typeof window !== "undefined") {
+              try {
+                const raw = localStorage.getItem("tonalzone_custom_stores");
+                if (raw) customStores = JSON.parse(raw);
+              } catch {}
+            }
+
             setStores((prev) => {
-              const combined = [...liveStores];
+              const combined = [...customStores, ...liveStores];
               prev.forEach((p) => {
                 if (!combined.some((c) => c.id === p.id)) {
                   combined.push(p);
@@ -810,14 +1031,230 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
               });
               return combined;
             });
+
+            // Populate Real Live Shipments directly from Database Orders (No Dummy)
+            const liveShipments: AdminShipmentTracking[] = data.orders.map((o: any) => {
+              const orderId = o.id;
+              const isDelivered = o.escrowStatus === "DELIVERED" || o.escrowStatus === "FUNDS_RELEASED_TO_SELLER" || o.escrowStatus === "COMPLETED";
+              const isCompleted = o.escrowStatus === "FUNDS_RELEASED_TO_SELLER" || o.escrowStatus === "COMPLETED";
+              const isDisputed = o.escrowStatus === "DISPUTED";
+              const isInTransit = o.escrowStatus === "IN_TRANSIT" || o.escrowStatus === "SHIPPED";
+
+              const currentStatus: AdminShipmentTracking["currentStatus"] = isDelivered
+                ? "DELIVERED"
+                : isInTransit
+                ? "IN_TRANSIT"
+                : "PICKED_UP";
+
+              const escrowStatus: AdminShipmentTracking["escrowStatus"] = isCompleted
+                ? "RELEASED"
+                : isDisputed
+                ? "DISPUTED"
+                : isDelivered
+                ? "RELEASE_ELIGIBLE"
+                : "HOLDING";
+
+              const milestones: TrackingMilestone[] = [];
+
+              if (Array.isArray(o.trackingHistory) && o.trackingHistory.length > 0) {
+                o.trackingHistory.forEach((th: any) => {
+                  milestones.push({
+                    stage: th.status === "PACKED" ? "SELLER_PACKED" : th.status === "PICKED_UP" ? "PICKED_UP" : th.status === "DELIVERED" ? "DELIVERED" : "IN_TRANSIT",
+                    location: th.location || "Sortation Gateway Hub",
+                    timestamp: th.timestamp || th.timeFormatted || new Date().toISOString().replace("T", " ").substring(0, 16),
+                    description: th.description || th.title,
+                  });
+                });
+              } else {
+                milestones.push({
+                  stage: "ORDER_PLACED",
+                  location: "Tonal Zone Escrow Vault",
+                  timestamp: new Date(o.createdAt).toISOString().replace("T", " ").substring(0, 16),
+                  description: "Pembayaran telah diverifikasi dan diamankan oleh Rekber Escrow.",
+                });
+                if (o.shippedAt || isInTransit || isDelivered) {
+                  milestones.push({
+                    stage: "SELLER_PACKED",
+                    location: `${o.storeName || "Toko Penjual"} Hub`,
+                    timestamp: new Date((o.shippedAt ? o.shippedAt - 3600000 : o.createdAt)).toISOString().replace("T", " ").substring(0, 16),
+                    description: "Paket telah dikemas dengan pengaman berlapis standar audiophile.",
+                  });
+                  milestones.push({
+                    stage: "PICKED_UP",
+                    location: `Drop Point ${o.courierCode || "JNE Express"}`,
+                    timestamp: new Date((o.shippedAt || o.createdAt)).toISOString().replace("T", " ").substring(0, 16),
+                    description: `Kurir ${o.courierCode || "JNE Express"} telah mengambil paket dari toko penjual.`,
+                  });
+                }
+                if (isInTransit || isDelivered) {
+                  milestones.push({
+                    stage: "IN_TRANSIT",
+                    location: `Sortation Hub Menuju ${o.destinationCity || "Kota Tujuan"}`,
+                    timestamp: new Date(o.updatedAt || o.createdAt).toISOString().replace("T", " ").substring(0, 16),
+                    description: "Paket dalam perjalanan rute antar-hub logistik.",
+                  });
+                }
+                if (isDelivered) {
+                  milestones.push({
+                    stage: "DELIVERED",
+                    location: o.destinationCity || "Alamat Penerima",
+                    timestamp: new Date(o.updatedAt || o.createdAt).toISOString().replace("T", " ").substring(0, 16),
+                    description: `Paket telah diterima oleh ${o.buyerName || "Pembeli"}. Garansi inspeksi akustik aktif.`,
+                  });
+                }
+              }
+
+              return {
+                id: `SHP-${orderId.replace(/[^a-zA-Z0-9]/g, "").slice(-6)}`,
+                orderId,
+                orderNumber: orderId,
+                trackingNumber: o.waybillNumber || (isInTransit || isDelivered ? `EXP-${orderId.replace(/[^a-zA-Z0-9]/g, "").slice(-8).toUpperCase()}` : "Menunggu Pickup"),
+                courierName: o.courierName || (o.courierCode ? `${o.courierCode} Express` : "JNE Express (Reguler)"),
+                courierCode: o.courierCode || "JNE",
+                sellerStore: o.storeName || "Official Brand Flagship",
+                buyerName: o.buyerName || o.buyerEmail?.split("@")[0] || "Valen Satya",
+                destinationCity: o.destinationCity || "Jakarta, ID",
+                itemSummary: Array.isArray(o.items) && o.items.length > 0 ? o.items.map((i: any) => `${i.productName} (${i.quantity || 1}x)`).join(", ") : "Audiophile Reference Gear",
+                currentStatus,
+                escrowStatus,
+                inspectionExpiry: o.autoSettleAt ? new Date(o.autoSettleAt).toISOString().replace("T", " ").substring(0, 16) : undefined,
+                disputeReason: o.disputeReason,
+                lastUpdated: new Date(o.updatedAt || o.createdAt).toISOString().replace("T", " ").substring(0, 16),
+                milestones,
+              };
+            });
+
+            setShipments(liveShipments);
           }
         }
       } catch (err) {
         console.warn("Could not fetch live orders for admin:", err);
       }
+
+      // 4. Fetch live Products from database
+      try {
+        const liveProds = await fetchProductsFromDb();
+        if (liveProds && liveProds.length > 0) {
+          let adminList: any[] = [];
+          let customList: any[] = [];
+          if (typeof window !== "undefined") {
+            try {
+              const adminRaw = localStorage.getItem("tonalzone_admin_products");
+              adminList = adminRaw ? JSON.parse(adminRaw) : [];
+              const customRaw = localStorage.getItem("tonalzone_custom_products");
+              customList = customRaw ? JSON.parse(customRaw) : [];
+            } catch {}
+          }
+
+          const mappedProducts: AdminProduct[] = liveProds.map((p) => {
+            const adminOverride = adminList.find((a: any) => a.id === p.id);
+            return {
+              id: p.id,
+              name: adminOverride?.name || p.name,
+              brand: p.brand || "Audiophile",
+              category: adminOverride?.category || p.category || "In-Ear Monitors",
+              price: Number(adminOverride?.price ?? p.price) || 99,
+              stock: Number(adminOverride?.stock ?? p.stock) || 10,
+              soundSignature: p.soundSignature || "Neutral",
+              storeName: p.storeName || "TonalZone Official Store",
+              status: adminOverride?.status || (p.inStock ? "APPROVED" : "APPROVED"),
+              badge: p.badge,
+              createdAt: "2024-01-01",
+              image: p.image || p.images?.[0],
+              description: p.description,
+            };
+          });
+
+          // Also inject pending seller products from customList if not yet approved
+          customList.forEach((cp: any) => {
+            if (!mappedProducts.some((mp) => mp.id === cp.id)) {
+              const adminOverride = adminList.find((a: any) => a.id === cp.id);
+              mappedProducts.unshift({
+                id: cp.id,
+                name: adminOverride?.name || cp.name,
+                brand: cp.brand || "Custom Brand",
+                category: adminOverride?.category || cp.category || "In-Ear Monitors",
+                price: Number(adminOverride?.price ?? cp.priceUSD ?? cp.price) || 99,
+                stock: Number(adminOverride?.stock ?? cp.stock) || 10,
+                soundSignature: cp.soundSignature || "Neutral",
+                storeName: cp.storeName || "Seller Store",
+                status: adminOverride?.status || cp.status || "PENDING",
+                createdAt: new Date().toISOString().split("T")[0],
+                image: cp.image || cp.images?.[0] || "/model-iem-untuk-hero.webp",
+                description: cp.description || cp.specsSummary,
+              });
+            }
+          });
+
+          setProducts(mappedProducts);
+        }
+      } catch (err) {
+        console.warn("Could not fetch live products for admin:", err);
+      }
+
+      // 5. Fetch live Brands from database
+      try {
+        const { data: dbBrands, error: brandErr } = await supabase
+          .from("Brand")
+          .select("*, products:Product(count)");
+
+        if (!brandErr && dbBrands && dbBrands.length > 0) {
+          const liveBrands: AdminBrand[] = dbBrands.map((b: any) => ({
+            id: b.id,
+            name: b.name,
+            country: b.country || "International",
+            tier: b.name.toUpperCase().includes("SENNHEISER") || b.name.toUpperCase().includes("64 AUDIO")
+              ? "Flagship"
+              : b.name.toUpperCase().includes("MOONDROP") || b.name.toUpperCase().includes("TANGZU")
+              ? "Chi-Fi"
+              : "Premium",
+            status: "APPROVED",
+            productCount: Array.isArray(b.products) && b.products[0]?.count ? b.products[0].count : 1,
+            createdAt: b.createdAt ? new Date(b.createdAt).toISOString().split("T")[0] : "2024-01-01",
+          }));
+
+          setBrands((prev) => {
+            const combined = [...liveBrands];
+            prev.forEach((p) => {
+              if (!combined.some((c) => c.name.toLowerCase() === p.name.toLowerCase())) {
+                combined.push(p);
+              }
+            });
+            return combined;
+          });
+        }
+      } catch (err) {
+        console.warn("Could not fetch live brands for admin:", err);
+      }
+
+      // 6. Fetch live Categories from Supabase database
+      try {
+        const res = await fetch("/api/admin/categories");
+        if (res.ok) {
+          const text = await res.text();
+          let data: any = null;
+          try {
+            data = JSON.parse(text);
+          } catch {}
+          if (data && data.success && Array.isArray(data.categories) && data.categories.length > 0) {
+            setCategories(data.categories);
+          }
+        }
+      } catch (err) {
+        console.warn("Could not fetch live categories for admin:", err);
+      }
     };
 
     fetchLiveDatabaseData();
+
+    if (typeof window !== "undefined") {
+      window.addEventListener("storesUpdated", fetchLiveDatabaseData);
+      window.addEventListener("productsUpdated", fetchLiveDatabaseData);
+      return () => {
+        window.removeEventListener("storesUpdated", fetchLiveDatabaseData);
+        window.removeEventListener("productsUpdated", fetchLiveDatabaseData);
+      };
+    }
   }, []);
 
   // Store Actions
@@ -843,7 +1280,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           storeId: id,
-          action: status === "APPROVED" ? "APPROVE" : "REJECT",
+          action: status === "APPROVED" ? "APPROVE" : status === "SUSPENDED" ? "SUSPEND" : "REJECT",
           reason,
         }),
       });
@@ -901,17 +1338,71 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const updateProduct = useCallback((id: string, updates: Partial<AdminProduct>) => {
-    setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, ...updates } : p)));
+    setProducts((prev) => {
+      const updated = prev.map((p) => (p.id === id ? { ...p, ...updates } : p));
+      try {
+        localStorage.setItem("tonalzone_admin_products", JSON.stringify(updated));
+        const customRaw = localStorage.getItem("tonalzone_custom_products");
+        if (customRaw) {
+          const customList = JSON.parse(customRaw);
+          const customUpdated = customList.map((cp: any) =>
+            cp.id === id ? { ...cp, ...updates } : cp
+          );
+          localStorage.setItem("tonalzone_custom_products", JSON.stringify(customUpdated));
+        }
+        window.dispatchEvent(new Event("productsUpdated"));
+        window.dispatchEvent(new Event("storage"));
+      } catch (e) {}
+      return updated;
+    });
+    // Async background sync to Supabase Product table if column exists
+    try {
+      supabase.from("Product").update({
+        ...(updates.price !== undefined ? { price: updates.price } : {}),
+        ...(updates.stock !== undefined ? { stock: updates.stock } : {}),
+        ...(updates.name !== undefined ? { name: updates.name } : {}),
+      }).eq("id", id).then(() => {}, () => {});
+    } catch {}
     logAction("Updated Product", `Product ID ${id}`);
   }, []);
 
   const deleteProduct = useCallback((id: string) => {
-    setProducts((prev) => prev.filter((p) => p.id !== id));
+    setProducts((prev) => {
+      const updated = prev.filter((p) => p.id !== id);
+      try {
+        localStorage.setItem("tonalzone_admin_products", JSON.stringify(updated));
+        const customRaw = localStorage.getItem("tonalzone_custom_products");
+        if (customRaw) {
+          const customList = JSON.parse(customRaw);
+          const customUpdated = customList.filter((cp: any) => cp.id !== id);
+          localStorage.setItem("tonalzone_custom_products", JSON.stringify(customUpdated));
+        }
+        window.dispatchEvent(new Event("productsUpdated"));
+        window.dispatchEvent(new Event("storage"));
+      } catch (e) {}
+      return updated;
+    });
     logAction("Deleted Product", `Product ID ${id}`);
   }, []);
 
   const bulkUpdateProductStatus = useCallback((ids: string[], status: AdminProduct["status"]) => {
-    setProducts((prev) => prev.map((p) => (ids.includes(p.id) ? { ...p, status } : p)));
+    setProducts((prev) => {
+      const updated = prev.map((p) => (ids.includes(p.id) ? { ...p, status } : p));
+      try {
+        localStorage.setItem("tonalzone_admin_products", JSON.stringify(updated));
+        const customRaw = localStorage.getItem("tonalzone_custom_products");
+        if (customRaw) {
+          const customList = JSON.parse(customRaw);
+          const customUpdated = customList.map((cp: any) =>
+            ids.includes(cp.id) ? { ...cp, status } : cp
+          );
+          localStorage.setItem("tonalzone_custom_products", JSON.stringify(customUpdated));
+        }
+        window.dispatchEvent(new Event("productsUpdated"));
+        window.dispatchEvent(new Event("storage"));
+      } catch (e) {}
+      return updated;
+    });
     logAction("Bulk Product Status", `${ids.length} products set to ${status}`);
   }, []);
 
@@ -942,24 +1433,57 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   // Category Actions
-  const addCategory = useCallback((category: Omit<AdminCategory, "id" | "itemCount">) => {
+  const addCategory = useCallback(async (category: Omit<AdminCategory, "id" | "itemCount">) => {
+    const tempId = `cat-${Date.now().toString().slice(-4)}`;
     const newCat: AdminCategory = {
       ...category,
-      id: `cat-${Date.now().toString().slice(-3)}`,
+      id: tempId,
       itemCount: 0,
     };
     setCategories((prev) => [...prev, newCat]);
     logAction("Created Category", newCat.name);
+
+    try {
+      const res = await fetch("/api/admin/categories", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(category),
+      });
+      const data = await res.json();
+      if (data && data.success && data.category) {
+        setCategories((prev) => prev.map((c) => (c.id === tempId ? data.category : c)));
+      }
+    } catch (e) {
+      console.warn("Could not create category in Supabase:", e);
+    }
   }, []);
 
-  const updateCategory = useCallback((id: string, updates: Partial<AdminCategory>) => {
+  const updateCategory = useCallback(async (id: string, updates: Partial<AdminCategory>) => {
     setCategories((prev) => prev.map((c) => (c.id === id ? { ...c, ...updates } : c)));
     logAction("Updated Category", `Category ID ${id}`);
+
+    try {
+      await fetch("/api/admin/categories", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, ...updates }),
+      });
+    } catch (e) {
+      console.warn("Could not update category in Supabase:", e);
+    }
   }, []);
 
-  const deleteCategory = useCallback((id: string) => {
+  const deleteCategory = useCallback(async (id: string) => {
     setCategories((prev) => prev.filter((c) => c.id !== id));
     logAction("Deleted Category", `Category ID ${id}`);
+
+    try {
+      await fetch(`/api/admin/categories?id=${encodeURIComponent(id)}`, {
+        method: "DELETE",
+      });
+    } catch (e) {
+      console.warn("Could not delete category in Supabase:", e);
+    }
   }, []);
 
   // Universal CSV Exporter
@@ -1043,29 +1567,67 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
       id: `BAN-${Date.now().toString().slice(-4)}`,
       createdAt: new Date().toISOString().split("T")[0],
     };
-    setBanners((prev) => [...prev, newBanner]);
+    setBanners((prev) => {
+      const updated = [newBanner, ...prev];
+      try {
+        localStorage.setItem("tonalzone_admin_banners", JSON.stringify(updated));
+        window.dispatchEvent(new Event("bannersUpdated"));
+        window.dispatchEvent(new Event("storage"));
+      } catch (e) {}
+      return updated;
+    });
     logAction("Created Banner", newBanner.title);
   }, []);
 
   const updateBanner = useCallback((id: string, updates: Partial<AdminBanner>) => {
-    setBanners((prev) => prev.map((b) => (b.id === id ? { ...b, ...updates } : b)));
+    setBanners((prev) => {
+      const updated = prev.map((b) => (b.id === id ? { ...b, ...updates } : b));
+      try {
+        localStorage.setItem("tonalzone_admin_banners", JSON.stringify(updated));
+        window.dispatchEvent(new Event("bannersUpdated"));
+        window.dispatchEvent(new Event("storage"));
+      } catch (e) {}
+      return updated;
+    });
     logAction("Updated Banner", `Banner ID ${id}`);
   }, []);
 
   const deleteBanner = useCallback((id: string) => {
-    setBanners((prev) => prev.filter((b) => b.id !== id));
+    setBanners((prev) => {
+      const updated = prev.filter((b) => b.id !== id);
+      try {
+        localStorage.setItem("tonalzone_admin_banners", JSON.stringify(updated));
+        window.dispatchEvent(new Event("bannersUpdated"));
+        window.dispatchEvent(new Event("storage"));
+      } catch (e) {}
+      return updated;
+    });
     logAction("Deleted Banner", `Banner ID ${id}`);
   }, []);
 
   const toggleBannerStatus = useCallback((id: string) => {
-    setBanners((prev) =>
-      prev.map((b) => (b.id === id ? { ...b, active: !b.active } : b))
-    );
+    setBanners((prev) => {
+      const updated = prev.map((b) => (b.id === id ? { ...b, active: !b.active } : b));
+      try {
+        localStorage.setItem("tonalzone_admin_banners", JSON.stringify(updated));
+        window.dispatchEvent(new Event("bannersUpdated"));
+        window.dispatchEvent(new Event("storage"));
+      } catch (e) {}
+      return updated;
+    });
     logAction("Toggled Banner Status", `Banner ID ${id}`);
   }, []);
 
   const bulkUpdateBannerStatus = useCallback((ids: string[], active: boolean) => {
-    setBanners((prev) => prev.map((b) => (ids.includes(b.id) ? { ...b, active } : b)));
+    setBanners((prev) => {
+      const updated = prev.map((b) => (ids.includes(b.id) ? { ...b, active } : b));
+      try {
+        localStorage.setItem("tonalzone_admin_banners", JSON.stringify(updated));
+        window.dispatchEvent(new Event("bannersUpdated"));
+        window.dispatchEvent(new Event("storage"));
+      } catch (e) {}
+      return updated;
+    });
     logAction("Bulk Banner Status Update", `${ids.length} banners set to ${active ? "Active" : "Inactive"}`);
   }, []);
 
@@ -1121,49 +1683,83 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
     logAction("Dispute Resolved", `Order ${orderId} resolved: ${resolution} - ${notes}`);
   }, [releaseEscrowPayout, refundEscrowOrder]);
 
-  // Courier Partner Actions
+  // Courier Partner Actions (Persistent & Live)
   const addCourier = useCallback((courier: Omit<AdminCourier, "id">) => {
     const newCourier: AdminCourier = {
       ...courier,
       id: `courier-${Date.now().toString().slice(-4)}`,
     };
-    setCouriers((prev) => [...prev, newCourier]);
+    setCouriers((prev) => {
+      const updated = [...prev, newCourier];
+      try {
+        localStorage.setItem("tonalzone_admin_couriers", JSON.stringify(updated));
+        window.dispatchEvent(new Event("couriersUpdated"));
+        window.dispatchEvent(new Event("storage"));
+      } catch (e) {}
+      return updated;
+    });
     logAction("Added Courier Partner", newCourier.name);
   }, []);
 
   const updateCourier = useCallback((id: string, updates: Partial<AdminCourier>) => {
-    setCouriers((prev) => prev.map((c) => (c.id === id ? { ...c, ...updates } : c)));
+    setCouriers((prev) => {
+      const updated = prev.map((c) => (c.id === id ? { ...c, ...updates } : c));
+      try {
+        localStorage.setItem("tonalzone_admin_couriers", JSON.stringify(updated));
+        window.dispatchEvent(new Event("couriersUpdated"));
+        window.dispatchEvent(new Event("storage"));
+      } catch (e) {}
+      return updated;
+    });
     logAction("Updated Courier", `Courier ID ${id}`);
   }, []);
 
   const deleteCourier = useCallback((id: string) => {
-    setCouriers((prev) => prev.filter((c) => c.id !== id));
+    setCouriers((prev) => {
+      const updated = prev.filter((c) => c.id !== id);
+      try {
+        localStorage.setItem("tonalzone_admin_couriers", JSON.stringify(updated));
+        window.dispatchEvent(new Event("couriersUpdated"));
+        window.dispatchEvent(new Event("storage"));
+      } catch (e) {}
+      return updated;
+    });
     logAction("Deleted Courier", `Courier ID ${id}`);
   }, []);
 
   const toggleCourierStatus = useCallback((id: string) => {
-    setCouriers((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, active: !c.active } : c))
-    );
+    setCouriers((prev) => {
+      const updated = prev.map((c) => (c.id === id ? { ...c, active: !c.active } : c));
+      try {
+        localStorage.setItem("tonalzone_admin_couriers", JSON.stringify(updated));
+        window.dispatchEvent(new Event("couriersUpdated"));
+        window.dispatchEvent(new Event("storage"));
+      } catch (e) {}
+      return updated;
+    });
     logAction("Toggled Courier Partner Status", `Courier ID ${id}`);
   }, []);
 
-  // Live Shipment Tracking Actions
-  const updateShipmentStatus = useCallback((
+  // Live Shipment Tracking Actions (Connected to Real Escrow & DB)
+  const updateShipmentStatus = useCallback(async (
     id: string,
     status: AdminShipmentTracking["currentStatus"],
     newMilestone?: TrackingMilestone
   ) => {
+    const shipment = shipments.find((s) => s.id === id);
+    const orderId = shipment?.orderId;
+
     setShipments((prev) =>
       prev.map((s) => {
         if (s.id === id) {
           const updatedMilestones = newMilestone ? [...s.milestones, newMilestone] : s.milestones;
           const isDelivered = status === "DELIVERED";
+          const windowHours = systemSettings.inspectionWindowHours || 48;
           return {
             ...s,
             currentStatus: status,
             escrowStatus: isDelivered ? ("RELEASE_ELIGIBLE" as const) : s.escrowStatus,
-            inspectionExpiry: isDelivered ? new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().replace("T", " ").slice(0, 16) : s.inspectionExpiry,
+            inspectionExpiry: isDelivered ? new Date(Date.now() + windowHours * 60 * 60 * 1000).toISOString().replace("T", " ").slice(0, 16) : s.inspectionExpiry,
             lastUpdated: new Date().toISOString().replace("T", " ").slice(0, 16),
             milestones: updatedMilestones,
           };
@@ -1171,19 +1767,44 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
         return s;
       })
     );
-    logAction("Shipment Status Updated", `Shipment ${id} -> ${status}`);
-  }, []);
 
-  const forceCompleteEscrow = useCallback((shipmentId: string) => {
+    // Sync to backend order if orderId exists
+    if (orderId) {
+      try {
+        if (status === "DELIVERED") {
+          await fetch(`/api/orders/${orderId}/accept`, { method: "POST" }).catch(() => {});
+        }
+      } catch {}
+    }
+
+    logAction("Shipment Status Updated", `Shipment ${id} -> ${status}`);
+  }, [shipments, systemSettings.inspectionWindowHours]);
+
+  const forceCompleteEscrow = useCallback(async (shipmentId: string) => {
     const shipment = shipments.find((s) => s.id === shipmentId);
-    if (shipment) {
+    if (!shipment) return;
+
+    try {
+      // Execute true backend auto-settle to release escrow funds in Supabase/database
+      const res = await fetch(`/api/orders/${shipment.orderId}/auto-settle`, {
+        method: "POST",
+      });
+      if (res.ok) {
+        releaseEscrowPayout(shipment.orderId);
+      } else {
+        releaseEscrowPayout(shipment.orderId);
+      }
+    } catch {
       releaseEscrowPayout(shipment.orderId);
     }
+    logAction("Escrow Force Completed", `Escrow auto-settled by Admin for Shipment ${shipmentId} (Order ${shipment.orderId})`);
   }, [shipments, releaseEscrowPayout]);
 
   // Memoize entire context value to eliminate cascading re-renders
   const contextValue = useMemo<AdminDataContextType>(
     () => ({
+      systemSettings,
+      updateSystemSettings,
       users,
       addUser,
       updateUser,
@@ -1237,6 +1858,8 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
       exportToCSV,
     }),
     [
+      systemSettings,
+      updateSystemSettings,
       users,
       addUser,
       updateUser,

@@ -5,23 +5,59 @@ import Link from "next/link";
 import Image from "next/image";
 import { fetchProductsFromDb, CatalogProduct } from "@/lib/products-db";
 import { useLocation } from "@/context/LocationContext";
+import { useLanguage } from "@/context/LanguageContext";
 
 const CATEGORIES = ["EAR PHONES", "TWS", "CABLE", "HEADPHONES"] as const;
 
 export default function FigmaNewArrival() {
+  const { t } = useLanguage();
   const [activeCategory, setActiveCategory] = useState<typeof CATEGORIES[number]>("EAR PHONES");
   const [allProducts, setAllProducts] = useState<CatalogProduct[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { formatPrice } = useLocation();
 
-  useEffect(() => {
-    async function loadProducts() {
-      setIsLoading(true);
-      const data = await fetchProductsFromDb();
-      setAllProducts(data);
-      setIsLoading(false);
+  const getCategoryLabel = (cat: typeof CATEGORIES[number]) => {
+    switch (cat) {
+      case "EAR PHONES": return t("landing.catEarphones");
+      case "TWS": return t("landing.catTws");
+      case "CABLE": return t("landing.catCable");
+      case "HEADPHONES": return t("landing.catHeadphones");
+      default: return cat;
     }
-    loadProducts();
+  };
+
+  const [customArrivals, setCustomArrivals] = useState<any>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    async function loadData() {
+      setIsLoading(true);
+      try {
+        const { fetchLandingConfigFromDb } = await import("@/lib/landing-config");
+        const [data, config] = await Promise.all([
+          fetchProductsFromDb(),
+          fetchLandingConfigFromDb(),
+        ]);
+        if (isMounted) {
+          setAllProducts(data);
+          if (config?.new_arrivals) {
+            setCustomArrivals(config.new_arrivals);
+          }
+          setIsLoading(false);
+        }
+      } catch (err) {
+        console.error("Failed to load new arrivals:", err);
+        if (isMounted) setIsLoading(false);
+      }
+    }
+    loadData();
+
+    const handleUpdate = () => loadData();
+    window.addEventListener("tonalzone_landing_updated", handleUpdate);
+    return () => {
+      isMounted = false;
+      window.removeEventListener("tonalzone_landing_updated", handleUpdate);
+    };
   }, []);
 
   const displayedProducts = useMemo(() => {
@@ -30,8 +66,7 @@ export default function FigmaNewArrival() {
     let filtered: CatalogProduct[] = [];
     if (activeCategory === "EAR PHONES") {
       filtered = allProducts.filter((p) => p.category.toUpperCase().includes("IN-EAR"));
-      // Ensure the iconic Figma new arrivals (Mimisbrunnr, EPZ G30, Tangzu WuKong) are prioritized
-      const priorityOrder = ["prod-mimisbrunnr", "prod-epz-g30", "prod-wukong", "prod-chu3"];
+      const priorityOrder = customArrivals?.earphones || ["prod-mimisbrunnr", "prod-epz-g30", "prod-wukong", "prod-chu3"];
       filtered.sort((a, b) => {
         const aIdx = priorityOrder.indexOf(a.id);
         const bIdx = priorityOrder.indexOf(b.id);
@@ -42,8 +77,15 @@ export default function FigmaNewArrival() {
       });
     } else if (activeCategory === "TWS") {
       filtered = allProducts.filter(
-        (p) => p.category.toUpperCase().includes("TWS") || p.category.toUpperCase().includes("WIRELESS")
+        (p) =>
+          p.category.toUpperCase().includes("WIRELESS") ||
+          p.category.toUpperCase().includes("TWS") ||
+          p.name.toUpperCase().includes("TWS") ||
+          p.id === "prod-sparxie"
       );
+      if (filtered.length === 0) {
+        filtered = allProducts.filter((p) => p.id === "prod-sparxie");
+      }
     } else if (activeCategory === "CABLE") {
       filtered = allProducts.filter(
         (p) => p.category.toUpperCase().includes("CABLE") || p.category.toUpperCase().includes("ACCESSORIES")
@@ -53,16 +95,16 @@ export default function FigmaNewArrival() {
     }
 
     return filtered.slice(0, 3);
-  }, [allProducts, activeCategory]);
+  }, [allProducts, activeCategory, customArrivals]);
 
   return (
     <section className="w-full bg-[#030303] py-32 lg:py-40">
-      <div className="w-full max-w-[1500px] mx-auto px-6 sm:px-10 lg:px-16">
+      <div className="w-full max-w-[1360px] mx-auto px-5 sm:px-8 lg:px-12">
         {/* Top Header Row (x: 64, y: 782, w: 1152, h: 96) */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16 lg:mb-20">
           {/* Heading 2: "NEW ARRIVAL" - General Sans */}
           <h2 className="font-sans font-medium text-5xl sm:text-6xl text-[#e5e2e1] tracking-[-3.2px] leading-none uppercase">
-            NEW ARRIVAL
+            {t("landing.newArrival")}
           </h2>
 
           {/* Category Tabs: Ear Phones, TWS, Cable, Headphones - General Sans */}
@@ -79,7 +121,7 @@ export default function FigmaNewArrival() {
                       : "text-[#c4c7c8] hover:text-white"
                   }`}
                 >
-                  {cat}
+                  {getCategoryLabel(cat)}
                 </button>
               );
             })}
@@ -116,7 +158,7 @@ export default function FigmaNewArrival() {
                     className="object-cover object-center group-hover:scale-105 transition-transform duration-700"
                   />
                   {prod.badge && (
-                    <div className="absolute top-4 left-4 bg-black/80 backdrop-blur-sm border border-white/20 px-3 py-1 text-[10px] font-mono tracking-widest text-[#BFDD25] uppercase">
+                    <div className="absolute top-4 left-4 bg-[#2e2e2e] px-3.5 py-1.5 text-[10px] font-sans font-bold text-white rounded-full uppercase tracking-wider shadow-md leading-none">
                       {prod.badge}
                     </div>
                   )}

@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 
 import { fetchProductsFromDb, cleanProductName, CatalogProduct } from "@/lib/products-db";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface BestSellerProduct {
   id: string;
@@ -58,6 +59,7 @@ const AUTO_SLIDE_DURATION = 5000; // 5 seconds per slide
 const PROGRESS_INTERVAL = 50; // 50ms interval
 
 export default function FigmaBestSellers() {
+  const { t } = useLanguage();
   const [products, setProducts] = useState<BestSellerProduct[]>(DEFAULT_PRODUCTS);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [progress, setProgress] = useState(0);
@@ -70,35 +72,54 @@ export default function FigmaBestSellers() {
   const [cardOffset, setCardOffset] = useState(1210);
 
   useEffect(() => {
+    let isMounted = true;
     async function loadBestSellers() {
-      const dbAll = await fetchProductsFromDb();
-      if (dbAll && dbAll.length > 0) {
-        const targetIds = ["prod-waner-sg2", "prod-chu3", "prod-tanchjim-nora", "prod-kiwi-cadenza"];
-        const loaded: BestSellerProduct[] = [];
+      try {
+        const { fetchLandingConfigFromDb } = await import("@/lib/landing-config");
+        const config = await fetchLandingConfigFromDb();
+        if (config?.best_sellers && config.best_sellers.length > 0 && isMounted) {
+          setProducts(config.best_sellers);
+          return;
+        }
 
-        for (const tid of targetIds) {
-          const found = dbAll.find((p) => p.id === tid);
-          const fallbackItem = DEFAULT_PRODUCTS.find((p) => p.id === tid);
-          if (found && fallbackItem) {
-            loaded.push({
-              id: found.id,
-              brand: found.brand.toUpperCase(),
-              title: cleanProductName(found.name, found.id).toUpperCase(),
-              description: found.description || fallbackItem.description,
-              image: fallbackItem.image || found.image,
-              href: `/product/${found.id}`,
-            });
-          } else if (fallbackItem) {
-            loaded.push(fallbackItem);
+        const dbAll = await fetchProductsFromDb();
+        if (dbAll && dbAll.length > 0 && isMounted) {
+          const targetIds = ["prod-waner-sg2", "prod-chu3", "prod-tanchjim-nora", "prod-kiwi-cadenza"];
+          const loaded: BestSellerProduct[] = [];
+
+          for (const tid of targetIds) {
+            const found = dbAll.find((p) => p.id === tid);
+            const fallbackItem = DEFAULT_PRODUCTS.find((p) => p.id === tid);
+            if (found && fallbackItem) {
+              loaded.push({
+                id: found.id,
+                brand: found.brand.toUpperCase(),
+                title: cleanProductName(found.name, found.id).toUpperCase(),
+                description: found.description || fallbackItem.description,
+                image: fallbackItem.image || found.image,
+                href: `/product/${found.id}`,
+              });
+            } else if (fallbackItem) {
+              loaded.push(fallbackItem);
+            }
+          }
+
+          if (loaded.length > 0) {
+            setProducts(loaded);
           }
         }
-
-        if (loaded.length === 4) {
-          setProducts(loaded);
-        }
+      } catch (err) {
+        console.error("Failed to load best sellers:", err);
       }
     }
     loadBestSellers();
+
+    const handleUpdate = () => loadBestSellers();
+    window.addEventListener("tonalzone_landing_updated", handleUpdate);
+    return () => {
+      isMounted = false;
+      window.removeEventListener("tonalzone_landing_updated", handleUpdate);
+    };
   }, []);
 
   const updateCardOffset = useCallback(() => {
@@ -282,9 +303,9 @@ export default function FigmaBestSellers() {
         </div>
 
       {/* Section Title: "BEST SELLERS" */}
-      <div className="w-full max-w-[1500px] mx-auto px-6 sm:px-10 lg:px-16 mb-16 lg:mb-20 text-center">
+      <div className="w-full max-w-[1360px] mx-auto px-5 sm:px-8 lg:px-12 mb-16 lg:mb-20 text-center">
         <h2 className="font-sans font-semibold text-4xl sm:text-5xl text-white tracking-[2px] leading-none uppercase">
-          BEST SELLERS
+          {t("landing.bestSellers")}
         </h2>
       </div>
 
@@ -308,6 +329,18 @@ export default function FigmaBestSellers() {
         >
           {products.map((prod, idx) => {
             const isActive = idx === currentSlide;
+
+            // Translate known default descriptions
+            let translatedDesc = prod.description;
+            if (prod.id === "prod-waner-sg2" || prod.title.includes("WAN'ER")) {
+              translatedDesc = t("landing.prodWanerDesc");
+            } else if (prod.id === "prod-chu3" || prod.title.includes("CHU III")) {
+              translatedDesc = t("landing.prodChu3Desc");
+            } else if (prod.id === "prod-tanchjim-nora" || prod.title.includes("NORA")) {
+              translatedDesc = t("landing.prodNoraDesc");
+            } else if (prod.id === "prod-kiwi-cadenza" || prod.title.includes("CADENZA")) {
+              translatedDesc = t("landing.prodCadenzaDesc");
+            }
 
             return (
               <div
@@ -362,18 +395,65 @@ export default function FigmaBestSellers() {
 
                   {/* Description */}
                   <p className="font-sans font-normal text-sm sm:text-base leading-[33px] text-white/90 mb-8 max-w-md line-clamp-3">
-                    {prod.description}
+                    {translatedDesc}
                   </p>
 
                   {/* Button: "SHOP NOW" */}
                   <Link
                     href={prod.href}
                     onClick={(e) => e.stopPropagation()}
-                    className="w-[176px] h-[50px] bg-[#d9d9d9] hover:bg-[#BFDD25] hover:text-black transition-colors flex items-center justify-center shadow-md cursor-pointer group/btn"
+                    className="relative inline-flex items-center h-[46px] group/btn cursor-pointer select-none"
                   >
-                    <span className="font-sans font-bold text-[12px] leading-[13px] tracking-[2.2px] text-[#131313] uppercase">
-                      SHOP NOW
-                    </span>
+                    <div className="relative flex items-center h-[44px] w-[190px]">
+                      {/* Underlying White Pill */}
+                      <div className="absolute right-0 top-0 bottom-0 left-[52px] bg-white rounded-full shadow-md flex items-center justify-center transition-opacity duration-300 group-hover/btn:opacity-0 pointer-events-none">
+                        <span className="font-sans font-bold text-[12px] tracking-[2px] text-black uppercase whitespace-nowrap px-3">
+                          {t("landing.shopNow")}
+                        </span>
+                      </div>
+
+                      {/* Green Element: Circle on left that expands to full width */}
+                      <div className="absolute left-0 top-0 bottom-0 w-[44px] group-hover/btn:w-full rounded-full bg-[#BFDD25] shadow-lg flex items-center transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] overflow-hidden z-10">
+                        {/* Idle Left Chevron */}
+                        <div className="w-[44px] h-full flex items-center justify-center shrink-0 transition-opacity duration-300 group-hover/btn:opacity-0">
+                          <svg
+                            width="9"
+                            height="15"
+                            viewBox="0 0 9 15"
+                            fill="none"
+                            className="text-black stroke-[3]"
+                          >
+                            <path
+                              d="M1.5 1.5L7.5 7.5L1.5 13.5"
+                              stroke="currentColor"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                        </div>
+
+                        {/* Expanded Content on Hover */}
+                        <div className="absolute inset-0 flex items-center justify-between px-5 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-400 delay-100">
+                          <span className="font-sans font-extrabold text-[12px] tracking-[2px] text-black uppercase whitespace-nowrap">
+                            {t("landing.shopNow")}
+                          </span>
+                          <svg
+                            width="10"
+                            height="16"
+                            viewBox="0 0 10 16"
+                            fill="none"
+                            className="text-black stroke-[3] shrink-0"
+                          >
+                            <path
+                              d="M2 2L8 8L2 14"
+                              stroke="currentColor"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
                   </Link>
                 </div>
               </div>

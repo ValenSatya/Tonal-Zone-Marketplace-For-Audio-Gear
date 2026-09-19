@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/context/LanguageContext";
 import CustomSelect from "@/components/ui/custom-select";
+import { KeyboardArrowRight } from "@/components/ui/keyboard-arrow";
 
 export interface NewProductVariant {
   id: string;
@@ -25,8 +26,11 @@ export default function AddNewProductPage() {
   const [productImages, setProductImages] = useState<string[]>([]);
   const [variants, setVariants] = useState<NewProductVariant[]>([]);
 
+  const [isOfficialBrand, setIsOfficialBrand] = useState(false);
+  const [officialBrandName, setOfficialBrandName] = useState("MOONDROP");
+
   useEffect(() => {
-    const loadCurrency = () => {
+    const loadCurrencyAndStore = async () => {
       const saved = localStorage.getItem("tonalzone_seller_currency") as "IDR" | "USD" | null;
       if (saved) {
         setCurrency(saved);
@@ -37,14 +41,35 @@ export default function AddNewProductPage() {
             const u = JSON.parse(stored);
             if (u.storeCurrency) setCurrency(u.storeCurrency);
             else if (u.location === "Indonesia") setCurrency("IDR");
+
+            if (u.storeType === "OFFICIAL_BRAND" || u.brandName) {
+              setIsOfficialBrand(true);
+              const bName = u.brandName || "MOONDROP";
+              setOfficialBrandName(bName);
+              setFormData((prev) => ({ ...prev, brand: bName }));
+            }
           } catch (e) {}
         }
       }
+
+      // Live check from /api/seller/store
+      try {
+        const res = await fetch("/api/seller/store");
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && json.store?.storeType === "OFFICIAL_BRAND") {
+            setIsOfficialBrand(true);
+            const bName = json.store.brandName || "MOONDROP";
+            setOfficialBrandName(bName);
+            setFormData((prev) => ({ ...prev, brand: bName }));
+          }
+        }
+      } catch (err) {}
     };
 
-    loadCurrency();
-    window.addEventListener("storage", loadCurrency);
-    return () => window.removeEventListener("storage", loadCurrency);
+    loadCurrencyAndStore();
+    window.addEventListener("storage", loadCurrencyAndStore);
+    return () => window.removeEventListener("storage", loadCurrencyAndStore);
   }, []);
 
   const [formData, setFormData] = useState({
@@ -155,6 +180,8 @@ export default function AddNewProductPage() {
 
     const imgList = productImages.length > 0 ? productImages : ["/model-iem-untuk-hero.webp"];
 
+    const initialStatus = isOfficialBrand ? "APPROVED" : "PENDING";
+
     const newProd = {
       id: `PRD-NEW-${Date.now()}`,
       name: formData.name,
@@ -164,7 +191,7 @@ export default function AddNewProductPage() {
       priceUSD: formData.priceUSD,
       stock: formData.stock,
       condition: formData.condition,
-      status: "APPROVED" as const,
+      status: initialStatus as "APPROVED" | "PENDING",
       createdAt: new Date().toISOString().split("T")[0],
       images: imgList,
       image: imgList[0],
@@ -191,11 +218,13 @@ export default function AddNewProductPage() {
           soundSignature: "NEUTRAL",
           sellerEmail: userStored?.email,
           storeId: userStored?.storeId,
+          status: initialStatus,
         }),
       });
       const data = await res.json();
       if (data.product?.id) {
         newProd.id = data.product.id;
+        newProd.status = data.product.status || initialStatus;
       }
     } catch (err) {
       console.warn("Failed to persist new product via /api/seller/products:", err);
@@ -207,6 +236,7 @@ export default function AddNewProductPage() {
       const list = existing ? JSON.parse(existing) : [];
       list.unshift(newProd);
       localStorage.setItem("tonalzone_custom_products", JSON.stringify(list));
+      window.dispatchEvent(new Event("productsUpdated"));
       window.dispatchEvent(new Event("storage"));
     } catch (err) {}
 
@@ -224,14 +254,14 @@ export default function AddNewProductPage() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Header & Submit Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-[#1E1E1E]">
+      {/* Header & Submit Bar (Zero border, clean modern elevation) */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
         <div>
           <div className="flex items-center gap-2.5">
-            <h1 className="text-xl font-bold font-sans tracking-tight text-white">
+            <h1 className="text-xl sm:text-2xl font-bold font-sans tracking-tight text-white">
               {isEn ? "Add New Audio Product" : "Tambah Produk Audio Baru"}
             </h1>
-            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-medium uppercase tracking-wider bg-[#050505] text-[#D4D4D8] border border-[#27272A]">
+            <span className="px-3 py-1 rounded-full text-[10px] font-mono font-medium uppercase tracking-wider bg-[#141414] text-[#D4D4D8]">
               {isEn ? "Requires Admin QC" : "Wajib QC Admin"}
             </span>
           </div>
@@ -245,14 +275,14 @@ export default function AddNewProductPage() {
         <div className="flex items-center gap-2.5">
           <Link
             href="/seller/products"
-            className="px-4 py-2 bg-[#050505] hover:bg-[#050505] border border-[#1c1c1c] hover:border-[#3E3E3E] text-white text-xs font-mono rounded-lg transition-colors cursor-pointer"
+            className="px-5 py-2.5 rounded-full bg-[#141414] hover:bg-[#1E1E1E] text-[#D4D4D8] hover:text-white text-xs font-sans font-medium transition-colors cursor-pointer"
           >
             {isEn ? "Cancel" : "Batal"}
           </Link>
           <button
             type="submit"
             disabled={isSubmitting}
-            className="px-4 py-2 bg-[#FAF9F6] text-black hover:bg-[#E5E5E5] text-xs font-sans font-bold rounded-lg transition-all shadow-sm flex items-center gap-2 cursor-pointer disabled:opacity-50"
+            className="px-6 py-2.5 rounded-full bg-white text-black hover:bg-[#E5E5E5] text-xs font-sans font-bold transition-all shadow-md flex items-center gap-2 cursor-pointer disabled:opacity-50"
           >
             {isSubmitting ? (
               <>
@@ -267,26 +297,32 @@ export default function AddNewProductPage() {
                 <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                 </svg>
-                {isEn ? "Submit for QC Review" : "Kirim untuk Moderasi QC"}
+                {isOfficialBrand
+                  ? isEn
+                    ? "Publish to Master Catalog (Instant Live)"
+                    : "Terbitkan ke Master Catalog (Instan Live)"
+                  : isEn
+                  ? "Submit for QC Review"
+                  : "Kirim untuk Moderasi QC"}
               </>
             )}
           </button>
         </div>
       </div>
 
-      {/* Master Catalog Shortcut Recommendation */}
-      <div className="p-4 rounded-xl bg-[#050505] border border-[#2A2A2A] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-[#050505] border border-[#333] flex items-center justify-center text-white shrink-0">
-            <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+      {/* Master Catalog Shortcut Recommendation (Rounded-2xl, Zero Stroke) */}
+      <div className="p-5 sm:p-6 rounded-2xl bg-[#0E0E0E] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3.5">
+          <div className="w-10 h-10 rounded-xl bg-[#181818] flex items-center justify-center text-[#BFDD25] shrink-0">
+            <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 16.875h3.375m0 0h3.375m-3.375 0V13.5m0 3.375v3.375M6 5.625a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.875 0a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm12 0a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0z" />
             </svg>
           </div>
           <div>
-            <h4 className="text-xs font-bold text-white font-sans">
+            <h4 className="text-sm font-bold text-white font-sans">
               {isEn ? "Selling official brand products (TANGZU, Moondrop, Sennheiser)?" : "Ingin menjual IEM dari brand resmi (TANGZU, Moondrop, Sennheiser)?"}
             </h4>
-            <p className="text-[11px] font-mono text-[#888] mt-0.5">
+            <p className="text-xs text-[#8E8E93] font-sans mt-0.5">
               {isEn
                 ? "You don't need to fill this custom form. Select directly from the Master Catalog for 0-minute instant listing."
                 : "Anda tidak perlu mengisi formulir panjang ini dari nol. Pilih langsung dari Master Katalog untuk langsung aktif tanpa antre QC."}
@@ -296,18 +332,21 @@ export default function AddNewProductPage() {
 
         <Link
           href="/seller/products"
-          className="px-3.5 py-1.5 bg-[#FAF9F6] text-black hover:bg-[#E5E5E5] text-xs font-sans font-bold rounded-lg transition-colors whitespace-nowrap shrink-0 text-center"
+          className="px-5 py-2.5 bg-white text-black hover:bg-[#E5E5E5] text-xs font-sans font-bold rounded-full transition-all shadow-md whitespace-nowrap shrink-0 text-center inline-flex items-center justify-center gap-1.5 group"
         >
-          {isEn ? "Open Master Catalog →" : "Buka Master Katalog →"}
+          <span>{isEn ? "Open Master Catalog" : "Buka Master Katalog"}</span>
+          <KeyboardArrowRight className="w-3.5 h-3.5 stroke-[2.5] group-hover:translate-x-0.5 transition-transform" />
         </Link>
       </div>
 
       {successBanner && (
-        <div className="p-4 rounded-xl bg-[#050505] border border-[#2A2A2A] text-white text-xs font-mono flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
-          {isEn
-            ? "Product listing submitted successfully! Transferred to Admin QC Queue."
-            : "Produk berhasil dikirim! Masuk ke antrean verifikasi QC tim Admin."}
+        <div className="p-4 rounded-2xl bg-[#141F17] text-[#BFDD25] text-xs font-sans flex items-center gap-2.5">
+          <span className="w-2 h-2 rounded-full bg-[#BFDD25] shadow-[0_0_8px_rgba(191,221,37,0.6)]" />
+          <span>
+            {isEn
+              ? "Product listing submitted successfully! Transferred to Admin QC Queue."
+              : "Produk berhasil dikirim! Masuk ke antrean verifikasi QC tim Admin."}
+          </span>
         </div>
       )}
 
@@ -316,17 +355,17 @@ export default function AddNewProductPage() {
         {/* Left 2 Cols: General Info & Dynamic Category Specs */}
         <div className="lg:col-span-2 space-y-6">
           {/* Section 1: General Product Information & Category Picker */}
-          <div className="bg-[#050505] border border-[#222222] rounded-xl p-5 space-y-4">
-            <div className="flex items-center gap-2 pb-2 border-b border-[#1E1E1E]">
-              <span className="w-2 h-2 rounded-full bg-indigo-400" />
+          <div className="bg-[#0A0A0A] rounded-2xl p-6 sm:p-7 space-y-5">
+            <div className="flex items-center gap-2.5 pb-1">
+              <span className="w-2 h-2 rounded-full bg-[#BFDD25] shadow-[0_0_8px_rgba(191,221,37,0.6)]" />
               <h3 className="text-xs font-bold font-sans text-white uppercase tracking-wider">
                 {isEn ? "1. General Product Information" : "1. Informasi Dasar Produk"}
               </h3>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-4">
               <div>
-                <label className="block text-[11px] font-mono text-[#888] uppercase mb-1">
+                <label className="block text-[11px] font-mono text-[#A1A1AA] uppercase tracking-wider mb-2 font-semibold">
                   {isEn ? "Product Name / Model *" : "Nama Produk / Model *"}
                 </label>
                 <input
@@ -345,13 +384,13 @@ export default function AddNewProductPage() {
                   }
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full bg-[#050505] border border-[#2A2A2A] rounded-lg px-3.5 py-2 text-xs font-sans text-white placeholder:text-[#555] outline-none focus:border-white"
+                  className="w-full bg-[#161616] hover:bg-[#1A1A1A] focus:bg-[#1C1C1C] ring-1 ring-white/10 hover:ring-white/20 focus:ring-1 focus:ring-[#BFDD25] shadow-inner rounded-xl px-4 py-3 text-xs font-sans text-white placeholder:text-[#666] outline-none border-0 transition-all"
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[11px] font-mono text-[#888] uppercase mb-1">
+                  <label className="block text-[11px] font-mono text-[#71717A] uppercase tracking-wider mb-2">
                     {isEn ? "Product Category *" : "Kategori Produk *"}
                   </label>
                   <CustomSelect
@@ -371,38 +410,55 @@ export default function AddNewProductPage() {
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-mono text-[#888] uppercase mb-1">
-                    {isEn ? "Authorized Brand *" : "Brand Terdaftar *"}
-                  </label>
-                  <CustomSelect
-                    value={formData.brand}
-                    onChange={(val) => setFormData({ ...formData, brand: val })}
-                    options={[
-                      { label: "Moondrop", value: "Moondrop" },
-                      { label: "Sennheiser", value: "Sennheiser" },
-                      { label: "64 Audio", value: "64 Audio" },
-                      { label: "Hifiman", value: "Hifiman" },
-                      { label: "FiiO", value: "FiiO" },
-                      { label: "Topping", value: "Topping" },
-                      { label: "Effect Audio", value: "Effect Audio" },
-                      { label: "Tangzu", value: "Tangzu" },
-                      { label: "Truthear", value: "Truthear" },
-                      { label: "7Hz", value: "7Hz" },
-                      { label: "Sony", value: "Sony" },
-                      { label: "Final Audio", value: "Final Audio" },
-                      { label: "Campfire Audio", value: "Campfire Audio" },
-                      { label: "Astell&Kern", value: "Astell&Kern" },
-                      { label: "Audio-Technica", value: "Audio-Technica" },
-                      { label: "Genelec", value: "Genelec" },
-                      { label: "Shure", value: "Shure" },
-                    ]}
-                  />
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-[11px] font-mono text-[#71717A] uppercase tracking-wider">
+                      {isEn ? "Authorized Brand *" : "Brand Terdaftar *"}
+                    </label>
+                    {isOfficialBrand && (
+                      <span className="text-[10px] font-mono text-[#D4D4D8] bg-[#181818] px-2.5 py-0.5 rounded-full">
+                        Master Catalog Lock
+                      </span>
+                    )}
+                  </div>
+                  {isOfficialBrand ? (
+                    <div className="w-full bg-[#121212] rounded-xl px-4 py-3 text-xs font-mono font-bold text-white flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#BFDD25] shadow-[0_0_6px_rgba(191,221,37,0.6)]" />
+                        <span>{officialBrandName || "MOONDROP"}</span>
+                      </div>
+                      <span className="text-[10px] font-normal text-[#71717A]">Official Manufacturer</span>
+                    </div>
+                  ) : (
+                    <CustomSelect
+                      value={formData.brand}
+                      onChange={(val) => setFormData({ ...formData, brand: val })}
+                      options={[
+                        { label: "Moondrop", value: "Moondrop" },
+                        { label: "Sennheiser", value: "Sennheiser" },
+                        { label: "64 Audio", value: "64 Audio" },
+                        { label: "Hifiman", value: "Hifiman" },
+                        { label: "FiiO", value: "FiiO" },
+                        { label: "Topping", value: "Topping" },
+                        { label: "Effect Audio", value: "Effect Audio" },
+                        { label: "Tangzu", value: "Tangzu" },
+                        { label: "Truthear", value: "Truthear" },
+                        { label: "7Hz", value: "7Hz" },
+                        { label: "Sony", value: "Sony" },
+                        { label: "Final Audio", value: "Final Audio" },
+                        { label: "Campfire Audio", value: "Campfire Audio" },
+                        { label: "Astell&Kern", value: "Astell&Kern" },
+                        { label: "Audio-Technica", value: "Audio-Technica" },
+                        { label: "Genelec", value: "Genelec" },
+                        { label: "Shure", value: "Shure" },
+                      ]}
+                    />
+                  )}
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[11px] font-mono text-[#888] uppercase mb-1">
+                  <label className="block text-[11px] font-mono text-[#71717A] uppercase tracking-wider mb-2">
                     {isEn ? "Item Condition" : "Kondisi Barang"}
                   </label>
                   <CustomSelect
@@ -417,7 +473,7 @@ export default function AddNewProductPage() {
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-mono text-[#888] uppercase mb-1">
+                  <label className="block text-[11px] font-mono text-[#A1A1AA] uppercase tracking-wider mb-2 font-semibold">
                     {isEn ? "Official Warranty (Months)" : "Garansi Resmi (Bulan)"}
                   </label>
                   <input
@@ -425,13 +481,13 @@ export default function AddNewProductPage() {
                     min={0}
                     value={formData.warrantyMonths}
                     onChange={(e) => setFormData({ ...formData, warrantyMonths: parseInt(e.target.value, 10) || 0 })}
-                    className="w-full bg-[#050505] border border-[#2A2A2A] rounded-lg px-3.5 py-2 text-xs font-mono text-white outline-none focus:border-white"
+                    className="w-full bg-[#161616] hover:bg-[#1A1A1A] focus:bg-[#1C1C1C] ring-1 ring-white/10 hover:ring-white/20 focus:ring-1 focus:ring-[#BFDD25] shadow-inner rounded-xl px-4 py-3 text-xs font-mono text-white outline-none border-0 transition-all"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-[11px] font-mono text-[#888] uppercase mb-1">
+                <label className="block text-[11px] font-mono text-[#A1A1AA] uppercase tracking-wider mb-2 font-semibold">
                   {isEn ? "Product Overview & Package Contents" : "Deskripsi Produk & Kelengkapan Box"}
                 </label>
                 <textarea
@@ -443,16 +499,16 @@ export default function AddNewProductPage() {
                   }
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full bg-[#050505] border border-[#2A2A2A] rounded-lg p-3 text-xs font-sans text-white placeholder:text-[#555] outline-none focus:border-white resize-none"
+                  className="w-full bg-[#161616] hover:bg-[#1A1A1A] focus:bg-[#1C1C1C] ring-1 ring-white/10 hover:ring-white/20 focus:ring-1 focus:ring-[#BFDD25] shadow-inner rounded-xl p-4 text-xs font-sans text-white placeholder:text-[#666] outline-none border-0 transition-all resize-none leading-relaxed"
                 />
               </div>
             </div>
           </div>
 
           {/* Section 2: Dynamic Category-Specific Technical Specs */}
-          <div className="bg-[#050505] border border-[#222222] rounded-xl p-5 space-y-4">
-            <div className="flex items-center gap-2 pb-2 border-b border-[#1E1E1E]">
-              <span className="w-2 h-2 rounded-full bg-emerald-400" />
+          <div className="bg-[#0A0A0A] rounded-2xl p-6 sm:p-7 space-y-5">
+            <div className="flex items-center gap-2.5 pb-1">
+              <span className="w-2 h-2 rounded-full bg-[#BFDD25] shadow-[0_0_8px_rgba(191,221,37,0.6)]" />
               <h3 className="text-xs font-bold font-sans text-white uppercase tracking-wider">
                 {isEn
                   ? `2. Technical Specifications (${category})`
@@ -462,9 +518,9 @@ export default function AddNewProductPage() {
 
             {/* DYNAMIC FORM PER CATEGORY */}
             {category === "IN-EAR MONITORS" && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[11px] font-mono text-[#888] uppercase mb-1">
+                  <label className="block text-[11px] font-mono text-[#A1A1AA] uppercase tracking-wider mb-2 font-semibold">
                     {isEn ? "Driver Configuration *" : "Konfigurasi Driver *"}
                   </label>
                   <input
@@ -473,12 +529,12 @@ export default function AddNewProductPage() {
                     placeholder="e.g. 1DD (10mm Carbon) + 4BA (Knowles)"
                     value={formData.driverType}
                     onChange={(e) => setFormData({ ...formData, driverType: e.target.value })}
-                    className="w-full bg-[#050505] border border-[#2A2A2A] rounded-lg px-3.5 py-2 text-xs font-mono text-white outline-none focus:border-white"
+                    className="w-full bg-[#161616] hover:bg-[#1A1A1A] focus:bg-[#1C1C1C] ring-1 ring-white/10 hover:ring-white/20 focus:ring-1 focus:ring-[#BFDD25] shadow-inner rounded-xl px-4 py-3 text-xs font-mono text-white outline-none border-0 transition-all"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-mono text-[#888] uppercase mb-1">
+                  <label className="block text-[11px] font-mono text-[#A1A1AA] uppercase tracking-wider mb-2 font-semibold">
                     {isEn ? "Sound Signature *" : "Karakter Suara *"}
                   </label>
                   <CustomSelect
@@ -495,7 +551,7 @@ export default function AddNewProductPage() {
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-mono text-[#888] uppercase mb-1">
+                  <label className="block text-[11px] font-mono text-[#A1A1AA] uppercase tracking-wider mb-2 font-semibold">
                     {isEn ? "Impedance (Ω)" : "Impedansi (Ω)"}
                   </label>
                   <input
@@ -503,12 +559,12 @@ export default function AddNewProductPage() {
                     placeholder="e.g. 14.8 Ω @ 1kHz"
                     value={formData.impedance}
                     onChange={(e) => setFormData({ ...formData, impedance: e.target.value })}
-                    className="w-full bg-[#050505] border border-[#2A2A2A] rounded-lg px-3.5 py-2 text-xs font-mono text-white outline-none focus:border-white"
+                    className="w-full bg-[#161616] hover:bg-[#1A1A1A] focus:bg-[#1C1C1C] ring-1 ring-white/10 hover:ring-white/20 focus:ring-1 focus:ring-[#BFDD25] shadow-inner rounded-xl px-4 py-3 text-xs font-mono text-white outline-none border-0 transition-all"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-mono text-[#888] uppercase mb-1">
+                  <label className="block text-[11px] font-mono text-[#A1A1AA] uppercase tracking-wider mb-2 font-semibold">
                     {isEn ? "Sensitivity" : "Sensitivitas"}
                   </label>
                   <input
@@ -516,12 +572,12 @@ export default function AddNewProductPage() {
                     placeholder="e.g. 120 dB/Vrms"
                     value={formData.sensitivity}
                     onChange={(e) => setFormData({ ...formData, sensitivity: e.target.value })}
-                    className="w-full bg-[#050505] border border-[#2A2A2A] rounded-lg px-3.5 py-2 text-xs font-mono text-white outline-none focus:border-white"
+                    className="w-full bg-[#161616] hover:bg-[#1A1A1A] focus:bg-[#1C1C1C] ring-1 ring-white/10 hover:ring-white/20 focus:ring-1 focus:ring-[#BFDD25] shadow-inner rounded-xl px-4 py-3 text-xs font-mono text-white outline-none border-0 transition-all"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-mono text-[#888] uppercase mb-1">
+                  <label className="block text-[11px] font-mono text-[#A1A1AA] uppercase tracking-wider mb-2 font-semibold">
                     {isEn ? "Pin Connector Type" : "Tipe Pin Konektor"}
                   </label>
                   <CustomSelect
@@ -537,7 +593,7 @@ export default function AddNewProductPage() {
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-mono text-[#888] uppercase mb-1">
+                  <label className="block text-[11px] font-mono text-[#A1A1AA] uppercase tracking-wider mb-2 font-semibold">
                     {isEn ? "Frequency Response Range" : "Rentang Frekuensi"}
                   </label>
                   <input
@@ -545,16 +601,16 @@ export default function AddNewProductPage() {
                     placeholder="e.g. 10Hz - 40,000Hz"
                     value={formData.frequencyRange}
                     onChange={(e) => setFormData({ ...formData, frequencyRange: e.target.value })}
-                    className="w-full bg-[#050505] border border-[#2A2A2A] rounded-lg px-3.5 py-2 text-xs font-mono text-white outline-none focus:border-white"
+                    className="w-full bg-[#161616] hover:bg-[#1A1A1A] focus:bg-[#1C1C1C] ring-1 ring-white/10 hover:ring-white/20 focus:ring-1 focus:ring-[#BFDD25] shadow-inner rounded-xl px-4 py-3 text-xs font-mono text-white outline-none border-0 transition-all"
                   />
                 </div>
               </div>
             )}
 
             {category === "HEADPHONES" && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[11px] font-mono text-[#888] uppercase mb-1">
+                  <label className="block text-[11px] font-mono text-[#71717A] uppercase tracking-wider mb-2">
                     {isEn ? "Acoustic Design *" : "Desain Akustik *"}
                   </label>
                   <CustomSelect
@@ -570,7 +626,7 @@ export default function AddNewProductPage() {
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-mono text-[#888] uppercase mb-1">
+                  <label className="block text-[11px] font-mono text-[#71717A] uppercase tracking-wider mb-2">
                     {isEn ? "Driver Tech & Size *" : "Tipe & Ukuran Driver *"}
                   </label>
                   <input
@@ -578,12 +634,12 @@ export default function AddNewProductPage() {
                     placeholder="e.g. 50mm Beryllium Dynamic or Planar Magnetic"
                     value={formData.headphoneDriverSize}
                     onChange={(e) => setFormData({ ...formData, headphoneDriverSize: e.target.value })}
-                    className="w-full bg-[#050505] border border-[#2A2A2A] rounded-lg px-3.5 py-2 text-xs font-mono text-white outline-none focus:border-white"
+                    className="w-full bg-[#121212] rounded-xl px-4 py-3 text-xs font-mono text-white outline-none border-0 focus:ring-1 focus:ring-white/20 transition-all"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-mono text-[#888] uppercase mb-1">
+                  <label className="block text-[11px] font-mono text-[#71717A] uppercase tracking-wider mb-2">
                     {isEn ? "Impedance & Sensitivity" : "Impedansi & Sensitivitas"}
                   </label>
                   <input
@@ -591,12 +647,12 @@ export default function AddNewProductPage() {
                     placeholder="e.g. 300 Ω / 104 dB"
                     value={formData.impedance}
                     onChange={(e) => setFormData({ ...formData, impedance: e.target.value })}
-                    className="w-full bg-[#050505] border border-[#2A2A2A] rounded-lg px-3.5 py-2 text-xs font-mono text-white outline-none focus:border-white"
+                    className="w-full bg-[#121212] rounded-xl px-4 py-3 text-xs font-mono text-white outline-none border-0 focus:ring-1 focus:ring-white/20 transition-all"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-mono text-[#888] uppercase mb-1">
+                  <label className="block text-[11px] font-mono text-[#71717A] uppercase tracking-wider mb-2">
                     {isEn ? "Weight (Grams)" : "Berat Headphone"}
                   </label>
                   <input
@@ -604,16 +660,16 @@ export default function AddNewProductPage() {
                     placeholder="e.g. 380g (Without Cable)"
                     value={formData.weightGrams}
                     onChange={(e) => setFormData({ ...formData, weightGrams: e.target.value })}
-                    className="w-full bg-[#050505] border border-[#2A2A2A] rounded-lg px-3.5 py-2 text-xs font-mono text-white outline-none focus:border-white"
+                    className="w-full bg-[#121212] rounded-xl px-4 py-3 text-xs font-mono text-white outline-none border-0 focus:ring-1 focus:ring-white/20 transition-all"
                   />
                 </div>
               </div>
             )}
 
             {category === "DAC/AMP" && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[11px] font-mono text-[#888] uppercase mb-1">
+                  <label className="block text-[11px] font-mono text-[#71717A] uppercase tracking-wider mb-2">
                     {isEn ? "DAC Chipset Architecture *" : "Chipset DAC *"}
                   </label>
                   <input
@@ -621,12 +677,12 @@ export default function AddNewProductPage() {
                     placeholder="e.g. Dual ESS ES9038PRO or AK4499EX / R2R Ladder"
                     value={formData.dacChipset}
                     onChange={(e) => setFormData({ ...formData, dacChipset: e.target.value })}
-                    className="w-full bg-[#050505] border border-[#2A2A2A] rounded-lg px-3.5 py-2 text-xs font-mono text-white outline-none focus:border-white"
+                    className="w-full bg-[#121212] rounded-xl px-4 py-3 text-xs font-mono text-white outline-none border-0 focus:ring-1 focus:ring-white/20 transition-all"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-mono text-[#888] uppercase mb-1">
+                  <label className="block text-[11px] font-mono text-[#71717A] uppercase tracking-wider mb-2">
                     {isEn ? "Output Power (mW) *" : "Daya Output Headphone *"}
                   </label>
                   <input
@@ -634,12 +690,12 @@ export default function AddNewProductPage() {
                     placeholder="e.g. 2000mW @ 32Ω (4.4mm Balanced)"
                     value={formData.outputPower}
                     onChange={(e) => setFormData({ ...formData, outputPower: e.target.value })}
-                    className="w-full bg-[#050505] border border-[#2A2A2A] rounded-lg px-3.5 py-2 text-xs font-mono text-white outline-none focus:border-white"
+                    className="w-full bg-[#121212] rounded-xl px-4 py-3 text-xs font-mono text-white outline-none border-0 focus:ring-1 focus:ring-white/20 transition-all"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-mono text-[#888] uppercase mb-1">
+                  <label className="block text-[11px] font-mono text-[#71717A] uppercase tracking-wider mb-2">
                     {isEn ? "Audio Inputs" : "Input Audio"}
                   </label>
                   <input
@@ -647,12 +703,12 @@ export default function AddNewProductPage() {
                     placeholder="e.g. USB-C XMOS XU316, Optical, Coaxial, Bluetooth LDAC"
                     value={formData.inputs}
                     onChange={(e) => setFormData({ ...formData, inputs: e.target.value })}
-                    className="w-full bg-[#050505] border border-[#2A2A2A] rounded-lg px-3.5 py-2 text-xs font-mono text-white outline-none focus:border-white"
+                    className="w-full bg-[#121212] rounded-xl px-4 py-3 text-xs font-mono text-white outline-none border-0 focus:ring-1 focus:ring-white/20 transition-all"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-mono text-[#888] uppercase mb-1">
+                  <label className="block text-[11px] font-mono text-[#71717A] uppercase tracking-wider mb-2">
                     {isEn ? "Audio Outputs" : "Output Audio"}
                   </label>
                   <input
@@ -660,7 +716,7 @@ export default function AddNewProductPage() {
                     placeholder="e.g. 3.5mm SE, 4.4mm Bal, 6.35mm, XLR Pre-Out"
                     value={formData.outputs}
                     onChange={(e) => setFormData({ ...formData, outputs: e.target.value })}
-                    className="w-full bg-[#050505] border border-[#2A2A2A] rounded-lg px-3.5 py-2 text-xs font-mono text-white outline-none focus:border-white"
+                    className="w-full bg-[#121212] rounded-xl px-4 py-3 text-xs font-mono text-white outline-none border-0 focus:ring-1 focus:ring-white/20 transition-all"
                   />
                 </div>
               </div>
@@ -671,156 +727,156 @@ export default function AddNewProductPage() {
         {/* Right 1 Col: Pricing, Inventory, Variants & Photos */}
         <div className="space-y-6">
           {/* Section 3: Pricing, Stock & Product Variants */}
-          <div className="bg-[#050505] border border-[#222222] rounded-xl p-5 space-y-4">
-            <div className="flex items-center gap-2 pb-2 border-b border-[#1E1E1E]">
-              <span className="w-2 h-2 rounded-full bg-amber-400" />
+          <div className="bg-[#0A0A0A] rounded-2xl p-6 sm:p-7 space-y-5">
+            <div className="flex items-center gap-2.5 pb-1">
+              <span className="w-2 h-2 rounded-full bg-[#BFDD25] shadow-[0_0_8px_rgba(191,221,37,0.6)]" />
               <h3 className="text-xs font-bold font-sans text-white uppercase tracking-wider">
                 {isEn ? "3. Pricing & Variants" : "3. Harga & Varian Produk"}
               </h3>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-4">
               <div>
-                <label className="block text-[11px] font-mono text-[#888] uppercase mb-1">
+                <label className="block text-[11px] font-mono text-[#A1A1AA] uppercase tracking-wider mb-2 font-semibold">
                   {isEn ? "Base Price (USD) *" : "Harga Dasar (USD) *"}
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-400 text-sm font-mono font-bold">$</span>
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#BFDD25] text-sm font-mono font-bold">$</span>
                   <input
                     type="number"
                     required
                     min={1}
                     value={formData.priceUSD}
                     onChange={(e) => setFormData({ ...formData, priceUSD: parseFloat(e.target.value) || 0 })}
-                    className="w-full bg-[#050505] border border-[#2A2A2A] rounded-lg pl-8 pr-3.5 py-2 text-sm font-mono font-bold text-emerald-400 outline-none focus:border-white"
+                    className="w-full bg-[#161616] hover:bg-[#1A1A1A] focus:bg-[#1C1C1C] ring-1 ring-white/10 hover:ring-white/20 focus:ring-1 focus:ring-[#BFDD25] shadow-inner rounded-xl pl-9 pr-4 py-3 text-sm font-mono font-bold text-[#BFDD25] outline-none border-0 transition-all"
                   />
                 </div>
-                <p className="text-[10px] font-mono text-[#666] mt-1">
+                <p className="text-[10px] font-mono text-[#A1A1AA] mt-1.5">
                   ≈ Rp {(formData.priceUSD * 15500).toLocaleString("id-ID")}
                 </p>
               </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-[11px] font-mono text-[#888] uppercase mb-1">
-                  {isEn ? "Total Stock *" : "Stok Unit *"}
-                </label>
-                <div className="flex items-center bg-[#050505] border border-[#2A2A2A] rounded-lg overflow-hidden">
-                  <button
-                    type="button"
-                    onClick={() => setFormData({ ...formData, stock: Math.max(0, formData.stock - 1) })}
-                    className="px-3 py-2 text-[#888] hover:text-white hover:bg-[#080808] transition-colors font-mono"
-                  >
-                    -
-                  </button>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-mono text-[#A1A1AA] uppercase tracking-wider mb-2 font-semibold">
+                    {isEn ? "Total Stock *" : "Stok Unit *"}
+                  </label>
+                  <div className="flex items-center bg-[#161616] ring-1 ring-white/10 hover:ring-white/20 shadow-inner rounded-xl overflow-hidden transition-all">
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, stock: Math.max(0, formData.stock - 1) })}
+                      className="px-4 py-3 text-[#A1A1AA] hover:text-white hover:bg-[#1A1A1A] transition-colors font-mono cursor-pointer"
+                    >
+                      -
+                    </button>
+                    <input
+                      type="number"
+                      required
+                      min={0}
+                      value={formData.stock}
+                      onChange={(e) => setFormData({ ...formData, stock: parseInt(e.target.value, 10) || 0 })}
+                      className="w-full bg-transparent text-xs font-mono text-white outline-none text-center"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, stock: formData.stock + 1 })}
+                      className="px-4 py-3 text-[#A1A1AA] hover:text-white hover:bg-[#1A1A1A] transition-colors font-mono cursor-pointer"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-mono text-[#A1A1AA] uppercase tracking-wider mb-2 font-semibold">
+                    {isEn ? "Internal SKU" : "Kode SKU"}
+                  </label>
                   <input
-                    type="number"
-                    required
-                    min={0}
-                    value={formData.stock}
-                    onChange={(e) => setFormData({ ...formData, stock: parseInt(e.target.value, 10) || 0 })}
-                    className="w-full bg-transparent text-xs font-mono text-white outline-none text-center"
+                    type="text"
+                    value={formData.sku}
+                    onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
+                    className="w-full bg-[#161616] hover:bg-[#1A1A1A] focus:bg-[#1C1C1C] ring-1 ring-white/10 hover:ring-white/20 focus:ring-1 focus:ring-[#BFDD25] shadow-inner rounded-xl px-4 py-3 text-xs font-mono text-white outline-none border-0 transition-all"
                   />
-                  <button
-                    type="button"
-                    onClick={() => setFormData({ ...formData, stock: formData.stock + 1 })}
-                    className="px-3 py-2 text-[#888] hover:text-white hover:bg-[#080808] transition-colors font-mono"
-                  >
-                    +
-                  </button>
                 </div>
               </div>
 
-              <div>
-                <label className="block text-[11px] font-mono text-[#888] uppercase mb-1">
-                  {isEn ? "Internal SKU" : "Kode SKU"}
-                </label>
-                <input
-                  type="text"
-                  value={formData.sku}
-                  onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
-                  className="w-full bg-[#050505] border border-[#2A2A2A] rounded-lg px-3.5 py-2 text-xs font-mono text-white outline-none focus:border-white"
-                />
-              </div>
-            </div>
+              {/* Product Variants Builder */}
+              <div className="pt-2 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-white font-sans">
+                    {isEn ? "Product Variants" : "Varian Produk"}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleAddVariant}
+                    className="px-3 py-1.5 bg-[#141414] hover:bg-[#1E1E1E] text-white text-[10px] font-mono font-bold rounded-full transition-colors cursor-pointer"
+                  >
+                    + {isEn ? "Add Option" : "Tambah Opsi"}
+                  </button>
+                </div>
 
-            {/* Product Variants Builder */}
-            <div className="pt-3 border-t border-[#1E1E1E] space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-white font-sans">
-                  {isEn ? "Product Variants" : "Varian Produk"}
-                </span>
-                <button
-                  type="button"
-                  onClick={handleAddVariant}
-                  className="px-2.5 py-1 bg-[#050505] hover:bg-[#050505] text-white border border-[#2E2E2E] hover:border-white text-[10px] font-mono font-bold rounded-lg transition-colors cursor-pointer"
-                >
-                  + {isEn ? "Add Option" : "Tambah Opsi"}
-                </button>
-              </div>
-
-              {variants.length > 0 ? (
-                <div className="space-y-2">
-                  {variants.map((v) => (
-                    <div key={v.id} className="p-2.5 rounded-lg bg-[#050505] border border-[#1c1c1c] space-y-2">
-                      <div className="flex items-center justify-between">
-                        <input
-                          type="text"
-                          value={v.name}
-                          onChange={(e) => handleUpdateVariant(v.id, "name", e.target.value)}
-                          placeholder={isEn ? "e.g. 4.4mm Balanced" : "e.g. Warna Hitam"}
-                          className="bg-[#050505] border border-[#333] rounded px-2 py-1 text-xs font-sans text-white outline-none flex-1 mr-2"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveVariant(v.id)}
-                          className="text-[#666] hover:text-rose-400"
-                        >
-                          <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                          </svg>
-                        </button>
-                      </div>
-                      <div className="grid grid-cols-2 gap-2 text-[10px] font-mono">
-                        <div className="relative">
-                          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-emerald-400">$</span>
+                {variants.length > 0 ? (
+                  <div className="space-y-2.5">
+                    {variants.map((v) => (
+                      <div key={v.id} className="p-3.5 rounded-xl bg-[#121212] space-y-2.5">
+                        <div className="flex items-center justify-between">
                           <input
-                            type="number"
-                            value={v.priceUSD}
-                            onChange={(e) => handleUpdateVariant(v.id, "priceUSD", parseFloat(e.target.value) || 0)}
-                            placeholder="Price"
-                            className="w-full bg-[#050505] border border-[#333] rounded pl-5 pr-2 py-1 text-emerald-400 font-bold outline-none text-right"
-                          />
-                        </div>
-                        <div className="flex items-center bg-[#050505] border border-[#333] rounded overflow-hidden">
-                          <button
-                            type="button"
-                            onClick={() => handleUpdateVariant(v.id, "stock", Math.max(0, (v.stock || 0) - 1))}
-                            className="px-1.5 py-1 text-[#888] hover:text-white"
-                          >
-                            -
-                          </button>
-                          <input
-                            type="number"
-                            value={v.stock}
-                            onChange={(e) => handleUpdateVariant(v.id, "stock", parseInt(e.target.value, 10) || 0)}
-                            placeholder="Stock"
-                            className="w-full bg-transparent text-white outline-none text-center"
+                            type="text"
+                            value={v.name}
+                            onChange={(e) => handleUpdateVariant(v.id, "name", e.target.value)}
+                            placeholder={isEn ? "e.g. 4.4mm Balanced" : "e.g. Warna Hitam"}
+                            className="bg-[#181818] rounded-lg px-3 py-1.5 text-xs font-sans text-white outline-none flex-1 mr-2 border-0 focus:ring-1 focus:ring-white/20"
                           />
                           <button
                             type="button"
-                            onClick={() => handleUpdateVariant(v.id, "stock", (v.stock || 0) + 1)}
-                            className="px-1.5 py-1 text-[#888] hover:text-white"
+                            onClick={() => handleRemoveVariant(v.id)}
+                            className="text-[#71717A] hover:text-rose-400 p-1 cursor-pointer"
                           >
-                            +
+                            <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
                           </button>
                         </div>
+                        <div className="grid grid-cols-2 gap-2 text-[10px] font-mono">
+                          <div className="relative">
+                            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#BFDD25]">$</span>
+                            <input
+                              type="number"
+                              value={v.priceUSD}
+                              onChange={(e) => handleUpdateVariant(v.id, "priceUSD", parseFloat(e.target.value) || 0)}
+                              placeholder="Price"
+                              className="w-full bg-[#181818] rounded-lg pl-6 pr-2 py-1.5 text-[#BFDD25] font-bold outline-none text-right border-0 focus:ring-1 focus:ring-white/20"
+                            />
+                          </div>
+                          <div className="flex items-center bg-[#181818] rounded-lg overflow-hidden">
+                            <button
+                              type="button"
+                              onClick={() => handleUpdateVariant(v.id, "stock", Math.max(0, (v.stock || 0) - 1))}
+                              className="px-2 py-1.5 text-[#888] hover:text-white cursor-pointer"
+                            >
+                              -
+                            </button>
+                            <input
+                              type="number"
+                              value={v.stock}
+                              onChange={(e) => handleUpdateVariant(v.id, "stock", parseInt(e.target.value, 10) || 0)}
+                              placeholder="Stock"
+                              className="w-full bg-transparent text-white outline-none text-center"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => handleUpdateVariant(v.id, "stock", (v.stock || 0) + 1)}
+                              className="px-2 py-1.5 text-[#888] hover:text-white cursor-pointer"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
                   </div>
                 ) : (
-                  <p className="text-[11px] text-[#666] font-mono">
+                  <p className="text-[11px] text-[#71717A] font-mono">
                     {isEn ? "No variants added (single item SKU)." : "Tidak ada varian (produk tunggal)."}
                   </p>
                 )}
@@ -829,15 +885,15 @@ export default function AddNewProductPage() {
           </div>
 
           {/* Section 4: Multi-Image Product Gallery Upload */}
-          <div className="bg-[#050505] border border-[#222222] rounded-xl p-5 space-y-4">
-            <div className="flex items-center justify-between pb-2 border-b border-[#1E1E1E]">
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-pink-400" />
+          <div className="bg-[#0A0A0A] rounded-2xl p-6 sm:p-7 space-y-5">
+            <div className="flex items-center justify-between pb-1">
+              <div className="flex items-center gap-2.5">
+                <span className="w-2 h-2 rounded-full bg-[#BFDD25] shadow-[0_0_8px_rgba(191,221,37,0.6)]" />
                 <h3 className="text-xs font-bold font-sans text-white uppercase tracking-wider">
                   {isEn ? "4. Photo Gallery" : "4. Galeri Foto Produk"}
                 </h3>
               </div>
-              <span className="text-[10px] font-mono text-[#888]">
+              <span className="text-[10px] font-mono text-[#71717A]">
                 {productImages.length} {isEn ? "Photos" : "Foto"} (Max 8)
               </span>
             </div>
@@ -858,24 +914,24 @@ export default function AddNewProductPage() {
             {productImages.length > 0 ? (
               <div className="space-y-3">
                 {/* Primary Cover Image Preview */}
-                <div className="relative rounded-xl overflow-hidden border border-[#2E2E2E] h-44 bg-[#050505] group">
+                <div className="relative rounded-2xl overflow-hidden h-48 bg-[#121212] group">
                   <img src={productImages[0]} alt="Primary Cover" className="w-full h-full object-cover" />
-                  <div className="absolute top-2 left-2 bg-black/90 text-white text-[9px] font-mono font-medium tracking-wider px-2 py-0.5 rounded border border-[#333] flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                  <div className="absolute top-3 left-3 bg-black/80 backdrop-blur-md text-white text-[9px] font-mono font-medium tracking-wider px-3 py-1 rounded-full flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#BFDD25]" />
                     {isEn ? "MAIN COVER" : "SAMPUL UTAMA"}
                   </div>
                   <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-2 transition-opacity">
                     <button
                       type="button"
                       onClick={() => imageInputRef.current?.click()}
-                      className="px-2.5 py-1.5 bg-[#050505] text-white text-[11px] font-mono rounded-lg border border-[#444] hover:bg-[#080808]"
+                      className="px-3 py-1.5 bg-[#181818] hover:bg-[#222] text-white text-[11px] font-mono rounded-full cursor-pointer transition-all"
                     >
                       {isEn ? "Add More Photos" : "Tambah Foto Lagi"}
                     </button>
                     <button
                       type="button"
                       onClick={() => handleRemoveImage(0)}
-                      className="px-2.5 py-1.5 bg-[#050505] hover:bg-[#050505] text-white text-[11px] font-mono rounded-lg border border-[#2E2E2E] hover:border-white"
+                      className="px-3 py-1.5 bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 text-[11px] font-mono rounded-full cursor-pointer transition-all"
                     >
                       {isEn ? "Delete" : "Hapus"}
                     </button>
@@ -887,13 +943,11 @@ export default function AddNewProductPage() {
                   {productImages.map((img, idx) => (
                     <div
                       key={idx}
-                      className={`relative rounded-lg overflow-hidden border h-16 bg-[#050505] group ${
-                        idx === 0 ? "border-white/30" : "border-[#1c1c1c]"
-                      }`}
+                      className="relative rounded-xl overflow-hidden h-16 bg-[#121212] group"
                     >
                       <img src={img} alt={`Thumb ${idx + 1}`} className="w-full h-full object-cover" />
                       {idx === 0 && (
-                        <span className="absolute bottom-1 left-1 bg-black/90 text-white text-[8px] font-mono px-1 rounded border border-[#333]">
+                        <span className="absolute bottom-1 left-1 bg-black/80 text-white text-[8px] font-mono px-1.5 py-0.5 rounded-full">
                           Cover
                         </span>
                       )}
@@ -902,7 +956,7 @@ export default function AddNewProductPage() {
                           <button
                             type="button"
                             onClick={() => handleSetPrimaryImage(idx)}
-                            className="w-full py-0.5 bg-emerald-500 text-black text-[8px] font-mono font-bold rounded"
+                            className="w-full py-0.5 bg-[#BFDD25] text-black text-[8px] font-mono font-bold rounded-full cursor-pointer"
                             title="Set as Main Cover"
                           >
                             {isEn ? "Set Main" : "Utama"}
@@ -911,7 +965,7 @@ export default function AddNewProductPage() {
                         <button
                           type="button"
                           onClick={() => handleRemoveImage(idx)}
-                          className="w-full py-0.5 bg-[#050505] hover:bg-[#050505] text-white text-[8px] font-mono rounded border border-[#2E2E2E]"
+                          className="w-full py-0.5 bg-rose-500/30 text-rose-200 text-[8px] font-mono rounded-full cursor-pointer"
                         >
                           {isEn ? "Delete" : "Hapus"}
                         </button>
@@ -924,7 +978,7 @@ export default function AddNewProductPage() {
                     <button
                       type="button"
                       onClick={() => imageInputRef.current?.click()}
-                      className="rounded-lg border border-dashed border-[#444] hover:border-[#666] bg-[#050505] hover:bg-[#050505] h-16 flex flex-col items-center justify-center text-[#777] hover:text-white transition-colors cursor-pointer"
+                      className="rounded-xl bg-[#121212] hover:bg-[#181818] h-16 flex flex-col items-center justify-center text-[#71717A] hover:text-white transition-all cursor-pointer"
                     >
                       <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -937,19 +991,21 @@ export default function AddNewProductPage() {
             ) : (
               <div
                 onClick={() => imageInputRef.current?.click()}
-                className="border border-dashed border-[#333] hover:border-[#555] bg-[#050505] hover:bg-[#050505] rounded-xl p-6 text-center cursor-pointer transition-all"
+                className="bg-[#121212] hover:bg-[#161616] rounded-2xl p-8 text-center cursor-pointer transition-all space-y-3"
               >
-                <div className="w-10 h-10 rounded-full bg-[#050505] border border-[#333] flex items-center justify-center text-[#888] mx-auto mb-2">
-                  <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <div className="w-12 h-12 rounded-2xl bg-[#181818] flex items-center justify-center text-[#BFDD25] mx-auto">
+                  <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
                   </svg>
                 </div>
-                <p className="text-xs font-semibold text-white">
-                  {isEn ? "Upload Multiple Product Photos" : "Upload Beberapa Foto Produk Sekaligus"}
-                </p>
-                <p className="text-[10px] font-mono text-[#777] mt-0.5">
-                  {isEn ? "Select multiple images (PNG, JPG, WebP)" : "Pilih beberapa file sekaligus (PNG, JPG, WebP)"}
-                </p>
+                <div>
+                  <p className="text-xs font-semibold text-white">
+                    {isEn ? "Upload Multiple Product Photos" : "Upload Beberapa Foto Produk Sekaligus"}
+                  </p>
+                  <p className="text-[11px] font-mono text-[#71717A] mt-1">
+                    {isEn ? "Select multiple images (PNG, JPG, WebP)" : "Pilih beberapa file sekaligus (PNG, JPG, WebP)"}
+                  </p>
+                </div>
               </div>
             )}
           </div>

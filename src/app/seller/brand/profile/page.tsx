@@ -31,14 +31,14 @@ export default function BrandProfilePage() {
   return (
     <div className="space-y-6">
       {/* Top Header & Save Button */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-[#1E1E1E]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
         <div>
           <div className="flex items-center gap-2.5">
             <h1 className="text-xl font-bold font-sans tracking-tight text-white">
               {isEn ? "Brand Profile & Acoustic Story" : "Profil & Filosofi Brand"}
             </h1>
-            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-[#050505] text-[#A1A1AA] border border-[#27272A] flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+            <span className="px-3 py-1 rounded-full text-xs font-mono font-medium bg-[#121212] text-[#BFDD25] flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#BFDD25] shadow-[0_0_6px_rgba(191,221,37,0.8)]" />
               {isEn ? "Verified Manufacturer" : "Pabrikan Resmi"}
             </span>
           </div>
@@ -55,7 +55,7 @@ export default function BrandProfilePage() {
             setIsSaved(true);
             setTimeout(() => setIsSaved(false), 2500);
           }}
-          className="px-4 py-2 bg-[#FAF9F6] text-black hover:bg-[#E5E5E5] text-xs font-sans font-bold rounded-lg transition-all shadow-sm flex items-center gap-2 cursor-pointer"
+          className="px-5 py-2.5 bg-white text-black hover:bg-neutral-200 text-xs font-sans font-bold rounded-full transition-all shadow-sm flex items-center gap-2 cursor-pointer"
         >
           <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
@@ -65,32 +65,32 @@ export default function BrandProfilePage() {
       </div>
 
       {isSaved && (
-        <div className="p-3.5 rounded-xl bg-[#050505] border border-[#2A2A2A] text-white text-xs font-mono flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-emerald-400" />
+        <div className="p-4 rounded-2xl bg-[#0E0E0E] text-white text-xs font-sans flex items-center gap-2.5 shadow-xl">
+          <span className="w-2 h-2 rounded-full bg-[#BFDD25] shadow-[0_0_8px_rgba(191,221,37,0.8)]" />
           {isEn ? "Brand profile updated successfully." : "Profil brand berhasil disimpan."}
         </div>
       )}
 
-      {/* Brand Hero Card (Clean Obsidian Noir) */}
-      <div className="bg-[#050505] border border-[#222222] rounded-xl p-5 relative">
+      {/* Brand Hero Card (Zero-Stroke Elevation) */}
+      <div className="bg-[#0A0A0A] rounded-2xl p-6 sm:p-7 relative shadow-sm">
         <div className="flex flex-col md:flex-row items-start md:items-center gap-5">
-          {/* Clean Logo Box */}
-          <div className="w-16 h-16 rounded-xl bg-[#050505] border border-[#2A2A2A] flex items-center justify-center font-mono font-bold text-base text-white shrink-0">
+          {/* Logo Box */}
+          <div className="w-16 h-16 rounded-2xl bg-[#141414] flex items-center justify-center font-mono font-bold text-base text-white shrink-0">
             TANGZU
           </div>
 
           <div className="flex-1 min-w-0">
             <div className="flex flex-wrap items-center gap-2.5">
               <h2 className="text-lg font-bold font-sans text-white">{brandData.brandName}</h2>
-              <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#050505] text-[#A1A1AA] border border-[#2A2A2A]">
+              <span className="px-3 py-1 rounded-full text-[10px] font-mono font-medium bg-[#141414] text-[#D4D4D8]">
                 Official Flagship
               </span>
-              <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#050505] text-[#71717A] border border-[#1c1c1c]">
+              <span className="px-3 py-1 rounded-full text-[10px] font-mono bg-[#141414] text-[#71717A]">
                 Est. {brandData.foundedYear}
               </span>
             </div>
-            <p className="text-xs font-mono text-[#8E8E93] mt-1">{brandData.tagline}</p>
-            <div className="flex flex-wrap items-center gap-3 text-xs font-mono text-[#71717A] mt-2.5">
+            <p className="text-xs font-mono text-[#8E8E93] mt-1.5">{brandData.tagline}</p>
+            <div className="flex flex-wrap items-center gap-3 text-xs font-mono text-[#71717A] mt-3">
               <span>{brandData.headquarters}</span>
               <span>•</span>
               <span>{brandData.officialDistributorCount} Global Dealers</span>
@@ -106,65 +106,65 @@ export default function BrandProfilePage() {
         {/* Left 2 Cols: Brand Story & Tuning Standard */}
         <div className="lg:col-span-2 space-y-6">
           {/* Section 1: Acoustic Heritage */}
-          <div className="bg-[#050505] border border-[#222222] rounded-xl p-5 space-y-4">
-            <div className="flex items-center gap-2 pb-2 border-b border-[#1E1E1E]">
-              <span className="w-1.5 h-1.5 rounded-full bg-white" />
+          <div className="bg-[#0A0A0A] rounded-2xl p-6 sm:p-7 space-y-4 shadow-sm">
+            <div className="flex items-center gap-2 pb-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#BFDD25] shadow-[0_0_6px_rgba(191,221,37,0.7)]" />
               <h3 className="text-xs font-bold font-sans text-white uppercase tracking-wider">
                 {isEn ? "1. Acoustic Philosophy & Brand Story" : "1. Filosofi Akustik & Kisah Brand"}
               </h3>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-4">
               <div>
-                <label className="block text-[11px] font-mono text-[#71717A] uppercase mb-1">
+                <label className="block text-[11px] font-mono text-[#71717A] uppercase mb-1.5">
                   {isEn ? "Tagline" : "Slogan Brand"}
                 </label>
                 <input
                   type="text"
                   value={brandData.tagline}
                   onChange={(e) => setBrandData({ ...brandData, tagline: e.target.value })}
-                  className="w-full bg-[#050505] border border-[#2A2A2A] rounded-lg px-3.5 py-2 text-xs font-sans text-white outline-none focus:border-white"
+                  className="w-full bg-[#121212] rounded-xl px-4 py-3 text-xs font-sans text-white outline-none border-0 focus:ring-1 focus:ring-white/20 transition-all"
                 />
               </div>
 
               <div>
-                <label className="block text-[11px] font-mono text-[#71717A] uppercase mb-1">
+                <label className="block text-[11px] font-mono text-[#71717A] uppercase mb-1.5">
                   {isEn ? "Biography & Engineering Vision" : "Kisah & Visi Akustik"}
                 </label>
                 <textarea
                   rows={5}
                   value={brandData.biography}
                   onChange={(e) => setBrandData({ ...brandData, biography: e.target.value })}
-                  className="w-full bg-[#050505] border border-[#2A2A2A] rounded-lg p-3 text-xs font-sans text-white leading-relaxed outline-none focus:border-white resize-none"
+                  className="w-full bg-[#121212] rounded-xl p-4 text-xs font-sans text-white leading-relaxed outline-none border-0 focus:ring-1 focus:ring-white/20 transition-all resize-none"
                 />
               </div>
             </div>
           </div>
 
           {/* Section 2: Tuning Standard */}
-          <div className="bg-[#050505] border border-[#222222] rounded-xl p-5 space-y-4">
-            <div className="flex items-center gap-2 pb-2 border-b border-[#1E1E1E]">
-              <span className="w-1.5 h-1.5 rounded-full bg-white" />
+          <div className="bg-[#0A0A0A] rounded-2xl p-6 sm:p-7 space-y-4 shadow-sm">
+            <div className="flex items-center gap-2 pb-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#BFDD25] shadow-[0_0_6px_rgba(191,221,37,0.7)]" />
               <h3 className="text-xs font-bold font-sans text-white uppercase tracking-wider">
                 {isEn ? "2. Target Frequency Response Standard" : "2. Standar Target Respon Frekuensi"}
               </h3>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-[11px] font-mono text-[#71717A] uppercase mb-1">
+                <label className="block text-[11px] font-mono text-[#71717A] uppercase mb-1.5">
                   {isEn ? "House Sound Signature" : "Karakter House Sound"}
                 </label>
                 <input
                   type="text"
                   value={brandData.houseSoundSignature}
                   onChange={(e) => setBrandData({ ...brandData, houseSoundSignature: e.target.value })}
-                  className="w-full bg-[#050505] border border-[#2A2A2A] rounded-lg px-3.5 py-2 text-xs font-mono text-white outline-none focus:border-white"
+                  className="w-full bg-[#121212] rounded-xl px-4 py-3 text-xs font-mono text-white outline-none border-0 focus:ring-1 focus:ring-white/20 transition-all"
                 />
               </div>
 
               <div>
-                <label className="block text-[11px] font-mono text-[#71717A] uppercase mb-1">
+                <label className="block text-[11px] font-mono text-[#71717A] uppercase mb-1.5">
                   {isEn ? "Target Standard" : "Standar Kurva Baseline"}
                 </label>
                 <CustomSelect
@@ -184,48 +184,48 @@ export default function BrandProfilePage() {
 
         {/* Right 1 Col: Contact & Licensing Channels */}
         <div className="space-y-6">
-          <div className="bg-[#050505] border border-[#222222] rounded-xl p-5 space-y-4">
-            <div className="flex items-center gap-2 pb-2 border-b border-[#1E1E1E]">
-              <span className="w-1.5 h-1.5 rounded-full bg-white" />
+          <div className="bg-[#0A0A0A] rounded-2xl p-6 sm:p-7 space-y-4 shadow-sm">
+            <div className="flex items-center gap-2 pb-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#BFDD25] shadow-[0_0_6px_rgba(191,221,37,0.7)]" />
               <h3 className="text-xs font-bold font-sans text-white uppercase tracking-wider">
                 {isEn ? "3. Official Channels" : "3. Saluran Kontak Resmi"}
               </h3>
             </div>
 
-            <div className="space-y-3 text-xs font-mono">
+            <div className="space-y-4 text-xs font-mono">
               <div>
-                <label className="block text-[10px] uppercase text-[#71717A] mb-1">
+                <label className="block text-[10px] uppercase text-[#71717A] mb-1.5">
                   {isEn ? "Website" : "Website Resmi"}
                 </label>
                 <input
                   type="text"
                   value={brandData.officialWebsite}
                   onChange={(e) => setBrandData({ ...brandData, officialWebsite: e.target.value })}
-                  className="w-full bg-[#050505] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white outline-none focus:border-white"
+                  className="w-full bg-[#121212] rounded-xl px-4 py-3 text-white outline-none border-0 focus:ring-1 focus:ring-white/20 transition-all font-mono"
                 />
               </div>
 
               <div>
-                <label className="block text-[10px] uppercase text-[#71717A] mb-1">
+                <label className="block text-[10px] uppercase text-[#71717A] mb-1.5">
                   {isEn ? "Support Email" : "Email CS Global"}
                 </label>
                 <input
                   type="email"
                   value={brandData.supportEmail}
                   onChange={(e) => setBrandData({ ...brandData, supportEmail: e.target.value })}
-                  className="w-full bg-[#050505] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white outline-none focus:border-white"
+                  className="w-full bg-[#121212] rounded-xl px-4 py-3 text-white outline-none border-0 focus:ring-1 focus:ring-white/20 transition-all font-mono"
                 />
               </div>
 
               <div>
-                <label className="block text-[10px] uppercase text-[#71717A] mb-1">
+                <label className="block text-[10px] uppercase text-[#71717A] mb-1.5">
                   {isEn ? "Dealer Inquiries" : "Kontak Distributor"}
                 </label>
                 <input
                   type="email"
                   value={brandData.partnerInquiries}
                   onChange={(e) => setBrandData({ ...brandData, partnerInquiries: e.target.value })}
-                  className="w-full bg-[#050505] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white outline-none focus:border-white"
+                  className="w-full bg-[#121212] rounded-xl px-4 py-3 text-white outline-none border-0 focus:ring-1 focus:ring-white/20 transition-all font-mono"
                 />
               </div>
             </div>

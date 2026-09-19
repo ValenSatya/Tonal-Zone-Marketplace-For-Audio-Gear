@@ -1,21 +1,18 @@
 "use client";
 
 import React, { useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import MotionButton from "@/components/MotionButton";
-import OptionWheel from "@/components/OptionWheel";
 import GraphComparator from "@/components/GraphComparator";
 import { useLanguage } from "@/context/LanguageContext";
+import { KeyboardArrowRight } from "@/components/ui/keyboard-arrow";
 
 export default function GraphPage() {
   const { t } = useLanguage();
-  const [hoveredCard, setHoveredCard] = useState<number | null>(null);
-  const [selectedGenreIndex, setSelectedGenreIndex] = useState(3);
   const [activeSection, setActiveSection] = useState(0);
+  const [selectedSignatureIndex, setSelectedSignatureIndex] = useState(0);
 
   const graphSections = [
     {
@@ -61,20 +58,6 @@ export default function GraphPage() {
       endX: 1000
     }
   ];
-
-  const genreImages = [
-    "/placeholder.svg",
-    "/placeholder.svg",
-    "/placeholder.svg",
-    "/model-iem-untuk-hero.webp",
-    "/placeholder.svg",
-    "/placeholder.svg",
-    "/placeholder.svg",
-    "/placeholder.svg",
-    "/model-iem-untuk-hero.webp"
-  ];
-
-  const [selectedSignatureIndex, setSelectedSignatureIndex] = useState(0);
 
   const acousticProfiles = [
     {
@@ -122,65 +105,80 @@ export default function GraphPage() {
   const activeProfile = acousticProfiles[selectedSignatureIndex];
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#030303] text-[#FAF9F6] font-sans selection:bg-[#BFDD25] selection:text-[#030303]">
+    <div className="flex flex-col min-h-screen bg-[#080808] text-[#FAF9F6] font-sans selection:bg-white selection:text-black">
       <Navbar />
 
       <main className="relative w-full overflow-hidden flex-grow pt-24">
         {/* 1. HERO SECTION */}
-        <section className="w-full max-w-[1400px] mx-auto px-6 lg:px-12 py-16 flex flex-col md:flex-row items-center gap-12">
+        <section className="w-full max-w-[1360px] mx-auto px-5 sm:px-8 lg:px-12 py-16 flex flex-col md:flex-row items-center gap-12">
           <div className="w-full md:w-1/2">
-            <h1 className="font-heading text-6xl md:text-7xl lg:text-[100px] font-bold uppercase tracking-tight leading-[0.9] text-[#FAF9F6] mb-8">
+            <span className="text-xs font-mono text-[#71717a] uppercase tracking-[0.25em] font-semibold block mb-3">
+              Audio Measurement & Acoustics
+            </span>
+            <h1 className="font-heading text-6xl md:text-7xl lg:text-[96px] font-bold uppercase tracking-tight leading-[0.9] text-white mb-8">
               LEARN ABOUT<br />
               FREQUENCY<br />
               GRAPH
             </h1>
-            <p className="text-sm font-sans text-[#FAF9F6]/80 leading-relaxed max-w-sm">
-              Professional in-ear monitoring system engineered for high-fidelity clinical environments and elite technical audio production.
+            <p className="text-sm font-sans text-[#a1a1aa] leading-relaxed max-w-sm">
+              Sistem visualisasi respons frekuensi presisi untuk memahami tonalitas, timbre akustik, dan karakteristik setiap IEM sebelum Anda memutuskan.
             </p>
           </div>
 
           <div className="w-full md:w-1/2 flex justify-end">
-            <div className="relative w-full max-w-[500px] aspect-[4/5] border border-[#222] bg-[#050505] flex flex-col items-center justify-center group overflow-hidden">
+            <div className="relative w-full max-w-[500px] aspect-[4/5] rounded-[24px] bg-[#141414] flex flex-col items-center justify-center group overflow-hidden shadow-2xl">
               <img 
                 src="https://blogs.qsc.com/live-sound/wp-content/uploads/sites/3/2024/06/IEM-Hero-Image-copy.jpg" 
                 alt="Audiophile listening with IEMs" 
-                className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-700" 
+                className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-700 rounded-[24px]" 
               />
-              <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-[#030303] to-transparent z-10" />
-              <div className="absolute bottom-6 left-6 right-6 flex items-end gap-1.5 opacity-10 z-0">
+              <div className="absolute bottom-0 left-0 right-0 h-44 bg-gradient-to-t from-[#080808] to-transparent z-10" />
+              <div className="absolute bottom-6 left-6 right-6 flex items-end gap-1.5 opacity-20 z-0">
                  {[40, 25, 60, 30, 80, 45, 90, 50, 70, 35, 65, 40, 75, 20, 55].map((h, i) => (
-                   <div key={i} className="flex-1 bg-white transition-all duration-1000 group-hover:bg-[#BFDD25]" style={{ height: `${h}px` }} />
+                   <div 
+                     key={i} 
+                     className="flex-1 bg-white rounded-full transition-all duration-700 group-hover:bg-neutral-300" 
+                     style={{ height: `${h}px` }} 
+                   />
                  ))}
               </div>
-              <div className="absolute top-4 right-4 w-3 h-3 border-t border-r border-[#BFDD25] opacity-50 group-hover:opacity-100 transition-opacity" />
-              <div className="absolute bottom-4 left-4 w-3 h-3 border-b border-l border-[#BFDD25] opacity-50 group-hover:opacity-100 transition-opacity z-20" />
             </div>
           </div>
         </section>
 
         {/* 2. HOW TO READ GRAPH SECTION */}
-        <section className="w-full bg-[#030303] border-t border-[#1c1c1c]">
-          <div className="w-full max-w-[1400px] mx-auto px-6 lg:px-12 py-20">
-            <div className="flex justify-between items-end border-b border-[#1c1c1c] pb-4 mb-8">
-              <h2 className="font-heading text-3xl font-bold uppercase tracking-widest text-[#FAF9F6]">
-                HOW TO READ GRAPH
-              </h2>
-              <div className="flex gap-3 pb-1">
+        <section className="w-full bg-[#080808] py-20">
+          <div className="w-full max-w-[1360px] mx-auto px-5 sm:px-8 lg:px-12">
+            <div className="flex justify-between items-end pb-4 mb-8">
+              <div>
+                <span className="text-xs font-mono text-[#71717a] tracking-[0.25em] uppercase block mb-2 font-semibold">
+                  Acoustic Fundamentals
+                </span>
+                <h2 className="font-heading text-3xl font-bold uppercase tracking-wide text-white">
+                  HOW TO READ GRAPH
+                </h2>
+              </div>
+              <div className="flex gap-2 pb-1">
                 {graphSections.map((_, i) => (
-                  <div key={i} className={`w-2 h-2 rounded-full transition-colors duration-500 ${activeSection === i ? 'bg-[#BFDD25]' : 'bg-[#050505]'}`} />
+                  <div 
+                    key={i} 
+                    className={`h-2 rounded-full transition-all duration-300 ${
+                      activeSection === i ? "w-6 bg-white" : "w-2 bg-[#222222]"
+                    }`} 
+                  />
                 ))}
               </div>
             </div>
 
-            <div className="w-full border border-[#1c1c1c] bg-[#030303] rounded-sm overflow-hidden flex flex-col shadow-lg">
-              <div className="w-full h-[450px] relative border-b border-[#1c1c1c] p-8 flex items-center justify-center overflow-hidden bg-[#030303]">
-                <div className="absolute inset-0 opacity-[0.04] pointer-events-none" style={{ backgroundImage: "linear-gradient(white 1px, transparent 1px), linear-gradient(90deg, white 1px, transparent 1px)", backgroundSize: "40px 40px" }}></div>
+            <div className="w-full bg-[#141414] rounded-[24px] overflow-hidden flex flex-col shadow-2xl">
+              <div className="w-full h-[420px] relative p-6 sm:p-8 flex items-center justify-center overflow-hidden bg-[#141414]">
+                <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: "linear-gradient(white 1px, transparent 1px), linear-gradient(90deg, white 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
 
                 <div className="relative z-10 w-full h-full">
                   <svg viewBox="0 0 1000 400" className="w-full h-full" preserveAspectRatio="none">
                     <defs>
                       <linearGradient id="fadeWhite" x1="0" x2="0" y1="0" y2="1">
-                        <stop offset="0%" stopColor="white" stopOpacity="0.5" />
+                        <stop offset="0%" stopColor="white" stopOpacity="0.35" />
                         <stop offset="100%" stopColor="white" stopOpacity="0" />
                       </linearGradient>
                       <clipPath id="highlightClip">
@@ -197,16 +195,16 @@ export default function GraphPage() {
                       </clipPath>
                     </defs>
 
-                    <path d="M 0 180 C 40 181, 100 185, 150 195 C 200 205, 250 210, 300 210 C 350 210, 450 210, 500 205 C 530 202, 570 170, 600 140 C 620 120, 640 120, 650 120 C 670 120, 690 140, 700 140 C 720 140, 730 130, 750 130 C 770 130, 780 145, 800 145 C 820 145, 830 135, 850 135 C 870 135, 880 160, 900 160 C 940 160, 970 230, 1000 260" fill="none" stroke="#444" strokeWidth="3" />
+                    <path d="M 0 180 C 40 181, 100 185, 150 195 C 200 205, 250 210, 300 210 C 350 210, 450 210, 500 205 C 530 202, 570 170, 600 140 C 620 120, 640 120, 650 120 C 670 120, 690 140, 700 140 C 720 140, 730 130, 750 130 C 770 130, 780 145, 800 145 C 820 145, 830 135, 850 135 C 870 135, 880 160, 900 160 C 940 160, 970 230, 1000 260" fill="none" stroke="#2a2a2a" strokeWidth="2.5" />
                     
                     <g clipPath="url(#highlightClip)">
                        <path d="M 0 180 C 40 181, 100 185, 150 195 C 200 205, 250 210, 300 210 C 350 210, 450 210, 500 205 C 530 202, 570 170, 600 140 C 620 120, 640 120, 650 120 C 670 120, 690 140, 700 140 C 720 140, 730 130, 750 130 C 770 130, 780 145, 800 145 C 820 145, 830 135, 850 135 C 870 135, 880 160, 900 160 C 940 160, 970 230, 1000 260 L 1000 400 L 0 400 Z" fill="url(#fadeWhite)" />
-                       <path d="M 0 180 C 40 181, 100 185, 150 195 C 200 205, 250 210, 300 210 C 350 210, 450 210, 500 205 C 530 202, 570 170, 600 140 C 620 120, 640 120, 650 120 C 670 120, 690 140, 700 140 C 720 140, 730 130, 750 130 C 770 130, 780 145, 800 145 C 820 145, 830 135, 850 135 C 870 135, 880 160, 900 160 C 940 160, 970 230, 1000 260" fill="none" stroke="white" strokeWidth="5" />
+                       <path d="M 0 180 C 40 181, 100 185, 150 195 C 200 205, 250 210, 300 210 C 350 210, 450 210, 500 205 C 530 202, 570 170, 600 140 C 620 120, 640 120, 650 120 C 670 120, 690 140, 700 140 C 720 140, 730 130, 750 130 C 770 130, 780 145, 800 145 C 820 145, 830 135, 850 135 C 870 135, 880 160, 900 160 C 940 160, 970 230, 1000 260" fill="none" stroke="white" strokeWidth="4" />
                     </g>
                   </svg>
                 </div>
 
-                <div className="absolute bottom-2 left-8 right-8 flex justify-between text-[10px] text-[#FAF9F6]/30 font-mono pointer-events-none px-4">
+                <div className="absolute bottom-3 left-8 right-8 flex justify-between text-[11px] text-[#71717a] font-mono pointer-events-none px-4">
                   <span>20Hz</span>
                   <span>100Hz</span>
                   <span>1kHz</span>
@@ -215,40 +213,58 @@ export default function GraphPage() {
                 </div>
               </div>
 
-              <div className="w-full flex h-32 relative bg-[#030303]">
-                <button 
-                  onClick={() => setActiveSection(Math.max(0, activeSection - 1))}
-                  className={`w-16 flex items-center justify-center border-r border-[#1c1c1c] transition-colors ${activeSection === 0 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-[#030303] cursor-pointer'}`}
-                  disabled={activeSection === 0}
-                >
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FAF9F6" strokeWidth="2">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-                  </svg>
-                </button>
+              {/* Bottom Control Bar: Concentric nested radius R_inner = R_outer - margin = 24px - 16px = 8px */}
+              <div className="p-4 sm:p-6 bg-[#181818] rounded-[8px] m-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-3 self-start sm:self-auto">
+                  <button 
+                    onClick={() => setActiveSection(Math.max(0, activeSection - 1))}
+                    className="w-10 h-10 rounded-full bg-[#242424] hover:bg-[#2c2c2c] text-white flex items-center justify-center transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                    disabled={activeSection === 0}
+                    aria-label="Previous Section"
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </button>
+                  <button 
+                    onClick={() => setActiveSection(Math.min(graphSections.length - 1, activeSection + 1))}
+                    className="w-10 h-10 rounded-full bg-[#242424] hover:bg-[#2c2c2c] text-white flex items-center justify-center transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed sm:hidden"
+                    disabled={activeSection === graphSections.length - 1}
+                    aria-label="Next Section"
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                </div>
 
-                <div className="flex-1 p-6 md:p-8 flex flex-col justify-center overflow-hidden bg-[#030303]">
+                <div className="flex-1 px-2 sm:px-4 text-center sm:text-left">
                   <AnimatePresence mode="wait">
                     <motion.div
                       key={activeSection}
-                      initial={{ opacity: 0, y: 10 }}
+                      initial={{ opacity: 0, y: 8 }}
                       animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
+                      exit={{ opacity: 0, y: -8 }}
                       transition={{ duration: 0.2 }}
                       className="flex flex-col"
                     >
-                      <h3 className="text-lg md:text-xl font-heading font-bold text-white uppercase tracking-wider mb-2">{graphSections[activeSection].title}</h3>
-                      <p className="text-xs md:text-sm font-sans text-[#FAF9F6]/60 leading-relaxed truncate">{graphSections[activeSection].desc}</p>
+                      <h3 className="text-base sm:text-lg font-heading font-bold text-white uppercase tracking-wider mb-1">
+                        {graphSections[activeSection].title}
+                      </h3>
+                      <p className="text-xs sm:text-sm font-sans text-[#a1a1aa] leading-relaxed">
+                        {graphSections[activeSection].desc}
+                      </p>
                     </motion.div>
                   </AnimatePresence>
                 </div>
 
                 <button 
                   onClick={() => setActiveSection(Math.min(graphSections.length - 1, activeSection + 1))}
-                  className={`w-1/4 max-w-[200px] border-l border-[#1c1c1c] bg-[#030303] transition-colors flex flex-col items-center justify-center gap-2 group ${activeSection === graphSections.length - 1 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-[#030303] cursor-pointer'}`}
+                  className="hidden sm:flex items-center gap-2 rounded-full bg-white hover:bg-[#e8e8e8] text-[#131313] px-6 py-2.5 text-xs font-bold font-mono tracking-wider transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed shadow-md"
                   disabled={activeSection === graphSections.length - 1}
                 >
-                  <span className="text-[10px] font-mono text-[#FAF9F6]/70 uppercase tracking-widest hidden sm:block group-hover:text-white transition-colors">NEXT SECTION</span>
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FAF9F6" strokeWidth="2" className={activeSection === graphSections.length - 1 ? "" : "group-hover:translate-x-2 transition-transform"}>
+                  <span>NEXT SECTION</span>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                   </svg>
                 </button>
@@ -258,64 +274,69 @@ export default function GraphPage() {
         </section>
 
         {/* 3. SOUND SIGNATURES (MINIMALIST SWISS TYPOGRAPHY) */}
-        <section id="sound-signatures-editorial" className="w-full bg-[#030303] border-t border-[#1a1a1a] py-32">
-          <div className="w-full max-w-[1400px] mx-auto px-6 lg:px-12">
+        <section id="sound-signatures-editorial" className="w-full bg-[#080808] py-28">
+          <div className="w-full max-w-[1360px] mx-auto px-5 sm:px-8 lg:px-12">
             
             {/* Editorial Header */}
-            <div className="max-w-2xl mb-20">
-              <span className="text-xs font-mono text-[#71717A] tracking-[0.25em] uppercase block mb-4">
+            <div className="max-w-2xl mb-16">
+              <span className="text-xs font-mono text-[#71717a] tracking-[0.25em] uppercase block mb-3 font-semibold">
                 SOUND SIGNATURES
               </span>
-              <h2 className="font-heading text-4xl md:text-6xl font-light tracking-tight text-[#FAF9F6] leading-[1.05] mb-6">
+              <h2 className="font-heading text-4xl md:text-5xl font-light tracking-tight text-white leading-[1.1] mb-4">
                 Eksplorasi karakter dan cita rasa audio.
               </h2>
-              <p className="text-sm font-sans text-[#8E8E93] leading-relaxed">
+              <p className="text-sm font-sans text-[#8e8e93] leading-relaxed">
                 Setiap IEM dirancang dengan kurva respons frekuensi yang berbeda. Pilih profil di bawah untuk memahami karakteristik suaranya.
               </p>
             </div>
 
             {/* Asymmetrical 2-Column Typographic Layout */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-24 items-start">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-start">
               
               {/* Left Column: Typographic Selector (5 cols) */}
-              <div className="lg:col-span-5 flex flex-col space-y-8">
+              <div className="lg:col-span-5 flex flex-col space-y-3">
                 {acousticProfiles.map((p, idx) => {
                   const isSelected = selectedSignatureIndex === idx;
                   return (
                     <button
                       key={p.id}
                       onClick={() => setSelectedSignatureIndex(idx)}
-                      className="text-left group cursor-pointer transition-all duration-300 pb-6 border-b border-[#1c1c1c]"
+                      className={`text-left group cursor-pointer transition-all duration-300 p-5 rounded-[16px] flex items-baseline gap-5 ${
+                        isSelected
+                          ? "bg-[#181818] shadow-lg"
+                          : "bg-transparent hover:bg-[#121212]"
+                      }`}
                     >
-                      <div className="flex items-baseline gap-6">
-                        <span className={`font-mono text-sm transition-colors ${isSelected ? 'text-[#FAF9F6]' : 'text-[#444444]'}`}>
-                          {p.number}
-                        </span>
-                        <div>
-                          <div className={`font-heading text-2xl md:text-3xl tracking-tight transition-colors ${
-                            isSelected ? 'text-[#FAF9F6] font-bold' : 'text-[#555555] group-hover:text-[#999999]'
-                          }`}>
-                            {p.name}
-                          </div>
-                          <div className="text-xs font-mono text-[#666666] mt-1">
-                            {p.subtitle}
-                          </div>
+                      <span className={`font-mono text-sm font-semibold transition-colors ${isSelected ? 'text-white' : 'text-[#52525b]'}`}>
+                        {p.number}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <div className={`font-heading text-xl md:text-2xl tracking-tight transition-colors ${
+                          isSelected ? 'text-white font-bold' : 'text-[#71717a] group-hover:text-[#d4d4d8]'
+                        }`}>
+                          {p.name}
+                        </div>
+                        <div className="text-xs font-mono text-[#888888] mt-1 truncate">
+                          {p.subtitle}
                         </div>
                       </div>
+                      {isSelected && (
+                        <div className="w-2 h-2 rounded-full bg-white self-center" />
+                      )}
                     </button>
                   );
                 })}
               </div>
 
               {/* Right Column: Acoustic Curve & Details (7 cols) */}
-              <div className="lg:col-span-7 flex flex-col space-y-10">
+              <div className="lg:col-span-7 flex flex-col space-y-6">
                 
-                {/* Minimalist Vector Curve Canvas */}
-                <div className="w-full pb-8 border-b border-[#1c1c1c]">
+                {/* Minimalist Vector Curve Canvas Card */}
+                <div className="w-full bg-[#141414] rounded-[24px] p-6 md:p-8 shadow-xl">
                   <div className="h-56 w-full relative flex items-center justify-center">
                     <svg viewBox="0 0 1000 200" className="w-full h-full" preserveAspectRatio="none">
                       {/* Faint reference baseline */}
-                      <line x1="0" y1="100" x2="1000" y2="100" stroke="#1f1f1f" strokeWidth="1" strokeDasharray="4 4" />
+                      <line x1="0" y1="100" x2="1000" y2="100" stroke="#222222" strokeWidth="1" strokeDasharray="4 4" />
 
                       {/* Smooth Response Curve Line */}
                       <motion.path
@@ -325,44 +346,44 @@ export default function GraphPage() {
                         transition={{ duration: 0.5, ease: "easeOut" }}
                         d={activeProfile.curvePath}
                         fill="none"
-                        stroke="#FAF9F6"
+                        stroke="#ffffff"
                         strokeWidth="2.5"
                       />
                     </svg>
                   </div>
 
-                  <div className="flex justify-between text-[10px] font-mono text-[#444444] tracking-wider uppercase pt-4">
+                  <div className="flex justify-between text-[11px] font-mono text-[#71717a] tracking-wider uppercase pt-4">
                     <span>20Hz Bass</span>
                     <span>1kHz Vokal</span>
                     <span>20kHz Treble</span>
                   </div>
                 </div>
 
-                {/* Editorial Description & Details */}
-                <div className="space-y-8">
-                  <p className="text-base font-sans text-[#A1A1AA] leading-relaxed max-w-xl">
+                {/* Editorial Description & Details Card */}
+                <div className="bg-[#141414] rounded-[24px] p-6 md:p-8 space-y-6 shadow-xl">
+                  <p className="text-sm md:text-base font-sans text-[#a1a1aa] leading-relaxed">
                     {activeProfile.desc}
                   </p>
 
                   <div className="space-y-3 text-xs font-mono">
                     <div className="flex flex-col sm:flex-row sm:items-baseline gap-2">
-                      <span className="text-[#666666] min-w-[140px]">Kesesuaian Musik</span>
-                      <span className="text-[#FAF9F6]">{activeProfile.genres}</span>
+                      <span className="text-[#71717a] min-w-[140px]">Kesesuaian Musik</span>
+                      <span className="text-white font-medium">{activeProfile.genres}</span>
                     </div>
                     <div className="flex flex-col sm:flex-row sm:items-baseline gap-2">
-                      <span className="text-[#666666] min-w-[140px]">Model Referensi</span>
-                      <span className="text-[#FAF9F6]">{activeProfile.models}</span>
+                      <span className="text-[#71717a] min-w-[140px]">Model Referensi</span>
+                      <span className="text-white font-medium">{activeProfile.models}</span>
                     </div>
                   </div>
 
-                  {/* Clean Action Link */}
-                  <div className="pt-4">
+                  {/* Clean Action Pill CTA */}
+                  <div className="pt-2">
                     <Link
                       href={`/collection?signature=${activeProfile.id}`}
-                      className="inline-flex items-center gap-2 text-sm font-mono text-[#FAF9F6] hover:text-white group transition-colors"
+                      className="inline-flex items-center gap-2.5 px-6 py-3 rounded-full bg-[#1e1e1e] hover:bg-[#282828] text-white text-xs font-semibold tracking-wide transition-all shadow cursor-pointer group"
                     >
-                      <span className="border-b border-white pb-0.5">Jelajahi IEM {activeProfile.name}</span>
-                      <span className="group-hover:translate-x-1.5 transition-transform duration-300">→</span>
+                      <span>Jelajahi IEM {activeProfile.name}</span>
+                      <KeyboardArrowRight className="w-4 h-4 stroke-[2.5] group-hover:translate-x-1 transition-transform" />
                     </Link>
                   </div>
                 </div>
@@ -379,13 +400,11 @@ export default function GraphPage() {
         </section>
 
         {/* 5. EXPLORE COLLECTION CTA SECTION */}
-        <section className="w-full relative border-t border-[#1c1c1c] py-40 flex items-center justify-center bg-[#030303]">
-          {/* Subtle Grid Background with Deep Vignette */}
-          <div className="absolute inset-0 pointer-events-none opacity-40" style={{ backgroundImage: "linear-gradient(#1a1a1a 1px, transparent 1px), linear-gradient(90deg, #1a1a1a 1px, transparent 1px)", backgroundSize: "40px 40px" }}></div>
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,#030303_90%)] pointer-events-none"></div>
+        <section className="w-full relative py-36 flex items-center justify-center bg-[#080808]">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.03)_0%,transparent_70%)] pointer-events-none" />
 
-          <div className="relative z-10 w-full max-w-[1200px] mx-auto px-6 lg:px-12 flex flex-col items-center justify-center text-center space-y-8">
-            <span className="font-mono text-xs text-[#BFDD25] uppercase tracking-[0.25em] font-bold">
+          <div className="relative z-10 w-full max-w-[1360px] mx-auto px-5 sm:px-8 lg:px-12 flex flex-col items-center justify-center text-center space-y-7">
+            <span className="font-mono text-xs text-[#a1a1aa] uppercase tracking-[0.25em] font-semibold">
               TONAL ZONE CURATED VAULT
             </span>
 
@@ -393,28 +412,29 @@ export default function GraphPage() {
               TEMUKAN IEM SESUAI<br />KARAKTER SUARA ANDA
             </h2>
 
-            <p className="font-sans text-sm sm:text-base text-[#8E8E93] leading-relaxed max-w-xl">
+            <p className="font-sans text-sm sm:text-base text-[#8e8e93] leading-relaxed max-w-xl">
               Jelajahi lebih dari 50+ IEM, DAC/AMP, dan kabel upgrade dari brand kelas dunia dengan jaminan keaslian dan proteksi transaksi escrow resmi.
             </p>
 
-            <div className="pt-4 flex flex-col sm:flex-row gap-4">
-              <Link href="/collection">
-                <MotionButton variant="neon" className="px-10 py-4 text-xs font-bold font-mono tracking-widest uppercase">
-                  Buka Katalog Koleksi →
-                </MotionButton>
+            <div className="pt-3 flex flex-col sm:flex-row items-center gap-4">
+              <Link
+                href="/collection"
+                className="rounded-full bg-white hover:bg-[#e8e8e8] text-[#131313] font-bold px-8 py-3.5 text-xs font-mono tracking-wider uppercase transition-all shadow-lg inline-flex items-center gap-2 cursor-pointer group"
+              >
+                <span>Buka Katalog Koleksi</span>
+                <KeyboardArrowRight className="w-4 h-4 stroke-[2.5] group-hover:translate-x-0.5 transition-transform" />
               </Link>
-              <Link href="#bestseller">
-                <button
-                  type="button"
-                  onClick={() => {
-                    const el = document.getElementById("comparator");
-                    if (el) el.scrollIntoView({ behavior: "smooth" });
-                  }}
-                  className="px-8 py-4 bg-[#050505] hover:bg-[#080808] text-white border border-[#1c1c1c] font-mono text-xs font-bold tracking-widest uppercase transition-colors cursor-pointer"
-                >
-                  Bandingkan Grafik ↑
-                </button>
-              </Link>
+              <button
+                type="button"
+                onClick={() => {
+                  const el = document.getElementById("comparator");
+                  if (el) el.scrollIntoView({ behavior: "smooth" });
+                }}
+                className="rounded-full bg-[#1e1e1e] hover:bg-[#282828] text-[#a0a0a0] hover:text-white px-8 py-3.5 text-xs font-mono font-semibold tracking-wider uppercase transition-all inline-flex items-center gap-2 cursor-pointer"
+              >
+                <span>Bandingkan Grafik</span>
+                <span>↑</span>
+              </button>
             </div>
           </div>
         </section>

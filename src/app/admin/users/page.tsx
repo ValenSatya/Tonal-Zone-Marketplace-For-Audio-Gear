@@ -242,23 +242,23 @@ export default function UsersPage() {
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out">
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out text-[#FAF9F6] selection:bg-[#BFDD25] selection:text-black">
       
       {/* Title & Top Action */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#222] pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-[10px] font-mono font-bold bg-[#050505] text-[#FAF9F6] border border-[#2E2E2E] px-2 py-0.5 rounded uppercase tracking-wider">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-[10px] font-mono font-bold bg-[#141414] text-[#BFDD25] px-3 py-1 rounded-full uppercase tracking-wider">
               {isEn ? "User Management" : "Daftar Pengguna"}
             </span>
             <span className="text-[11px] font-mono text-[#888]">
               {isEn ? "Account Database & Roles" : "Database Akun Pengguna"}
             </span>
           </div>
-          <h1 className="text-xl font-bold tracking-tight text-white font-sans">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white font-sans">
             {isEn ? "Marketplace User Directory" : "Daftar Pengguna Marketplace"}
           </h1>
-          <p className="text-xs text-[#888] font-sans mt-0.5">
+          <p className="text-xs text-[#888] font-sans mt-1">
             {isEn
               ? "Manage buyer accounts, authorized seller stores, and marketplace administration personnel."
               : "Kelola data akun pembeli, toko penjual resmi, dan staf admin marketplace."}
@@ -273,7 +273,7 @@ export default function UsersPage() {
               setImportError("");
               setIsImportModalOpen(true);
             }}
-            className="px-3.5 py-2 bg-[#050505] hover:bg-[#050505] border border-[#2a2a2a] hover:border-[#444] text-xs font-mono font-bold text-white rounded-lg transition-colors flex items-center gap-2 cursor-pointer"
+            className="px-4 py-2 bg-[#0A0A0A] hover:bg-[#141414] text-xs font-mono font-bold text-white rounded-full transition-colors flex items-center gap-2 cursor-pointer"
             title={isEn ? "Import users from CSV" : "Import data pengguna dari CSV"}
           >
             <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -285,7 +285,7 @@ export default function UsersPage() {
           {/* Export CSV */}
           <button
             onClick={handleExport}
-            className="px-3.5 py-2 bg-[#050505] hover:bg-[#050505] border border-[#2a2a2a] hover:border-[#444] text-xs font-mono font-bold text-white rounded-lg transition-colors flex items-center gap-2 cursor-pointer"
+            className="px-4 py-2 bg-[#0A0A0A] hover:bg-[#141414] text-xs font-mono font-bold text-white rounded-full transition-colors flex items-center gap-2 cursor-pointer"
             title={isEn ? "Export CSV" : "Unduh CSV"}
           >
             <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -297,7 +297,7 @@ export default function UsersPage() {
           {/* Add User */}
           <button
             onClick={handleOpenAdd}
-            className="px-4 py-2 bg-[#050505] hover:bg-[#333333] border border-[#3E3E3E] text-white text-xs font-mono font-bold rounded-lg transition-colors flex items-center gap-1.5 shadow-sm cursor-pointer"
+            className="px-5 py-2 bg-[#BFDD25] hover:bg-white text-black text-xs font-sans font-bold rounded-full transition-all flex items-center gap-1.5 shadow-[0_0_12px_rgba(191,221,37,0.4)] cursor-pointer"
           >
             <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
@@ -310,17 +310,17 @@ export default function UsersPage() {
       {/* User Metrics Overview with Micro-Sparklines */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {/* Card 1: Active Users */}
-        <div className="bg-[#050505] border border-[#222] hover:border-[#333] transition-colors p-4 rounded-xl flex flex-col justify-between">
+        <div className="bg-[#0A0A0A] hover:bg-[#0E0E0E] transition-colors p-5 rounded-2xl flex flex-col justify-between">
           <div className="flex items-start justify-between gap-2">
             <div>
               <p className="text-[11px] font-mono text-[#888] uppercase tracking-wider">
                 {isEn ? "Active Users" : "Pengguna Aktif"}
               </p>
-              <p className="text-2xl font-bold font-mono text-emerald-400 mt-1">
+              <p className="text-2xl font-bold font-mono text-[#BFDD25] mt-1">
                 {users.filter((u) => u.status === "Active").length} {isEn ? "Users" : "Pengguna"}
               </p>
             </div>
-            <div className="w-20 h-10 shrink-0 opacity-70">
+            <div className="w-20 h-10 shrink-0 opacity-80">
               <AreaChart
                 data={[
                   { date: new Date("2026-08-10"), val: 8 },
@@ -334,18 +334,17 @@ export default function UsersPage() {
                 aspectRatio="2 / 1"
                 className="w-full h-full"
               >
-                <Area dataKey="val" stroke="#10b981" fill="#10b981" strokeWidth={1.5} fillOpacity={0.15} />
+                <Area dataKey="val" stroke="#BFDD25" fill="#BFDD25" strokeWidth={1.5} fillOpacity={0.15} />
               </AreaChart>
             </div>
           </div>
-          <div className="flex items-center gap-2 mt-3 pt-3 border-t border-[#1a1a1a] text-[11px] font-mono text-[#777]">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+          <div className="flex items-center gap-2 mt-4 pt-1 text-[11px] font-mono text-[#777]">
             <span>{isEn ? "Active shoppers & logged-in accounts" : "Pengguna aktif bertransaksi & login"}</span>
           </div>
         </div>
 
         {/* Card 2: Total Sellers */}
-        <div className="bg-[#050505] border border-[#222] hover:border-[#333] transition-colors p-4 rounded-xl flex flex-col justify-between">
+        <div className="bg-[#0A0A0A] hover:bg-[#0E0E0E] transition-colors p-5 rounded-2xl flex flex-col justify-between">
           <div className="flex items-start justify-between gap-2">
             <div>
               <p className="text-[11px] font-mono text-[#888] uppercase tracking-wider">
@@ -373,14 +372,14 @@ export default function UsersPage() {
               </AreaChart>
             </div>
           </div>
-          <div className="flex items-center gap-2 mt-3 pt-3 border-t border-[#1a1a1a] text-[11px] font-mono text-[#777]">
+          <div className="flex items-center gap-2 mt-4 pt-1 text-[11px] font-mono text-[#777]">
             <span className="w-1.5 h-1.5 rounded-full bg-white/60" />
             <span>{isEn ? "Verified catalog sellers" : "Penjual terverifikasi di katalog"}</span>
           </div>
         </div>
 
         {/* Card 3: Suspended Users */}
-        <div className="bg-[#050505] border border-[#222] hover:border-[#333] transition-colors p-4 rounded-xl flex flex-col justify-between">
+        <div className="bg-[#0A0A0A] hover:bg-[#0E0E0E] transition-colors p-5 rounded-2xl flex flex-col justify-between">
           <div className="flex items-start justify-between gap-2">
             <div>
               <p className="text-[11px] font-mono text-[#888] uppercase tracking-wider">
@@ -408,7 +407,7 @@ export default function UsersPage() {
               </AreaChart>
             </div>
           </div>
-          <div className="flex items-center gap-2 mt-3 pt-3 border-t border-[#1a1a1a] text-[11px] font-mono text-[#777]">
+          <div className="flex items-center gap-2 mt-4 pt-1 text-[11px] font-mono text-[#777]">
             <span className="w-1.5 h-1.5 rounded-full bg-rose-400" />
             <span>{isEn ? "Policy-violating / locked accounts" : "Akun dinonaktifkan / melanggar aturan"}</span>
           </div>
@@ -416,10 +415,10 @@ export default function UsersPage() {
       </div>
 
       {/* Main Container */}
-      <div className="bg-[#050505] border border-[#222] rounded-2xl overflow-hidden flex flex-col shadow-2xl">
+      <div className="bg-[#0A0A0A] rounded-2xl overflow-hidden flex flex-col shadow-2xl">
         
         {/* Filter, Search & Sort Bar */}
-        <div className="p-4 sm:p-5 border-b border-[#222] flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-[#050505]">
+        <div className="p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-[#0A0A0A]">
           
           {/* Search Box */}
           <div className="relative flex-1 max-w-md">
@@ -431,7 +430,7 @@ export default function UsersPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={isEn ? "Search user, email, location, ID..." : "Cari user, email, lokasi, ID..."}
-              className="w-full bg-[#050505] border border-[#2a2a2a] rounded-lg pl-10 pr-8 py-2 text-xs font-sans text-white placeholder:text-[#666] focus:outline-none focus:border-white/40 transition-colors"
+              className="w-full bg-[#141414] focus:bg-[#1A1A1A] rounded-full pl-10 pr-8 py-2.5 text-xs font-sans text-white placeholder:text-[#666] focus:outline-none focus:ring-1 focus:ring-[#BFDD25] transition-colors"
             />
             {searchQuery && (
               <button onClick={() => setSearchQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white p-1">
@@ -445,7 +444,7 @@ export default function UsersPage() {
           {/* Filters & Sort Controls */}
           <div className="flex flex-wrap items-center gap-2.5">
             {/* Sort Dropdown */}
-            <div className="flex items-center bg-[#050505] rounded-lg p-1 border border-[#1c1c1c] text-xs">
+            <div className="flex items-center bg-[#141414] rounded-full px-2 py-1 text-xs">
               <span className="text-[10px] uppercase font-mono text-[#777] px-2">{isEn ? "Sort:" : "Urutkan:"}</span>
               <CustomSelect
                 variant="compact"
@@ -467,7 +466,7 @@ export default function UsersPage() {
             </div>
 
             {/* Role Filter */}
-            <div className="flex items-center bg-[#050505] rounded-lg p-1 border border-[#1c1c1c] text-xs">
+            <div className="flex items-center bg-[#141414] rounded-full p-1 text-xs gap-0.5">
               <span className="text-[10px] uppercase font-mono text-[#71717A] px-2">{isEn ? "Role:" : "Peran:"}</span>
               {[
                 { id: "ALL", label: isEn ? "All" : "Semua" },
@@ -479,10 +478,10 @@ export default function UsersPage() {
                 <button
                   key={r.id}
                   onClick={() => setRoleFilter(r.id)}
-                  className={`px-2.5 py-1 rounded-md text-[11px] font-sans font-medium transition-all cursor-pointer border ${
+                  className={`px-3 py-1 rounded-full text-[11px] font-sans font-medium transition-all cursor-pointer ${
                     roleFilter === r.id
-                      ? "bg-[#050505] text-[#FAF9F6] font-semibold border-[#383838] shadow-sm"
-                      : "text-[#8E8E93] hover:text-[#FAF9F6] hover:bg-[#050505] border-transparent"
+                      ? "bg-white text-black font-bold shadow-sm"
+                      : "text-[#888] hover:text-white hover:bg-[#1E1E1E]"
                   }`}
                 >
                   {r.label}
@@ -491,7 +490,7 @@ export default function UsersPage() {
             </div>
 
             {/* Status Filter */}
-            <div className="flex items-center bg-[#050505] rounded-lg p-1 border border-[#1c1c1c] text-xs">
+            <div className="flex items-center bg-[#141414] rounded-full p-1 text-xs gap-0.5">
               <span className="text-[10px] uppercase font-mono text-[#71717A] px-2">Status:</span>
               {[
                 { id: "ALL", label: isEn ? "All" : "Semua" },
@@ -501,10 +500,10 @@ export default function UsersPage() {
                 <button
                   key={s.id}
                   onClick={() => setStatusFilter(s.id)}
-                  className={`px-2.5 py-1 rounded-md text-[11px] font-sans font-medium transition-all cursor-pointer border ${
+                  className={`px-3 py-1 rounded-full text-[11px] font-sans font-medium transition-all cursor-pointer ${
                     statusFilter === s.id
-                      ? "bg-[#050505] text-[#FAF9F6] font-semibold border-[#383838] shadow-sm"
-                      : "text-[#8E8E93] hover:text-[#FAF9F6] hover:bg-[#050505] border-transparent"
+                      ? "bg-white text-black font-bold shadow-sm"
+                      : "text-[#888] hover:text-white hover:bg-[#1E1E1E]"
                   }`}
                 >
                   {s.label}
@@ -521,10 +520,10 @@ export default function UsersPage() {
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: "auto", opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              className="bg-[#050505] text-[#FAF9F6] px-6 py-3 flex flex-wrap items-center justify-between gap-3 font-sans border-b border-[#2a2a2a] overflow-hidden"
+              className="bg-[#141414] text-[#FAF9F6] mx-4 my-2 px-5 py-3 rounded-xl flex flex-wrap items-center justify-between gap-3 font-sans overflow-hidden"
             >
               <div className="flex items-center gap-3">
-                <span className="text-xs font-bold font-mono bg-[#050505] text-white border border-[#3a3a3a] px-2 py-0.5 rounded">
+                <span className="text-xs font-bold font-mono bg-[#0A0A0A] text-[#BFDD25] px-2.5 py-1 rounded-full">
                   {isEn ? `${selectedIds.length} selected` : `${selectedIds.length} terpilih`}
                 </span>
                 <span className="text-xs text-[#888]">{isEn ? "Bulk Actions:" : "Aksi Masal:"}</span>
@@ -533,25 +532,25 @@ export default function UsersPage() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => handleBulkStatus("Active")}
-                  className="px-3 py-1.5 bg-[#050505] hover:bg-[#080808] border border-[#383838] text-white text-xs font-bold rounded-lg transition-colors shadow-sm cursor-pointer"
+                  className="px-4 py-1.5 bg-[#BFDD25] hover:bg-white text-black text-xs font-bold rounded-full transition-all shadow-sm cursor-pointer"
                 >
                   {isEn ? "Activate All" : "Aktifkan Semua"}
                 </button>
                 <button
                   onClick={() => handleBulkStatus("Suspended")}
-                  className="px-3 py-1.5 bg-[#050505] hover:bg-[#050505] text-[#ccc] text-xs font-medium rounded-lg transition-colors border border-[#333] cursor-pointer"
+                  className="px-4 py-1.5 bg-[#202020] hover:bg-[#2A2A2A] text-white text-xs font-medium rounded-full transition-colors cursor-pointer"
                 >
                   {isEn ? "Suspend All" : "Tangguhkan (Suspend)"}
                 </button>
                 <button
                   onClick={handleBulkDelete}
-                  className="px-3 py-1.5 bg-[#050505] hover:bg-[#050505] text-white text-xs font-medium rounded-lg transition-colors border border-[#2E2E2E] cursor-pointer"
+                  className="px-4 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs font-medium rounded-full transition-colors cursor-pointer"
                 >
                   {isEn ? `Delete (${selectedIds.length})` : `Hapus (${selectedIds.length})`}
                 </button>
                 <button
                   onClick={() => setSelectedIds([])}
-                  className="px-2 py-1 text-white/50 hover:text-white text-xs font-medium cursor-pointer"
+                  className="px-3 py-1 text-white/50 hover:text-white text-xs font-medium cursor-pointer"
                 >
                   {isEn ? "Cancel" : "Batal"}
                 </button>
@@ -562,27 +561,27 @@ export default function UsersPage() {
 
         {/* Table */}
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+          <table className="w-full text-left">
             <thead>
-              <tr className="border-b border-[#222] bg-[#050505] text-[10px] font-mono uppercase text-[#777] tracking-wider">
+              <tr className="bg-[#121212] text-[10px] font-mono uppercase text-[#777] tracking-wider">
                 <th className="w-12 px-6 py-4">
                   <div
                     onClick={handleSelectAll}
-                    className={`w-4 h-4 rounded border flex items-center justify-center cursor-pointer transition-all ${
+                    className={`w-4 h-4 rounded flex items-center justify-center cursor-pointer transition-all ${
                       isAllSelected
-                        ? "bg-[#050505] border-[#4A4A4A] text-white shadow-sm"
+                        ? "bg-[#BFDD25] text-black shadow-[0_0_8px_rgba(191,221,37,0.8)]"
                         : isIndeterminate
-                        ? "bg-[#050505] border-[#444] text-white"
-                        : "bg-[#050505] border-[#2A2A2A] hover:border-[#444]"
+                        ? "bg-[#BFDD25] text-black"
+                        : "bg-[#141414] hover:bg-[#202020]"
                     }`}
                   >
                     {isAllSelected && (
-                      <svg className="w-2.5 h-2.5 text-white stroke-[3]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-2.5 h-2.5 text-black stroke-[3]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                       </svg>
                     )}
                     {isIndeterminate && !isAllSelected && (
-                      <div className="w-2 h-0.5 bg-white rounded"></div>
+                      <div className="w-2 h-0.5 bg-black rounded"></div>
                     )}
                   </div>
                 </th>
@@ -657,29 +656,29 @@ export default function UsersPage() {
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5 font-sans text-xs">
+            <tbody className="font-sans text-xs">
               {paginatedUsers.length > 0 ? (
                 paginatedUsers.map((user) => {
                   const isSelected = selectedIds.includes(user.id);
                   return (
                     <tr
                       key={user.id}
-                      className={`hover:bg-white/[0.03] transition-colors ${
-                        isSelected ? "bg-white/[0.04]" : ""
+                      className={`hover:bg-[#121212] transition-colors ${
+                        isSelected ? "bg-[#141414]" : ""
                       }`}
                     >
                       {/* Checkbox */}
                       <td className="px-6 py-4">
                         <div
                           onClick={() => handleToggleSelect(user.id)}
-                          className={`w-4 h-4 rounded border flex items-center justify-center cursor-pointer transition-all ${
+                          className={`w-4 h-4 rounded flex items-center justify-center cursor-pointer transition-all ${
                             isSelected
-                              ? "bg-[#050505] border-[#4A4A4A] text-white shadow-sm"
-                              : "bg-[#050505] border-[#2A2A2A] hover:border-[#444]"
+                              ? "bg-[#BFDD25] text-black shadow-[0_0_8px_rgba(191,221,37,0.8)]"
+                              : "bg-[#141414] hover:bg-[#202020]"
                           }`}
                         >
                           {isSelected && (
-                            <svg className="w-2.5 h-2.5 text-white stroke-[3]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-2.5 h-2.5 text-black stroke-[3]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                             </svg>
                           )}
@@ -689,7 +688,7 @@ export default function UsersPage() {
                       {/* User Info */}
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-xs font-mono font-bold text-white/70 shrink-0">
+                          <div className="w-9 h-9 rounded-xl bg-[#141414] flex items-center justify-center text-xs font-mono font-bold text-white/80 shrink-0">
                             {user.name.charAt(0)}
                           </div>
                           <div className="flex flex-col min-w-0">
@@ -701,7 +700,7 @@ export default function UsersPage() {
 
                       {/* Role */}
                       <td className="px-6 py-4">
-                        <span className="px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-[#050505] text-[#D4D4D8] border border-[#27272A]">
+                        <span className="px-3 py-1 rounded-full text-[10px] font-mono font-medium bg-[#141414] text-[#D4D4D8]">
                           {user.role}
                         </span>
                       </td>
@@ -716,9 +715,9 @@ export default function UsersPage() {
 
                       {/* Status */}
                       <td className="px-6 py-4">
-                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-[#050505] text-[#D4D4D8] border border-[#27272A]">
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-mono font-medium bg-[#141414] text-[#D4D4D8]">
                           <span className={`w-1.5 h-1.5 rounded-full ${
-                            user.status === "Active" ? "bg-emerald-400" : user.status === "Suspended" ? "bg-rose-400" : "bg-[#666]"
+                            user.status === "Active" ? "bg-[#BFDD25] shadow-[0_0_6px_rgba(191,221,37,0.8)]" : user.status === "Suspended" ? "bg-rose-400" : "bg-[#666]"
                           }`} />
                           {user.status}
                         </span>
@@ -734,13 +733,13 @@ export default function UsersPage() {
                         <div className="flex items-center justify-end gap-2">
                           <button
                             onClick={() => handleOpenEdit(user)}
-                            className="px-2.5 py-1 bg-white/5 hover:bg-white/10 text-white/80 hover:text-white rounded text-[11px] font-medium transition-colors cursor-pointer"
+                            className="px-3 py-1 bg-[#141414] hover:bg-white hover:text-black text-white/80 hover:text-black rounded-full text-[11px] font-medium transition-colors cursor-pointer"
                           >
                             {isEn ? "Edit" : "Edit"}
                           </button>
                           <button
                             onClick={() => setDeletingUser(user)}
-                            className="px-2.5 py-1 bg-white/5 hover:bg-[#050505] text-white/40 hover:text-white border border-white/10 rounded text-[11px] font-medium transition-colors cursor-pointer"
+                            className="px-3 py-1 bg-[#141414] hover:bg-red-500/20 text-[#888] hover:text-red-400 rounded-full text-[11px] font-medium transition-colors cursor-pointer"
                           >
                             {isEn ? "Delete" : "Hapus"}
                           </button>
@@ -761,7 +760,7 @@ export default function UsersPage() {
         </div>
 
         {/* Footer info & Pagination */}
-        <div className="p-4 border-t border-white/5 bg-white/[0.01] flex flex-col sm:flex-row items-center justify-between text-xs text-white/40 font-mono gap-3">
+        <div className="p-4 bg-[#0A0A0A] flex flex-col sm:flex-row items-center justify-between text-xs text-white/40 font-mono gap-3">
           <div className="flex items-center gap-2">
             <span>
               {isEn
@@ -775,7 +774,7 @@ export default function UsersPage() {
               <button
                 disabled={currentPage === 1}
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                className="px-2.5 py-1 rounded bg-white/5 hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed text-white font-mono text-xs transition-colors cursor-pointer"
+                className="px-3.5 py-1.5 rounded-full bg-[#141414] hover:bg-[#1E1E1E] disabled:opacity-30 disabled:cursor-not-allowed text-white font-mono text-xs transition-colors cursor-pointer"
               >
                 {isEn ? "Previous" : "Sebelumnya"}
               </button>
@@ -785,7 +784,7 @@ export default function UsersPage() {
               <button
                 disabled={currentPage === totalPages}
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                className="px-2.5 py-1 rounded bg-white/5 hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed text-white font-mono text-xs transition-colors cursor-pointer"
+                className="px-3.5 py-1.5 rounded-full bg-[#141414] hover:bg-[#1E1E1E] disabled:opacity-30 disabled:cursor-not-allowed text-white font-mono text-xs transition-colors cursor-pointer"
               >
                 {isEn ? "Next" : "Selanjutnya"}
               </button>
@@ -802,20 +801,20 @@ export default function UsersPage() {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-[#050505] border border-white/10 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl"
+              className="bg-[#0A0A0A] rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl"
             >
-              <div className="p-6 border-b border-white/10 flex items-center justify-between">
+              <div className="p-6 flex items-center justify-between">
                 <div>
-                  <h3 className="font-bold text-white text-base">
+                  <h3 className="font-heading font-bold text-white text-base">
                     {isEn ? "Import Users from CSV" : "Import Pengguna dari CSV"}
                   </h3>
-                  <p className="text-xs text-white/50 mt-0.5">
+                  <p className="text-xs text-[#888888] mt-0.5 font-mono">
                     {isEn ? "Upload a CSV file or paste raw text rows directly." : "Unggah berkas CSV atau tempel teks data langsung."}
                   </p>
                 </div>
                 <button
                   onClick={() => setIsImportModalOpen(false)}
-                  className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center text-white/60 hover:text-white cursor-pointer"
+                  className="w-8 h-8 rounded-full bg-[#141414] hover:bg-[#202020] flex items-center justify-center text-[#888888] hover:text-white transition-colors cursor-pointer"
                 >
                   <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -823,11 +822,11 @@ export default function UsersPage() {
                 </button>
               </div>
 
-              <div className="p-6 space-y-4 font-sans text-xs">
+              <div className="p-6 pt-0 space-y-4 font-sans text-xs">
                 {/* Upload box */}
                 <div
                   onClick={() => fileInputRef.current?.click()}
-                  className="border-2 border-dashed border-white/15 hover:border-white/40 rounded-xl p-6 text-center cursor-pointer transition-colors bg-white/[0.02]"
+                  className="bg-[#141414] hover:bg-[#181818] rounded-xl p-6 text-center cursor-pointer transition-colors group"
                 >
                   <input
                     ref={fileInputRef}
@@ -836,18 +835,18 @@ export default function UsersPage() {
                     onChange={handleFileUpload}
                     className="hidden"
                   />
-                  <svg className="w-8 h-8 mx-auto mb-2 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-8 h-8 mx-auto mb-2 text-[#BFDD25] group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                   </svg>
                   <p className="font-semibold text-white">
                     {isEn ? "Click to browse and upload .csv file" : "Klik untuk memilih berkas .csv"}
                   </p>
-                  <p className="text-[11px] text-white/40 mt-1">Header: Name, Email, Role, Status, Location, TuningPreference</p>
+                  <p className="text-[11px] text-[#777777] font-mono mt-1">Header: Name, Email, Role, Status, Location, TuningPreference</p>
                 </div>
 
                 {/* Text area fallback */}
                 <div>
-                  <label className="block text-white/70 font-medium mb-1">
+                  <label className="block text-[#888888] font-mono text-[11px] uppercase tracking-wider mb-1">
                     {isEn ? "Or Paste Raw CSV Data" : "Atau Tempel Teks CSV"}
                   </label>
                   <textarea
@@ -855,7 +854,7 @@ export default function UsersPage() {
                     value={importText}
                     onChange={(e) => setImportText(e.target.value)}
                     placeholder="Name,Email,Role,Status,Location,TuningPreference&#10;Budi Santoso,budi@audio.id,Buyer,Active,Surabaya,Warm"
-                    className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white font-mono text-xs placeholder:text-white/20 focus:outline-none focus:border-white/30 resize-none"
+                    className="w-full bg-[#141414] focus:bg-[#181818] rounded-xl p-3 text-white font-mono text-xs placeholder:text-[#555] focus:outline-none focus:ring-1 focus:ring-[#BFDD25] transition-all resize-none"
                   />
                 </div>
 
@@ -863,18 +862,18 @@ export default function UsersPage() {
                   <p className="text-red-400 font-mono text-[11px]">{importError}</p>
                 )}
 
-                <div className="pt-4 border-t border-white/10 flex items-center justify-end gap-2">
+                <div className="pt-2 flex items-center justify-end gap-2">
                   <button
                     type="button"
                     onClick={() => setIsImportModalOpen(false)}
-                    className="px-4 py-2 bg-white/5 hover:bg-white/10 text-white rounded-lg transition-colors cursor-pointer"
+                    className="px-5 py-2.5 bg-[#141414] hover:bg-[#202020] text-white rounded-full text-xs font-mono font-medium transition-colors cursor-pointer"
                   >
                     {isEn ? "Cancel" : "Batal"}
                   </button>
                   <button
                     type="button"
                     onClick={handleExecuteImport}
-                    className="px-4 py-2 bg-white hover:bg-[#e0e0e0] text-black font-bold rounded-lg transition-colors shadow-sm cursor-pointer"
+                    className="px-5 py-2.5 bg-[#BFDD25] hover:bg-[#aecd20] text-black font-bold font-mono text-xs rounded-full transition-colors shadow-[0_0_12px_rgba(191,221,37,0.3)] cursor-pointer"
                   >
                     {isEn ? "Process Import" : "Proses Import"}
                   </button>
@@ -893,10 +892,10 @@ export default function UsersPage() {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-[#050505] border border-white/10 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl"
+              className="bg-[#0A0A0A] rounded-2xl w-full max-w-md overflow-hidden shadow-2xl"
             >
-              <div className="p-6 border-b border-white/10 flex items-center justify-between">
-                <h3 className="font-bold text-white text-base">
+              <div className="p-6 flex items-center justify-between">
+                <h3 className="font-heading font-bold text-white text-base">
                   {editingUser
                     ? (isEn ? "Edit User Profile" : "Edit Profil Pengguna")
                     : (isEn ? "Add New User" : "Tambah Pengguna Baru")}
@@ -906,7 +905,7 @@ export default function UsersPage() {
                     setIsAddModalOpen(false);
                     setEditingUser(null);
                   }}
-                  className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center text-white/60 hover:text-white cursor-pointer"
+                  className="w-8 h-8 rounded-full bg-[#141414] hover:bg-[#202020] flex items-center justify-center text-[#888888] hover:text-white transition-colors cursor-pointer"
                 >
                   <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -914,9 +913,9 @@ export default function UsersPage() {
                 </button>
               </div>
 
-              <form onSubmit={editingUser ? handleSaveEdit : handleSaveAdd} className="p-6 space-y-4 font-sans text-xs">
+              <form onSubmit={editingUser ? handleSaveEdit : handleSaveAdd} className="p-6 pt-0 space-y-4 font-sans text-xs">
                 <div>
-                  <label className="block text-white/70 font-medium mb-1">
+                  <label className="block text-[#888888] font-mono text-[11px] uppercase tracking-wider mb-1">
                     {isEn ? "Full Name" : "Nama Lengkap"}
                   </label>
                   <input
@@ -925,12 +924,12 @@ export default function UsersPage() {
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     placeholder={isEn ? "e.g. John Doe" : "Contoh: Budi Santoso"}
-                    className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white placeholder:text-white/30 focus:outline-none focus:border-white/30"
+                    className="w-full bg-[#141414] focus:bg-[#181818] rounded-xl px-4 py-2.5 text-white placeholder:text-[#555] focus:outline-none focus:ring-1 focus:ring-[#BFDD25] transition-all text-xs font-mono"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-white/70 font-medium mb-1">
+                  <label className="block text-[#888888] font-mono text-[11px] uppercase tracking-wider mb-1">
                     {isEn ? "Email Address" : "Alamat Email"}
                   </label>
                   <input
@@ -939,13 +938,13 @@ export default function UsersPage() {
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     placeholder={isEn ? "e.g. john@audiophile.com" : "Contoh: budi@audiophile.id"}
-                    className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white placeholder:text-white/30 focus:outline-none focus:border-white/30"
+                    className="w-full bg-[#141414] focus:bg-[#181818] rounded-xl px-4 py-2.5 text-white placeholder:text-[#555] focus:outline-none focus:ring-1 focus:ring-[#BFDD25] transition-all text-xs font-mono"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-white/70 font-medium mb-1">
+                    <label className="block text-[#888888] font-mono text-[11px] uppercase tracking-wider mb-1">
                       {isEn ? "Account Role" : "Role Akun"}
                     </label>
                     <CustomSelect
@@ -956,7 +955,7 @@ export default function UsersPage() {
                   </div>
 
                   <div>
-                    <label className="block text-white/70 font-medium mb-1">Status</label>
+                    <label className="block text-[#888888] font-mono text-[11px] uppercase tracking-wider mb-1">Status</label>
                     <CustomSelect
                       value={formData.status}
                       onChange={(val) => setFormData({ ...formData, status: val as AdminUser["status"] })}
@@ -966,7 +965,7 @@ export default function UsersPage() {
                 </div>
 
                 <div>
-                  <label className="block text-white/70 font-medium mb-1">
+                  <label className="block text-[#888888] font-mono text-[11px] uppercase tracking-wider mb-1">
                     {isEn ? "Location / City" : "Lokasi Domisili"}
                   </label>
                   <input
@@ -974,12 +973,12 @@ export default function UsersPage() {
                     value={formData.location}
                     onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                     placeholder={isEn ? "e.g. Jakarta, ID" : "Contoh: Jakarta, ID"}
-                    className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white placeholder:text-white/30 focus:outline-none focus:border-white/30"
+                    className="w-full bg-[#141414] focus:bg-[#181818] rounded-xl px-4 py-2.5 text-white placeholder:text-[#555] focus:outline-none focus:ring-1 focus:ring-[#BFDD25] transition-all text-xs font-mono"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-white/70 font-medium mb-1">
+                  <label className="block text-[#888888] font-mono text-[11px] uppercase tracking-wider mb-1">
                     {isEn ? "Tuning Sound Preference" : "Preferensi Tuning Suara"}
                   </label>
                   <input
@@ -987,24 +986,24 @@ export default function UsersPage() {
                     value={formData.tuningPreference}
                     onChange={(e) => setFormData({ ...formData, tuningPreference: e.target.value })}
                     placeholder={isEn ? "e.g. Warm & Musical, Harman Target" : "Contoh: Warm & Musical, Harman Target"}
-                    className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white placeholder:text-white/30 focus:outline-none focus:border-white/30"
+                    className="w-full bg-[#141414] focus:bg-[#181818] rounded-xl px-4 py-2.5 text-white placeholder:text-[#555] focus:outline-none focus:ring-1 focus:ring-[#BFDD25] transition-all text-xs font-mono"
                   />
                 </div>
 
-                <div className="pt-4 border-t border-white/10 flex items-center justify-end gap-2">
+                <div className="pt-2 flex items-center justify-end gap-2">
                   <button
                     type="button"
                     onClick={() => {
                       setIsAddModalOpen(false);
                       setEditingUser(null);
                     }}
-                    className="px-4 py-2 bg-white/5 hover:bg-white/10 text-white rounded-lg transition-colors cursor-pointer"
+                    className="px-5 py-2.5 bg-[#141414] hover:bg-[#202020] text-white rounded-full text-xs font-mono font-medium transition-colors cursor-pointer"
                   >
                     {isEn ? "Cancel" : "Batal"}
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 bg-white hover:bg-[#e0e0e0] text-black font-bold rounded-lg transition-colors shadow-sm cursor-pointer"
+                    className="px-5 py-2.5 bg-[#BFDD25] hover:bg-[#aecd20] text-black font-bold font-mono text-xs rounded-full transition-colors shadow-[0_0_12px_rgba(191,221,37,0.3)] cursor-pointer"
                   >
                     {editingUser
                       ? (isEn ? "Save Changes" : "Simpan Perubahan")
@@ -1025,17 +1024,17 @@ export default function UsersPage() {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-[#050505] border border-white/10 rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl p-6 text-center"
+              className="bg-[#0A0A0A] rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl p-6 text-center"
             >
-              <div className="w-12 h-12 rounded-full bg-[#050505] border border-[#2E2E2E] text-white flex items-center justify-center mx-auto mb-4">
+              <div className="w-12 h-12 rounded-full bg-red-500/10 text-red-400 flex items-center justify-center mx-auto mb-4">
                 <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2.25 2.25 0 0116.138 21H7.862a2.25 2.25 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
               </div>
-              <h3 className="font-bold text-white text-base mb-1">
+              <h3 className="font-heading font-bold text-white text-base mb-1">
                 {isEn ? "Delete User?" : "Hapus Pengguna?"}
               </h3>
-              <p className="text-xs text-white/50 mb-6">
+              <p className="text-xs text-[#888888] font-mono mb-6">
                 {isEn
                   ? `Are you sure you want to delete ${deletingUser.name} (${deletingUser.email})? This action cannot be undone.`
                   : `Apakah Anda yakin ingin menghapus ${deletingUser.name} (${deletingUser.email})? Tindakan ini tidak dapat dibatalkan.`}
@@ -1043,13 +1042,13 @@ export default function UsersPage() {
               <div className="flex items-center justify-center gap-3">
                 <button
                   onClick={() => setDeletingUser(null)}
-                  className="px-4 py-2 bg-white/5 hover:bg-white/10 text-white rounded-lg text-xs font-medium transition-colors cursor-pointer"
+                  className="px-5 py-2.5 bg-[#141414] hover:bg-[#202020] text-white rounded-full text-xs font-mono font-medium transition-colors cursor-pointer"
                 >
                   {isEn ? "Cancel" : "Batal"}
                 </button>
                 <button
                   onClick={handleConfirmDelete}
-                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg text-xs transition-colors shadow-sm cursor-pointer"
+                  className="px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white font-bold font-mono text-xs rounded-full transition-colors shadow-sm cursor-pointer"
                 >
                   {isEn ? "Delete Permanently" : "Hapus Permanen"}
                 </button>

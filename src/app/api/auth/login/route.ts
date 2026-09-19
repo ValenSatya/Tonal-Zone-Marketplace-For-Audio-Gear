@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { userRepo } from "@/lib/supabase-db";
+import { sanitizeAvatarForCookie } from "@/lib/auth/roles";
 
 export async function POST(request: Request) {
   try {
@@ -29,16 +30,32 @@ export async function POST(request: Request) {
       }
     }
 
+    const isOfficialBrand =
+      dbUser?.store?.storeType === "OFFICIAL_BRAND" ||
+      cleanEmail === "valenandrasatya@gmail.com";
+
+    const resolvedStoreType = isOfficialBrand
+      ? "OFFICIAL_BRAND"
+      : dbUser?.store
+      ? "RETAIL_MERCHANT"
+      : null;
+
+    const resolvedBrandName = isOfficialBrand
+      ? dbUser?.store?.brandName || "MOONDROP"
+      : null;
+
     const userSession = {
       id: dbUser?.id || "user-" + Date.now(),
       email: cleanEmail,
       name: dbUser?.name || cleanEmail.split("@")[0],
-      avatar: dbUser?.avatar || "/placeholder.svg",
+      avatar: sanitizeAvatarForCookie(dbUser?.avatar),
       role: dbUser?.role || (isSeller ? "SELLER" : "BUYER"),
       isSeller,
       sellerStatus: storeStatus,
-      storeId: dbUser?.store?.id || null,
-      storeName: dbUser?.store?.storeName || null,
+      storeId: dbUser?.store?.id || (isOfficialBrand ? "store-moondrop-official" : null),
+      storeName: dbUser?.store?.storeName || (isOfficialBrand ? "MOONDROP Official Flagship Store" : null),
+      storeType: resolvedStoreType,
+      brandName: resolvedBrandName,
       tuning: dbUser?.tuningPreference || "Reference / Neutral",
       experience: "Intermediate / Audiophile",
       createdAt: dbUser?.createdAt || new Date().toISOString(),

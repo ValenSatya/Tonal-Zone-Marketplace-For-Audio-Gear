@@ -5,8 +5,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { CatalogProduct, FALLBACK_CATALOG } from "@/lib/products-db";
+import { CatalogProduct } from "@/lib/products-db";
 import { useLocation } from "@/context/LocationContext";
+import { KeyboardArrowRight } from "@/components/ui/keyboard-arrow";
 
 interface SearchDrawerProps {
   isOpen: boolean;
@@ -73,7 +74,7 @@ export default function SearchDrawer({ isOpen, onClose, products = [] }: SearchD
   const [query, setQuery] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const catalog = products.length > 0 ? products : FALLBACK_CATALOG;
+  const catalog = products;
 
   // Auto focus input on open
   useEffect(() => {
@@ -273,9 +274,7 @@ export default function SearchDrawer({ isOpen, onClose, products = [] }: SearchD
                         onClick={onClose}
                         className="flex items-center gap-3 py-2 px-2 -mx-2 hover:bg-[#080808] rounded-lg text-[15px] font-normal transition-colors group cursor-pointer"
                       >
-                        <span className="text-[#86868b] group-hover:text-white transition-colors text-sm shrink-0">
-                          →
-                        </span>
+                        <KeyboardArrowRight className="w-3.5 h-3.5 stroke-[2.5] text-[#86868b] group-hover:text-white transition-colors shrink-0" />
                         <div className="flex-1 truncate">
                           <HighlightMatch text={item.label} query={query} />
                         </div>
@@ -333,9 +332,10 @@ export default function SearchDrawer({ isOpen, onClose, products = [] }: SearchD
                     <button
                       type="button"
                       onClick={() => handleSelectSearch(query)}
-                      className="text-xs text-[#BFDD25] hover:underline cursor-pointer"
+                      className="text-xs text-[#BFDD25] hover:underline cursor-pointer inline-flex items-center gap-1"
                     >
-                      Lihat semua hasil →
+                      <span>Lihat semua hasil</span>
+                      <KeyboardArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
                     </button>
                   </div>
 
@@ -363,9 +363,7 @@ export default function SearchDrawer({ isOpen, onClose, products = [] }: SearchD
                             {prod.brand} • {formatPrice(prod.price)}
                           </span>
                         </div>
-                        <span className="text-xs text-[#555] group-hover:text-white transition-colors pr-1">
-                          →
-                        </span>
+                        <KeyboardArrowRight className="w-3.5 h-3.5 stroke-[2.5] text-[#555] group-hover:text-white transition-colors shrink-0 pr-0.5" />
                       </Link>
                     ))}
                   </div>
@@ -403,11 +401,11 @@ export default function SearchDrawer({ isOpen, onClose, products = [] }: SearchD
                 <button
                   type="button"
                   onClick={() => handleSelectSearch(query)}
-                  className="w-full py-3 bg-[#050505] hover:bg-[#080808] border border-[#1c1c1c] hover:border-[#333] text-white rounded-xl text-xs font-medium transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full py-3 bg-[#050505] hover:bg-[#080808] border border-[#1c1c1c] hover:border-[#333] text-white rounded-xl text-xs font-medium transition-colors flex items-center justify-center gap-2 cursor-pointer group"
                 >
                   <span>Tekan Enter atau klik untuk cari</span>
                   <span className="text-[#BFDD25] font-semibold">&ldquo;{query}&rdquo;</span>
-                  <span>→</span>
+                  <KeyboardArrowRight className="w-4 h-4 stroke-[2.5] text-[#BFDD25] group-hover:translate-x-0.5 transition-transform" />
                 </button>
               </div>
             )}

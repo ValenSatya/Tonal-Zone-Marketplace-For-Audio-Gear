@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from "motion/react";
 import MotionButton from "./MotionButton";
 import { useLanguage } from "@/context/LanguageContext";
 import { useLocation } from "@/context/LocationContext";
-import { fetchProductsFromDb, CatalogProduct, FALLBACK_CATALOG } from "@/lib/products-db";
+import { fetchProductsFromDb, CatalogProduct } from "@/lib/products-db";
 
 const DEFAULT_PAGES = [
   {
@@ -19,9 +19,9 @@ const DEFAULT_PAGES = [
       image: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800",
     },
     small1: {
-      id: "prod-ier-m9",
-      name: "Sony IER-M9 Stage Monitor",
-      price: 999,
+      id: "prod-1787470517823-a7ipi2",
+      name: "Kiwi Ears Cadenza",
+      price: 34.99,
       image: "https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=800",
     },
     small2: {

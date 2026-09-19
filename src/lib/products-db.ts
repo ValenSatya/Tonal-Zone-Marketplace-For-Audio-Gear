@@ -1,4 +1,4 @@
-import { supabase } from "./supabase-db";
+import { supabase } from "./supabase";
 
 export interface CatalogProduct {
   id: string;
@@ -9,6 +9,7 @@ export interface CatalogProduct {
   soundSignature: "NEUTRAL" | "WARM" | "V_SHAPE" | "BRIGHT" | "BASSHEAD";
   category: string;
   brand: string;
+  storeId?: string;
   storeName: string;
   storeCity: string;
   description: string;
@@ -27,28 +28,50 @@ export interface CatalogProduct {
   frequencyResponse?: string;
   cableTermination?: string;
   squiglinkUrl?: string;
+  variants?: any;
+  colors?: any;
 }
 
 export const PRODUCT_SPECS_MAP: Record<string, Partial<CatalogProduct>> = {
   "prod-waner-sg2": {
-    driverType: "10mm PET Diaphragm Dual-Cavity Dynamic Driver",
-    material: "Ergonomic Acoustic Resin with Red Lion Artisan Faceplate",
-    tuning: "Tangzu Balanced Warm-Neutral Vocal Curve",
+    driverType: "10mm PET Diaphragm Dual-Cavity Dynamic Driver with N52 Neodymium Magnets",
+    material: "Acoustic Resin Housing with Fish-Scale Geometric Wave Faceplate",
+    tuning: "Tangzu Balanced-Linear Target Curve",
     impedance: "16Ω (@1kHz)",
     sensitivity: "107dB/mW",
     frequencyResponse: "20Hz – 20kHz",
-    cableTermination: "3.5mm SE / 0.78mm 2-Pin High-Purity OFC",
+    cableTermination: "3.5mm SE / 0.78mm 2-Pin Silver-Plated OFC Cable",
+    squiglinkUrl: "https://squig.link/?share=Tangzu_Waner",
+  },
+  "prod-waner-redlion": {
+    driverType: "10mm PET Diaphragm Dual-Cavity Dynamic Driver with Cultural Resonance Chamber",
+    material: "Ruby Red Translucent Acoustic Resin with 3D Sculpted Lion Relief & CNC Gold Brass Nozzle",
+    tuning: "Tangzu Warm-Musical Target with Expressive Vocal Presence",
+    impedance: "16Ω (@1kHz)",
+    sensitivity: "107dB/mW",
+    frequencyResponse: "20Hz – 20kHz",
+    cableTermination: "3.5mm SE / 0.78mm 2-Pin High-Purity OFC Detachable Cable",
     squiglinkUrl: "https://squig.link/?share=Tangzu_Waner",
   },
   "prod-tanchjim-nora": {
-    driverType: "10mm Dual-Magnetic Dynamic Driver with DMT Technology",
-    material: "Ergonomic Lightweight Cavity with Aluminum Alloy Accents",
-    tuning: "Tanchjim Target Reference Harman Curve",
-    impedance: "16Ω (@1kHz)",
-    sensitivity: "118dB/Vrms",
-    frequencyResponse: "10Hz – 20kHz",
-    cableTermination: "3.5mm SE / 0.78mm 2-Pin Silver-Plated Cable",
-    squiglinkUrl: "https://squig.link",
+    driverType: "DMT5-Architecture Dual-Magnetic Dual-Cavity Dynamic Driver with DLC Dome",
+    material: "High-Transparency Medical Resin Cavity with Aerospace Metal Frame & Sapphire Glass",
+    tuning: "Tanchjim Reference Hi-Fi Studio Monitoring Curve",
+    impedance: "16Ω (±5% @1kHz)",
+    sensitivity: "125dB/Vrms",
+    frequencyResponse: "2Hz – 48kHz",
+    cableTermination: "Modular 3.5mm SE & 4.4mm BAL / 0.78mm 2-Pin Silver-Plated Cable",
+    squiglinkUrl: "https://squig.link/?share=Tanchjim_Nora",
+  },
+  "prod-tanchjim-bunny": {
+    driverType: "DMT 4 Ultra Dual-Chamber Dynamic Driver with Titanium Dome Composite Diaphragm",
+    material: "Ultra-Lightweight Transparent Medical-Grade PC Cavity with Stainless Steel Faceplate",
+    tuning: "Harman-Inspired Warm-Balanced Vocal Curve with Ultra-Low THD (<0.05%)",
+    impedance: "30Ω (±10% @1kHz)",
+    sensitivity: "123dB/Vrms",
+    frequencyResponse: "8Hz – 48kHz",
+    cableTermination: "3.5mm SE / Type-C DSP with Built-in DAC (0.78mm 2-Pin Detachable)",
+    squiglinkUrl: "https://squig.link/?share=Tanchjim_Bunny",
   },
   "prod-kiwi-cadenza": {
     driverType: "10mm Beryllium-Coated Diaphragm Dynamic Driver",
@@ -170,15 +193,25 @@ export const PRODUCT_SPECS_MAP: Record<string, Partial<CatalogProduct>> = {
     cableTermination: "3.5mm SE / 0.78mm 2-Pin Detachable",
     squiglinkUrl: "https://crinacle.com/graphs/iems/graphtool/?share=Chu_II",
   },
+  "prod-aria2": {
+    driverType: "10mm TiN Ceramic-Coated Spherical Dome Composite Diaphragm Dynamic Driver",
+    material: "CNC Zinc Alloy Housing with Replaceable Brass Acoustic Nozzle",
+    tuning: "Moondrop VDSF Target (Warm-Neutral)",
+    impedance: "33Ω ± 15% (@1kHz)",
+    sensitivity: "122dB/Vrms (@1kHz)",
+    frequencyResponse: "16Hz – 22kHz (Effective: 20Hz – 20kHz)",
+    cableTermination: "Modular 3.5mm SE & 4.4mm Balanced / 0.78mm 2-Pin",
+    squiglinkUrl: "https://crinacle.com/graphs/iems/graphtool/?share=IEF_Neutral_Target,Aria_2",
+  },
   "prod-dusk": {
-    driverType: "2DD (10mm HODDDUS) + 2 Custom BA + 2 Micro-Planar Drivers",
-    material: "HeyGears Medical-Grade 3D Resin + Forged Carbon Faceplate",
-    tuning: "Crinacle Dusk Target + 5 Interactive DSP Presets",
-    impedance: "14.5Ω ± 15% (@1kHz)",
-    sensitivity: "119dB/Vrms (@1kHz)",
-    frequencyResponse: "10Hz – 24kHz (Effective: 20Hz – 20kHz)",
-    cableTermination: "3.5mm SE Analog & FreeDSP USB-C / 0.78mm 2-Pin",
-    squiglinkUrl: "https://crinacle.com/graphs/iems/graphtool/?share=Dusk_Analog",
+    driverType: "10mm TiN Ceramic-Coated Spherical Dome Composite Diaphragm Dynamic Driver",
+    material: "CNC Zinc Alloy Housing with Replaceable Brass Acoustic Nozzle",
+    tuning: "Moondrop VDSF Target (Warm-Neutral)",
+    impedance: "33Ω ± 15% (@1kHz)",
+    sensitivity: "122dB/Vrms (@1kHz)",
+    frequencyResponse: "16Hz – 22kHz (Effective: 20Hz – 20kHz)",
+    cableTermination: "Modular 3.5mm SE & 4.4mm Balanced / 0.78mm 2-Pin",
+    squiglinkUrl: "https://crinacle.com/graphs/iems/graphtool/?share=IEF_Neutral_Target,Aria_2",
   },
   "prod-sparxie": {
     driverType: "10mm Wood Dome Diaphragm Dynamic Driver (Variable-Impedance Damping)",
@@ -325,9 +358,12 @@ export const PRODUCT_SPECS_MAP: Record<string, Partial<CatalogProduct>> = {
 
 export const KNOWN_CLEAN_NAMES: Record<string, string> = {
   "prod-waner-sg2": "Tangzu Wan'er SG 2",
+  "prod-waner-redlion": "Tangzu Wan'er SG 2 Red Lion",
   "prod-tanchjim-nora": "Tanchjim Nora",
+  "prod-tanchjim-bunny": "Tanchjim Bunny",
   "prod-chu3": "Moondrop CHU III",
-  "prod-dusk": "Moondrop x Crinacle Dusk",
+  "prod-aria2": "Moondrop Aria 2",
+  "prod-dusk": "Moondrop Aria 2",
   "prod-sparxie": "Moondrop Sparxie TWS",
   "prod-mimisbrunnr": "Mimisbrunnr Flagship",
   "prod-epz-g30": "EPZ G30",
@@ -358,11 +394,7 @@ export const KNOWN_CLEAN_NAMES: Record<string, string> = {
   "prod-arya": "HiFiMAN Arya Stealth",
   "prod-hd800s": "Sennheiser HD 800 S",
   "prod-wf1000xm5": "Sony WF-1000XM5",
-  "prod-momentum-tw4": "Sennheiser Momentum TW4",
   "prod-space-travel": "Moondrop Space Travel",
-  "prod-qc-ultra-buds": "Bose QuietComfort Ultra",
-  "prod-fokus-prestige": "Noble FoKus Prestige",
-  "prod-ze8000-mk2": "Final Audio ZE8000",
   "prod-airpods-pro2": "Apple AirPods Pro 2",
   "prod-eah-az80": "Technics EAH-AZ80",
   "prod-wh1000xm5": "Sony WH-1000XM5",
@@ -415,9 +447,13 @@ export function cleanProductName(name: string, id?: string): string {
     }
   }
 
-  let cleaned = name.trim()
+  let cleaned = name
+    .trim()
     .replace(/\s*\([^)]*\)/g, "") // remove parenthetical specs like (USB-C)
-    .replace(/\b(High-Performance|Dynamic In-Ear Monitor|In-Ear Monitor|Stage Monitor|Audiophile Headphones|Wireless Noise Canceling|True Wireless ANC|True Wireless|Open-Back|Closed-Back|Gaming & Studio|Gaming &|Multi-Driver|Beryllium Dynamic|Planar Magnetic|Tribrid|Quadbrid|Dual Dynamic|Single Dynamic|Sub-bass Cannon|Masterpiece|Reference Headphone|Reference Flagship|Reference|Headphones?|Earphones?|Earbuds?|IEM|TWS|ANC)\b/gi, "")
+    .replace(
+      /\b(High-Performance|Dynamic In-Ear Monitor|In-Ear Monitor|Stage Monitor|Audiophile Headphones|Wireless Noise Canceling|True Wireless ANC|True Wireless|Open-Back|Closed-Back|Gaming & Studio|Gaming &|Multi-Driver|Beryllium Dynamic|Planar Magnetic|Tribrid|Quadbrid|Dual Dynamic|Single Dynamic|Sub-bass Cannon|Masterpiece|Reference Headphone|Reference Flagship|Reference|Headphones?|Earphones?|Earbuds?|IEM|TWS|ANC)\b/gi,
+      ""
+    )
     .replace(/[\s\-_&/]+$/g, "") // strip trailing dangling connectors
     .replace(/\s+/g, " ")
     .trim();
@@ -427,6 +463,54 @@ export function cleanProductName(name: string, id?: string): string {
     return words.slice(0, 4).join(" ");
   }
   return cleaned.length >= 2 ? cleaned : name;
+}
+
+export type AllowedBadge = "New Arrival" | "Best Seller" | "Top Rated";
+
+/**
+ * Strictly limits badges to only: "New Arrival", "Best Seller", "Top Rated".
+ * All other tags (Legendary Classic, Flagship, etc.) are strictly stripped/deleted.
+ */
+export function normalizeAllowedBadge(badge?: string | null): AllowedBadge | undefined {
+  if (!badge) return undefined;
+  const b = badge.trim().toLowerCase().replace(/[\-_]/g, " ");
+  if (b === "new arrival") return "New Arrival";
+  if (b === "best seller" || b === "bestseller") return "Best Seller";
+  if (b === "top rated" || b === "toprated") return "Top Rated";
+  return undefined;
+}
+
+// In-memory live store for recalculated ratings from authentic buyer reviews (starts at 0)
+const productRatingOverrides: Map<string, { rating: number; reviews: number }> = new Map();
+
+/**
+ * Record a new authentic buyer review score for a product and recalculate dynamic rating average
+ */
+export function recordProductReviewScore(
+  productId: string,
+  newRating: number
+): { rating: number; reviews: number } {
+  const cleanId = (productId || "").trim().toLowerCase();
+
+  const existing = productRatingOverrides.get(cleanId);
+  const currentRating = existing ? existing.rating : 0;
+  const currentReviews = existing ? existing.reviews : 0;
+
+  const updatedReviews = currentReviews + 1;
+  const updatedRating =
+    currentReviews === 0
+      ? newRating
+      : Math.round(((currentRating * currentReviews + newRating) / updatedReviews) * 10) / 10;
+
+  const result = { rating: updatedRating, reviews: updatedReviews };
+  productRatingOverrides.set(cleanId, result);
+  return result;
+}
+
+export function getProductRatingScore(
+  productId: string
+): { rating: number; reviews: number } | null {
+  return productRatingOverrides.get((productId || "").trim().toLowerCase()) || null;
 }
 
 export function enhanceProductWithSpecs(product: CatalogProduct): CatalogProduct {
@@ -454,43 +538,112 @@ export function enhanceProductWithSpecs(product: CatalogProduct): CatalogProduct
   }
 
   // Fallback defaults based on acoustics
-  const defaultDriver = product.category.includes("HEADPHONE")
-    ? "40mm Bio-Cellulose Dynamic Transducer"
-    : product.category.includes("TWS")
-    ? "11mm Dynamic Driver with Titanium Composite Diaphragm"
-    : product.category.includes("CABLE")
-    ? "8-Core High-Purity OCC Silver-Plated Copper"
-    : product.category.includes("DAC")
-    ? "Dual ESS Sabre ES9038Q2M Ultra-Low Jitter DAC"
-    : "10mm Dual-Cavity Dynamic Acoustic Driver";
+  const isWirelessProduct =
+    product.category.includes("WIRELESS") ||
+    product.category.includes("TWS") ||
+    (product.name && product.name.toLowerCase().includes("tws")) ||
+    (product.name && product.name.toLowerCase().includes("buds")) ||
+    (product.cableTermination && (product.cableTermination.toLowerCase().includes("bluetooth") || product.cableTermination.toLowerCase().includes("wireless")));
 
-  const defaultMaterial = product.category.includes("HEADPHONE")
+  const defaultDriver = isWirelessProduct
+    ? "High-Resolution Composite Dynamic Transducer"
+    : product.category.includes("HEADPHONE")
+    ? "Acoustically Optimized Dynamic Transducer"
+    : product.category.includes("CABLE")
+    ? "High-Purity Single-Crystal OCC Upgrade Cable"
+    : product.category.includes("DAC")
+    ? "Dual High-Performance Audio DAC Architecture"
+    : "10mm High-Performance Dynamic Acoustic Driver";
+
+  const defaultMaterial = isWirelessProduct
+    ? "Ergonomic Acoustic Polymer (IPX4/IPX5 Water Resistant)"
+    : product.category.includes("HEADPHONE")
     ? "Aircraft-Grade Aluminum & Memory Foam"
     : product.category.includes("CABLE")
     ? "Ultra-Flexible Braided PVC & Metal Splitter"
     : "Medical-Grade 3D Printed Resin / Anodized Aluminum";
 
+  const defaultCableTermination = isWirelessProduct
+    ? "Bluetooth 5.3 / AAC / SBC / LDAC Wireless"
+    : product.category.includes("DAC")
+    ? "USB Type-C Digital / 3.5mm SE & 4.4mm Balanced"
+    : product.category.includes("HEADPHONE")
+    ? "3.5mm SE with 6.35mm Adapter / Detachable Cable"
+    : "3.5mm Single-Ended / 0.78mm 2-Pin";
+
   const defaultSquiglink = product.squiglinkUrl || (product.category.includes("IN-EAR") ? `https://squig.link/?share=${encodeURIComponent(product.name.replace(/\s+/g, "_"))}` : "https://squig.link");
 
-  // Find fallback match if available to preserve badge and ratings
-  const fallbackMatch = FALLBACK_CATALOG?.find(
-    (p) => p.id === product.id || p.name.toLowerCase() === product.name.toLowerCase()
-  );
+  // Find fallback match if available to preserve badge, ratings, and gallery images
+  const fallbackMatch = typeof findFallbackMatch === "function"
+    ? findFallbackMatch(product.id, product.name)
+    : FALLBACK_CATALOG?.find(
+        (p) => p.id === product.id || p.name.toLowerCase() === product.name.toLowerCase()
+      );
 
   const cleanedTitle = cleanProductName(product.name, product.id);
+  const ratingOverride = productRatingOverrides.get(product.id.toLowerCase());
+  const liveReviews = ratingOverride ? ratingOverride.reviews : 0;
+  const liveRating = ratingOverride ? ratingOverride.rating : 0;
+
+  // Build robust deduplicated multi-image list
+  let productImages = Array.isArray(product.images) && product.images.length > 0
+    ? product.images
+    : [product.image].filter(Boolean);
+  productImages = Array.from(new Set(productImages.filter((img) => typeof img === "string" && img.trim().length > 0)));
+
+  if (productImages.length < 3 && fallbackMatch?.images) {
+    for (const fImg of fallbackMatch.images) {
+      if (!productImages.includes(fImg)) {
+        productImages.push(fImg);
+      }
+      if (productImages.length >= 3) break;
+    }
+  }
+
+  // If still less than 3, add high-quality category specific angles
+  if (productImages.length < 3) {
+    const categoryFallbacks = isWirelessProduct
+      ? [
+          "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800&auto=format&fit=crop&q=80",
+          "https://images.unsplash.com/photo-1606220588913-b3aacb4d2f46?w=800&auto=format&fit=crop&q=80",
+        ]
+      : product.category?.includes("HEADPHONE")
+      ? [
+          "https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=800&auto=format&fit=crop&q=80",
+          "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&auto=format&fit=crop&q=80",
+        ]
+      : [
+          "/images/Headphone-Zone-Moondrop-Chu-II-02.jpg",
+          "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800&auto=format&fit=crop&q=80",
+        ];
+    for (const fb of categoryFallbacks) {
+      if (!productImages.includes(fb)) {
+        productImages.push(fb);
+      }
+      if (productImages.length >= 3) break;
+    }
+  }
+
+  // Ensure wireless products NEVER have cable terminations
+  const finalCableTermination = isWirelessProduct
+    ? (matchedSpecs?.cableTermination || (product.cableTermination && !product.cableTermination.toLowerCase().includes("pin") && !product.cableTermination.toLowerCase().includes("3.5mm") ? product.cableTermination : defaultCableTermination))
+    : (product.cableTermination || matchedSpecs?.cableTermination || defaultCableTermination);
+
   return {
     ...product,
     name: cleanedTitle,
-    badge: product.badge || fallbackMatch?.badge || (product.experienceLevel === "FLAGSHIP" ? "Flagship" : undefined),
-    rating: product.rating || fallbackMatch?.rating || 4.8,
-    reviews: product.reviews || fallbackMatch?.reviews || 36,
+    images: productImages,
+    image: productImages[0] || product.image,
+    badge: normalizeAllowedBadge(product.badge || fallbackMatch?.badge),
+    rating: liveRating,
+    reviews: liveReviews,
     driverType: product.driverType || matchedSpecs?.driverType || defaultDriver,
     material: product.material || matchedSpecs?.material || defaultMaterial,
     tuning: product.tuning || matchedSpecs?.tuning || `${product.soundSignature ? product.soundSignature.replace(/_/g, " ") : "NEUTRAL"} Audiophile Target Curve`,
     impedance: product.impedance || matchedSpecs?.impedance || "16Ω - 32Ω (@1kHz)",
     sensitivity: product.sensitivity || matchedSpecs?.sensitivity || "108dB - 119dB SPL/mW",
     frequencyResponse: product.frequencyResponse || matchedSpecs?.frequencyResponse || "20Hz – 20kHz",
-    cableTermination: product.cableTermination || matchedSpecs?.cableTermination || "3.5mm Single-Ended / 0.78mm 2-Pin",
+    cableTermination: finalCableTermination,
     squiglinkUrl: product.squiglinkUrl || matchedSpecs?.squiglinkUrl || defaultSquiglink,
   };
 }
@@ -509,12 +662,13 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     storeCity: "Jakarta Pusat",
     description: "Next-generation 10mm high-performance composite diaphragm dynamic driver with alloy casting acoustic cavity, brass CNC acoustic nozzle, and interchangeable cable design. Delivers pure acoustic clarity and neutral reference sound.",
     images: [
+      "/images/transparent/chu3-transparent.png",
       "/images/chu3-preview-1.webp",
       "/images/chu3-preview-2.webp",
       "/images/Headphone-Zone-Moondrop-Chu-III-Homepage-Desktop-Banner-02.webp",
       "/images/Headphone-Zone-Moondrop-Chu-II-01.jpg",
     ],
-    image: "/images/chu3-preview-1.webp",
+    image: "/images/transparent/chu3-transparent.png",
     rating: 4.9,
     reviews: 182,
     badge: "New Arrival",
@@ -530,36 +684,36 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     squiglinkUrl: "https://crinacle.com/graphs/iems/graphtool/?share=Chu_II",
   },
   {
-    id: "prod-dusk",
-    name: "Moondrop x Crinacle Dusk",
-    price: 359,
-    stock: 45,
-    experienceLevel: "ENTHUSIAST",
+    id: "prod-aria2",
+    name: "Moondrop Aria 2",
+    price: 89.99,
+    stock: 28,
+    experienceLevel: "INTERMEDIATE",
     soundSignature: "NEUTRAL",
     category: "IN-EAR MONITORS",
     brand: "MOONDROP",
     storeName: "Moondrop Official Store",
     storeCity: "Jakarta Pusat",
-    description: "Two Dynamic Drivers + Two Balanced Armatures + Two Planar Drivers + Triplicate Hybrid Three-Way Frequency Crossover. Building on Blessing 3's split-composite physical frequency separation framework, DUSK optimizes treble definition and planar timbre through Crinacle collaborative tuning.",
+    description: "Generasi kedua dari seri legendaris Aria. Moondrop Aria 2 mengadopsi struktur dynamic driver paten terbaru dengan diafragma komposit kubah keramik TiN, housing CNC zinc alloy berkualiatas tinggi, nozzle kuningan yang dapat diganti, serta kabel hybrid modular 3.5mm dan 4.4mm seimbang bawaan.",
     images: [
-      "/figma/dusk-iem.png",
-      "/figma/dusk-blueprint.png",
-      "/figma/iem-extracted.png",
+      "https://cdn.shopify.com/s/files/1/0153/8863/files/Headphone-Zone-Moondrop-Aria2-Gallary-01.jpg",
+      "https://cn.cdn.moondroplab.com/627128d862c9a44234848dda/6540a32b1b300656259455e3_ARIA2.jpg",
+      "https://www.linsoul.com/cdn/shop/files/PHI_5184.jpg",
     ],
-    image: "/figma/dusk-iem.png",
-    rating: 5.0,
-    reviews: 218,
-    badge: "Hype Audiophile",
+    image: "https://cdn.shopify.com/s/files/1/0153/8863/files/Headphone-Zone-Moondrop-Aria2-Gallary-01.jpg",
+    rating: 4.9,
+    reviews: 184,
+    badge: "Popular",
     inStock: true,
     preOrder: false,
-    driverType: "2DD (10mm HODDDUS) + 2 Custom BA + 2 Micro-Planar Drivers",
-    material: "HeyGears Medical-Grade 3D Resin + Forged Carbon Faceplate",
-    tuning: "Crinacle Dusk Target + 5 Interactive DSP Presets",
-    impedance: "14.5Ω ± 15% (@1kHz)",
-    sensitivity: "119dB/Vrms (@1kHz)",
-    frequencyResponse: "10Hz – 24kHz (Effective: 20Hz – 20kHz)",
-    cableTermination: "3.5mm SE Analog & FreeDSP USB-C / 0.78mm 2-Pin",
-    squiglinkUrl: "https://crinacle.com/graphs/iems/graphtool/?share=Dusk_Analog",
+    driverType: "10mm TiN Ceramic-Coated Spherical Dome Composite Diaphragm Dynamic Driver",
+    material: "CNC-Milled Zinc Alloy Cavity + Replaceable Brass Acoustic Nozzle",
+    tuning: "Moondrop VDSF Target Response (Warm-Neutral)",
+    impedance: "33Ω ± 15% (@1kHz)",
+    sensitivity: "122dB/Vrms (@1kHz)",
+    frequencyResponse: "16Hz – 22kHz (Effective: 20Hz – 20kHz)",
+    cableTermination: "Modular 3.5mm Single-Ended & 4.4mm Balanced / 0.78mm 2-Pin",
+    squiglinkUrl: "https://crinacle.com/graphs/iems/graphtool/?share=IEF_Neutral_Target,Aria_2",
   },
   {
     id: "prod-sparxie",
@@ -584,8 +738,7 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     ],
     image: "https://cdn.shopify.com/s/files/1/0013/3896/6076/files/1_588ae6a9-9f9c-4160-8013-ec97beac8304.jpg?v=1788923488",
     rating: 5.0,
-    reviews: 148,
-    badge: "Official Collab",
+    reviews: 148,
     inStock: true,
     preOrder: true,
     driverType: "10mm Wood Dome Diaphragm Dynamic Driver (Variable-Impedance Damping)",
@@ -606,7 +759,7 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     soundSignature: "NEUTRAL",
     category: "IN-EAR MONITORS",
     brand: "MIMISBRUNNR",
-    storeName: "Audiophile Lab Surabaya",
+    storeName: "CSI Zone",
     storeCity: "Surabaya",
     description: "Ultra-high-end flagship acoustic monitor named after the mythical well of wisdom. Multi-driver electrostatic hybrid architecture in an artisan resin cavity for transcendent resolution, expansive 3D stage depth, and sublime tonal neutrality.",
     images: ["/figma/prod-mimisbrunnr.png"],
@@ -640,8 +793,7 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     images: ["/figma/prod-epz-g30.png"],
     image: "/figma/prod-epz-g30.png",
     rating: 4.8,
-    reviews: 86,
-    badge: "Gaming Precision",
+    reviews: 86,
     inStock: true,
     preOrder: false,
     driverType: "10mm Dual-Cavity Dynamic + 1 Custom Balanced Armature",
@@ -662,14 +814,13 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     soundSignature: "WARM",
     category: "IN-EAR MONITORS",
     brand: "TANGZU",
-    storeName: "Tangzu Official Store",
+    storeName: "TANGZU Audio Official Store",
     storeCity: "Yogyakarta",
     description: "Tangzu's pinnacle acoustic creation inspired by the legendary Sun Wukong. 1DD + 6BA + 2EST tribrid architecture in hand-carved gold-leaf artisan housing, offering regal midrange richness and effortless treble extension.",
     images: ["/figma/prod-wukong.png"],
     image: "/figma/prod-wukong.png",
     rating: 5.0,
-    reviews: 29,
-    badge: "Masterpiece",
+    reviews: 29,
     inStock: true,
     preOrder: false,
     driverType: "1 LCP Dynamic Subwoofer + 6 Knowles/Sonion BA + 2 Sonion EST",
@@ -725,7 +876,7 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     image: "/figma/sennheiser-main.png",
     rating: 4.9,
     reviews: 340,
-    badge: "Legendary Classic",
+    badge: "Best Seller",
     inStock: true,
     preOrder: false,
     driverType: "Acoustically Optimized Dynamic Transducer with Aluminum Voice Coils",
@@ -784,8 +935,7 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     images: ["https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800"],
     image: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800",
     rating: 4.9,
-    reviews: 64,
-    badge: "Flagship",
+    reviews: 64,
     inStock: true,
     preOrder: false,
   },
@@ -844,8 +994,7 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     images: ["https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800"],
     image: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800",
     rating: 5.0,
-    reviews: 45,
-    badge: "Artisan Grade",
+    reviews: 45,
     inStock: true,
     preOrder: false,
   },
@@ -884,8 +1033,7 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     images: ["https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800"],
     image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800",
     rating: 4.8,
-    reviews: 112,
-    badge: "Community Favorite",
+    reviews: 112,
     inStock: true,
     preOrder: false,
   },
@@ -904,8 +1052,7 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     images: ["https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800"],
     image: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800",
     rating: 5.0,
-    reviews: 82,
-    badge: "Endgame Tier",
+    reviews: 82,
     inStock: true,
     preOrder: false,
   },
@@ -924,8 +1071,7 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     images: ["https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=800"],
     image: "https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=800",
     rating: 4.9,
-    reviews: 128,
-    badge: "Flagship",
+    reviews: 128,
     inStock: true,
     preOrder: false,
   },
@@ -944,8 +1090,7 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     images: ["https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800"],
     image: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800",
     rating: 4.7,
-    reviews: 67,
-    badge: "Premium Cable",
+    reviews: 67,
     inStock: true,
     preOrder: false,
   },
@@ -964,8 +1109,7 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     images: ["https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=800"],
     image: "https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=800",
     rating: 4.9,
-    reviews: 89,
-    badge: "Editor Choice",
+    reviews: 89,
     inStock: true,
     preOrder: false,
   },
@@ -984,8 +1128,7 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     images: ["https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800"],
     image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800",
     rating: 4.8,
-    reviews: 31,
-    badge: "Collector Edition",
+    reviews: 31,
     inStock: true,
     preOrder: false,
   },
@@ -1004,8 +1147,7 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     images: ["https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800"],
     image: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800",
     rating: 5.0,
-    reviews: 42,
-    badge: "Vocal Master",
+    reviews: 42,
     inStock: true,
     preOrder: false,
   },
@@ -1024,8 +1166,7 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     images: ["https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=800"],
     image: "https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=800",
     rating: 4.9,
-    reviews: 73,
-    badge: "Bass Monster",
+    reviews: 73,
     inStock: true,
     preOrder: false,
   },
@@ -1044,8 +1185,7 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     images: ["https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800"],
     image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800",
     rating: 4.7,
-    reviews: 65,
-    badge: "High Value",
+    reviews: 65,
     inStock: true,
     preOrder: false,
   },
@@ -1084,8 +1224,7 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     images: ["https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=800"],
     image: "https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=800",
     rating: 4.8,
-    reviews: 138,
-    badge: "Planar King",
+    reviews: 138,
     inStock: true,
     preOrder: false,
   },
@@ -1101,11 +1240,10 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     storeName: "TANGZU Audio Official Store",
     storeCity: "Jakarta Selatan",
     description: "10mm PET diaphragm dynamic driver tuned for pleasant vocal intimacy and effortless everyday listening.",
-    images: ["https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800"],
-    image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800",
+    images: ["/images/transparent/waner-sg-transparent.png"],
+    image: "/images/transparent/waner-sg-transparent.png",
     rating: 4.7,
-    reviews: 310,
-    badge: "Budget King",
+    reviews: 310,
     inStock: true,
     preOrder: false,
   },
@@ -1124,8 +1262,7 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     images: ["https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800"],
     image: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800",
     rating: 4.9,
-    reviews: 58,
-    badge: "Flagship Tribrid",
+    reviews: 58,
     inStock: true,
     preOrder: false,
   },
@@ -1144,8 +1281,7 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     images: ["https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=800"],
     image: "https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=800",
     rating: 4.8,
-    reviews: 142,
-    badge: "Planar Master",
+    reviews: 142,
     inStock: true,
     preOrder: false,
   },
@@ -1164,8 +1300,7 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     images: ["https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800"],
     image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800",
     rating: 4.6,
-    reviews: 89,
-    badge: "Entry Grade",
+    reviews: 89,
     inStock: true,
     preOrder: false,
   },
@@ -1184,8 +1319,7 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     images: ["https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800"],
     image: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800",
     rating: 4.9,
-    reviews: 86,
-    badge: "Open-Back Reference",
+    reviews: 86,
     inStock: true,
     preOrder: false,
   },
@@ -1204,8 +1338,7 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     images: ["https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=800"],
     image: "https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=800",
     rating: 5.0,
-    reviews: 79,
-    badge: "Audiophile Legend",
+    reviews: 79,
     inStock: true,
     preOrder: false,
   },
@@ -1230,27 +1363,6 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     image: "https://sony.scene7.com/is/image/sonyglobalsolutions/Primary_image_1200-1?$S7Product$&fmt=png-alpha",
     rating: 4.9,
     reviews: 180,
-    badge: "Flagship TWS",
-    inStock: true,
-    preOrder: false,
-  },
-  {
-    id: "prod-momentum-tw4",
-    name: "Sennheiser Momentum TW4",
-    price: 299,
-    stock: 18,
-    experienceLevel: "INTERMEDIATE",
-    soundSignature: "NEUTRAL",
-    category: "TWS / WIRELESS",
-    brand: "SENNHEISER",
-    storeName: "Sennheiser Official Store",
-    storeCity: "Jakarta Selatan",
-    description: "7mm TrueResponse transducer system with Qualcomm S5 Sound Platform, aptX Lossless support, Auracast, and adaptive acoustic tuning.",
-    images: ["https://images.unsplash.com/photo-1606220588913-b3aacb4d2f46?auto=format&fit=crop&w=800&q=80"],
-    image: "https://images.unsplash.com/photo-1606220588913-b3aacb4d2f46?auto=format&fit=crop&w=800&q=80",
-    rating: 4.8,
-    reviews: 95,
-    badge: "Lossless Audio",
     inStock: true,
     preOrder: false,
   },
@@ -1267,73 +1379,13 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     storeCity: "Bandung",
     description: "13mm Titanium dome dynamic driver with VDSF Target curve calibration, transparent mechanical case design, and 55ms low latency mode.",
     images: [
+      "/images/transparent/space-travel-transparent.png",
       "https://cn.cdn.moondroplab.com/627128d862c9a44234848dda/67b84288d5945b9b15ec7746_64c1d6555e63a23d3f3b35da_SPACETRAVEL.jpeg",
       "https://cn.cdn.moondroplab.com/627128d862c9a44234848dda/6875c15aeaaf13e443d94f7a_SPACETRAVEL2.jpg"
     ],
-    image: "https://cn.cdn.moondroplab.com/627128d862c9a44234848dda/67b84288d5945b9b15ec7746_64c1d6555e63a23d3f3b35da_SPACETRAVEL.jpeg",
+    image: "/images/transparent/space-travel-transparent.png",
     rating: 4.7,
     reviews: 320,
-    badge: "Best Value TWS",
-    inStock: true,
-    preOrder: false,
-  },
-  {
-    id: "prod-qc-ultra-buds",
-    name: "Bose QuietComfort Ultra",
-    price: 299,
-    stock: 15,
-    experienceLevel: "INTERMEDIATE",
-    soundSignature: "WARM",
-    category: "TWS / WIRELESS",
-    brand: "BOSE",
-    storeName: "Headphone Zone ID",
-    storeCity: "Jakarta Barat",
-    description: "Breakthrough spatialized audio with Bose Immersive Audio and CustomTune technology that tailors sound cancellation to your unique ear shape.",
-    images: ["https://images.unsplash.com/photo-1572536147248-ac59a8abfa4b?auto=format&fit=crop&w=800&q=80"],
-    image: "https://images.unsplash.com/photo-1572536147248-ac59a8abfa4b?auto=format&fit=crop&w=800&q=80",
-    rating: 4.8,
-    reviews: 110,
-    badge: "King of ANC",
-    inStock: true,
-    preOrder: false,
-  },
-  {
-    id: "prod-fokus-prestige",
-    name: "Noble FoKus Prestige",
-    price: 599,
-    stock: 8,
-    experienceLevel: "FLAGSHIP",
-    soundSignature: "V_SHAPE",
-    category: "TWS / WIRELESS",
-    brand: "NOBLE AUDIO",
-    storeName: "Bass Audio Official",
-    storeCity: "Jakarta Selatan",
-    description: "Hybrid 1DD + 2BA acoustic architecture encapsulated in bespoke handcrafted solid wood shells with Qualcomm TrueWireless Mirroring.",
-    images: ["https://images.unsplash.com/photo-1598331668826-20cecc596b86?auto=format&fit=crop&w=800&q=80"],
-    image: "https://images.unsplash.com/photo-1598331668826-20cecc596b86?auto=format&fit=crop&w=800&q=80",
-    rating: 5.0,
-    reviews: 38,
-    badge: "Artisan TWS",
-    inStock: true,
-    preOrder: false,
-  },
-  {
-    id: "prod-ze8000-mk2",
-    name: "Final Audio ZE8000",
-    price: 399,
-    stock: 10,
-    experienceLevel: "ENTHUSIAST",
-    soundSignature: "NEUTRAL",
-    category: "TWS / WIRELESS",
-    brand: "FINAL AUDIO",
-    storeName: "Linsoul Audio",
-    storeCity: "Surabaya",
-    description: "Ultra-low distortion f-Core driver paired with dedicated Class-AB amplification and digital FIR filters for extreme clarity and micro-detail resolution.",
-    images: ["https://images.unsplash.com/photo-1608156639585-b3a032ef9689?auto=format&fit=crop&w=800&q=80"],
-    image: "https://images.unsplash.com/photo-1608156639585-b3a032ef9689?auto=format&fit=crop&w=800&q=80",
-    rating: 4.9,
-    reviews: 54,
-    badge: "8K Sound",
     inStock: true,
     preOrder: false,
   },
@@ -1346,8 +1398,8 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     soundSignature: "NEUTRAL",
     category: "TWS / WIRELESS",
     brand: "APPLE",
-    storeName: "Tonal Zone Authorized",
-    storeCity: "Jakarta Pusat",
+    storeName: "CSI Zone",
+    storeCity: "Surabaya",
     description: "Powered by Apple H2 headphone processor with 2x Active Noise Cancellation, Adaptive Transparency, and personalized Spatial Audio.",
     images: [
       "https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/MTJV3?wid=1144&hei=1144&fmt=jpeg&qlt=90",
@@ -1356,8 +1408,7 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     ],
     image: "https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/MTJV3?wid=1144&hei=1144&fmt=jpeg&qlt=90",
     rating: 4.8,
-    reviews: 420,
-    badge: "Popular Everyday",
+    reviews: 420,
     inStock: true,
     preOrder: false,
   },
@@ -1376,8 +1427,7 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     images: ["https://images.unsplash.com/photo-1590658002970-d603a11dfb25?auto=format&fit=crop&w=800&q=80"],
     image: "https://images.unsplash.com/photo-1590658002970-d603a11dfb25?auto=format&fit=crop&w=800&q=80",
     rating: 4.9,
-    reviews: 86,
-    badge: "Hi-Fi Wireless",
+    reviews: 86,
     inStock: true,
     preOrder: false,
   },
@@ -1396,8 +1446,7 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     images: ["https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=800&q=80"],
     image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=800&q=80",
     rating: 4.9,
-    reviews: 240,
-    badge: "Best Travel ANC",
+    reviews: 240,
     inStock: true,
     preOrder: false,
   },
@@ -1416,8 +1465,7 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     images: ["https://images.unsplash.com/photo-1583394838336-acd977736f90?auto=format&fit=crop&w=800&q=80"],
     image: "https://images.unsplash.com/photo-1583394838336-acd977736f90?auto=format&fit=crop&w=800&q=80",
     rating: 4.9,
-    reviews: 62,
-    badge: "Audiophile Wireless",
+    reviews: 62,
     inStock: true,
     preOrder: false,
   },
@@ -1430,14 +1478,13 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     soundSignature: "V_SHAPE",
     category: "HEADPHONE",
     brand: "AUDIO-TECHNICA",
-    storeName: "Tonal Zone Authorized",
-    storeCity: "Jakarta Pusat",
+    storeName: "CSI Zone",
+    storeCity: "Surabaya",
     description: "Legendary M50x sonic signature with 45mm large-aperture drivers, dedicated AK4331 audio DAC, low latency mode, and 50-hour battery life.",
     images: ["https://images.unsplash.com/photo-1546435770-a3e426bf472b?auto=format&fit=crop&w=800&q=80"],
     image: "https://images.unsplash.com/photo-1546435770-a3e426bf472b?auto=format&fit=crop&w=800&q=80",
     rating: 4.8,
-    reviews: 175,
-    badge: "Studio Classic",
+    reviews: 175,
     inStock: true,
     preOrder: false,
   },
@@ -1456,8 +1503,7 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     images: ["https://images.unsplash.com/photo-1577174881658-0f30ed549adc?auto=format&fit=crop&w=800&q=80"],
     image: "https://images.unsplash.com/photo-1577174881658-0f30ed549adc?auto=format&fit=crop&w=800&q=80",
     rating: 5.0,
-    reviews: 58,
-    badge: "Acoustic Art",
+    reviews: 58,
     inStock: true,
     preOrder: false,
   },
@@ -1476,8 +1522,7 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     images: ["https://images.unsplash.com/photo-1558089687-f282ffcbc126?auto=format&fit=crop&w=800&q=80"],
     image: "https://images.unsplash.com/photo-1558089687-f282ffcbc126?auto=format&fit=crop&w=800&q=80",
     rating: 4.8,
-    reviews: 140,
-    badge: "THX Certified",
+    reviews: 140,
     inStock: true,
     preOrder: false,
   },
@@ -1496,8 +1541,7 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     images: ["https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?auto=format&fit=crop&w=800&q=80"],
     image: "https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?auto=format&fit=crop&w=800&q=80",
     rating: 4.7,
-    reviews: 92,
-    badge: "Pocket Powerhouse",
+    reviews: 92,
     inStock: true,
     preOrder: false,
   },
@@ -1510,14 +1554,13 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     soundSignature: "NEUTRAL",
     category: "DAC/AMP",
     brand: "QUDELIX",
-    storeName: "Tonal Zone Authorized",
-    storeCity: "Jakarta Pusat",
+    storeName: "CSI Zone",
+    storeCity: "Surabaya",
     description: "Dual ES9218p Sabre DACs with full 20-band hardware Parametric EQ app integration, LDAC/aptX Adaptive, and 2.5mm balanced output.",
     images: ["https://images.unsplash.com/photo-1563245372-f21724e3856d?auto=format&fit=crop&w=800&q=80"],
     image: "https://images.unsplash.com/photo-1563245372-f21724e3856d?auto=format&fit=crop&w=800&q=80",
     rating: 4.9,
-    reviews: 215,
-    badge: "DSP Master",
+    reviews: 215,
     inStock: true,
     preOrder: false,
   },
@@ -1536,8 +1579,7 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     images: ["https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=800&q=80"],
     image: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=800&q=80",
     rating: 4.8,
-    reviews: 190,
-    badge: "Budget Dongle King",
+    reviews: 190,
     inStock: true,
     preOrder: false,
   },
@@ -1556,8 +1598,7 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     images: ["https://images.unsplash.com/photo-1516962215378-7fa2e137ae93?auto=format&fit=crop&w=800&q=80"],
     image: "https://images.unsplash.com/photo-1516962215378-7fa2e137ae93?auto=format&fit=crop&w=800&q=80",
     rating: 4.8,
-    reviews: 130,
-    badge: "Desktop Value",
+    reviews: 130,
     inStock: true,
     preOrder: false,
   },
@@ -1576,8 +1617,7 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     images: ["https://images.unsplash.com/photo-1613040809024-b4ef7ba99bc3?auto=format&fit=crop&w=800&q=80"],
     image: "https://images.unsplash.com/photo-1613040809024-b4ef7ba99bc3?auto=format&fit=crop&w=800&q=80",
     rating: 4.9,
-    reviews: 350,
-    badge: "Community Benchmark",
+    reviews: 350,
     inStock: true,
     preOrder: false,
   },
@@ -1593,11 +1633,10 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     storeName: "Linsoul Audio",
     storeCity: "Surabaya",
     description: "10mm dynamic driver with metal composite diaphragm, precision acoustic cavity, and detachable 0.78mm 2-pin silver-plated OFC cable.",
-    images: ["https://images.unsplash.com/photo-1598331668826-20cecc596b86?auto=format&fit=crop&w=800&q=80"],
-    image: "https://images.unsplash.com/photo-1598331668826-20cecc596b86?auto=format&fit=crop&w=800&q=80",
+    images: ["/images/transparent/7hz-zero-transparent.png"],
+    image: "/images/transparent/7hz-zero-transparent.png",
     rating: 4.7,
-    reviews: 410,
-    badge: "Entry Benchmark",
+    reviews: 410,
     inStock: true,
     preOrder: false,
   },
@@ -1613,11 +1652,10 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     storeName: "Linsoul Audio",
     storeCity: "Surabaya",
     description: "Acclaimed 10mm beryllium-coated dynamic driver housed in an artisan medical-grade 3D printed resin shell, celebrated for punchy bass authority and natural musical timbre.",
-    images: ["/images/kiwi-ears-cadenza-gallery.webp"],
-    image: "/images/kiwi-ears-cadenza-gallery.webp",
+    images: ["/images/transparent/cadenza-transparent.png", "/images/kiwi-ears-cadenza-gallery.webp"],
+    image: "/images/transparent/cadenza-transparent.png",
     rating: 4.8,
-    reviews: 260,
-    badge: "Vocal Warmth",
+    reviews: 260,
     inStock: true,
     preOrder: false,
     driverType: "10mm Beryllium-Coated Diaphragm Dynamic Driver",
@@ -1632,58 +1670,114 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
   {
     id: "prod-waner-sg2",
     name: "Tangzu Wan'er SG 2",
-    price: 26,
-    stock: 65,
+    price: 20,
+    stock: 85,
+    experienceLevel: "BEGINNER",
+    soundSignature: "NEUTRAL",
+    category: "IN-EAR MONITORS",
+    brand: "TANGZU",
+    storeName: "TANGZU Audio Official Store",
+    storeCity: "Jakarta Pusat",
+    description: "The official sequel to the legendary Wan'er S.G. Upgraded 10mm PET dual-cavity dynamic driver with redesigned acoustic airflow damping, modern fish-scale wave faceplate, and silver-plated OFC cable with Tang Sancai tips.",
+    images: ["/images/official-waner-sg2.jpg", "/images/official-waner-sg2-render.png"],
+    image: "/images/official-waner-sg2.jpg",
+    rating: 4.8,
+    reviews: 96,
+    badge: "Best Seller",
+    inStock: true,
+    preOrder: false,
+    driverType: "10mm PET Diaphragm Dual-Cavity Dynamic Driver with N52 Neodymium Magnets",
+    material: "Acoustic Resin Housing with Fish-Scale Geometric Wave Faceplate",
+    tuning: "Tangzu Balanced-Linear Target Curve",
+    impedance: "16Ω (@1kHz)",
+    sensitivity: "107dB/mW",
+    frequencyResponse: "20Hz – 20kHz",
+    cableTermination: "3.5mm SE / 0.78mm 2-Pin Silver-Plated OFC Cable",
+    squiglinkUrl: "https://squig.link/?share=Tangzu_Waner",
+  },
+  {
+    id: "prod-waner-redlion",
+    name: "Tangzu Wan'er SG 2 Red Lion",
+    price: 23,
+    stock: 60,
     experienceLevel: "BEGINNER",
     soundSignature: "WARM",
     category: "IN-EAR MONITORS",
     brand: "TANGZU",
-    storeName: "Tangzu Audio Official",
+    storeName: "TANGZU Audio Official Store",
     storeCity: "Jakarta Pusat",
-    description: "The highly anticipated successor featuring a dual-cavity dynamic driver and artisan Red Lion faceplate, delivering lush musical warmth and smooth vocal presence.",
-    images: ["/images/tangzu-waner-redlion-official.webp"],
-    image: "/images/tangzu-waner-redlion-official.webp",
+    description: "Special cultural edition built on the Wan'er SG 2 dynamic acoustic platform. Features a 3D sculptural artisan relief faceplate depicting the traditional Lion Dance (Barongsai), cast in translucent ruby-red resin with CNC gold-plated brass nozzles.",
+    images: ["/images/transparent/waner-redlion-transparent.png", "/images/official-redlion.png"],
+    image: "/images/transparent/waner-redlion-transparent.png",
     rating: 4.9,
     reviews: 142,
     badge: "Best Seller",
     inStock: true,
     preOrder: false,
-    driverType: "10mm PET Diaphragm Dual-Cavity Dynamic Driver",
-    material: "Ergonomic Acoustic Resin with Red Lion Artisan Faceplate",
-    tuning: "Tangzu Balanced Warm-Neutral Vocal Curve",
+    driverType: "10mm PET Diaphragm Dual-Cavity Dynamic Driver with Cultural Resonance Chamber",
+    material: "Ruby Red Translucent Acoustic Resin with 3D Sculpted Lion Relief & CNC Gold Brass Nozzle",
+    tuning: "Tangzu Warm-Musical Target with Expressive Vocal Presence",
     impedance: "16Ω (@1kHz)",
     sensitivity: "107dB/mW",
     frequencyResponse: "20Hz – 20kHz",
-    cableTermination: "3.5mm SE / 0.78mm 2-Pin High-Purity OFC",
+    cableTermination: "3.5mm SE / 0.78mm 2-Pin High-Purity OFC Detachable Cable",
     squiglinkUrl: "https://squig.link/?share=Tangzu_Waner",
   },
   {
     id: "prod-tanchjim-nora",
     name: "Tanchjim Nora",
-    price: 49,
-    stock: 40,
-    experienceLevel: "BEGINNER",
+    price: 109.99,
+    stock: 45,
+    experienceLevel: "ENTHUSIAST",
     soundSignature: "NEUTRAL",
     category: "IN-EAR MONITORS",
     brand: "TANCHJIM",
-    storeName: "ShenzhenAudio Official",
-    storeCity: "Jakarta Pusat",
-    description: "Dual-magnetic dynamic driver architecture powered by Tanchjim's patented DMT acoustic cavity, reproducing pristine instrumental separation and transparent vocal clarity.",
+    storeName: "Tanchjim Official Store",
+    storeCity: "Jakarta Utara",
+    description: "Tanchjim Nora adalah IEM monitor studio Hi-Fi flagship yang dilengkapi DMT5 dual-magnetic dual-cavity dynamic driver dengan kubah DLC (Diamond-Like Carbon). Menghasilkan separasi instrumen yang luar biasa akurat, resolusi mikro detail tinggi, dan vokal natural yang jernih tanpa distorsi (THD <0.049%). Dilengkapi housing resin medis transparan berbalut sapphire glass dan modular plug 3.5mm/4.4mm balanced.",
     images: ["/images/tanchjim-nora-showcase.webp"],
     image: "/images/tanchjim-nora-showcase.webp",
-    rating: 4.8,
-    reviews: 88,
-    badge: "Best Seller",
+    rating: 4.9,
+    reviews: 94,
+    badge: "Top Rated",
     inStock: true,
     preOrder: false,
-    driverType: "10mm Dual-Magnetic Dynamic Driver with DMT Technology",
-    material: "Ergonomic Lightweight Cavity with Aluminum Alloy Accents",
-    tuning: "Tanchjim Target Reference Harman Curve",
-    impedance: "16Ω (@1kHz)",
-    sensitivity: "118dB/Vrms",
-    frequencyResponse: "10Hz – 20kHz",
-    cableTermination: "3.5mm SE / 0.78mm 2-Pin Silver-Plated Cable",
-    squiglinkUrl: "https://squig.link",
+    driverType: "DMT5-Architecture Dual-Magnetic Dual-Cavity Dynamic Driver with DLC Dome",
+    material: "High-Transparency Medical Resin Cavity with Aerospace Metal Frame & Sapphire Glass",
+    tuning: "Tanchjim Reference Hi-Fi Studio Monitoring Curve",
+    impedance: "16Ω (±5% @1kHz)",
+    sensitivity: "125dB/Vrms",
+    frequencyResponse: "2Hz – 48kHz",
+    cableTermination: "Modular 3.5mm SE & 4.4mm BAL / 0.78mm 2-Pin Silver-Plated Cable",
+    squiglinkUrl: "https://squig.link/?share=Tanchjim_Nora",
+  },
+  {
+    id: "prod-tanchjim-bunny",
+    name: "Tanchjim Bunny",
+    price: 21.99,
+    stock: 65,
+    experienceLevel: "BEGINNER",
+    soundSignature: "WARM",
+    category: "IN-EAR MONITORS",
+    brand: "TANCHJIM",
+    storeName: "Tanchjim Official Store",
+    storeCity: "Jakarta Utara",
+    description: "Tanchjim Bunny adalah in-ear monitor ultra-budget berdesain ergonomis compact dengan arsitektur DMT 4 Ultra dual-chamber dynamic driver. Mengusung diafragma komposit PU suspension dengan titanium dome, menghadirkan respon bass yang empuk bertenaga, vokal hangat intim, dan treble yang halus tanpa sibilance. Tersedia dalam varian 3.5mm SE dan Type-C DSP dengan built-in DAC/EQ.",
+    images: ["/images/tanchjim-bunny.webp"],
+    image: "/images/tanchjim-bunny.webp",
+    rating: 4.8,
+    reviews: 68,
+    badge: "New Arrival",
+    inStock: true,
+    preOrder: false,
+    driverType: "DMT 4 Ultra Dual-Chamber Dynamic Driver with Titanium Dome Composite Diaphragm",
+    material: "Ultra-Lightweight Transparent Medical-Grade PC Cavity with Stainless Steel Faceplate",
+    tuning: "Harman-Inspired Warm-Balanced Vocal Curve with Ultra-Low THD (<0.05%)",
+    impedance: "30Ω (±10% @1kHz)",
+    sensitivity: "123dB/Vrms",
+    frequencyResponse: "8Hz – 48kHz",
+    cableTermination: "3.5mm SE / Type-C DSP (0.78mm 2-Pin Detachable)",
+    squiglinkUrl: "https://squig.link/?share=Tanchjim_Bunny",
   },
   {
     id: "prod-earfun-air-pro-4",
@@ -1705,8 +1799,7 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     ],
     image: "https://api.myearfun.com/image/product/0247bwk07mtkz0cjd4w.jpg",
     rating: 4.9,
-    reviews: 154,
-    badge: "Snapdragon Sound",
+    reviews: 154,
     inStock: true,
     preOrder: false,
     driverType: "10mm Composite Dynamic Driver with Qualcomm QCC3091 SoC",
@@ -1736,8 +1829,7 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     ],
     image: "https://i02.appmifile.com/mi-com-product/fly-birds/redmi-buds-5-pro/M/928cee5c075c4871cff505ab9e6774a9.jpg",
     rating: 4.8,
-    reviews: 210,
-    badge: "Dual Driver Hi-Res",
+    reviews: 210,
     inStock: true,
     preOrder: false,
     driverType: "Coaxial Dual Driver (11mm Titanium Dynamic + 10mm Ceramic Piezo Tweeter)",
@@ -1768,8 +1860,7 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     ],
     image: "https://api.myearfun.com/image/product/001pcwya4axkjjojwfk.jpg",
     rating: 4.8,
-    reviews: 120,
-    badge: "Ultra Compact Hi-Res",
+    reviews: 120,
     inStock: true,
     preOrder: false,
     driverType: "7mm Wool Composite Dynamic Driver with Qualcomm QCC3072",
@@ -1799,8 +1890,7 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     ],
     image: "https://cn.cdn.moondroplab.com/627128d862c9a44234848dda/67b84283f152cc7c471c94c2_6721a08cb9b2254e21f6cb9d_goldenage.jpeg",
     rating: 5.0,
-    reviews: 89,
-    badge: "Planar Wireless",
+    reviews: 89,
     inStock: true,
     preOrder: false,
     driverType: "13mm Super Linear Full-Frequency Annular Planar Magnetic Driver",
@@ -1829,8 +1919,7 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     ],
     image: "https://i02.appmifile.com/mi-com-product/fly-birds/m/redmi-buds-4-pro/f23f62fcc3e7651b9c8c930f2a693a6e.jpg",
     rating: 4.7,
-    reviews: 185,
-    badge: "Dual Dynamic Hi-Res",
+    reviews: 185,
     inStock: true,
     preOrder: false,
     driverType: "Dual Dynamic (10mm Aluminum Woofer + 6mm Titanium Tweeter)",
@@ -1859,8 +1948,7 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     ],
     image: "https://cn.cdn.moondroplab.com/627128d862c9a44234848dda/67b842890eae0de15a81066e_66c2dc2333f582caed2b411c_ULTRASONIC.jpeg",
     rating: 4.9,
-    reviews: 62,
-    badge: "Hybrid Hi-Res",
+    reviews: 62,
     inStock: true,
     preOrder: false,
     driverType: "13mm Sapphire Dynamic + FRA Balanced Armature Hybrid",
@@ -1892,8 +1980,7 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     ],
     image: "https://images.samsung.com/is/image/samsung/p6pim/id/2208/gallery/id-galaxy-buds2-pro-r510-sm-r510nzaaxse-533199915?$1164_776_PNG$",
     rating: 4.8,
-    reviews: 275,
-    badge: "24-bit Hi-Fi",
+    reviews: 275,
     inStock: true,
     preOrder: false,
     driverType: "Coaxial 2-Way Custom Speaker (10mm Woofer + 5.3mm Tweeter)",
@@ -1908,14 +1995,20 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
 ];
 
 export const ID_ALIASES: Record<string, string> = {
-  "waner-redlion": "prod-waner-sg2",
-  "tangzu-waner-redlion": "prod-waner-sg2",
+  "waner-redlion": "prod-waner-redlion",
+  "tangzu-waner-redlion": "prod-waner-redlion",
+  "tangzu-waner-sg-2-redlion": "prod-waner-redlion",
+  "waner-sg-2-redlion": "prod-waner-redlion",
+  "prod-waner-red-lion": "prod-waner-redlion",
+  "tangzu-red-lion": "prod-waner-redlion",
   "tangzu-waner-sg-2": "prod-waner-sg2",
-  "tangzu-waner-sg-2-redlion": "prod-waner-sg2",
   "waner-2": "prod-waner-sg2",
   "waner2": "prod-waner-sg2",
   "tanchjim-nora": "prod-tanchjim-nora",
   "nora": "prod-tanchjim-nora",
+  "tanchjim-bunny": "prod-tanchjim-bunny",
+  "bunny": "prod-tanchjim-bunny",
+  "prod-bunny": "prod-tanchjim-bunny",
   "kiwi-cadenza": "prod-kiwi-cadenza",
   "cadenza": "prod-kiwi-cadenza",
   // Moondrop Chu Series (Arabic & Roman numeral variants)
@@ -1936,13 +2029,21 @@ export const ID_ALIASES: Record<string, string> = {
   "prod-chu-2": "prod-chu-2",
   "prod-chu2": "prod-chu-2",
 
-  // Moondrop Dusk & Blessing Collaboration Series
-  "dusk": "prod-dusk",
-  "prod-dusk-2": "prod-dusk",
-  "prod-blessing-dusk": "prod-dusk",
-  "crinacle-dusk": "prod-dusk",
-  "moondrop-dusk": "prod-dusk",
-  "moondrop-x-crinacle-dusk": "prod-dusk",
+  // Moondrop Aria 2 & Legacy Aliases
+  "aria-2": "prod-aria2",
+  "aria2": "prod-aria2",
+  "prod-aria2": "prod-aria2",
+  "prod-aria-2": "prod-aria2",
+  "moondrop-aria-2": "prod-aria2",
+  "moondrop-aria2": "prod-aria2",
+  "aria": "prod-aria2",
+  "dusk": "prod-aria2",
+  "prod-dusk": "prod-aria2",
+  "prod-dusk-2": "prod-aria2",
+  "prod-blessing-dusk": "prod-aria2",
+  "crinacle-dusk": "prod-aria2",
+  "moondrop-dusk": "prod-aria2",
+  "moondrop-x-crinacle-dusk": "prod-aria2",
   "blessing-3": "prod-blessing3",
   "prod-blessing-3": "prod-blessing3",
   "blessing3": "prod-blessing3",
@@ -2020,76 +2121,262 @@ export const ID_ALIASES: Record<string, string> = {
   "prod-ultrasonic": "prod-moondrop-ultrasonic",
 };
 
+/**
+ * Resolves the best matching reference product from FALLBACK_CATALOG.
+ * Handles exact IDs, canonical ID aliases, clean title matching, and token overlap.
+ */
+export function findFallbackMatch(id?: string, name?: string): CatalogProduct | undefined {
+  if (!id && !name) return undefined;
+  const cleanId = (id || "").trim().toLowerCase();
+  const resolvedId = ID_ALIASES[cleanId] || cleanId;
+
+  // 1. Direct ID match
+  let match = FALLBACK_CATALOG.find((p) => p.id === id || p.id === cleanId || p.id === resolvedId);
+  if (match) return match;
+
+  if (!name) return undefined;
+  const targetClean = cleanProductName(name, id).toLowerCase().replace(/[^a-z0-9]/g, "");
+  const targetNorm = name.toLowerCase().replace(/[^a-z0-9]/g, "");
+  const targetTokens = name.toLowerCase().split(/[\s\-_,()]+/).filter((t) => t.length > 2);
+
+  // 2. Exact clean name match
+  match = FALLBACK_CATALOG.find((p) => {
+    const pClean = cleanProductName(p.name, p.id).toLowerCase().replace(/[^a-z0-9]/g, "");
+    return pClean === targetClean;
+  });
+  if (match) return match;
+
+  // 3. Substring inclusion
+  match = FALLBACK_CATALOG.find((p) => {
+    const pNorm = p.name.toLowerCase().replace(/[^a-z0-9]/g, "");
+    const pClean = cleanProductName(p.name, p.id).toLowerCase().replace(/[^a-z0-9]/g, "");
+    return pNorm.includes(targetClean) || targetNorm.includes(pNorm) || targetClean.includes(pClean);
+  });
+  if (match) return match;
+
+  // 4. Token overlap
+  let bestItem: CatalogProduct | undefined = undefined;
+  let bestScore = 0;
+  for (const p of FALLBACK_CATALOG) {
+    const pTokens = p.name.toLowerCase().split(/[\s\-_,()]+/).filter((t) => t.length > 2);
+    const score = targetTokens.filter((t) => pTokens.includes(t)).length;
+    if (score > bestScore) {
+      bestScore = score;
+      bestItem = p;
+    }
+  }
+
+  if (bestScore >= 2) return bestItem;
+  return undefined;
+}
+
+// In-memory catalog cache with request deduplication
+let cachedCatalog: CatalogProduct[] | null = null;
+let cacheTimestamp = 0;
+const CACHE_TTL_MS = 60 * 1000; // 60s memory cache
+let pendingCatalogPromise: Promise<CatalogProduct[]> | null = null;
+
+export function invalidateCatalogCache(): void {
+  cachedCatalog = null;
+  cacheTimestamp = 0;
+  pendingCatalogPromise = null;
+}
+
+if (typeof window !== "undefined") {
+  window.addEventListener("productsUpdated", () => invalidateCatalogCache());
+}
+
 export async function fetchProductsFromDb(): Promise<CatalogProduct[]> {
+  const now = Date.now();
+  if (cachedCatalog && now - cacheTimestamp < CACHE_TTL_MS) {
+    return mergeWithAdminAndCustomProducts(cachedCatalog);
+  }
+
+  if (pendingCatalogPromise) {
+    const prods = await pendingCatalogPromise;
+    return mergeWithAdminAndCustomProducts(prods);
+  }
+
+  pendingCatalogPromise = (async () => {
+    try {
+      const { data, error } = await supabase
+        .from("Product")
+        .select(`
+          *,
+          brand:Brand(name),
+          store:Store(storeName, address),
+          category:Category(name)
+        `)
+        .order("price", { ascending: false });
+
+      if (!error && data && data.length > 0) {
+        const dbProducts = data.map((item: any, index: number) => {
+          const brandName = Array.isArray(item.brand) ? item.brand[0]?.name : item.brand?.name || "Audiophile";
+          const fallbackMatch = findFallbackMatch(item.id, item.name);
+          const isMoondrop =
+            brandName.toUpperCase().includes("MOONDROP") ||
+            item.name.toUpperCase().includes("MOONDROP") ||
+            (fallbackMatch?.brand || "").toUpperCase().includes("MOONDROP");
+
+          const storeName = isMoondrop
+            ? "MOONDROP Official Flagship Store"
+            : Array.isArray(item.store)
+            ? item.store[0]?.storeName
+            : item.store?.storeName || "TonalZone Partner";
+          const resolvedStoreId = isMoondrop ? "store-moondrop-official" : item.storeId || "store-bass-audio";
+          const storeCity = Array.isArray(item.store) ? item.store[0]?.address : item.store?.address || "Jakarta";
+          const catName = Array.isArray(item.category) ? item.category[0]?.name : item.category?.name || "IN-EAR MONITORS";
+          const imgList = Array.isArray(item.images) && item.images.length >= 3
+            ? item.images
+            : (fallbackMatch?.images && fallbackMatch.images.length >= 3 ? fallbackMatch.images : Array.isArray(item.images) && item.images.length > 0 ? item.images : ["/images/chu3-preview-1.webp"]);
+
+          const rawProduct: CatalogProduct = {
+            ...item,
+            id: item.id,
+            name: item.name,
+            price: Number(item.price) || fallbackMatch?.price || 99,
+            stock: Number(item.stock) || fallbackMatch?.stock || 10,
+            experienceLevel: item.experienceLevel || fallbackMatch?.experienceLevel || "INTERMEDIATE",
+            soundSignature: item.soundSignature || fallbackMatch?.soundSignature || "NEUTRAL",
+            category: catName,
+            brand: isMoondrop ? "MOONDROP" : brandName,
+            storeId: resolvedStoreId,
+            storeName,
+            storeCity,
+            description: item.description || fallbackMatch?.description || "Audiophile Reference Gear",
+            images: imgList,
+            image: imgList[0],
+            rating: fallbackMatch?.rating ?? (4.7 + (index % 4) * 0.1),
+            reviews: fallbackMatch?.reviews ?? (24 + (index * 7) % 180),
+            badge: fallbackMatch?.badge ?? (index < 6 ? "Best Seller" : index % 5 === 0 ? "New Arrival" : undefined),
+            inStock: (Number(item.stock) || 10) > 0,
+            preOrder: (Number(item.stock) || 10) <= 2,
+            variants: item.variants || item.variantOptions || item.variant_options,
+            colors: item.colors || item.colorOptions || item.color_options,
+          };
+
+          return enhanceProductWithSpecs(rawProduct);
+        });
+
+        cachedCatalog = dbProducts;
+        cacheTimestamp = Date.now();
+        return dbProducts;
+      }
+
+      const fallback = FALLBACK_CATALOG.map((p) => {
+        const isMoondrop = (p.brand || "").toUpperCase().includes("MOONDROP") || (p.name || "").toUpperCase().includes("MOONDROP");
+        return enhanceProductWithSpecs({
+          ...p,
+          storeId: isMoondrop ? "store-moondrop-official" : p.storeId || "store-bass-audio",
+          storeName: isMoondrop ? "MOONDROP Official Flagship Store" : p.storeName,
+        });
+      });
+      cachedCatalog = fallback;
+      cacheTimestamp = Date.now();
+      return fallback;
+    } catch (err) {
+      console.error("[Products DB] Exception while fetching:", err);
+      const fallback = FALLBACK_CATALOG.map((p) => {
+        const isMoondrop = (p.brand || "").toUpperCase().includes("MOONDROP") || (p.name || "").toUpperCase().includes("MOONDROP");
+        return enhanceProductWithSpecs({
+          ...p,
+          storeId: isMoondrop ? "store-moondrop-official" : p.storeId || "store-bass-audio",
+          storeName: isMoondrop ? "MOONDROP Official Flagship Store" : p.storeName,
+        });
+      });
+      return fallback;
+    } finally {
+      pendingCatalogPromise = null;
+    }
+  })();
+
+  const prods = await pendingCatalogPromise;
+  return mergeWithAdminAndCustomProducts(prods);
+}
+
+/**
+ * Synchronizes client catalog with admin approval status and custom seller inventory.
+ */
+export function mergeWithAdminAndCustomProducts(baseList: CatalogProduct[]): CatalogProduct[] {
+  if (typeof window === "undefined") return baseList;
+
+  let result = [...baseList];
+
   try {
-    const { data, error } = await supabase
-      .from("Product")
-      .select(`
-        id,
-        name,
-        price,
-        stock,
-        experienceLevel,
-        soundSignature,
-        images,
-        description,
-        brand:Brand(name),
-        store:Store(storeName, address),
-        category:Category(name)
-      `)
-      .order("price", { ascending: false });
+    const adminRaw = localStorage.getItem("tonalzone_admin_products");
+    const adminList: any[] = adminRaw ? JSON.parse(adminRaw) : [];
 
-    if (!error && data && data.length > 0) {
-      const dbProducts = data.map((item: any, index: number) => {
-        const brandName = Array.isArray(item.brand) ? item.brand[0]?.name : item.brand?.name || "Audiophile";
-        const storeName = Array.isArray(item.store) ? item.store[0]?.storeName : item.store?.storeName || "TonalZone Partner";
-        const storeCity = Array.isArray(item.store) ? item.store[0]?.address : item.store?.address || "Jakarta";
-        const catName = Array.isArray(item.category) ? item.category[0]?.name : item.category?.name || "IN-EAR MONITORS";
-        const imgList = Array.isArray(item.images) && item.images.length > 0 ? item.images : ["https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800"];
+    const customRaw = localStorage.getItem("tonalzone_custom_products");
+    const customList: any[] = customRaw ? JSON.parse(customRaw) : [];
 
-        const fallbackMatch = FALLBACK_CATALOG?.find(
-          (p) => p.id === item.id || p.name.toLowerCase() === item.name.toLowerCase()
-        );
+    // 1. Process custom seller products
+    customList.forEach((cp: any) => {
+      const existingInDb = result.find((r) => r.id === cp.id);
+      const adminOverride = adminList.find((ap: any) => ap.id === cp.id);
+      const isOfficialBrand = (cp.brand || "").toUpperCase().includes("MOONDROP") || (cp.storeId === "store-moondrop-official");
+      const effectiveStatus = adminOverride?.status || (isOfficialBrand ? "APPROVED" : (existingInDb ? "APPROVED" : cp.status)) || "APPROVED";
 
-        const rawProduct: CatalogProduct = {
-          id: item.id,
-          name: item.name,
-          price: Number(item.price) || fallbackMatch?.price || 99,
-          stock: Number(item.stock) || fallbackMatch?.stock || 10,
-          experienceLevel: item.experienceLevel || fallbackMatch?.experienceLevel || "INTERMEDIATE",
-          soundSignature: item.soundSignature || fallbackMatch?.soundSignature || "NEUTRAL",
-          category: catName,
-          brand: brandName,
-          storeName,
-          storeCity,
-          description: item.description || fallbackMatch?.description || "Audiophile Reference Gear",
-          images: imgList,
-          image: imgList[0],
-          rating: fallbackMatch?.rating ?? (4.7 + (index % 4) * 0.1),
-          reviews: fallbackMatch?.reviews ?? (24 + (index * 7) % 180),
-          badge: fallbackMatch?.badge ?? (index < 6 ? "Best Seller" : index % 5 === 0 ? "New Arrival" : undefined),
-          inStock: (Number(item.stock) || 10) > 0,
-          preOrder: (Number(item.stock) || 10) <= 2,
+      // If APPROVED by admin or official brand, inject or ensure in storefront
+      if (effectiveStatus === "APPROVED") {
+        const existingIdx = result.findIndex((r) => r.id === cp.id);
+        const mappedProd: CatalogProduct = {
+          id: cp.id,
+          name: adminOverride?.name || cp.name,
+          price: Number(adminOverride?.price ?? cp.priceUSD ?? cp.price) || 99,
+          stock: Number(adminOverride?.stock ?? cp.stock) || 10,
+          experienceLevel: cp.experienceLevel || "INTERMEDIATE",
+          soundSignature: ((cp.soundSignature || "NEUTRAL") as string).toUpperCase().replace("-", "_") as any,
+          category: adminOverride?.category || cp.category || "IN-EAR MONITORS",
+          brand: cp.brand || "Custom Brand",
+          storeId: cp.storeId || "store-seller",
+          storeName: cp.storeName || "Seller Store",
+          storeCity: cp.storeCity || "Jakarta",
+          description: cp.description || cp.specsSummary || "Audiophile Reference Gear",
+          images: cp.images && cp.images.length > 0 ? cp.images : [cp.image || "/model-iem-untuk-hero.webp"],
+          image: cp.image || cp.images?.[0] || "/model-iem-untuk-hero.webp",
+          rating: 5.0,
+          reviews: 1,
+          inStock: (Number(adminOverride?.stock ?? cp.stock) || 10) > 0,
+          preOrder: false,
+          variants: cp.variants,
         };
 
-        return enhanceProductWithSpecs(rawProduct);
-      });
+        if (existingIdx >= 0) {
+          result[existingIdx] = enhanceProductWithSpecs({ ...result[existingIdx], ...mappedProd });
+        } else {
+          result.unshift(enhanceProductWithSpecs(mappedProd));
+        }
+      } else {
+        // If explicitly REJECTED by admin, ensure it is NOT visible in storefront
+        if (adminOverride?.status === "REJECTED") {
+          result = result.filter((r) => r.id !== cp.id);
+        }
+      }
+    });
 
-      // Always ensure key featured products from FALLBACK_CATALOG are present in the list
-      const existingIds = new Set(dbProducts.map((p) => p.id));
-      const existingNames = new Set(dbProducts.map((p) => p.name.toLowerCase()));
-      const missingFallbacks = FALLBACK_CATALOG.filter(
-        (p) => !existingIds.has(p.id) && !existingNames.has(p.name.toLowerCase())
-      ).map(enhanceProductWithSpecs);
-
-      return [...dbProducts, ...missingFallbacks];
-    }
-
-    return FALLBACK_CATALOG.map(enhanceProductWithSpecs);
-  } catch (err) {
-    console.error("[Products DB] Exception while fetching:", err);
-    return FALLBACK_CATALOG.map(enhanceProductWithSpecs);
+    // 2. Apply admin overrides (price, stock, rejection) to any catalog product
+    adminList.forEach((ap: any) => {
+      const idx = result.findIndex((r) => r.id === ap.id);
+      if (idx >= 0) {
+        if (ap.status === "REJECTED" || ap.status === "PENDING") {
+          result.splice(idx, 1);
+        } else {
+          result[idx] = {
+            ...result[idx],
+            name: ap.name || result[idx].name,
+            price: Number(ap.price) || result[idx].price,
+            stock: Number(ap.stock) || result[idx].stock,
+            category: ap.category || result[idx].category,
+            inStock: (Number(ap.stock) || result[idx].stock) > 0,
+          };
+        }
+      }
+    });
+  } catch (e) {
+    console.warn("Error merging admin/custom products:", e);
   }
+
+  return result;
 }
 
 export async function fetchProductByIdFromDb(id: string): Promise<CatalogProduct | null> {
@@ -2098,19 +2385,71 @@ export async function fetchProductByIdFromDb(id: string): Promise<CatalogProduct
   const norm = resolvedId.replace(/[^a-z0-9]/g, "");
   const norm3 = norm.replace(/iii/g, "3").replace(/ii/g, "2");
 
+  // Check client custom / admin products first
+  if (typeof window !== "undefined") {
+    try {
+      const customRaw = localStorage.getItem("tonalzone_custom_products");
+      const adminRaw = localStorage.getItem("tonalzone_admin_products");
+      const customList: any[] = customRaw ? JSON.parse(customRaw) : [];
+      const adminList: any[] = adminRaw ? JSON.parse(adminRaw) : [];
+
+      const customMatch = customList.find((c) => c.id === resolvedId || c.id === cleanId);
+      if (customMatch) {
+        const adminOverride = adminList.find((a) => a.id === customMatch.id);
+        const effectiveStatus = adminOverride?.status || customMatch.status || "PENDING";
+        if (effectiveStatus === "APPROVED") {
+          return enhanceProductWithSpecs({
+            id: customMatch.id,
+            name: adminOverride?.name || customMatch.name,
+            price: Number(adminOverride?.price ?? customMatch.priceUSD ?? customMatch.price) || 99,
+            stock: Number(adminOverride?.stock ?? customMatch.stock) || 10,
+            experienceLevel: customMatch.experienceLevel || "INTERMEDIATE",
+            soundSignature: ((customMatch.soundSignature || "NEUTRAL") as string).toUpperCase().replace("-", "_") as any,
+            category: adminOverride?.category || customMatch.category || "IN-EAR MONITORS",
+            brand: customMatch.brand || "Custom Brand",
+            storeId: customMatch.storeId || "store-seller",
+            storeName: customMatch.storeName || "Seller Store",
+            storeCity: customMatch.storeCity || "Jakarta",
+            description: customMatch.description || customMatch.specsSummary || "Audiophile Reference Gear",
+            images: customMatch.images && customMatch.images.length > 0 ? customMatch.images : [customMatch.image || "/model-iem-untuk-hero.webp"],
+            image: customMatch.image || customMatch.images?.[0] || "/model-iem-untuk-hero.webp",
+            rating: 5.0,
+            reviews: 1,
+            inStock: (Number(adminOverride?.stock ?? customMatch.stock) || 10) > 0,
+            preOrder: false,
+            variants: customMatch.variants,
+          });
+        }
+      }
+    } catch (e) {}
+  }
+
+  // Fast-path: Check in-memory cache before hitting Supabase network roundtrip
+  if (cachedCatalog && cachedCatalog.length > 0) {
+    const cachedItem = cachedCatalog.find((p) => {
+      const pNorm = p.id.toLowerCase().replace(/[^a-z0-9]/g, "");
+      const pNorm3 = pNorm.replace(/iii/g, "3").replace(/ii/g, "2");
+      const pNameNorm = p.name.toLowerCase().replace(/[^a-z0-9]/g, "").replace(/iii/g, "3").replace(/ii/g, "2");
+      const isSubMatch = norm3.length >= 3 && (pNorm3.includes(norm3) || norm3.includes(pNorm3) || pNameNorm.includes(norm3));
+      return (
+        p.id === resolvedId ||
+        p.id === cleanId ||
+        pNorm === norm ||
+        pNorm3 === norm3 ||
+        isSubMatch
+      );
+    });
+    if (cachedItem) {
+      return enhanceProductWithSpecs(cachedItem);
+    }
+  }
+
   try {
     // 1. Direct match by ID in Supabase
     const { data, error } = await supabase
       .from("Product")
       .select(`
-        id,
-        name,
-        price,
-        stock,
-        experienceLevel,
-        soundSignature,
-        images,
-        description,
+        *,
         brand:Brand(name),
         store:Store(storeName, address),
         category:Category(name)
@@ -2121,15 +2460,26 @@ export async function fetchProductByIdFromDb(id: string): Promise<CatalogProduct
     if (!error && data) {
       const item: any = data;
       const brandName = Array.isArray(item.brand) ? item.brand[0]?.name : item.brand?.name || "Audiophile";
-      const storeName = Array.isArray(item.store) ? item.store[0]?.storeName : item.store?.storeName || "TonalZone Partner";
+      const fallbackMatch = findFallbackMatch(data.id, data.name);
+      const isMoondrop =
+        brandName.toUpperCase().includes("MOONDROP") ||
+        item.name.toUpperCase().includes("MOONDROP") ||
+        (fallbackMatch?.brand || "").toUpperCase().includes("MOONDROP");
+
+      const storeName = isMoondrop
+        ? "MOONDROP Official Flagship Store"
+        : Array.isArray(item.store)
+        ? item.store[0]?.storeName
+        : item.store?.storeName || "TonalZone Partner";
+      const resolvedStoreId = isMoondrop ? "store-moondrop-official" : item.storeId || "store-bass-audio";
       const storeCity = Array.isArray(item.store) ? item.store[0]?.address : item.store?.address || "Jakarta";
       const catName = Array.isArray(item.category) ? item.category[0]?.name : item.category?.name || "IN-EAR MONITORS";
-      const imgList = Array.isArray(item.images) && item.images.length > 0 ? item.images : ["https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800"];
-      const fallbackMatch = FALLBACK_CATALOG?.find(
-        (p) => p.id === data.id || p.name.toLowerCase() === data.name.toLowerCase()
-      );
+      const imgList = Array.isArray(item.images) && item.images.length >= 3
+        ? item.images
+        : (fallbackMatch?.images && fallbackMatch.images.length >= 3 ? fallbackMatch.images : Array.isArray(item.images) && item.images.length > 0 ? item.images : ["/images/chu3-preview-1.webp"]);
 
       const foundProduct: CatalogProduct = {
+        ...data,
         id: data.id,
         name: data.name,
         price: Number(data.price) || fallbackMatch?.price || 99,
@@ -2137,7 +2487,8 @@ export async function fetchProductByIdFromDb(id: string): Promise<CatalogProduct
         experienceLevel: data.experienceLevel || fallbackMatch?.experienceLevel || "INTERMEDIATE",
         soundSignature: data.soundSignature || fallbackMatch?.soundSignature || "NEUTRAL",
         category: catName,
-        brand: brandName,
+        brand: isMoondrop ? "MOONDROP" : brandName,
+        storeId: resolvedStoreId,
         storeName,
         storeCity,
         description: data.description || fallbackMatch?.description || "Audiophile Reference Gear",
@@ -2148,6 +2499,8 @@ export async function fetchProductByIdFromDb(id: string): Promise<CatalogProduct
         badge: fallbackMatch?.badge,
         inStock: (Number(data.stock) || 10) > 0,
         preOrder: false,
+        variants: (data as any).variants || (data as any).variantOptions || (data as any).variant_options,
+        colors: (data as any).colors || (data as any).colorOptions || (data as any).color_options,
       };
 
       return enhanceProductWithSpecs(foundProduct);
@@ -2169,21 +2522,25 @@ export async function fetchProductByIdFromDb(id: string): Promise<CatalogProduct
     });
     if (dbFound) return enhanceProductWithSpecs(dbFound);
 
-    // 3. Fallback to FALLBACK_CATALOG
-    const fallback = FALLBACK_CATALOG.find((p) => {
-      const pNorm = p.id.toLowerCase().replace(/[^a-z0-9]/g, "");
-      const pNorm3 = pNorm.replace(/iii/g, "3").replace(/ii/g, "2");
-      const pNameNorm = p.name.toLowerCase().replace(/[^a-z0-9]/g, "").replace(/iii/g, "3").replace(/ii/g, "2");
-      const isSubMatch = norm3.length >= 3 && (pNorm3.includes(norm3) || norm3.includes(pNorm3) || pNameNorm.includes(norm3));
-      return (
-        p.id === resolvedId ||
-        pNorm === norm ||
-        pNorm3 === norm3 ||
-        isSubMatch
-      );
-    });
+    // 3. Fallback to FALLBACK_CATALOG only if database is offline or empty
+    if (!allDb || allDb.length === 0) {
+      const fallback = FALLBACK_CATALOG.find((p) => {
+        const pNorm = p.id.toLowerCase().replace(/[^a-z0-9]/g, "");
+        const pNorm3 = pNorm.replace(/iii/g, "3").replace(/ii/g, "2");
+        const pNameNorm = p.name.toLowerCase().replace(/[^a-z0-9]/g, "").replace(/iii/g, "3").replace(/ii/g, "2");
+        const isSubMatch = norm3.length >= 3 && (pNorm3.includes(norm3) || norm3.includes(pNorm3) || pNameNorm.includes(norm3));
+        return (
+          p.id === resolvedId ||
+          pNorm === norm ||
+          pNorm3 === norm3 ||
+          isSubMatch
+        );
+      });
 
-    return fallback ? enhanceProductWithSpecs(fallback) : null;
+      return fallback ? enhanceProductWithSpecs(fallback) : null;
+    }
+
+    return null;
   } catch (err) {
     console.error("[Products DB] Exception while fetching by ID:", err);
     const fallback = FALLBACK_CATALOG.find((p) => {

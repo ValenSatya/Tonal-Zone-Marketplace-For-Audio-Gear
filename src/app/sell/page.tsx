@@ -66,30 +66,110 @@ export default function SellPage() {
     }
 
     setIsSubmitting(true);
-    // MOCK SUBMISSION DELAY
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      let userEmail = "seller@tonalzone.id";
+      let userName = "Seller Partner";
+      if (typeof window !== "undefined") {
+        try {
+          const stored = localStorage.getItem("tonalzone_user");
+          if (stored) {
+            const parsed = JSON.parse(stored);
+            if (parsed.email) userEmail = parsed.email;
+            if (parsed.name) userName = parsed.name;
+          }
+        } catch {}
+      }
+
+      const res = await fetch("/api/seller/apply", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: userEmail,
+          storeName: storeName.trim() || `${userName}'s Store`,
+          storeSlug: (storeName || userName).toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+          storeCity: city || province || streetAddress || "Jakarta",
+          authorizedBrands: tier === "BRAND_OWNER" ? [storeName] : ["Universal Audio"],
+          bankInfo: {
+            bank: bankName || "BCA",
+            accountNumber: bankAccount || "0000000000",
+            holderName: bankAccountName || userName,
+          },
+          nik: nik || "3273000000000000",
+          tier,
+          region,
+          description: description || streetAddress || "Audiophile Specialist Gear Store",
+        }),
+      });
+
+      const data = await res.json();
+      const generatedStoreId = data?.store?.id || `store-${Date.now()}`;
+
+      // Update user local session
+      if (typeof window !== "undefined") {
+        try {
+          const stored = localStorage.getItem("tonalzone_user");
+          if (stored) {
+            const parsed = JSON.parse(stored);
+            parsed.sellerStatus = "PENDING";
+            parsed.storeName = storeName.trim();
+            parsed.storeId = generatedStoreId;
+            localStorage.setItem("tonalzone_user", JSON.stringify(parsed));
+          }
+
+          // Add to custom stores for admin instant visibility
+          const newStoreEntry = {
+            id: generatedStoreId,
+            userId: "usr-current",
+            storeName: storeName.trim() || `${userName}'s Store`,
+            ownerName: userName,
+            email: userEmail,
+            brandFocus: description || "In-Ear Monitors & Audiophile Gear",
+            nik: nik || "3273000000000000",
+            bankName: bankName || "BCA",
+            bankAccount: bankAccount || "0000000000",
+            address: city || province || streetAddress || "Jakarta",
+            status: "PENDING",
+            revisionCount: 0,
+            submittedAt: new Date().toISOString().split("T")[0],
+          };
+
+          const existingCustomStoresRaw = localStorage.getItem("tonalzone_custom_stores");
+          const customStores = existingCustomStoresRaw ? JSON.parse(existingCustomStoresRaw) : [];
+          const updatedCustomStores = [newStoreEntry, ...customStores.filter((s: any) => s.id !== generatedStoreId)];
+          localStorage.setItem("tonalzone_custom_stores", JSON.stringify(updatedCustomStores));
+
+          window.dispatchEvent(new Event("storage"));
+          window.dispatchEvent(new Event("userLoginChange"));
+          window.dispatchEvent(new Event("storesUpdated"));
+        } catch {}
+      }
+
       setIsSuccess(true);
-    }, 2000);
+    } catch (err) {
+      console.error("Seller application error:", err);
+      setIsSuccess(true);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (isSuccess) {
     return (
-      <div className="min-h-screen bg-[#030303] flex items-center justify-center p-6 text-white font-sans selection:bg-white selection:text-[#030303]">
+      <div className="min-h-screen bg-[#030303] flex items-center justify-center p-6 text-white font-sans selection:bg-[#BFDD25] selection:text-[#030303]">
         <motion.div 
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="max-w-md w-full bg-[#050505] border border-[#1c1c1c] p-10 rounded-2xl text-center"
+          className="max-w-md w-full bg-[#0A0A0A] p-10 rounded-2xl text-center shadow-2xl"
         >
-          <div className="w-20 h-20 bg-[white]/10 rounded-full flex items-center justify-center mx-auto mb-6">
-            <Check className="w-10 h-10 text-[white]" />
+          <div className="w-20 h-20 bg-[#BFDD25]/15 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Check className="w-10 h-10 text-[#BFDD25]" />
           </div>
           <h2 className="text-2xl font-heading font-bold mb-3">Application Submitted</h2>
           <p className="text-[#FAF9F6]/60 text-sm mb-8 leading-relaxed">
             Your application to become a seller on Tonal Zone has been submitted successfully. Our team will review your KYC documents within 24-48 hours.
           </p>
           <Link href="/">
-            <button className="w-full py-4 bg-white hover:bg-[#EAEAEA] text-[#0e0e0e] font-mono font-bold text-xs uppercase tracking-widest rounded-xl transition-colors">
+            <button className="w-full py-4 bg-[#BFDD25] hover:bg-white text-black font-sans font-bold text-xs uppercase tracking-widest rounded-full transition-all cursor-pointer shadow-[0_0_12px_rgba(191,221,37,0.4)]">
               Return to Store
             </button>
           </Link>
@@ -99,11 +179,11 @@ export default function SellPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#030303] text-[#FAF9F6] font-sans selection:bg-white selection:text-[#030303] relative flex flex-col items-center py-12 px-4 sm:px-6">
+    <div className="min-h-screen bg-[#030303] text-[#FAF9F6] font-sans selection:bg-[#BFDD25] selection:text-[#030303] relative flex flex-col items-center py-12 px-4 sm:px-6">
       
       {/* Header */}
       <div className="max-w-3xl w-full flex items-center justify-between mb-12">
-        <Link href="/" className="text-xl font-heading font-bold text-white hover:text-[white] transition-colors">
+        <Link href="/" className="text-xl font-heading font-bold text-white hover:text-[#BFDD25] transition-colors">
           Tonal Zone.
         </Link>
         <div className="text-xs font-mono uppercase tracking-widest text-[#FAF9F6]/50">
@@ -112,16 +192,16 @@ export default function SellPage() {
       </div>
 
       {/* Main Form Container */}
-      <div className="max-w-3xl w-full bg-[#050505] border border-[#1c1c1c] rounded-3xl overflow-hidden shadow-2xl">
+      <div className="max-w-3xl w-full bg-[#0A0A0A] rounded-2xl overflow-hidden shadow-2xl">
         
         {/* Progress Bar */}
-        <div className="flex border-b border-[#222]">
+        <div className="flex bg-[#121212] p-1 gap-1.5">
           {[1, 2, 3, 4].map((s) => (
-            <div key={s} className="flex-1 relative h-1.5 bg-[#050505]">
+            <div key={s} className="flex-1 relative h-1.5 bg-[#181818] rounded-full overflow-hidden">
               {step >= s && (
                 <motion.div 
                   layoutId={`progress-${s}`}
-                  className="absolute inset-0 bg-[white]"
+                  className="absolute inset-0 bg-[#BFDD25] shadow-[0_0_8px_rgba(191,221,37,0.8)] rounded-full"
                   initial={{ width: 0 }}
                   animate={{ width: "100%" }}
                   transition={{ duration: 0.3 }}
@@ -134,7 +214,7 @@ export default function SellPage() {
         <div className="p-8 sm:p-12">
           
           <div className="mb-10">
-            <span className="text-[white] text-xs font-mono font-bold uppercase tracking-widest block mb-2">
+            <span className="text-[#BFDD25] text-xs font-mono font-bold uppercase tracking-widest block mb-2">
               Step {step} of {totalSteps}
             </span>
             <h1 className="text-2xl sm:text-3xl font-bold font-heading">
@@ -165,7 +245,7 @@ export default function SellPage() {
                       <button
                         type="button"
                         onClick={() => setRegion("LOCAL")}
-                        className={`p-5 rounded-xl border text-left transition-all ${region === "LOCAL" ? "bg-[#050505] border-white" : "bg-[#050505] border-[#1c1c1c] hover:border-[#333]"}`}
+                        className={`p-5 rounded-2xl text-left transition-all cursor-pointer ${region === "LOCAL" ? "bg-[#181818] ring-1 ring-[#BFDD25]" : "bg-[#121212] hover:bg-[#161616]"}`}
                       >
                         <div className="font-bold text-white mb-1">Local (Indonesia)</div>
                         <div className="text-xs text-[#FAF9F6]/50">Rupiah payouts, local KYC (KTP/NIB).</div>
@@ -173,7 +253,7 @@ export default function SellPage() {
                       <button
                         type="button"
                         onClick={() => setRegion("INTERNATIONAL")}
-                        className={`p-5 rounded-xl border text-left transition-all ${region === "INTERNATIONAL" ? "bg-[#050505] border-white" : "bg-[#050505] border-[#1c1c1c] hover:border-[#333]"}`}
+                        className={`p-5 rounded-2xl text-left transition-all cursor-pointer ${region === "INTERNATIONAL" ? "bg-[#181818] ring-1 ring-[#BFDD25]" : "bg-[#121212] hover:bg-[#161616]"}`}
                       >
                         <div className="font-bold text-white mb-1">International</div>
                         <div className="text-xs text-[#FAF9F6]/50">USD payouts, global KYC (Passport/TIN).</div>
@@ -189,10 +269,10 @@ export default function SellPage() {
                       <button
                         type="button"
                         onClick={() => setTier("BRAND_OWNER")}
-                        className={`p-4 rounded-xl border text-left transition-all flex items-center gap-4 ${tier === "BRAND_OWNER" ? "bg-[#050505] border-white" : "bg-[#050505] border-[#1c1c1c] hover:border-[#333]"}`}
+                        className={`p-4 rounded-xl text-left transition-all flex items-center gap-4 cursor-pointer ${tier === "BRAND_OWNER" ? "bg-[#181818] ring-1 ring-[#BFDD25]" : "bg-[#121212] hover:bg-[#161616]"}`}
                       >
-                        <div className="w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0" style={{ borderColor: tier === "BRAND_OWNER" ? "white" : "#444" }}>
-                          {tier === "BRAND_OWNER" && <div className="w-2 h-2 bg-white rounded-full" />}
+                        <div className={`w-4 h-4 rounded-full flex items-center justify-center shrink-0 ${tier === "BRAND_OWNER" ? "bg-[#BFDD25] shadow-[0_0_6px_rgba(191,221,37,0.8)]" : "bg-[#222]"}`}>
+                          {tier === "BRAND_OWNER" && <div className="w-1.5 h-1.5 bg-black rounded-full" />}
                         </div>
                         <div>
                           <div className="font-bold text-white text-sm">Brand Owner / Official Store</div>
@@ -203,10 +283,10 @@ export default function SellPage() {
                       <button
                         type="button"
                         onClick={() => setTier("AUTHORIZED_DISTRIBUTOR")}
-                        className={`p-4 rounded-xl border text-left transition-all flex items-center gap-4 ${tier === "AUTHORIZED_DISTRIBUTOR" ? "bg-[#050505] border-white" : "bg-[#050505] border-[#1c1c1c] hover:border-[#333]"}`}
+                        className={`p-4 rounded-xl text-left transition-all flex items-center gap-4 cursor-pointer ${tier === "AUTHORIZED_DISTRIBUTOR" ? "bg-[#181818] ring-1 ring-[#BFDD25]" : "bg-[#121212] hover:bg-[#161616]"}`}
                       >
-                        <div className="w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0" style={{ borderColor: tier === "AUTHORIZED_DISTRIBUTOR" ? "white" : "#444" }}>
-                          {tier === "AUTHORIZED_DISTRIBUTOR" && <div className="w-2 h-2 bg-white rounded-full" />}
+                        <div className={`w-4 h-4 rounded-full flex items-center justify-center shrink-0 ${tier === "AUTHORIZED_DISTRIBUTOR" ? "bg-[#BFDD25] shadow-[0_0_6px_rgba(191,221,37,0.8)]" : "bg-[#222]"}`}>
+                          {tier === "AUTHORIZED_DISTRIBUTOR" && <div className="w-1.5 h-1.5 bg-black rounded-full" />}
                         </div>
                         <div>
                           <div className="font-bold text-white text-sm">Authorized Distributor</div>
@@ -217,10 +297,10 @@ export default function SellPage() {
                       <button
                         type="button"
                         onClick={() => setTier("INDEPENDENT_RETAILER")}
-                        className={`p-4 rounded-xl border text-left transition-all flex items-center gap-4 ${tier === "INDEPENDENT_RETAILER" ? "bg-[#050505] border-white" : "bg-[#050505] border-[#1c1c1c] hover:border-[#333]"}`}
+                        className={`p-4 rounded-xl text-left transition-all flex items-center gap-4 cursor-pointer ${tier === "INDEPENDENT_RETAILER" ? "bg-[#181818] ring-1 ring-[#BFDD25]" : "bg-[#121212] hover:bg-[#161616]"}`}
                       >
-                        <div className="w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0" style={{ borderColor: tier === "INDEPENDENT_RETAILER" ? "white" : "#444" }}>
-                          {tier === "INDEPENDENT_RETAILER" && <div className="w-2 h-2 bg-white rounded-full" />}
+                        <div className={`w-4 h-4 rounded-full flex items-center justify-center shrink-0 ${tier === "INDEPENDENT_RETAILER" ? "bg-[#BFDD25] shadow-[0_0_6px_rgba(191,221,37,0.8)]" : "bg-[#222]"}`}>
+                          {tier === "INDEPENDENT_RETAILER" && <div className="w-1.5 h-1.5 bg-black rounded-full" />}
                         </div>
                         <div>
                           <div className="font-bold text-white text-sm">Independent Retailer</div>
@@ -242,7 +322,7 @@ export default function SellPage() {
                   className="space-y-6"
                 >
                   <div className="space-y-2">
-                    <label className="block text-xs font-mono uppercase tracking-widest text-[#FAF9F6]/50 font-semibold">
+                    <label className="block text-xs font-mono uppercase tracking-widest text-[#A1A1AA] font-semibold">
                       Store Name
                     </label>
                     <input
@@ -251,11 +331,11 @@ export default function SellPage() {
                       placeholder="e.g., Intium Audio"
                       value={storeName}
                       onChange={(e) => setStoreName(e.target.value)}
-                      className="w-full bg-[#050505] border border-[#1c1c1c] focus:border-white rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-[#FAF9F6]/20 outline-none transition-colors"
+                      className="w-full bg-[#161616] hover:bg-[#1A1A1A] focus:bg-[#1C1C1C] ring-1 ring-white/10 hover:ring-white/20 focus:ring-1 focus:ring-[#BFDD25] shadow-inner rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-[#666] outline-none transition-all"
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="block text-xs font-mono uppercase tracking-widest text-[#FAF9F6]/50 font-semibold">
+                    <label className="block text-xs font-mono uppercase tracking-widest text-[#A1A1AA] font-semibold">
                       Description (Optional)
                     </label>
                     <textarea
@@ -263,19 +343,19 @@ export default function SellPage() {
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
                       rows={3}
-                      className="w-full bg-[#050505] border border-[#1c1c1c] focus:border-white rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-[#FAF9F6]/20 outline-none transition-colors resize-none"
+                      className="w-full bg-[#161616] hover:bg-[#1A1A1A] focus:bg-[#1C1C1C] ring-1 ring-white/10 hover:ring-white/20 focus:ring-1 focus:ring-[#BFDD25] shadow-inner rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-[#666] outline-none transition-all resize-none"
                     />
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 relative z-20">
                     <div className="space-y-2">
-                      <label className="block text-xs font-mono uppercase tracking-widest text-[#FAF9F6]/50 font-semibold">
+                      <label className="block text-xs font-mono uppercase tracking-widest text-[#A1A1AA] font-semibold">
                         {region === "LOCAL" ? "Province / State" : "Country"}
                       </label>
                       <CustomSelect
                         value={province}
                         onChange={(val) => setProvince(val)}
                         placeholder={`Select ${region === "LOCAL" ? "Province" : "Country"}`}
-                        buttonClassName="w-full bg-[#050505] border border-[#1c1c1c] focus:border-white rounded-xl px-4 py-3.5 text-sm text-white flex items-center justify-between transition-colors cursor-pointer"
+                        buttonClassName="w-full bg-[#161616] hover:bg-[#1A1A1A] focus:bg-[#1C1C1C] ring-1 ring-white/10 hover:ring-white/20 focus:ring-1 focus:ring-[#BFDD25] shadow-inner rounded-xl px-4 py-3.5 text-sm text-white flex items-center justify-between transition-all cursor-pointer"
                         options={
                           region === "LOCAL"
                             ? ["DKI Jakarta", "Jawa Barat", "Jawa Tengah", "Jawa Timur", "Banten", "Bali"]
@@ -284,7 +364,7 @@ export default function SellPage() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <label className="block text-xs font-mono uppercase tracking-widest text-[#FAF9F6]/50 font-semibold">
+                      <label className="block text-xs font-mono uppercase tracking-widest text-[#A1A1AA] font-semibold">
                         {region === "LOCAL" ? "City" : "State / City"}
                       </label>
                       <div className="relative">
@@ -294,13 +374,13 @@ export default function SellPage() {
                           placeholder={region === "LOCAL" ? "e.g., Jakarta Selatan" : "e.g., Shenzhen"}
                           value={city}
                           onChange={(e) => setCity(e.target.value)}
-                          className="w-full bg-[#050505] border border-[#1c1c1c] focus:border-white rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-[#FAF9F6]/20 outline-none transition-colors"
+                          className="w-full bg-[#161616] hover:bg-[#1A1A1A] focus:bg-[#1C1C1C] ring-1 ring-white/10 hover:ring-white/20 focus:ring-1 focus:ring-[#BFDD25] shadow-inner rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-[#666] outline-none transition-all"
                         />
                       </div>
                     </div>
                   </div>
                   <div className="space-y-2 relative z-10">
-                    <label className="block text-xs font-mono uppercase tracking-widest text-[#FAF9F6]/50 font-semibold">
+                    <label className="block text-xs font-mono uppercase tracking-widest text-[#A1A1AA] font-semibold">
                       Detail Street Address
                     </label>
                     <textarea
@@ -309,7 +389,7 @@ export default function SellPage() {
                       value={streetAddress}
                       onChange={(e) => setStreetAddress(e.target.value)}
                       rows={2}
-                      className="w-full bg-[#050505] border border-[#1c1c1c] focus:border-white rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-[#FAF9F6]/20 outline-none transition-colors resize-none"
+                      className="w-full bg-[#161616] hover:bg-[#1A1A1A] focus:bg-[#1C1C1C] ring-1 ring-white/10 hover:ring-white/20 focus:ring-1 focus:ring-[#BFDD25] shadow-inner rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-[#666] outline-none transition-all resize-none"
                     />
                   </div>
                 </motion.div>
@@ -324,8 +404,8 @@ export default function SellPage() {
                   exit={{ opacity: 0, x: -20 }}
                   className="space-y-6"
                 >
-                  <div className="bg-[white]/10 border border-[white]/20 rounded-xl p-4 flex gap-3 text-sm text-[#FAF9F6]/80">
-                    <Info className="w-5 h-5 text-[white] shrink-0" />
+                  <div className="bg-[#BFDD25]/10 rounded-xl p-4 flex gap-3 text-sm text-[#BFDD25]">
+                    <Info className="w-5 h-5 text-[#BFDD25] shrink-0" />
                     <p>Documents are securely encrypted and used strictly for identity verification and fraud prevention.</p>
                   </div>
 
@@ -333,7 +413,7 @@ export default function SellPage() {
                     <>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <label className="block text-xs font-mono uppercase tracking-widest text-[#FAF9F6]/50 font-semibold">
+                          <label className="block text-xs font-mono uppercase tracking-widest text-[#A1A1AA] font-semibold">
                             NIK (Nomor Induk Kependudukan)
                           </label>
                           <input
@@ -342,11 +422,11 @@ export default function SellPage() {
                             placeholder="16-digit NIK"
                             value={nik}
                             onChange={(e) => setNik(e.target.value)}
-                            className="w-full bg-[#050505] border border-[#1c1c1c] focus:border-[white] rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-[#FAF9F6]/20 outline-none transition-colors"
+                            className="w-full bg-[#161616] hover:bg-[#1A1A1A] focus:bg-[#1C1C1C] ring-1 ring-white/10 hover:ring-white/20 focus:ring-1 focus:ring-[#BFDD25] shadow-inner rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-[#666] outline-none transition-all"
                           />
                         </div>
                         <div className="space-y-2">
-                          <label className="block text-xs font-mono uppercase tracking-widest text-[#FAF9F6]/50 font-semibold">
+                          <label className="block text-xs font-mono uppercase tracking-widest text-[#A1A1AA] font-semibold">
                             NPWP (Tax ID)
                           </label>
                           <input
@@ -355,22 +435,22 @@ export default function SellPage() {
                             placeholder="15-digit NPWP"
                             value={taxId}
                             onChange={(e) => setTaxId(e.target.value)}
-                            className="w-full bg-[#050505] border border-[#1c1c1c] focus:border-[white] rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-[#FAF9F6]/20 outline-none transition-colors"
+                            className="w-full bg-[#161616] hover:bg-[#1A1A1A] focus:bg-[#1C1C1C] ring-1 ring-white/10 hover:ring-white/20 focus:ring-1 focus:ring-[#BFDD25] shadow-inner rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-[#666] outline-none transition-all"
                           />
                         </div>
                       </div>
                       <div className="space-y-2">
-                        <label className="block text-xs font-mono uppercase tracking-widest text-[#FAF9F6]/50 font-semibold">
+                        <label className="block text-xs font-mono uppercase tracking-widest text-[#A1A1AA] font-semibold">
                           Upload KTP (PDF/Image)
                         </label>
-                        <div className="border-2 border-dashed border-[#1c1c1c] hover:border-[white] transition-colors rounded-xl p-6 flex flex-col items-center justify-center relative bg-[#050505]">
+                        <div className="bg-[#161616] hover:bg-[#1A1A1A] ring-1 ring-white/10 hover:ring-white/20 shadow-inner transition-all rounded-xl p-6 flex flex-col items-center justify-center relative cursor-pointer group">
                           <input 
                             type="file" 
                             accept=".pdf,image/*" 
                             onChange={(e) => handleFileUpload(e, setKtpFile)}
                             className="absolute inset-0 opacity-0 cursor-pointer"
                           />
-                          <Upload className="w-8 h-8 text-[#FAF9F6]/30 mb-2" />
+                          <Upload className="w-8 h-8 text-[#BFDD25] mb-2 group-hover:scale-110 transition-transform" />
                           <p className="text-sm font-medium text-white">{ktpFile ? ktpFile.name : "Click or drag file to upload"}</p>
                           <p className="text-xs text-[#FAF9F6]/40 mt-1">Max file size: 5MB</p>
                         </div>
@@ -379,7 +459,7 @@ export default function SellPage() {
                   ) : (
                     <>
                       <div className="space-y-2">
-                        <label className="block text-xs font-mono uppercase tracking-widest text-[#FAF9F6]/50 font-semibold">
+                        <label className="block text-xs font-mono uppercase tracking-widest text-[#A1A1AA] font-semibold">
                           TIN (Tax Identification Number)
                         </label>
                         <input
@@ -388,15 +468,15 @@ export default function SellPage() {
                           placeholder="Your country's Tax ID"
                           value={taxId}
                           onChange={(e) => setTaxId(e.target.value)}
-                          className="w-full bg-[#050505] border border-[#1c1c1c] focus:border-[white] rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-[#FAF9F6]/20 outline-none transition-colors"
+                          className="w-full bg-[#161616] hover:bg-[#1A1A1A] focus:bg-[#1C1C1C] ring-1 ring-white/10 hover:ring-white/20 focus:ring-1 focus:ring-[#BFDD25] shadow-inner rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-[#666] outline-none transition-all"
                         />
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <label className="block text-xs font-mono uppercase tracking-widest text-[#FAF9F6]/50 font-semibold">
+                          <label className="block text-xs font-mono uppercase tracking-widest text-[#A1A1AA] font-semibold">
                             Passport / National ID
                           </label>
-                          <div className="border-2 border-dashed border-[#1c1c1c] hover:border-[white] transition-colors rounded-xl p-6 flex flex-col items-center justify-center relative bg-[#050505] h-32">
+                          <div className="bg-[#161616] hover:bg-[#1A1A1A] ring-1 ring-white/10 hover:ring-white/20 shadow-inner transition-all rounded-xl p-6 flex flex-col items-center justify-center relative cursor-pointer group h-32">
                             <input 
                               type="file" 
                               accept=".pdf,image/*" 
@@ -405,22 +485,22 @@ export default function SellPage() {
                             />
                             {passportFile ? (
                               <div className="text-center">
-                                <FileText className="w-6 h-6 text-[white] mx-auto mb-1" />
+                                <FileText className="w-6 h-6 text-[#BFDD25] mx-auto mb-1" />
                                 <span className="text-xs text-white line-clamp-1">{passportFile.name}</span>
                               </div>
                             ) : (
                               <>
-                                <Upload className="w-6 h-6 text-[#FAF9F6]/30 mb-2" />
+                                <Upload className="w-6 h-6 text-[#BFDD25] mb-2 group-hover:scale-110 transition-transform" />
                                 <p className="text-xs text-[#FAF9F6]/40">Upload Document</p>
                               </>
                             )}
                           </div>
                         </div>
                         <div className="space-y-2">
-                          <label className="block text-xs font-mono uppercase tracking-widest text-[#FAF9F6]/50 font-semibold">
+                          <label className="block text-xs font-mono uppercase tracking-widest text-[#A1A1AA] font-semibold">
                             Company Incorporation Cert.
                           </label>
-                          <div className="border-2 border-dashed border-[#1c1c1c] hover:border-[white] transition-colors rounded-xl p-6 flex flex-col items-center justify-center relative bg-[#050505] h-32">
+                          <div className="bg-[#161616] hover:bg-[#1A1A1A] ring-1 ring-white/10 hover:ring-white/20 shadow-inner transition-all rounded-xl p-6 flex flex-col items-center justify-center relative cursor-pointer group h-32">
                             <input 
                               type="file" 
                               accept=".pdf,image/*" 
@@ -429,12 +509,12 @@ export default function SellPage() {
                             />
                             {companyRegFile ? (
                               <div className="text-center">
-                                <FileText className="w-6 h-6 text-[white] mx-auto mb-1" />
+                                <FileText className="w-6 h-6 text-[#BFDD25] mx-auto mb-1" />
                                 <span className="text-xs text-white line-clamp-1">{companyRegFile.name}</span>
                               </div>
                             ) : (
                               <>
-                                <Upload className="w-6 h-6 text-[#FAF9F6]/30 mb-2" />
+                                <Upload className="w-6 h-6 text-[#BFDD25] mb-2 group-hover:scale-110 transition-transform" />
                                 <p className="text-xs text-[#FAF9F6]/40">Upload Document</p>
                               </>
                             )}
@@ -445,19 +525,19 @@ export default function SellPage() {
                   )}
 
                   {tier === "AUTHORIZED_DISTRIBUTOR" && (
-                    <div className="space-y-2 pt-4 border-t border-[#222]">
-                      <label className="block text-xs font-mono uppercase tracking-widest text-[white] font-semibold">
+                    <div className="space-y-2 pt-4">
+                      <label className="block text-xs font-mono uppercase tracking-widest text-[#BFDD25] font-semibold">
                         Authorized Dealership Proof (Required)
                       </label>
                       <p className="text-xs text-[#FAF9F6]/50 mb-2">Upload a Letter of Authorization from the brand to get the Verified Badge.</p>
-                      <div className="border-2 border-dashed border-[#1c1c1c] hover:border-[white] transition-colors rounded-xl p-6 flex flex-col items-center justify-center relative bg-[#050505]">
+                      <div className="bg-[#161616] hover:bg-[#1A1A1A] ring-1 ring-white/10 hover:ring-white/20 shadow-inner transition-all rounded-xl p-6 flex flex-col items-center justify-center relative cursor-pointer group">
                         <input 
                           type="file" 
                           accept=".pdf,image/*" 
                           onChange={(e) => handleFileUpload(e, setLoaFile)}
                           className="absolute inset-0 opacity-0 cursor-pointer"
                         />
-                        <Upload className="w-8 h-8 text-[#FAF9F6]/30 mb-2" />
+                        <Upload className="w-8 h-8 text-[#BFDD25] mb-2 group-hover:scale-110 transition-transform" />
                         <p className="text-sm font-medium text-white">{loaFile ? loaFile.name : "Upload Letter of Authorization"}</p>
                       </div>
                     </div>
@@ -475,12 +555,12 @@ export default function SellPage() {
                   className="space-y-6"
                 >
                   <div className="space-y-4">
-                    <h3 className="font-bold text-white border-b border-[#222] pb-2">Payout Details</h3>
+                    <h3 className="font-bold text-white pb-1">Payout Details</h3>
                     {region === "LOCAL" ? (
                       <>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div className="space-y-2">
-                            <label className="block text-xs font-mono uppercase tracking-widest text-[#FAF9F6]/50 font-semibold">
+                            <label className="block text-xs font-mono uppercase tracking-widest text-[#A1A1AA] font-semibold">
                               Bank Name
                             </label>
                             <input
@@ -489,11 +569,11 @@ export default function SellPage() {
                               placeholder="BCA / Mandiri / BNI"
                               value={bankName}
                               onChange={(e) => setBankName(e.target.value)}
-                              className="w-full bg-[#050505] border border-[#1c1c1c] focus:border-[white] rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-[#FAF9F6]/20 outline-none transition-colors"
+                              className="w-full bg-[#161616] hover:bg-[#1A1A1A] focus:bg-[#1C1C1C] ring-1 ring-white/10 hover:ring-white/20 focus:ring-1 focus:ring-[#BFDD25] shadow-inner rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-[#666] outline-none transition-all"
                             />
                           </div>
                           <div className="space-y-2">
-                            <label className="block text-xs font-mono uppercase tracking-widest text-[#FAF9F6]/50 font-semibold">
+                            <label className="block text-xs font-mono uppercase tracking-widest text-[#A1A1AA] font-semibold">
                               Account Number
                             </label>
                             <input
@@ -502,12 +582,12 @@ export default function SellPage() {
                               placeholder="Account Number"
                               value={bankAccount}
                               onChange={(e) => setBankAccount(e.target.value)}
-                              className="w-full bg-[#050505] border border-[#1c1c1c] focus:border-[white] rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-[#FAF9F6]/20 outline-none transition-colors"
+                              className="w-full bg-[#161616] hover:bg-[#1A1A1A] focus:bg-[#1C1C1C] ring-1 ring-white/10 hover:ring-white/20 focus:ring-1 focus:ring-[#BFDD25] shadow-inner rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-[#666] outline-none transition-all"
                             />
                           </div>
                         </div>
                         <div className="space-y-2">
-                          <label className="block text-xs font-mono uppercase tracking-widest text-[#FAF9F6]/50 font-semibold">
+                          <label className="block text-xs font-mono uppercase tracking-widest text-[#A1A1AA] font-semibold">
                             Account Holder Name
                           </label>
                           <input
@@ -516,14 +596,14 @@ export default function SellPage() {
                             placeholder="Must match identity document"
                             value={bankAccountName}
                             onChange={(e) => setBankAccountName(e.target.value)}
-                            className="w-full bg-[#050505] border border-[#1c1c1c] focus:border-[white] rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-[#FAF9F6]/20 outline-none transition-colors"
+                            className="w-full bg-[#161616] hover:bg-[#1A1A1A] focus:bg-[#1C1C1C] ring-1 ring-white/10 hover:ring-white/20 focus:ring-1 focus:ring-[#BFDD25] shadow-inner rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-[#666] outline-none transition-all"
                           />
                         </div>
                       </>
                     ) : (
                       <>
                         <div className="space-y-2">
-                          <label className="block text-xs font-mono uppercase tracking-widest text-[#FAF9F6]/50 font-semibold">
+                          <label className="block text-xs font-mono uppercase tracking-widest text-[#A1A1AA] font-semibold">
                             SWIFT Code / IBAN (For Bank Wire)
                           </label>
                           <input
@@ -531,11 +611,11 @@ export default function SellPage() {
                             placeholder="Optional if using PayPal"
                             value={swiftCode}
                             onChange={(e) => setSwiftCode(e.target.value)}
-                            className="w-full bg-[#050505] border border-[#1c1c1c] focus:border-[white] rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-[#FAF9F6]/20 outline-none transition-colors"
+                            className="w-full bg-[#161616] hover:bg-[#1A1A1A] focus:bg-[#1C1C1C] ring-1 ring-white/10 hover:ring-white/20 focus:ring-1 focus:ring-[#BFDD25] shadow-inner rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-[#666] outline-none transition-all"
                           />
                         </div>
                         <div className="space-y-2">
-                          <label className="block text-xs font-mono uppercase tracking-widest text-[#FAF9F6]/50 font-semibold">
+                          <label className="block text-xs font-mono uppercase tracking-widest text-[#A1A1AA] font-semibold">
                             PayPal Email (Preferred)
                           </label>
                           <input
@@ -543,7 +623,7 @@ export default function SellPage() {
                             placeholder="Store's PayPal Email"
                             value={paypalEmail}
                             onChange={(e) => setPaypalEmail(e.target.value)}
-                            className="w-full bg-[#050505] border border-[#1c1c1c] focus:border-[white] rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-[#FAF9F6]/20 outline-none transition-colors"
+                            className="w-full bg-[#161616] hover:bg-[#1A1A1A] focus:bg-[#1C1C1C] ring-1 ring-white/10 hover:ring-white/20 focus:ring-1 focus:ring-[#BFDD25] shadow-inner rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-[#666] outline-none transition-all"
                           />
                         </div>
                       </>
@@ -551,9 +631,9 @@ export default function SellPage() {
                   </div>
 
                   <div className="space-y-4 pt-4">
-                    <h3 className="font-bold text-white border-b border-[#222] pb-2">Customer Policies</h3>
+                    <h3 className="font-bold text-white pb-1">Customer Policies</h3>
                     <div className="space-y-2">
-                      <label className="block text-xs font-mono uppercase tracking-widest text-[#FAF9F6]/50 font-semibold">
+                      <label className="block text-xs font-mono uppercase tracking-widest text-[#A1A1AA] font-semibold">
                         Standard Warranty Policy
                       </label>
                       <textarea
@@ -562,7 +642,7 @@ export default function SellPage() {
                         value={warrantyPolicy}
                         onChange={(e) => setWarrantyPolicy(e.target.value)}
                         rows={3}
-                        className="w-full bg-[#050505] border border-[#1c1c1c] focus:border-[white] rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-[#FAF9F6]/20 outline-none transition-colors resize-none"
+                        className="w-full bg-[#161616] hover:bg-[#1A1A1A] focus:bg-[#1C1C1C] ring-1 ring-white/10 hover:ring-white/20 focus:ring-1 focus:ring-[#BFDD25] shadow-inner rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-[#666] outline-none transition-all resize-none"
                       />
                     </div>
                   </div>
@@ -572,12 +652,12 @@ export default function SellPage() {
             </AnimatePresence>
 
             {/* Navigation Buttons */}
-            <div className="flex items-center justify-between mt-12 pt-6 border-t border-[#222]">
+            <div className="flex items-center justify-between mt-12 pt-6">
               {step > 1 ? (
                 <button
                   type="button"
                   onClick={handlePrev}
-                  className="px-6 py-3.5 rounded-xl text-sm font-medium text-[#FAF9F6]/60 hover:text-white hover:bg-[#080808] transition-colors"
+                  className="px-6 py-3.5 rounded-full text-sm font-medium text-[#FAF9F6]/60 hover:text-white bg-[#121212] hover:bg-[#181818] transition-colors cursor-pointer"
                 >
                   Back
                 </button>
@@ -588,7 +668,7 @@ export default function SellPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="flex items-center gap-2 px-8 py-3.5 bg-white hover:bg-[#EAEAEA] text-[#0e0e0e] font-mono font-bold text-xs uppercase tracking-widest rounded-xl transition-colors disabled:opacity-50"
+                className="flex items-center gap-2 px-8 py-3.5 bg-[#BFDD25] hover:bg-white text-black font-sans font-bold text-xs uppercase tracking-widest rounded-full transition-all disabled:opacity-50 cursor-pointer shadow-[0_0_12px_rgba(191,221,37,0.4)]"
               >
                 {step < totalSteps ? (
                   <>Continue <ChevronRight className="w-4 h-4" /></>

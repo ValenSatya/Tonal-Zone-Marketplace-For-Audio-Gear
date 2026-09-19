@@ -26,9 +26,18 @@ export async function POST(
       );
     }
 
+    // Otomatis ubah status menjadi DELIVERED setelah 3 detik agar customer bisa langsung review
+    setTimeout(async () => {
+      try {
+        await orderRepo.advanceTracking(id, "DELIVERED");
+      } catch (err) {
+        console.error("[Auto-Deliver 3s] Gagal mengubah status ke DELIVERED:", err);
+      }
+    }, 3000);
+
     return NextResponse.json({
       success: true,
-      message: `Resi ${waybillNumber} berhasil diinput. Status pesanan #${id} kini DALAM PENGIRIMAN (IN TRANSIT).`,
+      message: `Resi ${waybillNumber} berhasil diinput. Status pesanan #${id} kini DALAM PENGIRIMAN (IN TRANSIT) dan otomatis tiba di tujuan dalam 3 detik untuk ulasan pembeli.`,
       order: updated,
     });
   } catch (error: unknown) {

@@ -11,6 +11,7 @@ interface MotionButtonProps {
   className?: string;
   variant?: "neon" | "neon-dark" | "dark" | "light" | "white";
   type?: "button" | "submit" | "reset";
+  disabled?: boolean;
 }
 
 export default function MotionButton({
@@ -20,6 +21,7 @@ export default function MotionButton({
   className = "",
   variant = "neon",
   type = "button",
+  disabled = false,
 }: MotionButtonProps) {
   const baseStyles =
     "relative inline-flex items-center justify-center font-mono font-bold text-xs uppercase tracking-[0.2em] py-4 px-6 overflow-hidden cursor-pointer select-none transition-colors duration-300";
@@ -98,12 +100,15 @@ export default function MotionButton({
   return (
     <motion.button
       type={type}
-      onClick={onClick}
+      disabled={disabled}
+      onClick={disabled ? undefined : onClick}
       variants={containerVariants}
       initial="initial"
-      whileHover="hover"
-      whileTap="tap"
-      className={`${baseStyles} ${defaultBg} ${className} group`}
+      whileHover={disabled ? undefined : "hover"}
+      whileTap={disabled ? undefined : "tap"}
+      className={`${baseStyles} ${defaultBg} ${className} group ${
+        disabled ? "opacity-40 cursor-not-allowed pointer-events-none" : ""
+      }`}
     >
       {content}
     </motion.button>

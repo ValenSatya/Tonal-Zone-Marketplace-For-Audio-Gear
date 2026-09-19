@@ -4,11 +4,24 @@ export interface UserSessionPayload {
   id: string;
   email: string;
   name?: string;
+  avatar?: string;
   role: UserRole;
   isSeller?: boolean;
   sellerStatus?: "NONE" | "PENDING" | "APPROVED" | "REJECTED" | "SUSPENDED";
   location?: string;
   language?: string;
+}
+
+/**
+ * Sanitizes avatar URL to ensure base64 image strings or oversized URLs
+ * never get saved into HTTP cookies, which causes HTTP 431 Request Header Fields Too Large.
+ */
+export function sanitizeAvatarForCookie(avatar?: string | null): string {
+  if (!avatar) return "/placeholder.svg";
+  if (avatar.startsWith("data:") || avatar.length > 512) {
+    return "/placeholder.svg";
+  }
+  return avatar;
 }
 
 export interface RouteAccessResult {

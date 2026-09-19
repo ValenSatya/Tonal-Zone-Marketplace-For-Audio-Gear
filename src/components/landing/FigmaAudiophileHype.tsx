@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { fetchProductByIdFromDb, CatalogProduct } from "@/lib/products-db";
 import { useLocation } from "@/context/LocationContext";
+import { KeyboardArrowRight } from "@/components/ui/keyboard-arrow";
 
 export default function FigmaAudiophileHype() {
   const [product, setProduct] = useState<CatalogProduct | null>(null);
@@ -25,7 +26,7 @@ export default function FigmaAudiophileHype() {
 
   return (
     <section id="collab" className="w-full bg-[#030303] py-32 lg:py-40 scroll-mt-20">
-      <div className="w-full max-w-[1500px] mx-auto px-6 sm:px-10 lg:px-16">
+      <div className="w-full max-w-[1360px] mx-auto px-5 sm:px-8 lg:px-12">
         {/* Main 2-Column Grid: Left Container + Right Container */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
           {/* Left Column */}
@@ -168,7 +169,7 @@ export default function FigmaAudiophileHype() {
 
                 <div className="flex items-center justify-between text-[#c4c7c8] group-hover:text-[#BFDD25] transition-colors pt-4 border-t border-[#222222]">
                   <span className="font-sans text-xs uppercase tracking-widest font-semibold">Buka Halaman Produk</span>
-                  <span className="text-lg">→</span>
+                  <KeyboardArrowRight className="w-5 h-5 stroke-[2.5] group-hover:translate-x-0.5 transition-transform" />
                 </div>
               </Link>
             </div>

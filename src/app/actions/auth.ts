@@ -3,6 +3,7 @@
 import { userRepo } from "@/lib/supabase-db";
 import { createClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
+import { sanitizeAvatarForCookie } from "@/lib/auth/roles";
 
 export interface AuthSessionResponse {
   success: boolean;
@@ -61,17 +62,27 @@ export async function signUpUser(data: {
 
     let userId = authData?.user?.id;
 
-    // If Supabase user already exists, try logging in
+    // If Supabase Auth error occurs (e.g. user already exists, or email rate limit exceeded)
     if (authError) {
+      // 1. Try logging in if the user already exists
       const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      if (loginError || !loginData.user) {
-        return { success: false, error: authError.message || "Gagal membuat akun Supabase." };
+      if (loginData?.user) {
+        userId = loginData.user.id;
+      } else {
+        const errorMsg = (authError.message || "").toLowerCase();
+        const isRateLimit = errorMsg.includes("rate limit") || (authError as any).status === 429;
+
+        if (isRateLimit) {
+          console.warn("[Auth] Supabase email rate limit reached. Falling back to direct database user registration for:", email);
+          userId = "usr-" + Date.now() + "-" + Math.random().toString(36).substring(2, 7);
+        } else {
+          return { success: false, error: authError.message || "Gagal membuat akun Supabase." };
+        }
       }
-      userId = loginData.user.id;
     }
 
     if (!userId) {
@@ -93,7 +104,7 @@ export async function signUpUser(data: {
       id: dbUser.id,
       name: dbUser.name || data.fullName.trim() || email.split("@")[0],
       email,
-      avatar: dbUser.avatar || "/placeholder.svg",
+      avatar: sanitizeAvatarForCookie(dbUser.avatar),
       role: (dbUser.role || "BUYER") as any,
       isSeller: dbUser.role === "SELLER" || dbUser.store?.status === "APPROVED",
       sellerStatus: dbUser.store?.status || "NONE",
@@ -175,7 +186,7 @@ export async function completeGoogleOnboarding(data: {
       id: dbUser.id,
       name: dbUser.name || data.fullName.trim(),
       email,
-      avatar: data.avatar || dbUser.avatar || "/placeholder.svg",
+      avatar: sanitizeAvatarForCookie(data.avatar || dbUser.avatar),
       role: (dbUser.role || "BUYER") as any,
       isSeller: dbUser.role === "SELLER" || dbUser.store?.status === "APPROVED",
       sellerStatus: dbUser.store?.status || "NONE",
@@ -249,11 +260,13 @@ export async function signInUser(data: { email: string; passwordRaw: string }): 
     const role = (dbUser?.role || (email.includes("admin") ? "ADMIN" : email.includes("seller") ? "SELLER" : "BUYER")) as any;
     const isSeller = role === "SELLER" || dbUser?.store?.status === "APPROVED";
 
+    const rawAvatar = dbUser?.avatar || authUserMeta.avatar_url || authUserMeta.picture || "/placeholder.svg";
+
     const sessionPayload = {
       id: dbUser?.id || userId || "usr-" + Date.now(),
       name: dbUser?.name || authUserMeta.full_name || email.split("@")[0],
       email,
-      avatar: dbUser?.avatar || "/placeholder.svg",
+      avatar: sanitizeAvatarForCookie(rawAvatar),
       role,
       isSeller,
       sellerStatus: dbUser?.store?.status || (isSeller ? "APPROVED" : "NONE"),
@@ -271,7 +284,10 @@ export async function signInUser(data: { email: string; passwordRaw: string }): 
 
     return {
       success: true,
-      user: sessionPayload,
+      user: {
+        ...sessionPayload,
+        avatar: rawAvatar,
+      },
     };
   } catch (error: unknown) {
     const errorMsg = error instanceof Error ? error.message : "Terjadi kesalahan saat login.";
@@ -289,13 +305,23 @@ export async function getAuthSession(): Promise<AuthSessionResponse> {
       try {
         const payload = JSON.parse(decodeURIComponent(sessionCookie));
         if (payload && payload.email) {
-          // Check live role from DB in case admin changed it in Supabase
+          // Check live user from DB in case avatar or role was updated in Supabase
           const dbUser = (await userRepo.findByEmail(payload.email)) || (payload.id ? await userRepo.findById(payload.id) : null);
-          if (dbUser && dbUser.role) {
-            payload.role = dbUser.role;
-            if (payload.role === "ADMIN") {
-              payload.isSeller = true;
+          if (dbUser) {
+            if (dbUser.role) {
+              payload.role = dbUser.role;
+              if (payload.role === "ADMIN") {
+                payload.isSeller = true;
+              }
             }
+            // Hydrate true avatar from database (overcoming cookie size limit truncation)
+            if (dbUser.avatar && dbUser.avatar !== "/placeholder.svg") {
+              payload.avatar = dbUser.avatar;
+            }
+            if (dbUser.name) payload.name = dbUser.name;
+            if (dbUser.tuningPreference) payload.tuning = dbUser.tuningPreference;
+            if (dbUser.location) payload.location = dbUser.location;
+            if (dbUser.language) payload.language = dbUser.language;
           }
           if (payload.email.includes("valenandra") || payload.email.includes("admin")) {
             payload.role = "ADMIN";
@@ -318,11 +344,15 @@ export async function getAuthSession(): Promise<AuthSessionResponse> {
       const dbUser = (await userRepo.findByEmail(email)) || (await userRepo.findById(u.id));
       const finalRole = ((dbUser?.role) || (email.includes("admin") || email.includes("valenandra") ? "ADMIN" : email.includes("seller") ? "SELLER" : "BUYER")) as any;
 
+      const resolvedAvatar = (dbUser?.avatar && dbUser.avatar !== "/placeholder.svg")
+        ? dbUser.avatar
+        : (meta.avatar_url || meta.picture || "/placeholder.svg");
+
       const sessionPayload = {
         id: dbUser?.id || u.id,
         name: dbUser?.name || meta.full_name || meta.name || email.split("@")[0],
         email,
-        avatar: dbUser?.avatar || meta.avatar_url || meta.picture || "/placeholder.svg",
+        avatar: sanitizeAvatarForCookie(resolvedAvatar),
         role: finalRole,
         isSeller: finalRole === "ADMIN" || dbUser?.role === "SELLER" || dbUser?.store?.status === "APPROVED",
         sellerStatus: dbUser?.store?.status || "NONE",
@@ -338,7 +368,13 @@ export async function getAuthSession(): Promise<AuthSessionResponse> {
         sameSite: "lax",
       });
 
-      return { success: true, user: sessionPayload };
+      return {
+        success: true,
+        user: {
+          ...sessionPayload,
+          avatar: resolvedAvatar,
+        },
+      };
     }
 
     return { success: false };

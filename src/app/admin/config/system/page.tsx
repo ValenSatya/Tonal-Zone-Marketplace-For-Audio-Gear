@@ -1,45 +1,47 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useLanguage } from "@/context/LanguageContext";
+import { useAdminData } from "@/context/AdminDataContext";
 import CustomSelect from "@/components/ui/custom-select";
 
 export default function SystemSettingsPage() {
   const { language } = useLanguage();
   const isEn = language === "English";
+  const { systemSettings, updateSystemSettings } = useAdminData();
 
-  const [settings, setSettings] = useState({
-    escrowFeePercent: 1.5,
-    inspectionWindowHours: 48,
-    paymentGateway: "Midtrans (Snap Enterprise)",
-    environment: "Production (Live)",
-    autoDisburseEscrow: true,
-    maintenanceMode: false,
-    adminNotificationEmail: "security-ops@tonalzone.id",
-  });
+  const [settings, setSettings] = useState(systemSettings);
+
+  useEffect(() => {
+    if (systemSettings) {
+      setSettings(systemSettings);
+    }
+  }, [systemSettings]);
 
   const [isSaved, setIsSaved] = useState(false);
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
+    updateSystemSettings(settings);
     setIsSaved(true);
     setTimeout(() => setIsSaved(false), 2500);
   };
 
   return (
-    <form onSubmit={handleSave} className="space-y-6 text-[#FAF9F6] selection:bg-white selection:text-black">
+    <form onSubmit={handleSave} className="space-y-6 text-[#FAF9F6] selection:bg-[#BFDD25] selection:text-black">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#222] pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-[10px] font-mono font-medium bg-[#050505] text-[#A1A1AA] border border-[#27272A] px-2 py-0.5 rounded uppercase tracking-wider">
+          <div className="flex items-center gap-2 mb-1.5">
+            <span className="text-[10px] font-mono font-bold bg-[#141414] text-[#BFDD25] px-3 py-1 rounded-full uppercase tracking-wider inline-flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#BFDD25] shadow-[0_0_6px_rgba(191,221,37,0.8)]" />
               {isEn ? "Platform Core" : "Konfigurasi Inti"}
             </span>
           </div>
-          <h1 className="text-xl font-bold tracking-tight text-white font-sans">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white font-sans">
             {isEn ? "System & Escrow Gateway Settings" : "Pengaturan Sistem & Payment Gateway"}
           </h1>
-          <p className="text-xs text-[#71717A] font-sans mt-0.5">
+          <p className="text-xs text-[#888888] font-sans mt-1">
             {isEn
               ? "Configure marketplace escrow fee percentages, 2x24h inspection parameters, and payment gateway connectivity."
               : "Kelola potongan fee transaksi marketplace, masa garansi rekber 2x24 jam, dan integrasi Midtrans."}
@@ -48,7 +50,7 @@ export default function SystemSettingsPage() {
 
         <button
           type="submit"
-          className="inline-flex items-center gap-2 px-4 py-2 bg-[#FAF9F6] hover:bg-[#E5E5E5] text-black text-xs font-sans font-bold rounded-lg transition-all shadow-sm cursor-pointer"
+          className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#BFDD25] hover:bg-[#aecd20] text-black text-xs font-mono font-bold rounded-full transition-all shadow-[0_0_14px_rgba(191,221,37,0.3)] cursor-pointer w-fit shrink-0"
         >
           <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
@@ -58,8 +60,8 @@ export default function SystemSettingsPage() {
       </div>
 
       {isSaved && (
-        <div className="p-3.5 rounded-xl bg-[#050505] border border-[#2A2A2A] text-white text-xs font-mono flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-emerald-400" />
+        <div className="p-4 rounded-2xl bg-[#0A0A0A] text-white text-xs font-mono flex items-center gap-2.5 shadow-sm">
+          <span className="w-2 h-2 rounded-full bg-[#BFDD25] shadow-[0_0_8px_rgba(191,221,37,0.8)]" />
           {isEn ? "System configuration saved successfully." : "Konfigurasi sistem berhasil disimpan."}
         </div>
       )}
@@ -67,17 +69,17 @@ export default function SystemSettingsPage() {
       {/* Configuration Cards Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Card 1: Escrow & Marketplace Platform Parameters */}
-        <div className="bg-[#050505] border border-[#222222] rounded-xl p-5 space-y-4 font-sans text-xs">
-          <div className="flex items-center gap-2 pb-2 border-b border-[#1E1E1E]">
-            <span className="w-1.5 h-1.5 rounded-full bg-white" />
-            <h3 className="text-xs font-bold text-white uppercase tracking-wider">
+        <div className="bg-[#0A0A0A] rounded-2xl p-6 space-y-5 font-sans text-xs shadow-sm">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-[#BFDD25] shadow-[0_0_6px_rgba(191,221,37,0.8)]" />
+            <h3 className="text-xs font-bold text-white uppercase tracking-wider font-mono">
               {isEn ? "1. Escrow & Inspection Rules" : "1. Parameter Rekening Bersama (Escrow)"}
             </h3>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-4">
             <div>
-              <label className="block text-[11px] font-mono text-[#71717A] uppercase mb-1">
+              <label className="block text-[11px] font-mono text-[#888888] uppercase tracking-wider mb-1.5">
                 {isEn ? "Marketplace Service Fee (%)" : "Biaya Layanan Rekber (%)"}
               </label>
               <input
@@ -85,21 +87,21 @@ export default function SystemSettingsPage() {
                 step="0.1"
                 value={settings.escrowFeePercent}
                 onChange={(e) => setSettings({ ...settings, escrowFeePercent: parseFloat(e.target.value) || 0 })}
-                className="w-full bg-[#050505] border border-[#2A2A2A] rounded-lg px-3.5 py-2 text-xs font-mono text-white outline-none focus:border-white"
+                className="w-full bg-[#141414] focus:bg-[#181818] rounded-xl px-4 py-2.5 text-xs font-mono text-white outline-none focus:ring-1 focus:ring-[#BFDD25] transition-all"
               />
             </div>
 
             <div>
-              <label className="block text-[11px] font-mono text-[#71717A] uppercase mb-1">
+              <label className="block text-[11px] font-mono text-[#888888] uppercase tracking-wider mb-1.5">
                 {isEn ? "Acoustic Inspection Window (Hours)" : "Masa Uji Coba Suara Pembeli (Jam)"}
               </label>
               <input
                 type="number"
                 value={settings.inspectionWindowHours}
                 onChange={(e) => setSettings({ ...settings, inspectionWindowHours: parseInt(e.target.value, 10) || 0 })}
-                className="w-full bg-[#050505] border border-[#2A2A2A] rounded-lg px-3.5 py-2 text-xs font-mono text-white outline-none focus:border-white"
+                className="w-full bg-[#141414] focus:bg-[#181818] rounded-xl px-4 py-2.5 text-xs font-mono text-white outline-none focus:ring-1 focus:ring-[#BFDD25] transition-all"
               />
-              <p className="text-[10px] font-mono text-[#52525B] mt-1">
+              <p className="text-[10px] font-mono text-[#666666] mt-1.5">
                 Standard: 48 Hours (2x24 Jam) for IEM listening test & seal verification.
               </p>
             </div>
@@ -107,17 +109,17 @@ export default function SystemSettingsPage() {
         </div>
 
         {/* Card 2: Payment Gateway & Security */}
-        <div className="bg-[#050505] border border-[#222222] rounded-xl p-5 space-y-4 font-sans text-xs">
-          <div className="flex items-center gap-2 pb-2 border-b border-[#1E1E1E]">
-            <span className="w-1.5 h-1.5 rounded-full bg-white" />
-            <h3 className="text-xs font-bold text-white uppercase tracking-wider">
+        <div className="bg-[#0A0A0A] rounded-2xl p-6 space-y-5 font-sans text-xs shadow-sm">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-[#BFDD25] shadow-[0_0_6px_rgba(191,221,37,0.8)]" />
+            <h3 className="text-xs font-bold text-white uppercase tracking-wider font-mono">
               {isEn ? "2. Gateway & Security Environment" : "2. Payment Gateway & Keamanan"}
             </h3>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-4">
             <div>
-              <label className="block text-[11px] font-mono text-[#71717A] uppercase mb-1">
+              <label className="block text-[11px] font-mono text-[#888888] uppercase tracking-wider mb-1.5">
                 {isEn ? "Active Payment Gateway" : "Payment Gateway Aktif"}
               </label>
               <CustomSelect
@@ -132,14 +134,14 @@ export default function SystemSettingsPage() {
             </div>
 
             <div>
-              <label className="block text-[11px] font-mono text-[#71717A] uppercase mb-1">
+              <label className="block text-[11px] font-mono text-[#888888] uppercase tracking-wider mb-1.5">
                 {isEn ? "Security Ops Alert Email" : "Email Notifikasi Keamanan"}
               </label>
               <input
                 type="email"
                 value={settings.adminNotificationEmail}
                 onChange={(e) => setSettings({ ...settings, adminNotificationEmail: e.target.value })}
-                className="w-full bg-[#050505] border border-[#2A2A2A] rounded-lg px-3.5 py-2 text-xs font-mono text-white outline-none focus:border-white"
+                className="w-full bg-[#141414] focus:bg-[#181818] rounded-xl px-4 py-2.5 text-xs font-mono text-white outline-none focus:ring-1 focus:ring-[#BFDD25] transition-all"
               />
             </div>
           </div>

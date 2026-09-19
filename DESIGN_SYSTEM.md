@@ -17,8 +17,7 @@ Tonal Zone mengusung estetika **Swiss Editorial Minimalism & Industrial Noir** y
 | **Surface Card** | `#050505` | Kontainer kartu, modul pilihan/tier, input box, dan item list. |
 | **Primary Text** | `#FAF9F6` | Teks utama, judul, dan elemen aktif berkontras tinggi. |
 | **Secondary Text** | `#8E8E93` / `#71717A` | Subjudul, deskripsi paragraf, dan metadata sekunder. |
-| **Hairline Dividers** | `#1C1C1C` / `#222222` | Garis batas struktural 1px yang halus dan tidak mencolok. |
-| **Accent Lime** | `#BFDD25` | Digunakan secara **sangat hemat** (tombol checkout utama, titik status aktif penting, highlight). |
+| **Accent Lime** | `#BFDD25` / `#D4FF00` | **Visual Fatigue Reduction Rule (Ala YouTube):** Digunakan **HANYA** pada: (1) Hover tombol CTA yang sangat penting (misal `Buy Now` / `Beli Sekarang`), (2) Tombol utama di Hero banner, dan (3) Logo Tonal Zone. **Sisanya murni hitam dan putih.** Tidak digunakan pada navbar hover, rating bars, border, atau badge biasa. |
 
 ---
 
@@ -36,11 +35,40 @@ Tonal Zone mengusung estetika **Swiss Editorial Minimalism & Industrial Noir** y
 
 ---
 
-## 4. Struktur Tata Letak (Layout Guidelines)
+## 4. Struktur Tata Letak & Sistem Corner Radius (Corner Radius & Nested System)
 
-* **Sudut Tajam (0px Border Radius):** Seluruh tombol, container, dan divider menggunakan `rounded-none`.
-* **Asymmetric Master-Detail:** Gunakan tata letak asimetris 2 kolom (contoh: 5 kolom untuk selector daftar tipografi, 7 kolom untuk visualisasi kurva & detail konten).
-* **Kontras Satu Nafas:** Pertahankan tema gelap pekat di seluruh alur halaman untuk menjaga konsistensi brand Tonal Zone.
+Berdasarkan prinsip *Strategic Border Radius & Concentric Nested Curves* (*Muzli, Designary, Design Bootcamp*):
+
+### A. Skala Radius Sistemik (Token Hierarchy)
+Hindari angka acak tanpa aturan. Gunakan skala proporsional yang selaras dengan hierarki ukuran komponen:
+
+| Token | Nilai Radius | Kategori & Peran Semantik | Contoh Penerapan |
+| :--- | :--- | :--- | :--- |
+| **`radius-xs`** | **`4px`** | Micro elements & nested thumbnails | Thumbnail gambar produk di dalam kartu produk |
+| **`radius-sm`** | **`8px`** | Nested inner controls ($R_{outer} - P = 8\text{px}$) | Frequency Zone bar di dalam kartu grafik, bilah kontrol audio dengan margin 16px, item list model |
+| **`radius-md`** | **`12px`** | Secondary nested containers ($24\text{px} - 12\text{px} = 12\text{px}$) | Dropdown menu items, selector cards, small modal widgets |
+| **`radius-lg`** | **`16px`** | Standalone medium cards | Kartu model audio, kartu editorial sound signature |
+| **`radius-xl`** | **`24px`** | Major containers & outer section canvas | Kontainer SVG grafik utama, container hero media, outer card comparator |
+| **`radius-pill`** | **`9999px` (`rounded-full`)** | Standalone interactive triggers & pills | Tombol CTA (Primary/Secondary), input search bar, filter tabs, toggle switches, badge probe |
+
+### B. Rumus Konsentris Elemen Bersarang (Perfect Nested Rounded Corners Formula)
+Ketika suatu elemen bersarang di dalam kontainer yang memiliki padding atau margin, **DILARANG menggunakan radius yang sama** karena akan menciptakan distorsi optik (sudut tampak menjepit / tidak alami).
+
+Gunakan rumus kelengkungan konsentris sempurna:
+$$\mathbf{R_{\text{inner}} = R_{\text{outer}} - \text{Padding}}$$
+$$\mathbf{R_{\text{outer}} = R_{\text{inner}} + \text{Padding}}$$
+
+* **Contoh:** Kontainer luar memiliki $R_{\text{outer}} = 24\text{px}$ dan padding/jarak $P = 16\text{px}$, maka elemen di dalamnya **wajib** memiliki $R_{\text{inner}} = 24 - 16 = \mathbf{8\text{px}}$.
+* Jika elemen berbentuk *Pill* (`rounded-full`) bersarang di dalam container pill dengan padding $4\text{px}$ (`p-1`), elemen dalam dan luar tetap konsentris sebagai full pill.
+
+### C. Zero Stroke / Zero Border pada Solid Background
+* Jika komponen menggunakan background solid (`#141414`, `#181818`, `#1e1e1e`, `#080808`, atau `bg-white`), **DILARANG memberikan garis tepi/border/stroke**.
+* Pemisahan visual dan kedalaman dicapai secara elegan melalui elevasi natural bayangan dan kontras warna bertingkat, bukan garis bingkai.
+
+### D. Hirarki Tombol (Button Styling)
+* **Primary CTA:** Tombol putih solid modern (`bg-white hover:bg-[#e8e8e8] text-[#131313] font-bold rounded-full shadow`), tanpa border.
+* **Secondary Action:** Tombol pill gelap minimalis (`bg-[#1e1e1e] hover:bg-[#282828] text-[#a0a0a0] hover:text-white rounded-full`), tanpa border.
+* **Icon Button:** Bulat sempurna (`rounded-full`) dengan background `#1e1e1e` atau `#242424`, tanpa border.
 
 ---
 

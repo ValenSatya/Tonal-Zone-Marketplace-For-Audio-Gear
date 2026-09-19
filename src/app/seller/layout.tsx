@@ -15,7 +15,6 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [currency, setCurrency] = useState<"IDR" | "USD">("IDR");
   const [sellerMode, setSellerMode] = useState<"RETAIL_MERCHANT" | "OFFICIAL_BRAND">("RETAIL_MERCHANT");
-  const [isModeDropdownOpen, setIsModeDropdownOpen] = useState(false);
 
   const [sellerData, setSellerData] = useState<{
     storeName: string;
@@ -33,16 +32,12 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
     brandName: "Official Store",
   });
 
-  const loadUserData = () => {
+  const loadUserData = async () => {
     const stored = localStorage.getItem("tonalzone_user");
     const savedCurrency = localStorage.getItem("tonalzone_seller_currency") as "IDR" | "USD" | null;
-    const savedMode = localStorage.getItem("tonalzone_seller_mode") as "RETAIL_MERCHANT" | "OFFICIAL_BRAND" | null;
 
     if (savedCurrency) {
       setCurrency(savedCurrency);
-    }
-    if (savedMode) {
-      setSellerMode(savedMode);
     }
 
     if (stored) {
@@ -54,19 +49,51 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
           setCurrency(u.storeCurrency);
         }
 
-        if (!savedMode && u.storeType) {
+        if (u.storeType) {
           setSellerMode(u.storeType);
         }
 
         setSellerData({
           storeName: u.storeName || (u.name ? `Toko ${u.name}` : "Toko Saya"),
-          ownerName: u.name || "Alexander Rivera",
+          ownerName: u.name || "Valen Satya",
           email: u.email || "seller@tonalzone.id",
           status: u.sellerStatus || (u.isSeller ? "APPROVED" : "APPROVED"),
           storeAvatar: u.storeAvatar || "",
-          brandName: u.brandName || u.storeName || "Official Brand",
+          brandName: u.brandName || (u.storeType === "OFFICIAL_BRAND" ? "MOONDROP" : "Official Store"),
         });
       } catch (e) {}
+    }
+
+    // Fetch verified store profile from backend Supabase API
+    try {
+      const res = await fetch("/api/seller/store");
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && data.store) {
+          const s = data.store;
+          const isBrand = s.storeType === "OFFICIAL_BRAND";
+          setSellerMode(isBrand ? "OFFICIAL_BRAND" : "RETAIL_MERCHANT");
+          setSellerData((prev) => ({
+            ...prev,
+            storeName: s.storeName || prev.storeName,
+            status: s.status || prev.status,
+            brandName: s.brandName || (isBrand ? "MOONDROP" : prev.brandName),
+          }));
+
+          if (stored) {
+            try {
+              const u = JSON.parse(stored);
+              u.storeId = s.id;
+              u.storeName = s.storeName;
+              u.storeType = s.storeType;
+              u.brandName = s.brandName;
+              localStorage.setItem("tonalzone_user", JSON.stringify(u));
+            } catch (err) {}
+          }
+        }
+      }
+    } catch (err) {
+      console.warn("Failed to load store profile:", err);
     }
   };
 
@@ -92,27 +119,6 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
     window.dispatchEvent(new Event("storage"));
   };
 
-  const handleModeChange = (newMode: "RETAIL_MERCHANT" | "OFFICIAL_BRAND") => {
-    setSellerMode(newMode);
-    setIsModeDropdownOpen(false);
-    localStorage.setItem("tonalzone_seller_mode", newMode);
-    try {
-      const stored = localStorage.getItem("tonalzone_user");
-      if (stored) {
-        const u = JSON.parse(stored);
-        u.storeType = newMode;
-        if (newMode === "OFFICIAL_BRAND") {
-          u.storeName = "TANGZU Audio Official";
-          u.brandName = "TANGZU Audio";
-        } else {
-          u.storeName = "AudioZone Official";
-        }
-        localStorage.setItem("tonalzone_user", JSON.stringify(u));
-      }
-    } catch (e) {}
-    window.dispatchEvent(new Event("storage"));
-  };
-
   // Compute Breadcrumb Trail
   const getBreadcrumbs = () => {
     const parts = pathname.split("/").filter(Boolean);
@@ -121,6 +127,10 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
     const breadcrumbs = [{ label: isEn ? "Seller Hub" : "Portal Penjual", path: "/seller" }];
     if (parts[1] === "orders") {
       breadcrumbs.push({ label: isEn ? "Orders & Shipments" : "Pesanan & Pengiriman", path: "/seller/orders" });
+    } else if (parts[1] === "returns") {
+      breadcrumbs.push({ label: isEn ? "Returns & Complaints" : "Retur & Komplain", path: "/seller/returns" });
+    } else if (parts[1] === "chat") {
+      breadcrumbs.push({ label: isEn ? "Customer Chat" : "Pesan & Chat Pembeli", path: "/seller/chat" });
     } else if (parts[1] === "products") {
       if (parts[2] === "new") {
         breadcrumbs.push({ label: isEn ? "Product Catalog" : "Katalog Produk", path: "/seller/products" });
@@ -148,52 +158,6 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
   const breadcrumbs = getBreadcrumbs();
 
   const NAV_SECTIONS = [
-    ...(sellerMode === "OFFICIAL_BRAND"
-      ? [
-          {
-            group: isEn ? "Brand Official Features" : "Fitur Khusus Brand Resmi",
-            items: [
-              {
-                label: isEn ? "Brand Profile" : "Profil & Cerita Brand",
-                path: "/seller/brand/profile",
-                icon: (
-                  <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-.778.099-1.533.284-2.253" />
-                  </svg>
-                ),
-              },
-              {
-                label: isEn ? "Acoustic Tuning Graph" : "Grafik Karakter Suara IEM",
-                path: "/seller/brand/curves",
-                icon: (
-                  <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
-                  </svg>
-                ),
-              },
-              {
-                label: isEn ? "Pre-Order Program" : "Program Pre-Order",
-                path: "/seller/brand/campaigns",
-                icon: (
-                  <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 18a3.75 3.75 0 00.495-7.467 5.99 5.99 0 00-1.925 3.546 5.974 5.974 0 01-2.133-1.401A3.75 3.75 0 0012 18z" />
-                  </svg>
-                ),
-              },
-              {
-                label: isEn ? "Distributor List" : "Daftar Toko & Distributor",
-                path: "/seller/brand/resellers",
-                icon: (
-                  <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z" />
-                  </svg>
-                ),
-              },
-            ],
-          },
-        ]
-      : []),
     {
       group: isEn ? "Main Menu" : "Menu Utama Toko",
       items: [
@@ -215,6 +179,24 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
           icon: (
             <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.175V3.375c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75" />
+            </svg>
+          ),
+        },
+        {
+          label: isEn ? "Returns & Complaints" : "Retur & Komplain",
+          path: "/seller/returns",
+          icon: (
+            <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+            </svg>
+          ),
+        },
+        {
+          label: isEn ? "Customer Chat" : "Pesan & Chat Pembeli",
+          path: "/seller/chat",
+          icon: (
+            <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a.75.75 0 01-.818-.836 5.86 5.86 0 01.99-2.73C4.062 16.035 3 14.12 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z" />
             </svg>
           ),
         },
@@ -272,13 +254,13 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
   ];
 
   return (
-    <div className="min-h-screen bg-[#030303] text-[#FAF9F6] font-sans selection:bg-[#050505] selection:text-[#FAF9F6] flex">
+    <div className="min-h-screen bg-[#000000] text-[#FAF9F6] font-sans selection:bg-[#141414] selection:text-[#FAF9F6] flex">
       {/* Sidebar (Desktop) */}
-      <aside className="w-64 border-r border-[#1E1E1E] bg-[#030303] flex flex-col shrink-0 min-h-screen sticky top-0 h-screen hidden md:flex z-30">
+      <aside className="w-64 bg-[#060606] flex flex-col shrink-0 min-h-screen sticky top-0 h-screen hidden md:flex z-30">
         {/* Brand Header */}
-        <div className="h-14 flex items-center justify-between px-5 border-b border-[#1E1E1E] shrink-0">
+        <div className="h-14 flex items-center justify-between px-5 shrink-0">
           <Link href="/seller" className="flex items-center gap-2.5 group">
-            <div className="w-5 h-5 bg-[#FAF9F6] rounded flex items-center justify-center text-black font-bold text-[10px] tracking-tighter">
+            <div className="w-6 h-6 bg-[#FAF9F6] rounded-lg flex items-center justify-center text-black font-bold text-[10px] tracking-tighter">
               TZ
             </div>
             <span className="font-mono font-semibold text-xs tracking-wider text-[#FAF9F6]">
@@ -286,12 +268,12 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
             </span>
           </Link>
           {sellerMode === "OFFICIAL_BRAND" ? (
-            <span className="text-[10px] font-mono font-medium text-[#FAF9F6] bg-[#050505] px-2 py-0.5 rounded border border-[#2A2A2A] flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-white" /> BRAND HUB
+            <span className="text-[10px] font-mono font-medium text-[#FAF9F6] bg-[#121212] px-2.5 py-0.5 rounded-full flex items-center gap-1.5">
+              BRAND HUB
             </span>
           ) : (
-            <span className="text-[10px] font-mono font-medium text-[#FAF9F6] bg-[#050505] px-2 py-0.5 rounded border border-[#2A2A2A] flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" /> SELLER HUB
+            <span className="text-[10px] font-mono font-medium text-[#FAF9F6] bg-[#121212] px-2.5 py-0.5 rounded-full flex items-center gap-1.5">
+              SELLER HUB
             </span>
           )}
         </div>
@@ -309,10 +291,10 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
                   <Link
                     key={item.path}
                     href={item.path}
-                    className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs font-sans transition-all duration-150 border ${
+                    className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-sans transition-all duration-150 ${
                       isActive
-                        ? "bg-[#050505] text-[#FAF9F6] font-semibold border-[#383838] shadow-sm"
-                        : "text-[#8E8E93] hover:text-[#FAF9F6] hover:bg-[#050505] border-transparent"
+                        ? "bg-[#141414] text-[#FAF9F6] font-semibold shadow-sm"
+                        : "text-[#8E8E93] hover:text-[#FAF9F6] hover:bg-[#0A0A0A]"
                     }`}
                   >
                     <div className="flex items-center gap-2.5">
@@ -321,9 +303,6 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
                       </span>
                       <span>{item.label}</span>
                     </div>
-                    {isActive && (
-                      <span className="w-1.5 h-1.5 rounded-full bg-white"></span>
-                    )}
                   </Link>
                 );
               })}
@@ -332,12 +311,12 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
         </div>
 
         {/* Store Profile Card Footer */}
-        <div className="p-3 border-t border-[#1E1E1E] bg-[#030303] shrink-0">
+        <div className="p-3 bg-[#060606] shrink-0">
           <Link
             href="/seller/settings"
-            className="flex items-center gap-3 px-2 py-1.5 rounded-lg bg-[#050505] hover:bg-[#050505] border border-[#222] hover:border-[#333] transition-colors"
+            className="flex items-center gap-3 px-3 py-2 rounded-2xl bg-[#0A0A0A] hover:bg-[#121212] transition-colors"
           >
-            <div className="w-8 h-8 rounded-lg bg-[#050505] border border-[#333] overflow-hidden flex items-center justify-center font-mono font-bold text-xs text-white shrink-0">
+            <div className="w-8 h-8 rounded-xl bg-[#161616] overflow-hidden flex items-center justify-center font-mono font-bold text-xs text-white shrink-0">
               {sellerData.storeAvatar ? (
                 <img src={sellerData.storeAvatar} alt="Avatar" className="w-full h-full object-cover" />
               ) : (
@@ -351,12 +330,12 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
                 </p>
                 <span
                   className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-                    sellerMode === "OFFICIAL_BRAND" ? "bg-white" : "bg-emerald-400"
+                    sellerMode === "OFFICIAL_BRAND" ? "bg-white" : "bg-[#BFDD25]"
                   }`}
                   title={sellerMode === "OFFICIAL_BRAND" ? "Official Brand" : "Verified Merchant"}
                 />
               </div>
-              <p className="text-[10px] font-mono text-[#888] truncate">
+              <p className="text-[10px] font-mono text-[#8E8E93] truncate">
                 {sellerData.email}
               </p>
             </div>
@@ -367,13 +346,13 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden min-h-screen">
         {/* Top Header */}
-        <header className="h-14 flex items-center px-4 sm:px-6 justify-between sticky top-0 z-20 bg-[#030303]/90 backdrop-blur-md border-b border-[#1E1E1E] gap-4">
+        <header className="h-14 flex items-center px-4 sm:px-6 justify-between sticky top-0 z-20 bg-[#000000]/80 backdrop-blur-md gap-4">
           {/* Mobile hamburger & Breadcrumbs */}
           <div className="flex items-center gap-3 min-w-0">
             <button
               type="button"
               onClick={() => setIsMobileSidebarOpen(true)}
-              className="p-1.5 rounded-lg text-[#8E8E93] hover:text-[#FAF9F6] hover:bg-[#050505] md:hidden focus:outline-none"
+              className="p-1.5 rounded-lg text-[#8E8E93] hover:text-[#FAF9F6] hover:bg-[#0A0A0A] md:hidden focus:outline-none cursor-pointer"
               aria-label="Open sidebar menu"
             >
               <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -396,75 +375,27 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
 
           {/* Right Header Controls: Mode Switcher, Currency Toggle, Language Switcher, Notifications, Public Store Link */}
           <div className="flex items-center gap-2 sm:gap-2.5">
-            {/* Account Mode Switcher (Merchant ⇄ Official Brand) */}
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setIsModeDropdownOpen(!isModeDropdownOpen)}
-                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-mono font-medium bg-[#050505] text-[#FAF9F6] border border-[#2E2E2E] hover:bg-[#050505] transition-colors cursor-pointer"
-              >
-                <span className={`w-1.5 h-1.5 rounded-full ${sellerMode === "OFFICIAL_BRAND" ? "bg-white" : "bg-emerald-400"}`} />
-                <span className="hidden sm:inline">
-                  {sellerMode === "OFFICIAL_BRAND" ? "Mode: Brand Resmi" : "Mode: Toko Retail"}
-                </span>
-                <span className="sm:hidden">
-                  {sellerMode === "OFFICIAL_BRAND" ? "Brand" : "Retail"}
-                </span>
-                <svg width="10" height="10" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" className="ml-0.5 text-[#71717A]">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-                </svg>
-              </button>
-
-              <AnimatePresence>
-                {isModeDropdownOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 5 }}
-                    className="absolute right-0 mt-1.5 w-60 bg-[#050505] border border-[#2E2E2E] rounded-xl shadow-2xl p-1.5 z-50 font-sans text-xs space-y-1"
-                  >
-                    <div className="px-2.5 py-1.5 text-[10px] font-mono uppercase text-[#71717A] border-b border-[#222]">
-                      {isEn ? "Select Store Type" : "Pilih Tipe Toko"}
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => handleModeChange("RETAIL_MERCHANT")}
-                      className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-left transition-colors cursor-pointer ${
-                        sellerMode === "RETAIL_MERCHANT" ? "bg-[#050505] text-white font-semibold" : "text-[#A1A1AA] hover:bg-[#050505] hover:text-white"
-                      }`}
-                    >
-                      <div>
-                        <p className="text-xs font-medium text-white">Toko Penjual / Retail</p>
-                        <p className="text-[10px] font-mono text-[#71717A]">Penjualan umum & inventaris</p>
-                      </div>
-                      {sellerMode === "RETAIL_MERCHANT" && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleModeChange("OFFICIAL_BRAND")}
-                      className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-left transition-colors cursor-pointer ${
-                        sellerMode === "OFFICIAL_BRAND" ? "bg-[#050505] text-white font-semibold" : "text-[#A1A1AA] hover:bg-[#050505] hover:text-white"
-                      }`}
-                    >
-                      <div>
-                        <p className="text-xs font-medium text-white">Brand Resmi / Pabrikan</p>
-                        <p className="text-[10px] font-mono text-[#71717A]">Kurva tuning & rilis pre-order</p>
-                      </div>
-                      {sellerMode === "OFFICIAL_BRAND" && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
-                    </button>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+            {/* Store Type Badge */}
+            {sellerMode === "OFFICIAL_BRAND" ? (
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-mono font-medium bg-[#121212] text-[#FAF9F6]">
+                <span className="hidden sm:inline">BRAND RESMI: {sellerData.brandName || "MOONDROP"}</span>
+                <span className="sm:hidden">BRAND RESMI</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-mono font-medium bg-[#121212] text-[#FAF9F6]">
+                <span className="hidden sm:inline">{isEn ? "VERIFIED MERCHANT" : "TOKO RETAIL VERIFIKASI"}</span>
+                <span className="sm:hidden">RETAIL</span>
+              </div>
+            )}
 
             {/* Currency Switcher (IDR / USD) */}
-            <div className="flex items-center bg-[#050505] border border-[#1c1c1c] rounded-lg p-0.5 text-xs font-mono font-medium">
+            <div className="flex items-center bg-[#121212] rounded-full p-0.5 text-xs font-mono font-medium">
               <button
                 type="button"
                 onClick={() => handleCurrencyChange("IDR")}
-                className={`px-2 py-1 rounded transition-colors cursor-pointer ${
+                className={`px-2.5 py-1 rounded-full transition-all cursor-pointer ${
                   currency === "IDR"
-                    ? "bg-[#050505] text-white font-bold shadow-sm"
+                    ? "bg-[#222222] text-white font-bold shadow-sm"
                     : "text-[#71717A] hover:text-[#FAF9F6]"
                 }`}
                 title="Indonesian Rupiah (Rp)"
@@ -474,9 +405,9 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
               <button
                 type="button"
                 onClick={() => handleCurrencyChange("USD")}
-                className={`px-2 py-1 rounded transition-colors cursor-pointer ${
+                className={`px-2.5 py-1 rounded-full transition-all cursor-pointer ${
                   currency === "USD"
-                    ? "bg-[#050505] text-white font-bold shadow-sm"
+                    ? "bg-[#222222] text-white font-bold shadow-sm"
                     : "text-[#71717A] hover:text-[#FAF9F6]"
                 }`}
                 title="US Dollar ($)"
@@ -486,13 +417,13 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
             </div>
 
             {/* Language Switcher */}
-            <div className="flex items-center bg-[#050505] border border-[#1c1c1c] rounded-lg p-0.5 text-xs font-mono font-medium">
+            <div className="flex items-center bg-[#121212] rounded-full p-0.5 text-xs font-mono font-medium">
               <button
                 type="button"
                 onClick={() => setLanguage("English")}
-                className={`px-2 py-1 rounded transition-colors cursor-pointer ${
+                className={`px-2.5 py-1 rounded-full transition-all cursor-pointer ${
                   isEn
-                    ? "bg-[#050505] text-white font-bold shadow-sm"
+                    ? "bg-[#222222] text-white font-bold shadow-sm"
                     : "text-[#71717A] hover:text-[#FAF9F6]"
                 }`}
               >
@@ -501,9 +432,9 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
               <button
                 type="button"
                 onClick={() => setLanguage("Bahasa Indonesia")}
-                className={`px-2 py-1 rounded transition-colors cursor-pointer ${
+                className={`px-2.5 py-1 rounded-full transition-all cursor-pointer ${
                   !isEn
-                    ? "bg-[#050505] text-white font-bold shadow-sm"
+                    ? "bg-[#222222] text-white font-bold shadow-sm"
                     : "text-[#71717A] hover:text-[#FAF9F6]"
                 }`}
               >
@@ -515,7 +446,7 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
             <Link
               href="/collection"
               target="_blank"
-              className="hidden lg:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#050505] hover:bg-[#050505] border border-[#2E2E2E] text-xs font-mono text-[#8E8E93] hover:text-[#FAF9F6] transition-colors"
+              className="hidden lg:inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#121212] hover:bg-[#1E1E1E] text-xs font-mono text-[#8E8E93] hover:text-[#FAF9F6] transition-colors"
             >
               <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
@@ -527,6 +458,17 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
 
         {/* Content Body */}
         <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
+          {sellerData.status === "PENDING" && (
+            <div className="mb-6 p-4 rounded-2xl bg-[#121212] text-xs font-sans text-amber-200 flex items-start gap-3 shadow-lg">
+              <span className="w-2 h-2 rounded-full bg-amber-400 mt-1 shrink-0 animate-pulse" />
+              <div>
+                <p className="font-semibold text-white">Status Toko: Dalam Antrean Verifikasi Admin</p>
+                <p className="text-[#A1A1AA] mt-0.5">
+                  Toko Anda sedang diverifikasi oleh kurator TonalZone. Anda tetap dapat melengkapi profil toko dan menambahkan draf produk sebelum toko dipublikasikan secara resmi.
+                </p>
+              </div>
+            </div>
+          )}
           {children}
         </main>
       </div>
@@ -548,12 +490,12 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="relative w-72 bg-[#030303] border-r border-[#1E1E1E] flex flex-col h-full z-10"
+              className="relative w-72 bg-[#060606] flex flex-col h-full z-10"
             >
               {/* Mobile Drawer Header */}
-              <div className="h-14 flex items-center justify-between px-5 border-b border-[#1E1E1E] shrink-0">
+              <div className="h-14 flex items-center justify-between px-5 shrink-0">
                 <Link href="/seller" onClick={() => setIsMobileSidebarOpen(false)} className="flex items-center gap-2.5">
-                  <div className="w-5 h-5 bg-[#FAF9F6] rounded flex items-center justify-center text-black font-bold text-[10px]">
+                  <div className="w-6 h-6 bg-[#FAF9F6] rounded-lg flex items-center justify-center text-black font-bold text-[10px]">
                     TZ
                   </div>
                   <span className="font-mono font-semibold text-xs text-[#FAF9F6]">
@@ -563,7 +505,7 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
                 <button
                   type="button"
                   onClick={() => setIsMobileSidebarOpen(false)}
-                  className="p-1 rounded text-[#8E8E93] hover:text-white"
+                  className="p-1 rounded-lg text-[#8E8E93] hover:text-white"
                 >
                   <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -585,10 +527,10 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
                           key={item.path}
                           href={item.path}
                           onClick={() => setIsMobileSidebarOpen(false)}
-                          className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs font-sans border ${
+                          className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-sans transition-colors ${
                             isActive
-                              ? "bg-[#050505] text-[#FAF9F6] font-semibold border-[#383838]"
-                              : "text-[#8E8E93] hover:text-[#FAF9F6] border-transparent"
+                              ? "bg-[#141414] text-[#FAF9F6] font-semibold shadow-sm"
+                              : "text-[#8E8E93] hover:text-[#FAF9F6] hover:bg-[#0A0A0A]"
                           }`}
                         >
                           <div className="flex items-center gap-2.5">
@@ -603,13 +545,13 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
               </div>
 
               {/* Mobile Drawer Footer */}
-              <div className="p-3 border-t border-[#1E1E1E] bg-[#030303] shrink-0">
+              <div className="p-3 bg-[#060606] shrink-0">
                 <Link
                   href="/seller/settings"
                   onClick={() => setIsMobileSidebarOpen(false)}
-                  className="flex items-center gap-3 px-2 py-1.5 rounded-lg bg-[#050505] border border-[#222]"
+                  className="flex items-center gap-3 px-3 py-2 rounded-2xl bg-[#0A0A0A] hover:bg-[#121212] transition-colors"
                 >
-                  <div className="w-8 h-8 rounded-lg bg-[#050505] overflow-hidden flex items-center justify-center font-mono font-bold text-xs text-white shrink-0">
+                  <div className="w-8 h-8 rounded-xl bg-[#161616] overflow-hidden flex items-center justify-center font-mono font-bold text-xs text-white shrink-0">
                     {sellerData.storeAvatar ? (
                       <img src={sellerData.storeAvatar} alt="Avatar" className="w-full h-full object-cover" />
                     ) : (
@@ -620,7 +562,7 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
                     <p className="text-xs font-bold text-white truncate">
                       {sellerData.storeName}
                     </p>
-                    <p className="text-[10px] font-mono text-[#888] truncate">
+                    <p className="text-[10px] font-mono text-[#8E8E93] truncate">
                       {sellerData.email}
                     </p>
                   </div>

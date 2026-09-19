@@ -5,6 +5,7 @@ import { useAdminData } from "@/context/AdminDataContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { useLocation } from "@/context/LocationContext";
 import CustomSelect from "@/components/ui/custom-select";
+import { KeyboardArrowRight } from "@/components/ui/keyboard-arrow";
 
 export default function AdminReportsPage() {
   const { orders, stores, products, exportToCSV } = useAdminData();
@@ -59,19 +60,19 @@ export default function AdminReportsPage() {
   };
 
   return (
-    <div className="space-y-6 text-[#FAF9F6] selection:bg-white selection:text-black">
+    <div className="space-y-6 text-[#FAF9F6] selection:bg-[#BFDD25] selection:text-black">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#222] pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-[10px] font-mono font-medium bg-[#050505] text-[#A1A1AA] border border-[#27272A] px-2 py-0.5 rounded uppercase tracking-wider">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-[10px] font-mono font-bold bg-[#141414] text-[#BFDD25] px-3 py-1 rounded-full uppercase tracking-wider">
               {isEn ? "Audit & Compliance" : "Audit & Kepatuhan"}
             </span>
           </div>
-          <h1 className="text-xl font-bold tracking-tight text-white font-sans">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white font-sans">
             {isEn ? "Financial & Operational Reports" : "Laporan Keuangan & Operasional"}
           </h1>
-          <p className="text-xs text-[#71717A] font-sans mt-0.5">
+          <p className="text-xs text-[#71717A] font-sans mt-1">
             {isEn
               ? "Generate auditable marketplace transaction ledgers, seller KYC archives, and catalog inventory reports."
               : "Unduh pembukuan transaksi rekber, arsip data pendaftaran toko, dan rekapitulasi inventaris produk."}
@@ -80,7 +81,7 @@ export default function AdminReportsPage() {
 
         <button
           onClick={handleExportReport}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-[#FAF9F6] hover:bg-[#E5E5E5] text-black text-xs font-sans font-bold rounded-lg transition-all shadow-sm cursor-pointer"
+          className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#BFDD25] hover:bg-white text-black text-xs font-sans font-bold rounded-full transition-all shadow-[0_0_12px_rgba(191,221,37,0.4)] cursor-pointer"
         >
           <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
@@ -91,34 +92,34 @@ export default function AdminReportsPage() {
 
       {/* 3 Telemetry Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 font-mono">
-        <div className="bg-[#050505] border border-[#222222] p-4 rounded-xl space-y-1">
-          <span className="text-[10px] text-[#71717A] uppercase">Total GMV Volume</span>
-          <p className="text-xl font-bold text-white">{formatPrice(totalRevenue)}</p>
+        <div className="bg-[#0A0A0A] p-5 rounded-2xl space-y-1.5">
+          <span className="text-[10px] text-[#71717A] uppercase tracking-wider">Total GMV Volume</span>
+          <p className="text-2xl font-bold text-white">{formatPrice(totalRevenue)}</p>
           <p className="text-[10px] text-[#52525B]">{orders.length} transactions audited</p>
         </div>
 
-        <div className="bg-[#050505] border border-[#222222] p-4 rounded-xl space-y-1">
-          <span className="text-[10px] text-[#71717A] uppercase">Active Merchants</span>
-          <p className="text-xl font-bold text-white">{stores.filter((s) => s.status === "APPROVED").length} Verified</p>
+        <div className="bg-[#0A0A0A] p-5 rounded-2xl space-y-1.5">
+          <span className="text-[10px] text-[#71717A] uppercase tracking-wider">Active Merchants</span>
+          <p className="text-2xl font-bold text-white">{stores.filter((s) => s.status === "APPROVED").length} <span className="text-xs text-[#BFDD25] font-normal">Verified</span></p>
           <p className="text-[10px] text-[#52525B]">{stores.length} total applications</p>
         </div>
 
-        <div className="bg-[#050505] border border-[#222222] p-4 rounded-xl space-y-1">
-          <span className="text-[10px] text-[#71717A] uppercase">Catalog Inventory</span>
-          <p className="text-xl font-bold text-white">{products.length} Active SKUs</p>
+        <div className="bg-[#0A0A0A] p-5 rounded-2xl space-y-1.5">
+          <span className="text-[10px] text-[#71717A] uppercase tracking-wider">Catalog Inventory</span>
+          <p className="text-2xl font-bold text-white">{products.length} <span className="text-xs text-[#888] font-normal">SKUs</span></p>
           <p className="text-[10px] text-[#52525B]">QC moderation verified</p>
         </div>
       </div>
 
       {/* Export Configuration Card */}
-      <div className="bg-[#050505] border border-[#222222] rounded-xl p-5 space-y-4 font-sans text-xs">
+      <div className="bg-[#0A0A0A] rounded-2xl p-6 space-y-5 font-sans text-xs">
         <h3 className="text-xs font-bold font-sans text-white uppercase tracking-wider">
           {isEn ? "Configure Export Parameters" : "Parameter Pembuatan Laporan"}
         </h3>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-[11px] font-mono text-[#71717A] uppercase mb-1">
+            <label className="block text-[11px] font-mono text-[#71717A] uppercase mb-1.5">
               {isEn ? "Report Dataset Category" : "Kategori Laporan"}
             </label>
             <CustomSelect
@@ -133,7 +134,7 @@ export default function AdminReportsPage() {
           </div>
 
           <div>
-            <label className="block text-[11px] font-mono text-[#71717A] uppercase mb-1">
+            <label className="block text-[11px] font-mono text-[#71717A] uppercase mb-1.5">
               {isEn ? "Reporting Window" : "Rentang Waktu"}
             </label>
             <CustomSelect
@@ -149,14 +150,15 @@ export default function AdminReportsPage() {
           </div>
         </div>
 
-        <div className="pt-2 border-t border-[#1C1C1C] flex items-center justify-between text-xs font-mono text-[#71717A]">
+        <div className="pt-3 flex items-center justify-between text-xs font-mono text-[#71717A]">
           <span>Format: UTF-8 Encoded RFC-4180 CSV</span>
           <button
             type="button"
             onClick={handleExportReport}
-            className="text-white hover:underline cursor-pointer"
+            className="text-[#BFDD25] font-bold hover:underline cursor-pointer inline-flex items-center gap-1 group"
           >
-            {isEn ? "Download Now →" : "Unduh Sekarang →"}
+            <span>{isEn ? "Download Now" : "Unduh Sekarang"}</span>
+            <KeyboardArrowRight className="w-3.5 h-3.5 stroke-[2.5] group-hover:translate-x-0.5 transition-transform" />
           </button>
         </div>
       </div>

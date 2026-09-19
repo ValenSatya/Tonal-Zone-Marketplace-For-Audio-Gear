@@ -36,7 +36,16 @@ export async function POST(request: Request) {
       store = await storeRepo.create({
         userId: user.id,
         storeName,
-        description: `${storeCity} | Bank: ${bankInfo?.bank || "BCA"} - ${bankInfo?.accountNumber || ""} (${bankInfo?.holderName || ""})`,
+        description: body.description || `${storeCity} | Bank: ${bankInfo?.bank || "BCA"} - ${bankInfo?.accountNumber || ""} (${bankInfo?.holderName || ""})`,
+        address: storeCity,
+        status: "PENDING",
+        bankName: bankInfo?.bank || "BCA",
+        bankAccount: bankInfo?.accountNumber || "",
+      });
+    } else {
+      store = await storeRepo.update(store.id, {
+        storeName,
+        description: body.description || `${storeCity} | Bank: ${bankInfo?.bank || "BCA"} - ${bankInfo?.accountNumber || ""}`,
         address: storeCity,
         status: "PENDING",
         bankName: bankInfo?.bank || "BCA",

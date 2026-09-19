@@ -149,20 +149,20 @@ export default function BrandApprovalsPage() {
   };
 
   return (
-    <div className="space-y-6 text-[#FAF9F6] selection:bg-white selection:text-black">
+    <div className="space-y-6 text-[#FAF9F6] selection:bg-[#BFDD25] selection:text-black">
       
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#222] pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-[10px] font-mono font-bold bg-[#050505] text-[#FAF9F6] border border-[#2E2E2E] px-2 py-0.5 rounded uppercase tracking-wider">
+            <span className="text-[10px] font-mono font-bold bg-[#141414] text-[#BFDD25] px-2.5 py-0.5 rounded-full uppercase tracking-wider">
               {isEn ? "Brand Approvals" : "Persetujuan Brand"}
             </span>
             <span className="text-[11px] font-mono text-[#888]">
               {isEn ? "Audio Brand Licensing & Distributor Audit" : "Pemeriksaan Lisensi Brand Audio"}
             </span>
           </div>
-          <h1 className="text-xl font-bold tracking-tight text-white font-sans">
+          <h1 className="text-2xl font-bold tracking-tight text-white font-sans">
             {isEn ? "Brand Catalog Approvals" : "Persetujuan & Katalog Brand"}
           </h1>
           <p className="text-xs text-[#888] font-sans mt-0.5">
@@ -175,7 +175,7 @@ export default function BrandApprovalsPage() {
         <div className="flex items-center gap-2.5">
           <button
             onClick={handleExportCSV}
-            className="flex items-center gap-2 px-3.5 py-2 bg-[#050505] hover:bg-[#050505] border border-[#2a2a2a] hover:border-[#444] text-xs font-mono font-bold rounded-lg transition-colors cursor-pointer"
+            className="flex items-center gap-2 px-4 py-2 bg-[#0A0A0A] hover:bg-[#141414] text-xs font-mono font-bold rounded-full transition-colors cursor-pointer"
           >
             <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
@@ -189,7 +189,7 @@ export default function BrandApprovalsPage() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         
         {/* Card 1: Pending Brand Requests */}
-        <div className="bg-[#050505] border border-[#222] hover:border-[#333] transition-colors p-4 rounded-xl flex flex-col justify-between">
+        <div className="bg-[#0A0A0A] hover:bg-[#0D0D0D] transition-colors p-5 rounded-2xl flex flex-col justify-between">
           <div className="flex items-start justify-between gap-2">
             <div>
               <p className="text-[11px] font-mono text-[#888] uppercase tracking-wider">
@@ -205,37 +205,36 @@ export default function BrandApprovalsPage() {
               </AreaChart>
             </div>
           </div>
-          <div className="flex items-center gap-2 mt-3 pt-3 border-t border-[#1a1a1a] text-[11px] font-mono text-[#777]">
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+          <div className="flex items-center gap-2 mt-4 text-[11px] font-mono text-[#777]">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shadow-[0_0_6px_rgba(245,158,11,0.6)]" />
             <span>{isEn ? "Distribution rights audit" : "Pemeriksaan legalitas & hak distribusi"}</span>
           </div>
         </div>
 
         {/* Card 2: Approved Active Brands */}
-        <div className="bg-[#050505] border border-[#222] hover:border-[#333] transition-colors p-4 rounded-xl flex flex-col justify-between">
+        <div className="bg-[#0A0A0A] hover:bg-[#0D0D0D] transition-colors p-5 rounded-2xl flex flex-col justify-between">
           <div className="flex items-start justify-between gap-2">
             <div>
               <p className="text-[11px] font-mono text-[#888] uppercase tracking-wider">
                 {isEn ? "Official Registered Brands" : "Brand Resmi Terdaftar"}
               </p>
-              <p className="text-2xl font-bold font-mono text-emerald-400 mt-1">
+              <p className="text-2xl font-bold font-mono text-[#BFDD25] mt-1">
                 {approvedCount} {isEn ? "Active Brands" : "Brand Aktif"}
               </p>
             </div>
             <div className="w-20 h-10 shrink-0 opacity-70">
               <AreaChart data={sparklineApproved} aspectRatio="2 / 1" className="w-full h-full">
-                <Area dataKey="val" stroke="#10b981" fill="#10b981" strokeWidth={1.5} fillOpacity={0.15} />
+                <Area dataKey="val" stroke="#BFDD25" fill="#BFDD25" strokeWidth={1.5} fillOpacity={0.15} />
               </AreaChart>
             </div>
           </div>
-          <div className="flex items-center gap-2 mt-3 pt-3 border-t border-[#1a1a1a] text-[11px] font-mono text-[#777]">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+          <div className="flex items-center gap-2 mt-4 text-[11px] font-mono text-[#777]">
             <span>{isEn ? "Active in filter & catalog search" : "Aktif di filter & pencarian katalog"}</span>
           </div>
         </div>
 
         {/* Card 3: Rejected Brands */}
-        <div className="bg-[#050505] border border-[#222] hover:border-[#333] transition-colors p-4 rounded-xl flex flex-col justify-between">
+        <div className="bg-[#0A0A0A] hover:bg-[#0D0D0D] transition-colors p-5 rounded-2xl flex flex-col justify-between">
           <div className="flex items-start justify-between gap-2">
             <div>
               <p className="text-[11px] font-mono text-[#888] uppercase tracking-wider">
@@ -251,7 +250,7 @@ export default function BrandApprovalsPage() {
               </AreaChart>
             </div>
           </div>
-          <div className="flex items-center gap-2 mt-3 pt-3 border-t border-[#1a1a1a] text-[11px] font-mono text-[#777]">
+          <div className="flex items-center gap-2 mt-4 text-[11px] font-mono text-[#777]">
             <span className="w-1.5 h-1.5 rounded-full bg-rose-400" />
             <span>{isEn ? "Invalid distributor authorization" : "Surat izin distributor tidak valid"}</span>
           </div>
@@ -260,7 +259,7 @@ export default function BrandApprovalsPage() {
       </div>
 
       {/* Toolbar & Filters */}
-      <div className="bg-[#050505] border border-[#222] p-3.5 rounded-xl space-y-3">
+      <div className="bg-[#0A0A0A] p-4 rounded-2xl space-y-3">
         <div className="flex flex-col md:flex-row gap-3 items-center justify-between">
           <div className="relative w-full md:w-80">
             <input
@@ -268,7 +267,7 @@ export default function BrandApprovalsPage() {
               placeholder={isEn ? "Search brand, country..." : "Cari brand, negara..."}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-[#050505] border border-[#2a2a2a] focus:border-white rounded-lg pl-9 pr-3.5 py-2 text-xs font-sans text-white placeholder:text-[#666] outline-none transition-colors"
+              className="w-full bg-[#141414] rounded-full pl-9 pr-4 py-2 text-xs font-sans text-white placeholder:text-[#666] outline-none focus:ring-1 focus:ring-[#BFDD25] transition-all"
             />
             <svg
               width="14"
@@ -285,7 +284,7 @@ export default function BrandApprovalsPage() {
 
           <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
             {/* Status Pills */}
-            <div className="flex items-center bg-[#050505] p-1 rounded-lg border border-[#1c1c1c]">
+            <div className="flex items-center bg-[#141414] p-1 rounded-full gap-1">
               {[
                 { id: "ALL", label: isEn ? "All Brands" : "Semua Brand" },
                 { id: "PENDING", label: isEn ? `Pending (${pendingCount})` : `Menunggu (${pendingCount})` },
@@ -295,10 +294,10 @@ export default function BrandApprovalsPage() {
                 <button
                   key={tab.id}
                   onClick={() => setStatusFilter(tab.id)}
-                  className={`px-3 py-1 text-xs font-mono font-medium rounded-md transition-all cursor-pointer border ${
+                  className={`px-3.5 py-1.5 text-xs font-mono font-medium rounded-full transition-all cursor-pointer ${
                     statusFilter === tab.id
-                      ? "bg-[#050505] text-[#FAF9F6] font-semibold border-[#383838] shadow-sm"
-                      : "text-[#8E8E93] hover:text-[#FAF9F6] hover:bg-[#050505] border-transparent"
+                      ? "bg-white text-black font-bold shadow-sm"
+                      : "text-[#8E8E93] hover:text-white"
                   }`}
                 >
                   {tab.label}
@@ -318,7 +317,7 @@ export default function BrandApprovalsPage() {
                 { label: "Chi-Fi (Budget)", value: "Chi-Fi" },
                 { label: isEn ? "Custom Artisan" : "Custom Artisan", value: "Custom IEM" },
               ]}
-              buttonClassName="bg-[#050505] border border-[#2a2a2a] hover:border-[#444] text-xs font-mono text-white px-3 py-1.5 rounded-lg flex items-center justify-between gap-2 cursor-pointer"
+              buttonClassName="bg-[#141414] hover:bg-[#1c1c1c] text-xs font-mono text-white px-4 py-2 rounded-full flex items-center justify-between gap-2 cursor-pointer transition-colors"
             />
 
             {/* Sort Custom Dropdown */}
@@ -337,7 +336,7 @@ export default function BrandApprovalsPage() {
                 { label: isEn ? "Brand Name (Z-A)" : "Nama Brand (Z-A)", value: "name-desc" },
                 { label: isEn ? "Most Products" : "Produk Terbanyak", value: "productCount-desc" },
               ]}
-              buttonClassName="bg-[#050505] border border-[#2a2a2a] hover:border-[#444] text-xs font-mono text-white px-3 py-1.5 rounded-lg flex items-center justify-between gap-2 cursor-pointer"
+              buttonClassName="bg-[#141414] hover:bg-[#1c1c1c] text-xs font-mono text-white px-4 py-2 rounded-full flex items-center justify-between gap-2 cursor-pointer transition-colors"
             />
           </div>
         </div>
@@ -348,10 +347,9 @@ export default function BrandApprovalsPage() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="flex items-center justify-between bg-[#050505] border border-[#333] px-3.5 py-2 rounded-lg text-xs"
+            className="flex items-center justify-between bg-[#141414] px-4 py-2.5 rounded-xl text-xs"
           >
             <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
               <span className="font-mono font-bold text-white">{selectedIds.length}</span>
               <span className="text-[#888]">{isEn ? "brands selected" : "brand dipilih"}</span>
             </div>
@@ -359,19 +357,19 @@ export default function BrandApprovalsPage() {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => handleBulkStatus("APPROVED")}
-                className="px-3 py-1.5 bg-[#050505] hover:bg-[#080808] border border-[#383838] text-white font-mono font-bold rounded cursor-pointer transition-colors"
+                className="px-3.5 py-1.5 bg-[#BFDD25] hover:bg-white text-black font-mono font-bold rounded-full cursor-pointer transition-colors"
               >
                 {isEn ? "Approve All" : "Setujui Semua"}
               </button>
               <button
                 onClick={() => handleBulkStatus("REJECTED")}
-                className="px-3 py-1.5 bg-[#050505] hover:bg-[#050505] text-white border border-[#2E2E2E] font-mono font-bold rounded cursor-pointer transition-colors"
+                className="px-3.5 py-1.5 bg-[#222] hover:bg-rose-500 hover:text-white text-white font-mono font-bold rounded-full cursor-pointer transition-colors"
               >
                 {isEn ? "Reject All" : "Tolak Semua"}
               </button>
               <button
                 onClick={() => setSelectedIds([])}
-                className="px-2 py-1.5 text-[#888] hover:text-white font-mono cursor-pointer"
+                className="px-3 py-1.5 text-[#888] hover:text-white font-mono cursor-pointer"
               >
                 {isEn ? "Cancel" : "Batal"}
               </button>
@@ -381,11 +379,11 @@ export default function BrandApprovalsPage() {
       </div>
 
       {/* Main Table */}
-      <div className="bg-[#050505] border border-[#222] rounded-xl overflow-hidden shadow-2xl">
+      <div className="bg-[#0A0A0A] rounded-2xl overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-[#222] bg-[#050505] text-[10px] font-mono uppercase text-[#777] tracking-wider">
+              <tr className="bg-[#121212] text-[10px] font-mono uppercase text-[#777] tracking-wider">
                 <th className="py-3 px-4 w-10">
                   <input
                     type="checkbox"
@@ -394,7 +392,7 @@ export default function BrandApprovalsPage() {
                       if (el) el.indeterminate = isIndeterminate;
                     }}
                     onChange={handleSelectAll}
-                    className="rounded border-[#333] bg-[#050505] text-white focus:ring-0 cursor-pointer"
+                    className="rounded bg-[#1c1c1c] text-white focus:ring-0 cursor-pointer"
                   />
                 </th>
                 <th
@@ -435,15 +433,15 @@ export default function BrandApprovalsPage() {
                 <th className="py-3 px-4 text-right">{isEn ? "Actions" : "Tindakan"}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#1e1e1e] text-xs font-sans">
+            <tbody className="text-xs font-sans">
               {processedBrands.length > 0 ? (
                 processedBrands.map((b) => {
                   const isSelected = selectedIds.includes(b.id);
                   return (
                     <tr
                       key={b.id}
-                      className={`hover:bg-[#050505] transition-colors ${
-                        isSelected ? "bg-[#050505]" : ""
+                      className={`hover:bg-[#121212] transition-colors ${
+                        isSelected ? "bg-[#141414]" : ""
                       }`}
                     >
                       <td className="py-3.5 px-4">
@@ -451,14 +449,14 @@ export default function BrandApprovalsPage() {
                           type="checkbox"
                           checked={isSelected}
                           onChange={() => handleToggleSelect(b.id)}
-                          className="rounded border-[#333] bg-[#050505] text-white focus:ring-0 cursor-pointer"
+                          className="rounded bg-[#1c1c1c] text-white focus:ring-0 cursor-pointer"
                         />
                       </td>
 
                       <td className="py-3.5 px-4">
                         <div className="flex flex-col">
                           <span
-                            className="font-bold text-white hover:underline cursor-pointer"
+                            className="font-bold text-white hover:text-[#BFDD25] cursor-pointer transition-colors"
                             onClick={() => setInspectingBrand(b)}
                           >
                             {b.name}
@@ -468,7 +466,7 @@ export default function BrandApprovalsPage() {
                       </td>
 
                       <td className="py-3.5 px-4">
-                        <span className="text-white font-medium bg-[#050505] border border-[#333] px-2 py-0.5 rounded text-[11px] font-mono">
+                        <span className="text-white font-medium bg-[#141414] px-2.5 py-0.5 rounded-full text-[11px] font-mono">
                           {b.tier}
                         </span>
                       </td>
@@ -482,9 +480,9 @@ export default function BrandApprovalsPage() {
                       </td>
 
                       <td className="py-3.5 px-4">
-                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-[#050505] text-[#D4D4D8] border border-[#27272A]">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-medium bg-[#141414] text-[#D4D4D8]">
                           <span className={`w-1.5 h-1.5 rounded-full ${
-                            b.status === "APPROVED" ? "bg-emerald-400" : b.status === "PENDING" ? "bg-amber-400" : "bg-rose-400"
+                            b.status === "APPROVED" ? "bg-[#BFDD25] shadow-[0_0_6px_rgba(191,221,37,0.8)]" : b.status === "PENDING" ? "bg-amber-400" : "bg-rose-400"
                           }`} />
                           {b.status === "APPROVED" ? (isEn ? "Approved" : "Disetujui") : b.status === "PENDING" ? (isEn ? "Pending" : "Menunggu") : (isEn ? "Rejected" : "Ditolak")}
                         </span>
@@ -495,7 +493,7 @@ export default function BrandApprovalsPage() {
                           <button
                             onClick={() => setInspectingBrand(b)}
                             title={isEn ? "Inspect Brand Dossier" : "Lihat Rincian Brand"}
-                            className="p-1.5 hover:bg-[#080808] rounded-lg text-[#aaa] hover:text-white transition-colors cursor-pointer border border-[#2a2a2a]"
+                            className="p-2 bg-[#141414] hover:bg-[#202020] rounded-full text-[#aaa] hover:text-white transition-colors cursor-pointer"
                           >
                             <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
@@ -507,7 +505,7 @@ export default function BrandApprovalsPage() {
                             <button
                               onClick={() => handleApprove(b.id)}
                               title={isEn ? "Approve Brand" : "Setujui Brand"}
-                              className="p-1.5 hover:bg-[#050505] rounded-lg text-white transition-colors cursor-pointer border border-[#2E2E2E] hover:border-white"
+                              className="p-2 bg-[#BFDD25] hover:bg-white rounded-full text-black transition-colors cursor-pointer"
                             >
                               <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                                 <polyline points="20 6 9 17 4 12" />
@@ -519,7 +517,7 @@ export default function BrandApprovalsPage() {
                             <button
                               onClick={() => handleOpenReject(b)}
                               title={isEn ? "Reject Brand" : "Tolak Brand"}
-                              className="p-1.5 hover:bg-[#050505] rounded-lg text-white transition-colors cursor-pointer border border-[#2E2E2E] hover:border-white"
+                              className="p-2 bg-[#222] hover:bg-rose-500 rounded-full text-white transition-colors cursor-pointer"
                             >
                               <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -542,11 +540,11 @@ export default function BrandApprovalsPage() {
           </table>
         </div>
 
-        <div className="p-3.5 border-t border-[#1e1e1e] bg-[#050505] flex flex-col sm:flex-row items-center justify-between text-xs font-mono text-[#777] gap-2">
+        <div className="p-4 bg-[#0A0A0A] flex flex-col sm:flex-row items-center justify-between text-xs font-mono text-[#777] gap-2">
           <span>
             {isEn ? `Showing ${processedBrands.length} of ${brands.length} cataloged brands` : `Menampilkan ${processedBrands.length} dari ${brands.length} brand katalog`}
           </span>
-          <span className="text-[11px]">{isEn ? "Strict Catalog Moderation Active" : "Moderasi Katalog Aktif"}</span>
+          <span className="text-[11px] text-[#555]">{isEn ? "Strict Catalog Moderation Active" : "Moderasi Katalog Aktif"}</span>
         </div>
       </div>
 
@@ -565,14 +563,14 @@ export default function BrandApprovalsPage() {
               initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 1, y: 0 }}
-              className="relative w-full max-w-lg bg-[#050505] border border-[#333] rounded-2xl p-5 sm:p-6 shadow-2xl z-10 space-y-5"
+              className="relative w-full max-w-lg bg-[#0A0A0A] rounded-2xl p-6 shadow-2xl z-10 space-y-5"
             >
-              <div className="flex items-center justify-between border-b border-[#1c1c1c] pb-3">
+              <div className="flex items-center justify-between pb-1">
                 <div>
-                  <span className="text-[10px] font-mono font-bold uppercase text-amber-400">
+                  <span className="text-[10px] font-mono font-bold uppercase text-[#BFDD25]">
                     {isEn ? "Brand Catalog Dossier" : "Rincian Berkas Brand"}
                   </span>
-                  <h3 className="text-base font-bold text-white uppercase font-heading mt-0.5">
+                  <h3 className="text-lg font-bold text-white uppercase font-heading mt-0.5">
                     {inspectingBrand.name}
                   </h3>
                 </div>
@@ -580,14 +578,14 @@ export default function BrandApprovalsPage() {
                   onClick={() => setInspectingBrand(null)}
                   className="text-[#888] hover:text-white p-1 cursor-pointer"
                 >
-                  <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
               </div>
 
               <div className="grid grid-cols-2 gap-3 text-xs">
-                <div className="bg-[#050505] p-3 rounded-xl border border-[#282828] space-y-1">
+                <div className="bg-[#141414] p-3.5 rounded-xl space-y-1">
                   <span className="font-mono text-[10px] text-[#777] uppercase">
                     {isEn ? "Classification Tier" : "Kategori Tier"}
                   </span>
@@ -595,7 +593,7 @@ export default function BrandApprovalsPage() {
                   <p className="text-[#aaa] text-[11px]">{isEn ? "Authorized Audio Lineup" : "Klasifikasi Portofolio IEM"}</p>
                 </div>
 
-                <div className="bg-[#050505] p-3 rounded-xl border border-[#282828] space-y-1">
+                <div className="bg-[#141414] p-3.5 rounded-xl space-y-1">
                   <span className="font-mono text-[10px] text-[#777] uppercase">
                     {isEn ? "Origin Country" : "Negara Asal"}
                   </span>
@@ -603,7 +601,7 @@ export default function BrandApprovalsPage() {
                   <p className="text-[#aaa] text-[11px]">{isEn ? "Headquarters / Assembly" : "Pusat Riset & Pabrik"}</p>
                 </div>
 
-                <div className="bg-[#050505] p-3 rounded-xl border border-[#282828] space-y-1">
+                <div className="bg-[#141414] p-3.5 rounded-xl space-y-1">
                   <span className="font-mono text-[10px] text-[#777] uppercase">
                     {isEn ? "Submitted By" : "Diajukan Oleh"}
                   </span>
@@ -611,7 +609,7 @@ export default function BrandApprovalsPage() {
                   <p className="text-[#aaa] text-[11px] font-mono">{isEn ? `Date: ${inspectingBrand.createdAt}` : `Tanggal: ${inspectingBrand.createdAt}`}</p>
                 </div>
 
-                <div className="bg-[#050505] p-3 rounded-xl border border-[#282828] space-y-1">
+                <div className="bg-[#141414] p-3.5 rounded-xl space-y-1">
                   <span className="font-mono text-[10px] text-[#777] uppercase">
                     {isEn ? "Linked Listings" : "Produk Terhubung"}
                   </span>
@@ -622,14 +620,14 @@ export default function BrandApprovalsPage() {
                 </div>
               </div>
 
-              <div className="bg-[#050505] p-3.5 rounded-xl border border-[#282828] flex items-center justify-between">
+              <div className="bg-[#141414] p-4 rounded-xl flex items-center justify-between">
                 <div>
                   <span className="text-[10px] font-mono text-[#777] uppercase block mb-1">Status</span>
-                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-mono font-medium bg-[#050505] text-[#D4D4D8] border border-[#27272A]">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-mono font-medium bg-[#1c1c1c] text-[#D4D4D8]">
                     <span className={`w-1.5 h-1.5 rounded-full ${
-                      inspectingBrand.status === "APPROVED" ? "bg-emerald-400" : inspectingBrand.status === "PENDING" ? "bg-amber-400" : "bg-rose-400"
+                      inspectingBrand.status === "APPROVED" ? "bg-[#BFDD25] shadow-[0_0_6px_rgba(191,221,37,0.8)]" : inspectingBrand.status === "PENDING" ? "bg-amber-400" : "bg-rose-400"
                     }`} />
-                    {inspectingBrand.status === "APPROVED" ? (isEn ? "Approved" : "Disetujui") : inspectingBrand.status === "PENDING" ? (isEn ? "Pending" : "Menunggu") : (isEn ? "Rejected" : "Ditolak")}
+                    {inspectingBrand.status}
                   </span>
                 </div>
 
@@ -640,7 +638,7 @@ export default function BrandApprovalsPage() {
                       handleApprove(inspectingBrand.id);
                       setInspectingBrand({ ...inspectingBrand, status: "APPROVED" });
                     }}
-                    className="px-3.5 py-1.5 bg-white hover:bg-[#e5e5e5] text-black font-mono font-bold text-xs rounded-lg transition-colors cursor-pointer"
+                    className="px-4 py-2 bg-[#BFDD25] hover:bg-white text-black font-mono font-bold text-xs rounded-full transition-colors cursor-pointer"
                   >
                     {isEn ? "Approve Brand" : "Setujui Brand"}
                   </button>
@@ -650,7 +648,7 @@ export default function BrandApprovalsPage() {
                       handleOpenReject(inspectingBrand);
                       setInspectingBrand(null);
                     }}
-                    className="px-3.5 py-1.5 bg-[#050505] hover:bg-[#050505] text-white border border-[#2E2E2E] font-mono font-bold text-xs rounded-lg transition-colors cursor-pointer"
+                    className="px-4 py-2 bg-[#222] hover:bg-rose-500 hover:text-white text-white font-mono font-bold text-xs rounded-full transition-colors cursor-pointer"
                   >
                     {isEn ? "Reject" : "Tolak"}
                   </button>
@@ -676,9 +674,9 @@ export default function BrandApprovalsPage() {
               initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 1, y: 0 }}
-              className="relative w-full max-w-md bg-[#050505] border border-[#333] rounded-2xl p-5 shadow-2xl z-10 space-y-4"
+              className="relative w-full max-w-md bg-[#0A0A0A] rounded-2xl p-6 shadow-2xl z-10 space-y-4"
             >
-              <div className="border-b border-[#1c1c1c] pb-3">
+              <div className="pb-1">
                 <span className="text-[10px] font-mono font-bold uppercase text-rose-400">
                   {isEn ? "Brand Rejection" : "Penolakan Brand"}
                 </span>
@@ -687,7 +685,7 @@ export default function BrandApprovalsPage() {
                 </h3>
               </div>
 
-              <form onSubmit={handleConfirmReject} className="space-y-3.5">
+              <form onSubmit={handleConfirmReject} className="space-y-4">
                 <div className="space-y-1.5">
                   <label className="block text-xs font-mono text-[#aaa]">
                     {isEn ? "Rejection Reason / Notes:" : "Alasan Penolakan / Catatan:"}
@@ -698,7 +696,7 @@ export default function BrandApprovalsPage() {
                     placeholder={isEn ? "e.g., Distributor licensing documents are invalid..." : "Contoh: Dokumen lisensi distributor tidak valid..."}
                     value={rejectionReason}
                     onChange={(e) => setRejectionReason(e.target.value)}
-                    className="w-full bg-[#050505] border border-[#333] focus:border-rose-400 rounded-xl p-2.5 text-xs text-white outline-none resize-none"
+                    className="w-full bg-[#141414] rounded-xl p-3 text-xs text-white outline-none focus:ring-1 focus:ring-rose-400 resize-none"
                   />
                 </div>
 
@@ -706,13 +704,13 @@ export default function BrandApprovalsPage() {
                   <button
                     type="button"
                     onClick={() => setRejectingBrand(null)}
-                    className="px-3.5 py-1.5 bg-[#050505] hover:bg-[#080808] text-white text-xs font-mono rounded-lg transition-colors cursor-pointer"
+                    className="px-4 py-2 bg-[#141414] hover:bg-[#202020] text-white text-xs font-mono rounded-full transition-colors cursor-pointer"
                   >
                     {isEn ? "Cancel" : "Batal"}
                   </button>
                   <button
                     type="submit"
-                    className="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-500 text-white font-mono font-bold text-xs rounded-lg transition-colors cursor-pointer"
+                    className="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white font-mono font-bold text-xs rounded-full transition-colors cursor-pointer"
                   >
                     {isEn ? "Confirm Rejection" : "Konfirmasi Tolak"}
                   </button>

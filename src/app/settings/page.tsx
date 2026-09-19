@@ -7,6 +7,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useLanguage } from "@/context/LanguageContext";
 import { updateUserProfile } from "@/app/actions/profile";
+import { getAuthSession } from "@/app/actions/auth";
 
 // Types for Addresses
 interface AddressItem {
@@ -18,6 +19,44 @@ interface AddressItem {
   city: string;
   postalCode: string;
   isDefault: boolean;
+}
+
+function compressImage(file: File, maxWidth = 400, maxHeight = 400, quality = 0.85): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = reject;
+    reader.onload = (e) => {
+      const img = new window.Image();
+      img.onerror = reject;
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+        if (width > height) {
+          if (width > maxWidth) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          }
+        } else {
+          if (height > maxHeight) {
+            width = Math.round((width * maxHeight) / height);
+            height = maxHeight;
+          }
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          resolve(e.target?.result as string);
+          return;
+        }
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL("image/jpeg", quality));
+      };
+      img.src = e.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  });
 }
 
 export default function SettingsPage() {
@@ -44,29 +83,8 @@ export default function SettingsPage() {
   const [notifPromo, setNotifPromo] = useState(false);
   const [notifSystem, setNotifSystem] = useState(true);
 
-  // 3. ALAMAT TERSIMPAN
-  const [addresses, setAddresses] = useState<AddressItem[]>([
-    {
-      id: "addr-1",
-      label: "Rumah Utama",
-      receiver: "Alex Rivera",
-      phone: "+62 812-3456-7890",
-      fullAddress: "Jl. Audiophile No. 99, Kebayoran Baru, Jakarta Selatan",
-      city: "Jakarta Selatan",
-      postalCode: "12110",
-      isDefault: true,
-    },
-    {
-      id: "addr-2",
-      label: "Kantor Studio",
-      receiver: "Alex Rivera (Studio)",
-      phone: "+62 811-9876-5432",
-      fullAddress: "Gedung Cyber Acoustics Lt. 12, Jl. Jend. Sudirman, Jakarta Pusat",
-      city: "Jakarta Pusat",
-      postalCode: "10220",
-      isDefault: false,
-    },
-  ]);
+  // 3. ALAMAT TERSIMPAN (Pure DB Persistence)
+  const [addresses, setAddresses] = useState<AddressItem[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [newAddrLabel, setNewAddrLabel] = useState("");
   const [newAddrReceiver, setNewAddrReceiver] = useState("");
@@ -96,7 +114,29 @@ export default function SettingsPage() {
       try {
         const u = JSON.parse(stored);
         if (u.name) setName(u.name);
-        if (u.email) setEmail(u.email);
+        if (u.email) {
+          setEmail(u.email);
+          // Fetch real user addresses from pure database
+          fetch(`/api/user/address?email=${encodeURIComponent(u.email)}`)
+            .then((res) => res.json())
+            .then((data) => {
+              if (data.success && Array.isArray(data.addresses)) {
+                setAddresses(
+                  data.addresses.map((a: any) => ({
+                    id: a.id,
+                    label: a.label || "Alamat",
+                    receiver: a.recipientName || u.name || "Penerima",
+                    phone: a.phone || "",
+                    fullAddress: a.street,
+                    city: a.city,
+                    postalCode: a.postalCode,
+                    isDefault: Boolean(a.isDefault),
+                  }))
+                );
+              }
+            })
+            .catch((err) => console.warn("Failed to load addresses:", err));
+        }
         if (u.avatar) setAvatar(u.avatar);
         if (u.gear) setGear(u.gear);
         if (u.tuning) setSoundSignature(u.tuning);
@@ -111,6 +151,22 @@ export default function SettingsPage() {
         }
       } catch (e) {}
     }
+
+    // Always fetch latest profile data from Supabase live session
+    getAuthSession().then((res) => {
+      if (res.success && res.user) {
+        const u = res.user;
+        if (u.name) setName(u.name);
+        if (u.email) setEmail(u.email);
+        if (u.avatar && u.avatar !== "/placeholder.svg") setAvatar(u.avatar);
+        if (u.tuning) setSoundSignature(u.tuning);
+        if (u.language) setLanguage(u.language);
+        if (u.isSeller || u.sellerStatus === "APPROVED" || u.role === "SELLER") {
+          setIsSellerMode(true);
+          setRoleBadge("SELLER");
+        }
+      }
+    }).catch(() => {});
   }, []);
 
   const triggerSaveNotification = (msg: string) => {
@@ -118,22 +174,20 @@ export default function SettingsPage() {
     setTimeout(() => setSaveMessage(""), 3500);
   };
 
-  const handleAvatarFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) {
-      alert("Ukuran foto maksimal 5MB.");
+    if (file.size > 10 * 1024 * 1024) {
+      alert("Ukuran foto maksimal 10MB.");
       return;
     }
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const base64 = event.target?.result as string;
-      if (base64) {
-        setAvatar(base64);
-        triggerSaveNotification("Foto profil dipilih. Klik Simpan Perubahan.");
-      }
-    };
-    reader.readAsDataURL(file);
+    try {
+      const compressed = await compressImage(file, 400, 400, 0.85);
+      setAvatar(compressed);
+      triggerSaveNotification("Foto profil dipilih. Klik Simpan Perubahan.");
+    } catch {
+      alert("Gagal memproses gambar foto profil.");
+    }
   };
 
   const handleSaveProfile = async (e: React.FormEvent) => {
@@ -216,38 +270,99 @@ export default function SettingsPage() {
     triggerSaveNotification("Informasi rekening dan notifikasi penjual berhasil disimpan.");
   };
 
-  const handleSetDefaultAddress = (id: string) => {
+  const handleSetDefaultAddress = async (id: string) => {
     setAddresses((prev) =>
       prev.map((addr) => ({
         ...addr,
         isDefault: addr.id === id,
       }))
     );
+    try {
+      await fetch("/api/user/address", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          action: "SET_DEFAULT",
+          addressId: id,
+        }),
+      });
+    } catch (e) {
+      console.warn("Error setting default address:", e);
+    }
     triggerSaveNotification("Alamat utama berhasil diubah.");
   };
 
-  const handleDeleteAddress = (id: string) => {
-    if (addresses.length <= 1) {
-      alert("Anda harus memiliki setidaknya satu alamat pengiriman.");
-      return;
-    }
+  const handleDeleteAddress = async (id: string) => {
     setAddresses((prev) => prev.filter((addr) => addr.id !== id));
+    try {
+      await fetch("/api/user/address", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          addressId: id,
+        }),
+      });
+    } catch (e) {
+      console.warn("Error deleting address:", e);
+    }
     triggerSaveNotification("Alamat berhasil dihapus.");
   };
 
-  const handleAddNewAddress = (e: React.FormEvent) => {
+  const handleAddNewAddress = async (e: React.FormEvent) => {
     e.preventDefault();
-    const newAddr: AddressItem = {
-      id: "addr-" + Date.now(),
+    const isFirst = addresses.length === 0;
+    const newAddrObj = {
       label: newAddrLabel || "Alamat Baru",
-      receiver: newAddrReceiver,
+      recipientName: newAddrReceiver || name,
       phone: newAddrPhone,
-      fullAddress: newAddrFull,
+      street: newAddrFull,
       city: newAddrCity,
       postalCode: newAddrPostal,
-      isDefault: addresses.length === 0,
+      isDefault: isFirst,
     };
-    setAddresses((prev) => [newAddr, ...prev]);
+
+    try {
+      const res = await fetch("/api/user/address", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          address: newAddrObj,
+        }),
+      });
+      const data = await res.json();
+      if (data.success && Array.isArray(data.addresses)) {
+        setAddresses(
+          data.addresses.map((a: any) => ({
+            id: a.id,
+            label: a.label || "Alamat",
+            receiver: a.recipientName || name,
+            phone: a.phone || "",
+            fullAddress: a.street,
+            city: a.city,
+            postalCode: a.postalCode,
+            isDefault: Boolean(a.isDefault),
+          }))
+        );
+      } else {
+        const optimisticAddr: AddressItem = {
+          id: "addr-" + Date.now(),
+          label: newAddrLabel || "Alamat Baru",
+          receiver: newAddrReceiver || name,
+          phone: newAddrPhone,
+          fullAddress: newAddrFull,
+          city: newAddrCity,
+          postalCode: newAddrPostal,
+          isDefault: isFirst,
+        };
+        setAddresses((prev) => [optimisticAddr, ...prev]);
+      }
+    } catch (e) {
+      console.warn("Error adding address:", e);
+    }
+
     setShowAddModal(false);
     setNewAddrLabel("");
     setNewAddrReceiver("");
@@ -259,31 +374,38 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#030303] text-[#e5e5e5] font-sans flex flex-col relative">
+    <div className="min-h-screen bg-[#000000] text-[#FAF9F6] font-sans selection:bg-[#BFDD25] selection:text-[#030303] flex flex-col relative">
       <Navbar />
 
-      <main className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full flex-1">
+      <main className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full flex-1">
         
-        {/* Top Header - Standard Professional Layout */}
-        <div className="mb-8 pb-6 border-b border-[#222]">
-          <h1 className="text-2xl sm:text-3xl font-semibold text-white tracking-tight">
+        {/* Top Header */}
+        <div className="mb-8">
+          <div className="flex items-center gap-2 font-mono text-xs text-[#777777] uppercase tracking-widest mb-3">
+            <Link href="/" className="hover:text-white transition-colors">
+              HOME
+            </Link>
+            <span className="text-[#444]">/</span>
+            <span className="text-[#BFDD25] font-semibold">{t("nav.settings")}</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-bold uppercase tracking-tight text-white font-heading">
             {t("nav.settings")}
           </h1>
-          <p className="text-sm text-[#888] mt-1">
+          <p className="text-xs text-[#888888] mt-1 font-sans">
             {t("settings.subtitle")}
           </p>
         </div>
 
-        {/* Clean Monochrome Notification Toast */}
+        {/* Floating Toast Notification */}
         <AnimatePresence>
           {saveMessage && (
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="fixed bottom-8 right-8 z-50 bg-[#050505] border border-[#333] text-white px-4 py-3 rounded-lg shadow-xl flex items-center gap-2.5 text-xs font-medium"
+              className="fixed bottom-8 right-8 z-50 bg-[#0A0A0A] text-white px-5 py-3.5 rounded-full shadow-2xl flex items-center gap-3 text-xs font-mono"
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-emerald-400"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
+              <span className="w-2 h-2 rounded-full bg-[#BFDD25] shadow-[0_0_8px_rgba(191,221,37,0.8)]" />
               <span>{saveMessage}</span>
             </motion.div>
           )}
@@ -292,81 +414,81 @@ export default function SettingsPage() {
         {/* Dashboard 2-Column Layout */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
           
-          {/* Sidebar Navigation - Clean Standard SaaS Links */}
-          <div className="md:col-span-3 space-y-1">
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-[#666] px-3 py-2">
+          {/* Sidebar Navigation - Modern Minimalist Pills */}
+          <div className="md:col-span-3 space-y-1.5 bg-[#0A0A0A] p-3 rounded-2xl shadow-sm">
+            <p className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#666666] px-3 py-1.5">
               {t("common.account")}
             </p>
 
             <button
               type="button"
               onClick={() => setActiveTab("profile")}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer text-left ${
+              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-full text-xs font-mono uppercase tracking-wider transition-all cursor-pointer text-left ${
                 activeTab === "profile"
-                  ? "bg-[#080808] border border-white/20 text-white font-semibold"
-                  : "text-[#888] hover:text-white hover:bg-[#050505]"
+                  ? "bg-white text-black font-bold shadow-sm"
+                  : "text-[#888888] hover:text-white hover:bg-[#141414]"
               }`}
             >
-              <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+              <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
               <span>{t("settings.accountProfile")}</span>
             </button>
 
             <button
               type="button"
               onClick={() => setActiveTab("security")}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer text-left ${
+              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-full text-xs font-mono uppercase tracking-wider transition-all cursor-pointer text-left ${
                 activeTab === "security"
-                  ? "bg-[#080808] border border-white/20 text-white font-semibold"
-                  : "text-[#888] hover:text-white hover:bg-[#050505]"
+                  ? "bg-white text-black font-bold shadow-sm"
+                  : "text-[#888888] hover:text-white hover:bg-[#141414]"
               }`}
             >
-              <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+              <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
               <span>{t("settings.securityEmail")}</span>
             </button>
 
             <button
               type="button"
               onClick={() => setActiveTab("notifications")}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer text-left ${
+              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-full text-xs font-mono uppercase tracking-wider transition-all cursor-pointer text-left ${
                 activeTab === "notifications"
-                  ? "bg-[#080808] border border-white/20 text-white font-semibold"
-                  : "text-[#888] hover:text-white hover:bg-[#050505]"
+                  ? "bg-white text-black font-bold shadow-sm"
+                  : "text-[#888888] hover:text-white hover:bg-[#141414]"
               }`}
             >
-              <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+              <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
               <span>{t("settings.notifications")}</span>
             </button>
 
             <button
               type="button"
               onClick={() => setActiveTab("addresses")}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer text-left ${
+              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-full text-xs font-mono uppercase tracking-wider transition-all cursor-pointer text-left ${
                 activeTab === "addresses"
-                  ? "bg-[#080808] border border-white/20 text-white font-semibold"
-                  : "text-[#888] hover:text-white hover:bg-[#050505]"
+                  ? "bg-white text-black font-bold shadow-sm"
+                  : "text-[#888888] hover:text-white hover:bg-[#141414]"
               }`}
             >
-              <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+              <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
               <span>{t("settings.savedAddresses")}</span>
             </button>
 
             <button
               type="button"
               onClick={() => setActiveTab("preferences")}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer text-left ${
+              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-full text-xs font-mono uppercase tracking-wider transition-all cursor-pointer text-left ${
                 activeTab === "preferences"
-                  ? "bg-[#080808] border border-white/20 text-white font-semibold"
-                  : "text-[#888] hover:text-white hover:bg-[#050505]"
+                  ? "bg-white text-black font-bold shadow-sm"
+                  : "text-[#888888] hover:text-white hover:bg-[#141414]"
               }`}
             >
-              <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+              <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
               <span>{t("settings.preferences")}</span>
             </button>
 
             {isSellerMode && (
               <>
-                <div className="pt-4 mt-4 border-t border-[#222]" />
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-[#666] px-3 py-2">
+                <div className="pt-2" />
+                <p className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#666666] px-3 py-1.5">
                   {t("common.seller")}
                 </p>
 
@@ -375,14 +497,14 @@ export default function SettingsPage() {
                   onClick={() => {
                     setActiveTab("seller");
                   }}
-                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer text-left ${
+                  className={`w-full flex items-center justify-between px-4 py-2.5 rounded-full text-xs font-mono uppercase tracking-wider transition-all cursor-pointer text-left ${
                     activeTab === "seller"
-                      ? "bg-[#080808] border border-white/20 text-white font-semibold"
-                      : "text-[#888] hover:text-white hover:bg-[#050505]"
+                      ? "bg-white text-black font-bold shadow-sm"
+                      : "text-[#888888] hover:text-white hover:bg-[#141414]"
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                    <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                     <span>{t("settings.payoutAlerts")}</span>
                   </div>
                 </button>
@@ -390,8 +512,8 @@ export default function SettingsPage() {
             )}
           </div>
 
-          {/* Main Content Area - Clean SaaS Cards */}
-          <div className="md:col-span-9 space-y-8">
+          {/* Main Content Area - Zero-Stroke Bento Cards */}
+          <div className="md:col-span-9 space-y-6">
             
             <AnimatePresence mode="wait">
               {/* TAB 0: ACCOUNT PROFILE */}
@@ -402,25 +524,25 @@ export default function SettingsPage() {
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.15 }}
-                  className="bg-[#030303] border border-[#222] rounded-xl p-6 sm:p-8 space-y-8"
+                  className="bg-[#0A0A0A] rounded-2xl p-6 sm:p-8 space-y-7 shadow-sm"
                 >
                   <div>
-                    <h2 className="text-lg font-semibold text-white">{t("settings.accountProfile")}</h2>
-                    <p className="text-xs text-[#888] mt-0.5">
+                    <h2 className="text-lg font-bold text-white">{t("settings.accountProfile")}</h2>
+                    <p className="text-xs text-[#888888] mt-0.5 font-sans">
                       {t("settings.profileDesc")}
                     </p>
                   </div>
 
                   <form onSubmit={handleSaveProfile} className="space-y-6">
                     {/* Role Status Display */}
-                    <div className="bg-[#050505] border border-[#1c1c1c] rounded-lg p-5 flex items-center justify-between">
+                    <div className="bg-[#121212] rounded-xl p-5 flex items-center justify-between">
                       <div>
-                        <span className="text-xs text-[#888] block mb-1">{t("settings.accountType")}</span>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-mono font-semibold uppercase tracking-wider text-white bg-[#080808] border border-[#333] px-2 py-0.5 rounded">
+                        <span className="text-xs text-[#888888] block mb-1 font-mono">{t("settings.accountType")}</span>
+                        <div className="flex items-center gap-2.5">
+                          <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#BFDD25] bg-[#181818] px-3 py-1 rounded-full">
                             {roleBadge}
                           </span>
-                          <span className="text-xs text-[#aaa]">
+                          <span className="text-xs text-[#AAAAAA]">
                             {roleBadge === "SELLER" ? t("settings.sellerStatusActive") : t("settings.buyerStatusActive")}
                           </span>
                         </div>
@@ -428,12 +550,12 @@ export default function SettingsPage() {
                     </div>
 
                     {/* AVATAR PROFILE PICTURE SECTION */}
-                    <div className="bg-[#050505] border border-[#1c1c1c] rounded-lg p-5 space-y-4">
-                      <label className="block text-xs font-medium text-[#ccc]">
+                    <div className="bg-[#121212] rounded-xl p-5 space-y-4">
+                      <label className="block text-xs font-medium text-[#CCCCCC]">
                         Foto Profil Akun
                       </label>
                       <div className="flex flex-col sm:flex-row items-center gap-5">
-                        <div className="w-20 h-20 rounded-full bg-[#080808] border-2 border-[#333] overflow-hidden shrink-0 flex items-center justify-center shadow-md relative group/av">
+                        <div className="w-20 h-20 rounded-full bg-[#181818] overflow-hidden shrink-0 flex items-center justify-center shadow-md relative ring-2 ring-transparent hover:ring-[#BFDD25] transition-all">
                           {avatar && avatar !== "/placeholder.svg" ? (
                             <img src={avatar} alt={name} className="w-full h-full object-cover" />
                           ) : (
@@ -455,7 +577,7 @@ export default function SettingsPage() {
                             <button
                               type="button"
                               onClick={() => avatarInputRef.current?.click()}
-                              className="px-4 py-2 bg-[#080808] hover:bg-[#050505] border border-[#333] text-white rounded-lg text-xs font-medium transition-colors cursor-pointer"
+                              className="px-4 py-2 bg-[#181818] hover:bg-[#222222] text-white rounded-full text-xs font-mono transition-colors cursor-pointer"
                             >
                               Upload Foto Baru
                             </button>
@@ -463,21 +585,21 @@ export default function SettingsPage() {
                               <button
                                 type="button"
                                 onClick={() => setAvatar("/placeholder.svg")}
-                                className="px-3 py-2 bg-transparent hover:bg-red-500/10 text-red-400 rounded-lg text-xs font-medium transition-colors cursor-pointer"
+                                className="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-full text-xs font-mono transition-colors cursor-pointer"
                               >
                                 Hapus Foto
                               </button>
                             )}
                           </div>
-                          <p className="text-[11px] text-[#777] font-mono">
+                          <p className="text-[11px] text-[#777777] font-mono">
                             Mendukung format PNG, JPG, WEBP maks. 5MB. Otomatis sinkron di semua halaman.
                           </p>
                         </div>
                       </div>
 
                       {/* Quick Presets */}
-                      <div className="pt-2 border-t border-[#1c1c1c]">
-                        <span className="text-[10px] font-mono text-[#888] uppercase tracking-wider block mb-2">
+                      <div className="pt-2">
+                        <span className="text-[10px] font-mono text-[#888888] uppercase tracking-wider block mb-2">
                           Atau Pilih Preset Avatar Audiophile:
                         </span>
                         <div className="flex gap-2">
@@ -494,8 +616,8 @@ export default function SettingsPage() {
                                 setAvatar(p.url);
                                 triggerSaveNotification(`Preset ${p.name} dipilih.`);
                               }}
-                              className={`w-9 h-9 rounded-full overflow-hidden border transition-all cursor-pointer ${
-                                avatar === p.url ? "border-[#BFDD25] scale-105" : "border-[#333] hover:border-white"
+                              className={`w-9 h-9 rounded-full overflow-hidden bg-[#1E1E1E] transition-all cursor-pointer ring-2 ${
+                                avatar === p.url ? "ring-[#BFDD25] scale-105" : "ring-transparent hover:ring-white/40"
                               }`}
                               title={p.name}
                             >
@@ -508,7 +630,7 @@ export default function SettingsPage() {
 
                     <div className="space-y-4">
                       <div>
-                        <label className="block text-xs font-medium text-[#ccc] mb-1.5">
+                        <label className="block text-xs font-mono uppercase tracking-wider text-[#A1A1AA] font-semibold mb-2">
                           {t("settings.displayName")}
                         </label>
                         <input
@@ -516,13 +638,13 @@ export default function SettingsPage() {
                           value={name}
                           onChange={(e) => setName(e.target.value)}
                           required
-                          className="w-full bg-[#050505] border border-[#1c1c1c] focus:border-white text-white px-3.5 py-2.5 rounded-lg text-xs outline-none transition-colors"
+                          className="w-full bg-[#161616] hover:bg-[#1A1A1A] focus:bg-[#1C1C1C] ring-1 ring-white/10 hover:ring-white/20 focus:ring-1 focus:ring-[#BFDD25] shadow-inner text-white px-4 py-3 rounded-xl text-xs outline-none transition-all placeholder:text-[#666]"
                           placeholder="e.g. Alex Rivera"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-xs font-medium text-[#ccc] mb-1.5">
+                        <label className="block text-xs font-mono uppercase tracking-wider text-[#A1A1AA] font-semibold mb-2">
                           {t("settings.primaryGear")}
                         </label>
                         <input
@@ -530,16 +652,16 @@ export default function SettingsPage() {
                           value={gear}
                           onChange={(e) => setGear(e.target.value)}
                           required
-                          className="w-full bg-[#050505] border border-[#1c1c1c] focus:border-white text-white px-3.5 py-2.5 rounded-lg text-xs outline-none transition-colors"
+                          className="w-full bg-[#161616] hover:bg-[#1A1A1A] focus:bg-[#1C1C1C] ring-1 ring-white/10 hover:ring-white/20 focus:ring-1 focus:ring-[#BFDD25] shadow-inner text-white px-4 py-3 rounded-xl text-xs outline-none transition-all placeholder:text-[#666]"
                           placeholder="e.g. Dedicated DAC/AMP or Portable Dongle"
                         />
                       </div>
                     </div>
 
-                    <div className="pt-4 border-t border-[#222] flex justify-end">
+                    <div className="pt-2 flex justify-end">
                       <button
                         type="submit"
-                        className="px-5 py-2.5 bg-white text-black font-medium text-xs rounded-lg hover:bg-[#e0e0e0] transition-colors cursor-pointer"
+                        className="px-6 py-3 bg-[#BFDD25] hover:bg-[#aecd20] text-black font-mono font-bold text-xs uppercase tracking-wider rounded-full transition-all shadow-[0_0_12px_rgba(191,221,37,0.3)] cursor-pointer"
                       >
                         {t("settings.save")}
                       </button>
@@ -556,24 +678,24 @@ export default function SettingsPage() {
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.15 }}
-                  className="bg-[#030303] border border-[#222] rounded-xl p-6 sm:p-8 space-y-8"
+                  className="bg-[#0A0A0A] rounded-2xl p-6 sm:p-8 space-y-7 shadow-sm"
                 >
                   <div>
-                    <h2 className="text-lg font-semibold text-white">{t("settings.securityEmail")}</h2>
-                    <p className="text-xs text-[#888] mt-0.5">
+                    <h2 className="text-lg font-bold text-white">{t("settings.securityEmail")}</h2>
+                    <p className="text-xs text-[#888888] mt-0.5 font-sans">
                       {t("settings.securityDesc")}
                     </p>
                   </div>
 
                   {/* Email Section */}
-                  <div className="bg-[#050505] border border-[#1c1c1c] rounded-lg p-5 space-y-4">
+                  <div className="bg-[#121212] rounded-xl p-5 space-y-4">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                       <div>
-                        <span className="text-xs text-[#888] block mb-1">{t("settings.email")}</span>
+                        <span className="text-xs text-[#888888] block mb-1 font-mono">{t("settings.email")}</span>
                         <div className="flex items-center gap-2.5">
                           <span className="text-sm font-medium text-white">{email}</span>
-                          <span className="inline-flex items-center gap-1.5 text-[11px] bg-[#050505] text-[#D4D4D8] border border-[#27272A] px-2 py-0.5 rounded font-medium">
-                            <span className={`w-1.5 h-1.5 rounded-full ${isEmailVerified ? "bg-emerald-400" : "bg-amber-400"}`} />
+                          <span className="inline-flex items-center gap-1.5 text-[11px] bg-[#181818] text-[#D4D4D8] px-3 py-1 rounded-full font-mono font-medium">
+                            <span className={`w-1.5 h-1.5 rounded-full ${isEmailVerified ? "bg-[#BFDD25] shadow-[0_0_6px_rgba(191,221,37,0.8)]" : "bg-amber-400"}`} />
                             {isEmailVerified ? "Verified" : "Pending Verification"}
                           </span>
                         </div>
@@ -589,7 +711,7 @@ export default function SettingsPage() {
                             alert("Verification link sent to " + newE + ". Please check your inbox.");
                           }
                         }}
-                        className="px-4 py-2 bg-[#080808] hover:bg-[#050505] border border-[#333] rounded-lg text-xs font-medium text-white transition-colors self-start sm:self-auto cursor-pointer"
+                        className="px-5 py-2.5 bg-[#181818] hover:bg-[#222222] rounded-full text-xs font-mono text-white transition-colors self-start sm:self-auto cursor-pointer"
                       >
                         Change Email Address
                       </button>
@@ -597,43 +719,43 @@ export default function SettingsPage() {
                   </div>
 
                   {/* Password Section */}
-                  <form onSubmit={handleSaveSecurity} className="space-y-5 pt-4 border-t border-[#222]">
-                    <h3 className="text-sm font-semibold text-white">{t("settings.changePassword")}</h3>
+                  <form onSubmit={handleSaveSecurity} className="space-y-5 pt-2">
+                    <h3 className="text-sm font-mono font-bold uppercase tracking-wider text-white">{t("settings.changePassword")}</h3>
                     
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <div className="space-y-1.5">
-                        <label className="block text-xs text-[#888]">{t("settings.currentPassword")}</label>
+                        <label className="block text-xs font-mono uppercase tracking-wider text-[#A1A1AA] font-semibold">{t("settings.currentPassword")}</label>
                         <input
                           type="password"
                           required
                           placeholder="••••••••••••"
                           value={currentPassword}
                           onChange={(e) => setCurrentPassword(e.target.value)}
-                          className="w-full bg-[#050505] border border-[#1c1c1c] focus:border-white rounded-lg px-3.5 py-2.5 text-sm text-white outline-none transition-colors"
+                          className="w-full bg-[#161616] hover:bg-[#1A1A1A] focus:bg-[#1C1C1C] ring-1 ring-white/10 hover:ring-white/20 focus:ring-1 focus:ring-[#BFDD25] shadow-inner rounded-xl px-4 py-3 text-sm text-white outline-none transition-all placeholder:text-[#666]"
                         />
                       </div>
 
                       <div className="space-y-1.5">
-                        <label className="block text-xs text-[#888]">{t("settings.newPassword")}</label>
+                        <label className="block text-xs font-mono uppercase tracking-wider text-[#A1A1AA] font-semibold">{t("settings.newPassword")}</label>
                         <input
                           type="password"
                           required
                           placeholder="Min. 8 characters"
                           value={newPassword}
                           onChange={(e) => setNewPassword(e.target.value)}
-                          className="w-full bg-[#050505] border border-[#1c1c1c] focus:border-white rounded-lg px-3.5 py-2.5 text-sm text-white outline-none transition-colors"
+                          className="w-full bg-[#161616] hover:bg-[#1A1A1A] focus:bg-[#1C1C1C] ring-1 ring-white/10 hover:ring-white/20 focus:ring-1 focus:ring-[#BFDD25] shadow-inner rounded-xl px-4 py-3 text-sm text-white outline-none transition-all placeholder:text-[#666]"
                         />
                       </div>
 
                       <div className="space-y-1.5">
-                        <label className="block text-xs text-[#888]">{t("settings.confirmPassword")}</label>
+                        <label className="block text-xs font-mono uppercase tracking-wider text-[#A1A1AA] font-semibold">{t("settings.confirmPassword")}</label>
                         <input
                           type="password"
                           required
                           placeholder="Repeat new password"
                           value={confirmPassword}
                           onChange={(e) => setConfirmPassword(e.target.value)}
-                          className="w-full bg-[#050505] border border-[#1c1c1c] focus:border-white rounded-lg px-3.5 py-2.5 text-sm text-white outline-none transition-colors"
+                          className="w-full bg-[#161616] hover:bg-[#1A1A1A] focus:bg-[#1C1C1C] ring-1 ring-white/10 hover:ring-white/20 focus:ring-1 focus:ring-[#BFDD25] shadow-inner rounded-xl px-4 py-3 text-sm text-white outline-none transition-all placeholder:text-[#666]"
                         />
                       </div>
                     </div>
@@ -641,7 +763,7 @@ export default function SettingsPage() {
                     <div className="flex justify-end pt-2">
                       <button
                         type="submit"
-                        className="px-5 py-2.5 bg-white hover:bg-[#e0e0e0] text-black font-medium text-xs rounded-lg transition-colors cursor-pointer"
+                        className="px-6 py-3 bg-[#BFDD25] hover:bg-[#aecd20] text-black font-mono font-bold text-xs uppercase tracking-wider rounded-full transition-all shadow-[0_0_12px_rgba(191,221,37,0.3)] cursor-pointer"
                       >
                         {t("settings.save")}
                       </button>
@@ -658,11 +780,11 @@ export default function SettingsPage() {
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.15 }}
-                  className="bg-[#030303] border border-[#222] rounded-xl p-6 sm:p-8 space-y-6"
+                  className="bg-[#0A0A0A] rounded-2xl p-6 sm:p-8 space-y-6 shadow-sm"
                 >
                   <div>
-                    <h2 className="text-lg font-semibold text-white">{t("settings.notifications")}</h2>
-                    <p className="text-xs text-[#888] mt-0.5">
+                    <h2 className="text-lg font-bold text-white">{t("settings.notifications")}</h2>
+                    <p className="text-xs text-[#888888] mt-0.5 font-sans">
                       {t("settings.notifDesc")}
                     </p>
                   </div>
@@ -670,13 +792,13 @@ export default function SettingsPage() {
                   <form onSubmit={handleSaveNotif} className="space-y-3">
                     
                     {/* Item 1: Order Status */}
-                    <div className="flex items-center justify-between p-4 bg-[#050505] border border-[#1c1c1c] rounded-lg">
+                    <div className="flex items-center justify-between p-4 bg-[#121212] hover:bg-[#161616] transition-colors rounded-xl">
                       <div className="space-y-0.5 pr-4">
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-medium text-white">{t("settings.notifOrder")}</span>
-                          <span className="text-[10px] bg-[#080808] text-[#aaa] border border-[#333] px-2 py-0.5 rounded font-medium">Required</span>
+                          <span className="text-[10px] font-mono bg-[#181818] text-[#AAAAAA] px-2.5 py-0.5 rounded-full font-medium">Required</span>
                         </div>
-                        <p className="text-xs text-[#888]">
+                        <p className="text-xs text-[#888888]">
                           {t("settings.notifOrderDesc")}
                         </p>
                       </div>
@@ -684,18 +806,18 @@ export default function SettingsPage() {
                         type="checkbox"
                         checked={notifOrder}
                         onChange={(e) => setNotifOrder(e.target.checked)}
-                        className="w-4 h-4 rounded bg-[#080808] border-[#444] text-white focus:ring-0 cursor-pointer accent-white"
+                        className="w-4 h-4 rounded bg-[#181818] text-[#BFDD25] accent-[#BFDD25] cursor-pointer"
                       />
                     </div>
 
                     {/* Item 2: Promo */}
-                    <div className="flex items-center justify-between p-4 bg-[#050505] border border-[#1c1c1c] rounded-lg">
+                    <div className="flex items-center justify-between p-4 bg-[#121212] hover:bg-[#161616] transition-colors rounded-xl">
                       <div className="space-y-0.5 pr-4">
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-medium text-white">{t("settings.notifPromo")}</span>
-                          <span className="text-[10px] bg-[#080808] text-[#888] px-2 py-0.5 rounded font-medium">{t("common.optional")}</span>
+                          <span className="text-[10px] font-mono bg-[#181818] text-[#888888] px-2.5 py-0.5 rounded-full font-medium">{t("common.optional")}</span>
                         </div>
-                        <p className="text-xs text-[#888]">
+                        <p className="text-xs text-[#888888]">
                           {t("settings.notifPromoDesc")}
                         </p>
                       </div>
@@ -703,18 +825,18 @@ export default function SettingsPage() {
                         type="checkbox"
                         checked={notifPromo}
                         onChange={(e) => setNotifPromo(e.target.checked)}
-                        className="w-4 h-4 rounded bg-[#080808] border-[#444] text-white focus:ring-0 cursor-pointer accent-white"
+                        className="w-4 h-4 rounded bg-[#181818] text-[#BFDD25] accent-[#BFDD25] cursor-pointer"
                       />
                     </div>
 
                     {/* Item 3: System Approval */}
-                    <div className="flex items-center justify-between p-4 bg-[#050505] border border-[#1c1c1c] rounded-lg">
+                    <div className="flex items-center justify-between p-4 bg-[#121212] hover:bg-[#161616] transition-colors rounded-xl">
                       <div className="space-y-0.5 pr-4">
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-medium text-white">{t("settings.notifSystem")}</span>
-                          <span className="text-[10px] bg-[#080808] text-[#aaa] border border-[#333] px-2 py-0.5 rounded font-medium">Important</span>
+                          <span className="text-[10px] font-mono bg-[#181818] text-[#AAAAAA] px-2.5 py-0.5 rounded-full font-medium">Important</span>
                         </div>
-                        <p className="text-xs text-[#888]">
+                        <p className="text-xs text-[#888888]">
                           {t("settings.notifSystemDesc")}
                         </p>
                       </div>
@@ -722,14 +844,14 @@ export default function SettingsPage() {
                         type="checkbox"
                         checked={notifSystem}
                         onChange={(e) => setNotifSystem(e.target.checked)}
-                        className="w-4 h-4 rounded bg-[#080808] border-[#444] text-white focus:ring-0 cursor-pointer accent-white"
+                        className="w-4 h-4 rounded bg-[#181818] text-[#BFDD25] accent-[#BFDD25] cursor-pointer"
                       />
                     </div>
 
-                    <div className="flex justify-end pt-4">
+                    <div className="flex justify-end pt-3">
                       <button
                         type="submit"
-                        className="px-5 py-2.5 bg-white hover:bg-[#e0e0e0] text-black font-medium text-xs rounded-lg transition-colors cursor-pointer"
+                        className="px-6 py-3 bg-[#BFDD25] hover:bg-[#aecd20] text-black font-mono font-bold text-xs uppercase tracking-wider rounded-full transition-all shadow-[0_0_12px_rgba(191,221,37,0.3)] cursor-pointer"
                       >
                         {t("settings.save")}
                       </button>
@@ -746,12 +868,12 @@ export default function SettingsPage() {
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.15 }}
-                  className="bg-[#030303] border border-[#222] rounded-xl p-6 sm:p-8 space-y-6"
+                  className="bg-[#0A0A0A] rounded-2xl p-6 sm:p-8 space-y-6 shadow-sm"
                 >
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
-                      <h2 className="text-lg font-semibold text-white">{t("settings.savedAddresses")}</h2>
-                      <p className="text-xs text-[#888] mt-0.5">
+                      <h2 className="text-lg font-bold text-white">{t("settings.savedAddresses")}</h2>
+                      <p className="text-xs text-[#888888] mt-0.5 font-sans">
                         {t("settings.addressesDesc")}
                       </p>
                     </div>
@@ -759,71 +881,91 @@ export default function SettingsPage() {
                     <button
                       type="button"
                       onClick={() => setShowAddModal(true)}
-                      className="px-4 py-2 bg-white hover:bg-[#e0e0e0] text-black font-medium text-xs rounded-lg transition-colors flex items-center gap-2 self-start sm:self-auto cursor-pointer"
+                      className="px-5 py-2.5 bg-[#BFDD25] hover:bg-[#aecd20] text-black font-mono font-bold text-xs uppercase tracking-wider rounded-full transition-all shadow-[0_0_12px_rgba(191,221,37,0.3)] flex items-center gap-2 self-start sm:self-auto cursor-pointer"
                     >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 5v14m-7-7h14"/></svg>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 5v14m-7-7h14"/></svg>
                       <span>{t("settings.addNewAddress")}</span>
                     </button>
                   </div>
 
                   {/* Addresses List */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {addresses.map((addr) => (
-                      <div
-                        key={addr.id}
-                        className={`p-5 rounded-lg border transition-colors flex flex-col justify-between ${
-                          addr.isDefault
-                            ? "bg-[#050505] border-white/40"
-                            : "bg-[#050505] border-[#1c1c1c]"
-                        }`}
+                  {addresses.length === 0 ? (
+                    <div className="py-12 px-6 text-center rounded-2xl bg-[#121212] shadow-sm">
+                      <p className="text-sm font-bold text-white mb-1 font-heading uppercase">Belum Ada Alamat Tersimpan</p>
+                      <p className="text-xs text-[#888888] mb-6 max-w-md mx-auto font-sans">
+                        Tambahkan alamat pengiriman agar pesanan Anda dapat diantar secara tepat dan otomatis terisi saat checkout.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setShowAddModal(true)}
+                        className="px-6 py-3 bg-[#BFDD25] hover:bg-[#aecd20] text-black font-mono font-bold text-xs uppercase tracking-wider rounded-full transition-all shadow-[0_0_12px_rgba(191,221,37,0.3)] inline-flex items-center gap-2 cursor-pointer"
                       >
-                        <div>
-                          <div className="flex items-center justify-between gap-2 mb-3">
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs font-semibold text-white bg-[#080808] px-2.5 py-1 rounded border border-[#333]">
-                                {addr.label}
-                              </span>
-                              {addr.isDefault && (
-                                <span className="text-[11px] bg-white text-black font-medium px-2 py-0.5 rounded">
-                                  Default
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 5v14m-7-7h14"/></svg>
+                        <span>{t("settings.addNewAddress")}</span>
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {addresses.map((addr) => (
+                        <div
+                          key={addr.id}
+                          className={`p-5 rounded-2xl bg-[#121212] hover:bg-[#151515] transition-all flex flex-col justify-between shadow-sm ${
+                            addr.isDefault
+                              ? "ring-1 ring-[#BFDD25]/60"
+                              : ""
+                          }`}
+                        >
+                          <div>
+                            <div className="flex items-center justify-between gap-2 mb-3">
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs font-mono font-bold text-[#BFDD25] bg-[#181818] px-3 py-1 rounded-full">
+                                  {addr.label}
                                 </span>
-                              )}
+                                {addr.isDefault && (
+                                  <span className="text-[10px] font-mono font-bold bg-[#BFDD25] text-black px-2.5 py-0.5 rounded-full">
+                                    Default
+                                  </span>
+                                )}
+                              </div>
                             </div>
+
+                            <p className="text-sm font-semibold text-white mb-0.5">{addr.receiver}</p>
+                            <p className="text-xs font-mono text-[#888888] mb-2">{addr.phone}</p>
+                            <p className="text-xs text-[#AAAAAA] leading-relaxed mb-4 font-sans">
+                              {addr.fullAddress}
+                              <br />
+                              <strong className="text-white">{addr.city}</strong> — {addr.postalCode}
+                            </p>
                           </div>
 
-                          <p className="text-sm font-semibold text-white mb-0.5">{addr.receiver}</p>
-                          <p className="text-xs text-[#888] mb-2">{addr.phone}</p>
-                          <p className="text-xs text-[#aaa] leading-relaxed mb-4">
-                            {addr.fullAddress}
-                            <br />
-                            <strong className="text-white">{addr.city}</strong> — {addr.postalCode}
-                          </p>
-                        </div>
+                          <div className="pt-3 flex items-center justify-between gap-2 text-xs font-mono">
+                            {!addr.isDefault ? (
+                              <button
+                                type="button"
+                                onClick={() => handleSetDefaultAddress(addr.id)}
+                                className="text-[#BFDD25] hover:underline font-semibold cursor-pointer"
+                              >
+                                {t("settings.setDefault")}
+                              </button>
+                            ) : (
+                              <span className="text-[#BFDD25] text-[11px] font-semibold flex items-center gap-1.5">
+                                <span className="w-1.5 h-1.5 rounded-full bg-[#BFDD25] shadow-[0_0_6px_rgba(191,221,37,0.8)]" />
+                                {t("settings.selectedCheckout")}
+                              </span>
+                            )}
 
-                        <div className="pt-3 border-t border-[#1c1c1c] flex items-center justify-between gap-2 text-xs">
-                          {!addr.isDefault ? (
                             <button
                               type="button"
-                              onClick={() => handleSetDefaultAddress(addr.id)}
-                              className="text-white hover:underline font-medium cursor-pointer"
+                              onClick={() => handleDeleteAddress(addr.id)}
+                              className="text-red-400 hover:text-red-300 transition-colors cursor-pointer font-medium"
                             >
-                              {t("settings.setDefault")}
+                              {t("settings.remove")}
                             </button>
-                          ) : (
-                            <span className="text-emerald-400 text-[11px]">{t("settings.selectedCheckout")}</span>
-                          )}
-
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteAddress(addr.id)}
-                            className="text-red-400 hover:text-red-300 transition-colors cursor-pointer font-medium"
-                          >
-                            {t("settings.remove")}
-                          </button>
+                          </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  )}
                 </motion.div>
               )}
 
@@ -835,14 +977,14 @@ export default function SettingsPage() {
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.15 }}
-                  className="bg-[#030303] border border-[#222] rounded-xl p-6 sm:p-8 space-y-8"
+                  className="bg-[#0A0A0A] rounded-2xl p-6 sm:p-8 space-y-7 shadow-sm"
                 >
                   <div>
                     <div className="flex items-center gap-2">
-                      <h2 className="text-lg font-semibold text-white">{t("settings.audioDefaults")}</h2>
-                      <span className="text-[10px] bg-[#080808] text-[#888] px-2 py-0.5 rounded font-medium">Optional</span>
+                      <h2 className="text-lg font-bold text-white">{t("settings.audioDefaults")}</h2>
+                      <span className="text-[10px] font-mono bg-[#181818] text-[#888888] px-2.5 py-0.5 rounded-full font-medium">Optional</span>
                     </div>
-                    <p className="text-xs text-[#888] mt-0.5">
+                    <p className="text-xs text-[#888888] mt-0.5 font-sans">
                       {t("settings.audioDefaultsDesc")}
                     </p>
                   </div>
@@ -851,7 +993,7 @@ export default function SettingsPage() {
                     
                     {/* Experience Level */}
                     <div className="space-y-2.5">
-                      <label className="block text-xs font-semibold text-white uppercase tracking-wider">
+                      <label className="block text-xs font-mono font-bold uppercase tracking-wider text-[#AAAAAA]">
                         {t("settings.experienceLevel")}
                       </label>
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -866,21 +1008,21 @@ export default function SettingsPage() {
                               key={lvl.name}
                               type="button"
                               onClick={() => setExperienceLevel(lvl.name)}
-                              className={`p-4 rounded-lg border text-left transition-colors cursor-pointer flex flex-col justify-between ${
+                              className={`p-4 rounded-xl text-left transition-all cursor-pointer flex flex-col justify-between shadow-sm ${
                                 isSel
-                                  ? "bg-[#050505] border-white text-white"
-                                  : "bg-[#050505] border-[#1c1c1c] text-[#888] hover:border-[#444]"
+                                  ? "bg-[#161616] ring-1 ring-[#BFDD25] text-white"
+                                  : "bg-[#121212] text-[#888888] hover:bg-[#161616] hover:text-white"
                               }`}
                             >
                               <div className="flex items-center justify-between mb-1 w-full">
-                                <span className={`text-xs font-semibold ${isSel ? "text-white" : "text-[#ccc]"}`}>
+                                <span className={`text-xs font-semibold ${isSel ? "text-[#BFDD25]" : "text-[#CCCCCC]"}`}>
                                   {lvl.title}
                                 </span>
                                 {isSel && (
-                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-white"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-[#BFDD25]"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
                                 )}
                               </div>
-                              <span className="text-xs text-[#888] mt-1">{lvl.desc}</span>
+                              <span className="text-xs text-[#888888] mt-1 font-sans">{lvl.desc}</span>
                             </button>
                           );
                         })}
@@ -889,7 +1031,7 @@ export default function SettingsPage() {
 
                     {/* Sound Signature */}
                     <div className="space-y-2.5 pt-2">
-                      <label className="block text-xs font-semibold text-white uppercase tracking-wider">
+                      <label className="block text-xs font-mono font-bold uppercase tracking-wider text-[#AAAAAA]">
                         {t("settings.soundSignature")}
                       </label>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -905,21 +1047,21 @@ export default function SettingsPage() {
                               key={sig.name}
                               type="button"
                               onClick={() => setSoundSignature(sig.name)}
-                              className={`p-4 rounded-lg border text-left transition-colors cursor-pointer flex flex-col justify-between ${
+                              className={`p-4 rounded-xl text-left transition-all cursor-pointer flex flex-col justify-between shadow-sm ${
                                 isSel
-                                  ? "bg-[#050505] border-white text-white"
-                                  : "bg-[#050505] border-[#1c1c1c] text-[#888] hover:border-[#444]"
+                                  ? "bg-[#161616] ring-1 ring-[#BFDD25] text-white"
+                                  : "bg-[#121212] text-[#888888] hover:bg-[#161616] hover:text-white"
                               }`}
                             >
                               <div className="flex items-center justify-between mb-1 w-full">
-                                <span className={`text-xs font-semibold ${isSel ? "text-white" : "text-[#ccc]"}`}>
+                                <span className={`text-xs font-semibold ${isSel ? "text-[#BFDD25]" : "text-[#CCCCCC]"}`}>
                                   {sig.title}
                                 </span>
                                 {isSel && (
-                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-white"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-[#BFDD25]"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
                                 )}
                               </div>
-                              <span className="text-xs text-[#888] mt-1">{sig.desc}</span>
+                              <span className="text-xs text-[#888888] mt-1 font-sans">{sig.desc}</span>
                             </button>
                           );
                         })}
@@ -928,13 +1070,13 @@ export default function SettingsPage() {
 
                     {/* Language Setting */}
                     <div className="space-y-2.5 pt-2">
-                      <label className="block text-xs font-semibold text-white uppercase tracking-wider">
+                      <label className="block text-xs font-mono font-bold uppercase tracking-wider text-[#AAAAAA]">
                         {t("settings.language")}
                       </label>
-                      <p className="text-xs text-[#888] -mt-1">
+                      <p className="text-xs text-[#888888] -mt-1 font-sans">
                         {t("settings.languageDesc")}
                       </p>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {[
                           { code: "English", native: "English", flag: "US" },
                           { code: "Bahasa Indonesia", native: "Bahasa Indonesia", flag: "ID" },
@@ -948,21 +1090,21 @@ export default function SettingsPage() {
                                 setLanguage(lang.code);
                                 setGlobalLanguage(lang.code);
                               }}
-                              className={`p-4 rounded-lg border text-left transition-colors cursor-pointer flex items-center gap-3 ${
+                              className={`p-4 rounded-xl text-left transition-all cursor-pointer flex items-center gap-3 shadow-sm ${
                                 isSel
-                                  ? "bg-[#050505] border-white text-white"
-                                  : "bg-[#050505] border-[#1c1c1c] text-[#888] hover:border-[#444]"
+                                  ? "bg-[#161616] ring-1 ring-[#BFDD25] text-white"
+                                  : "bg-[#121212] text-[#888888] hover:bg-[#161616] hover:text-white"
                               }`}
                             >
                               <span className="text-xl leading-none">{lang.flag}</span>
                               <div className="flex flex-col">
-                                <span className={`text-xs font-semibold ${isSel ? "text-white" : "text-[#ccc]"}`}>
+                                <span className={`text-xs font-semibold ${isSel ? "text-[#BFDD25]" : "text-[#CCCCCC]"}`}>
                                   {lang.code}
                                 </span>
-                                <span className="text-[11px] text-[#888]">{lang.native}</span>
+                                <span className="text-[11px] text-[#888888] font-mono">{lang.native}</span>
                               </div>
                               {isSel && (
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-white ml-auto shrink-0"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-[#BFDD25] ml-auto shrink-0"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
                               )}
                             </button>
                           );
@@ -970,10 +1112,10 @@ export default function SettingsPage() {
                       </div>
                     </div>
 
-                    <div className="flex justify-end pt-4 border-t border-[#222]">
+                    <div className="flex justify-end pt-3">
                       <button
                         type="submit"
-                        className="px-5 py-2.5 bg-white hover:bg-[#e0e0e0] text-black font-medium text-xs rounded-lg transition-colors cursor-pointer"
+                        className="px-6 py-3 bg-[#BFDD25] hover:bg-[#aecd20] text-black font-mono font-bold text-xs uppercase tracking-wider rounded-full transition-all shadow-[0_0_12px_rgba(191,221,37,0.3)] cursor-pointer"
                       >
                         {t("settings.savePreferences")}
                       </button>
@@ -990,42 +1132,42 @@ export default function SettingsPage() {
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.15 }}
-                  className="bg-[#030303] border border-[#222] rounded-xl p-6 sm:p-8 space-y-8"
+                  className="bg-[#0A0A0A] rounded-2xl p-6 sm:p-8 space-y-7 shadow-sm"
                 >
-                  <div className="flex items-center justify-between border-b border-[#222] pb-5">
+                  <div className="flex items-center justify-between pb-2">
                     <div>
-                      <h2 className="text-lg font-semibold text-white">{t("settings.sellerSettings")}</h2>
-                      <p className="text-xs text-[#888] mt-0.5">
+                      <h2 className="text-lg font-bold text-white">{t("settings.sellerSettings")}</h2>
+                      <p className="text-xs text-[#888888] mt-0.5 font-sans">
                         {t("settings.sellerSettingsDesc")}
                       </p>
                     </div>
-                    <span className="text-[11px] bg-[#080808] text-white border border-[#333] px-2.5 py-1 rounded font-medium">
+                    <span className="text-[11px] font-mono font-bold bg-[#141414] text-[#BFDD25] px-3 py-1 rounded-full">
                       {t("settings.sellerModeActive")}
                     </span>
                   </div>
 
-                  <form onSubmit={handleSaveSeller} className="space-y-8">
+                  <form onSubmit={handleSaveSeller} className="space-y-7">
                     
                     {/* Bank Info Section */}
                     <div className="space-y-4">
                       <div>
-                        <h3 className="text-sm font-semibold text-white">{t("settings.bankPayoutInfo")}</h3>
-                        <p className="text-xs text-[#888] mt-0.5">
+                        <h3 className="text-sm font-mono font-bold uppercase tracking-wider text-white">{t("settings.bankPayoutInfo")}</h3>
+                        <p className="text-xs text-[#888888] mt-0.5 font-sans">
                           {t("settings.bankPayoutDesc")}
                         </p>
                       </div>
 
-                      <div className="p-4 bg-[#050505] border border-[#2a2a2a] rounded-lg text-xs text-[#aaa] leading-relaxed">
+                      <div className="p-4 bg-[#121212] rounded-xl text-xs text-[#AAAAAA] leading-relaxed font-sans">
                         <strong className="text-white">{t("settings.mvpNote")}</strong> {t("settings.mvpNoteDesc")}
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
                         <div className="space-y-1.5">
-                          <label className="block text-xs text-[#888]">{t("settings.bankName")}</label>
+                          <label className="block text-xs font-mono uppercase tracking-wider text-[#A1A1AA] font-semibold">{t("settings.bankName")}</label>
                           <select
                             value={bankName}
                             onChange={(e) => setBankName(e.target.value)}
-                            className="w-full bg-[#050505] border border-[#1c1c1c] focus:border-white rounded-lg px-3.5 py-2.5 text-sm text-white outline-none cursor-pointer"
+                            className="w-full bg-[#161616] hover:bg-[#1A1A1A] focus:bg-[#1C1C1C] ring-1 ring-white/10 hover:ring-white/20 focus:ring-1 focus:ring-[#BFDD25] shadow-inner rounded-xl px-4 py-3 text-sm text-white outline-none cursor-pointer transition-all"
                           >
                             <option value="BCA (Bank Central Asia)">BCA (Bank Central Asia)</option>
                             <option value="Mandiri (Bank Mandiri)">Mandiri (Bank Mandiri)</option>
@@ -1036,86 +1178,86 @@ export default function SettingsPage() {
                         </div>
 
                         <div className="space-y-1.5">
-                          <label className="block text-xs text-[#888]">{t("settings.accountNumber")}</label>
+                          <label className="block text-xs font-mono uppercase tracking-wider text-[#A1A1AA] font-semibold">{t("settings.accountNumber")}</label>
                           <input
                             type="text"
                             required
                             placeholder="e.g. 8765432109"
                             value={accountNumber}
                             onChange={(e) => setAccountNumber(e.target.value)}
-                            className="w-full bg-[#050505] border border-[#1c1c1c] focus:border-white rounded-lg px-3.5 py-2.5 text-sm text-white outline-none"
+                            className="w-full bg-[#161616] hover:bg-[#1A1A1A] focus:bg-[#1C1C1C] ring-1 ring-white/10 hover:ring-white/20 focus:ring-1 focus:ring-[#BFDD25] shadow-inner rounded-xl px-4 py-3 text-sm text-white outline-none transition-all placeholder:text-[#666]"
                           />
                         </div>
 
                         <div className="space-y-1.5">
-                          <label className="block text-xs text-[#888]">{t("settings.accountHolder")}</label>
+                          <label className="block text-xs font-mono uppercase tracking-wider text-[#A1A1AA] font-semibold">{t("settings.accountHolder")}</label>
                           <input
                             type="text"
                             required
                             placeholder="Exact name on account"
                             value={accountHolder}
                             onChange={(e) => setAccountHolder(e.target.value)}
-                            className="w-full bg-[#050505] border border-[#1c1c1c] focus:border-white rounded-lg px-3.5 py-2.5 text-sm text-white uppercase outline-none"
+                            className="w-full bg-[#161616] hover:bg-[#1A1A1A] focus:bg-[#1C1C1C] ring-1 ring-white/10 hover:ring-white/20 focus:ring-1 focus:ring-[#BFDD25] shadow-inner rounded-xl px-4 py-3 text-sm text-white uppercase outline-none transition-all placeholder:text-[#666]"
                           />
                         </div>
                       </div>
                     </div>
 
                     {/* Urgent Seller Notifs Section */}
-                    <div className="space-y-4 pt-6 border-t border-[#222]">
+                    <div className="space-y-4 pt-2">
                       <div>
-                        <h3 className="text-sm font-semibold text-white">{t("settings.urgentAlerts")}</h3>
-                        <p className="text-xs text-[#888] mt-0.5">
+                        <h3 className="text-sm font-mono font-bold uppercase tracking-wider text-white">{t("settings.urgentAlerts")}</h3>
+                        <p className="text-xs text-[#888888] mt-0.5 font-sans">
                           {t("settings.urgentAlertsDesc")}
                         </p>
                       </div>
 
                       <div className="space-y-2.5">
-                        <div className="flex items-center justify-between p-4 bg-[#050505] border border-[#1c1c1c] rounded-lg">
+                        <div className="flex items-center justify-between p-4 bg-[#121212] hover:bg-[#161616] transition-colors rounded-xl">
                           <div className="pr-4">
                             <span className="text-sm font-medium text-white block">{t("New Order Notifications")}</span>
-                            <span className="text-xs text-[#888]">Immediate alert when a buyer completes payment for your item.</span>
+                            <span className="text-xs text-[#888888] font-sans">Immediate alert when a buyer completes payment for your item.</span>
                           </div>
                           <input
                             type="checkbox"
                             checked={sellerNotifNewOrder}
                             onChange={(e) => setSellerNotifNewOrder(e.target.checked)}
-                            className="w-4 h-4 rounded bg-[#080808] border-[#444] text-white focus:ring-0 cursor-pointer accent-white"
+                            className="w-4 h-4 rounded bg-[#181818] text-[#BFDD25] accent-[#BFDD25] cursor-pointer"
                           />
                         </div>
 
-                        <div className="flex items-center justify-between p-4 bg-[#050505] border border-[#1c1c1c] rounded-lg">
+                        <div className="flex items-center justify-between p-4 bg-[#121212] hover:bg-[#161616] transition-colors rounded-xl">
                           <div className="pr-4">
                             <span className="text-sm font-medium text-white block">{t("Shipping SLA Deadline Warnings")}</span>
-                            <span className="text-xs text-[#888]">Alert 6 hours before the required tracking number input deadline.</span>
+                            <span className="text-xs text-[#888888] font-sans">Alert 6 hours before the required tracking number input deadline.</span>
                           </div>
                           <input
                             type="checkbox"
                             checked={sellerNotifShippingDeadline}
                             onChange={(e) => setSellerNotifShippingDeadline(e.target.checked)}
-                            className="w-4 h-4 rounded bg-[#080808] border-[#444] text-white focus:ring-0 cursor-pointer accent-white"
+                            className="w-4 h-4 rounded bg-[#181818] text-[#BFDD25] accent-[#BFDD25] cursor-pointer"
                           />
                         </div>
 
-                        <div className="flex items-center justify-between p-4 bg-[#050505] border border-[#1c1c1c] rounded-lg">
+                        <div className="flex items-center justify-between p-4 bg-[#121212] hover:bg-[#161616] transition-colors rounded-xl">
                           <div className="pr-4">
                             <span className="text-sm font-medium text-white block">{t("Payout Disbursement Confirmation")}</span>
-                            <span className="text-xs text-[#888]">Email notification when admin transfers funds to your bank account.</span>
+                            <span className="text-xs text-[#888888] font-sans">Email notification when admin transfers funds to your bank account.</span>
                           </div>
                           <input
                             type="checkbox"
                             checked={sellerNotifPayout}
                             onChange={(e) => setSellerNotifPayout(e.target.checked)}
-                            className="w-4 h-4 rounded bg-[#080808] border-[#444] text-white focus:ring-0 cursor-pointer accent-white"
+                            className="w-4 h-4 rounded bg-[#181818] text-[#BFDD25] accent-[#BFDD25] cursor-pointer"
                           />
                         </div>
                       </div>
                     </div>
 
-                    <div className="flex justify-end pt-4 border-t border-[#222]">
+                    <div className="flex justify-end pt-3">
                       <button
                         type="submit"
-                        className="px-5 py-2.5 bg-white hover:bg-[#e0e0e0] text-black font-medium text-xs rounded-lg transition-colors cursor-pointer"
+                        className="px-6 py-3 bg-[#BFDD25] hover:bg-[#aecd20] text-black font-mono font-bold text-xs uppercase tracking-wider rounded-full transition-all shadow-[0_0_12px_rgba(191,221,37,0.3)] cursor-pointer"
                       >
                         {t("settings.save")}
                       </button>
@@ -1126,9 +1268,9 @@ export default function SettingsPage() {
             </AnimatePresence>
 
             {/* SECTION: DEFERRED FEATURES INFO BOX - Clean Neutral Style */}
-            <div className="bg-[#050505] border border-[#222] rounded-xl p-6 text-xs text-[#888] space-y-3">
-              <h4 className="font-semibold text-white text-sm">Security &amp; Post-MVP Roadmap Notes</h4>
-              <ul className="space-y-2 list-disc list-inside leading-relaxed text-[#aaa]">
+            <div className="bg-[#0A0A0A] rounded-2xl p-6 text-xs text-[#888888] space-y-3 shadow-sm">
+              <h4 className="font-bold text-white text-sm font-mono uppercase tracking-wider">Security &amp; Post-MVP Roadmap Notes</h4>
+              <ul className="space-y-2 list-disc list-inside leading-relaxed text-[#AAAAAA] font-sans">
                 <li>
                   <strong className="text-white">Payment Methods (Credit/Debit Cards):</strong> We do not store credit card details on Tonalzone servers to ensure full PCI-DSS compliance. Transactions are processed securely via <strong>Midtrans Payment Gateway</strong>.
                 </li>
@@ -1136,7 +1278,7 @@ export default function SettingsPage() {
                   <strong className="text-white">Two-Factor Authentication (2FA):</strong> Multi-factor authentication via OTP or authenticator apps is scheduled for post-MVP releases.
                 </li>
                 <li>
-                  <strong className="text-white">Account Deletion &amp; Data Export (GDPR):</strong> During the MVP launch, account deletion requests and personal transaction history exports are handled manually by contacting our <Link href="/support" className="text-white underline font-medium">Support team</Link>.
+                  <strong className="text-white">Account Deletion &amp; Data Export (GDPR):</strong> During the MVP launch, account deletion requests and personal transaction history exports are handled manually by contacting our <Link href="/support" className="text-[#BFDD25] hover:underline font-medium">Support team</Link>.
                 </li>
               </ul>
             </div>
@@ -1162,109 +1304,114 @@ export default function SettingsPage() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.98, y: 10 }}
               transition={{ duration: 0.15 }}
-              className="relative w-full max-w-lg bg-[#050505] border border-[#1c1c1c] rounded-xl p-6 sm:p-8 shadow-2xl z-10"
+              className="relative w-full max-w-lg bg-[#0A0A0A] rounded-2xl p-6 sm:p-8 shadow-2xl z-10"
             >
-              <div className="flex items-center justify-between pb-4 border-b border-[#222] mb-6">
-                <h3 className="text-lg font-semibold text-white">
-                  Add Shipping Address
-                </h3>
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <span className="text-[10px] font-mono text-[#BFDD25] uppercase tracking-widest block font-bold">
+                    Logistik Pengiriman
+                  </span>
+                  <h3 className="text-lg font-bold text-white">
+                    Add Shipping Address
+                  </h3>
+                </div>
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="text-[#888] hover:text-white text-base cursor-pointer"
+                  className="w-8 h-8 rounded-full bg-[#141414] hover:bg-[#202020] text-[#888888] hover:text-white flex items-center justify-center text-sm font-bold transition-colors cursor-pointer"
                 >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
               </div>
 
               <form onSubmit={handleAddNewAddress} className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="block text-xs text-[#888]">Address Label</label>
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-mono uppercase tracking-wider text-[#A1A1AA] font-semibold">Address Label</label>
                     <input
                       type="text"
                       required
                       placeholder="e.g. Home, Office, Studio"
                       value={newAddrLabel}
                       onChange={(e) => setNewAddrLabel(e.target.value)}
-                      className="w-full bg-[#050505] border border-[#1c1c1c] focus:border-white rounded-lg px-3.5 py-2.5 text-sm text-white outline-none"
+                      className="w-full bg-[#161616] hover:bg-[#1A1A1A] focus:bg-[#1C1C1C] ring-1 ring-white/10 hover:ring-white/20 focus:ring-1 focus:ring-[#BFDD25] shadow-inner rounded-xl px-4 py-3 text-sm text-white outline-none transition-all placeholder:text-[#666]"
                     />
                   </div>
 
-                  <div className="space-y-1">
-                    <label className="block text-xs text-[#888]">Receiver Name</label>
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-mono uppercase tracking-wider text-[#A1A1AA] font-semibold">Receiver Name</label>
                     <input
                       type="text"
                       required
                       placeholder="e.g. Alex Rivera"
                       value={newAddrReceiver}
                       onChange={(e) => setNewAddrReceiver(e.target.value)}
-                      className="w-full bg-[#050505] border border-[#1c1c1c] focus:border-white rounded-lg px-3.5 py-2.5 text-sm text-white outline-none"
+                      className="w-full bg-[#161616] hover:bg-[#1A1A1A] focus:bg-[#1C1C1C] ring-1 ring-white/10 hover:ring-white/20 focus:ring-1 focus:ring-[#BFDD25] shadow-inner rounded-xl px-4 py-3 text-sm text-white outline-none transition-all placeholder:text-[#666]"
                     />
                   </div>
                 </div>
 
-                <div className="space-y-1">
-                  <label className="block text-xs text-[#888]">Phone Number / WhatsApp</label>
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-mono uppercase tracking-wider text-[#A1A1AA] font-semibold">Phone Number / WhatsApp</label>
                   <input
                     type="tel"
                     required
                     placeholder="+62 812-3456-7890"
                     value={newAddrPhone}
                     onChange={(e) => setNewAddrPhone(e.target.value)}
-                    className="w-full bg-[#050505] border border-[#1c1c1c] focus:border-white rounded-lg px-3.5 py-2.5 text-sm text-white outline-none"
+                    className="w-full bg-[#161616] hover:bg-[#1A1A1A] focus:bg-[#1C1C1C] ring-1 ring-white/10 hover:ring-white/20 focus:ring-1 focus:ring-[#BFDD25] shadow-inner rounded-xl px-4 py-3 text-sm text-white outline-none transition-all placeholder:text-[#666]"
                   />
                 </div>
 
-                <div className="space-y-1">
-                  <label className="block text-xs text-[#888]">Full Street Address</label>
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-mono uppercase tracking-wider text-[#A1A1AA] font-semibold">Full Street Address</label>
                   <textarea
                     required
                     rows={2}
                     placeholder="Jl. Audiophile No. 99, Kebayoran Baru"
                     value={newAddrFull}
                     onChange={(e) => setNewAddrFull(e.target.value)}
-                    className="w-full bg-[#050505] border border-[#1c1c1c] focus:border-white rounded-lg px-3.5 py-2.5 text-sm text-white outline-none"
+                    className="w-full bg-[#161616] hover:bg-[#1A1A1A] focus:bg-[#1C1C1C] ring-1 ring-white/10 hover:ring-white/20 focus:ring-1 focus:ring-[#BFDD25] shadow-inner rounded-xl px-4 py-3 text-sm text-white outline-none transition-all placeholder:text-[#666]"
                   />
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="block text-xs text-[#888]">City</label>
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-mono uppercase tracking-wider text-[#A1A1AA] font-semibold">City</label>
                     <input
                       type="text"
                       required
                       placeholder="Jakarta Selatan"
                       value={newAddrCity}
                       onChange={(e) => setNewAddrCity(e.target.value)}
-                      className="w-full bg-[#050505] border border-[#1c1c1c] focus:border-white rounded-lg px-3.5 py-2.5 text-sm text-white outline-none"
+                      className="w-full bg-[#161616] hover:bg-[#1A1A1A] focus:bg-[#1C1C1C] ring-1 ring-white/10 hover:ring-white/20 focus:ring-1 focus:ring-[#BFDD25] shadow-inner rounded-xl px-4 py-3 text-sm text-white outline-none transition-all placeholder:text-[#666]"
                     />
                   </div>
 
-                  <div className="space-y-1">
-                    <label className="block text-xs text-[#888]">Postal Code</label>
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-mono uppercase tracking-wider text-[#A1A1AA] font-semibold">Postal Code</label>
                     <input
                       type="text"
                       required
                       placeholder="12110"
                       value={newAddrPostal}
                       onChange={(e) => setNewAddrPostal(e.target.value)}
-                      className="w-full bg-[#050505] border border-[#1c1c1c] focus:border-white rounded-lg px-3.5 py-2.5 text-sm text-white outline-none"
+                      className="w-full bg-[#161616] hover:bg-[#1A1A1A] focus:bg-[#1C1C1C] ring-1 ring-white/10 hover:ring-white/20 focus:ring-1 focus:ring-[#BFDD25] shadow-inner rounded-xl px-4 py-3 text-sm text-white outline-none transition-all placeholder:text-[#666]"
                     />
                   </div>
                 </div>
 
-                <div className="pt-4 border-t border-[#222] flex items-center justify-end gap-3">
+                <div className="pt-4 flex items-center justify-end gap-3">
                   <button
                     type="button"
                     onClick={() => setShowAddModal(false)}
-                    className="px-4 py-2.5 bg-[#050505] hover:bg-[#080808] border border-[#333] rounded-lg text-xs font-medium text-white cursor-pointer"
+                    className="px-5 py-2.5 bg-[#141414] hover:bg-[#1E1E1E] rounded-full text-xs font-mono text-white cursor-pointer transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-5 py-2.5 bg-white hover:bg-[#e0e0e0] text-black font-medium text-xs rounded-lg transition-colors cursor-pointer"
+                    className="px-6 py-2.5 bg-[#BFDD25] hover:bg-[#aecd20] text-black font-mono font-bold text-xs uppercase tracking-wider rounded-full transition-all shadow-[0_0_12px_rgba(191,221,37,0.3)] cursor-pointer"
                   >
                     Save Address
                   </button>

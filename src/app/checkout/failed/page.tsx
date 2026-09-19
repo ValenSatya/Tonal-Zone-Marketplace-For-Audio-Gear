@@ -9,6 +9,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import MotionButton from "@/components/MotionButton";
 import { useLocation } from "@/context/LocationContext";
+import { KeyboardArrowRight } from "@/components/ui/keyboard-arrow";
 
 const RELATED_PRODUCTS = [
   {
@@ -93,74 +94,71 @@ function CheckoutFailedContent() {
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          className="max-w-xl mx-auto py-12 px-8 bg-[#050505] border border-[#261818] rounded-none text-center mb-16 space-y-6 shadow-2xl relative overflow-hidden"
+          className="max-w-xl mx-auto py-10 sm:py-12 px-6 sm:px-10 bg-[#0A0A0A] border border-[#241A1A] rounded-3xl text-center mb-16 space-y-6 shadow-[0_25px_60px_rgba(0,0,0,0.85)]"
         >
-          {/* Top Red Status Accent Line */}
-          <div className="absolute top-0 left-0 h-1 bg-[#FF334B] w-full" />
-
-          <div className="w-16 h-16 bg-[#1f1012] border border-[#FF334B]/40 text-[#FF334B] flex items-center justify-center mx-auto text-3xl font-bold font-mono">
-            <svg width="1.2em" height="1.2em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <div className="w-16 h-16 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 flex items-center justify-center mx-auto shadow-[0_0_30px_rgba(239,68,68,0.15)]">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="18" y1="6" x2="6" y2="18"></line>
               <line x1="6" y1="6" x2="18" y2="18"></line>
             </svg>
           </div>
 
           <div>
-            <span className="text-xs font-mono text-[#FF334B] uppercase block mb-1 tracking-widest font-semibold">
-              [TRANSAKSI BELUM BERHASIL]
+            <span className="text-[11px] font-mono text-red-400 uppercase tracking-widest font-bold block mb-1.5">
+              Transaksi Belum Berhasil
             </span>
-            <span className="text-[10px] font-mono text-[#777777] uppercase block mb-2">
+            <span className="text-[10px] font-mono text-[#71717A] uppercase tracking-wider block mb-2">
               Nomor Pesanan: #{orderId}
             </span>
-            <h2 className="font-heading text-2xl font-bold uppercase tracking-tight text-white mt-1">
+            <h2 className="font-heading text-2xl sm:text-3xl font-bold uppercase tracking-tight text-white mt-1">
               Pembayaran Tidak Selesai
             </h2>
-            <p className="font-sans text-[13px] text-[#A0A0A5] mt-3 leading-relaxed max-w-sm mx-auto">
+            <p className="font-sans text-[13px] text-[#A1A1AA] mt-2.5 leading-relaxed max-w-md mx-auto">
               {getStatusDescription()}
             </p>
           </div>
 
           {/* Breakdown Info */}
-          <div className="p-5 bg-[#050505] text-left text-xs font-mono space-y-3 text-[#FAF9F6]/80 border border-[#222222]">
+          <div className="p-5 bg-[#121212] rounded-2xl text-left text-xs font-mono space-y-3.5 text-[#FAF9F6]/90 border border-[#1E1E1E]">
             <div className="flex justify-between items-start gap-4">
-              <span className="text-[#666666] shrink-0 uppercase">STATUS TAGIHAN</span>
-              <span className="font-semibold text-right text-[#FF334B]">
+              <span className="text-[#71717A] shrink-0 uppercase tracking-wider">STATUS TAGIHAN</span>
+              <span className="font-semibold text-right text-red-400">
                 BELUM DIBAYAR / DIBATALKAN
               </span>
             </div>
-            <div className="flex justify-between border-t border-[#222222] pt-3">
-              <span className="text-[#666666] uppercase">ESTIMASI TOTAL</span>
+            <div className="flex justify-between border-t border-[#1C1C1C] pt-3">
+              <span className="text-[#71717A] uppercase tracking-wider">ESTIMASI TOTAL</span>
               <span className="font-semibold text-white">
                 {order?.totalAmount ? formatPrice(order.totalAmount) : "Rp 1"}
               </span>
             </div>
-            <div className="flex justify-between border-t border-[#222222] pt-3 text-[11px] text-[#777777]">
+            <div className="flex justify-between border-t border-[#1C1C1C] pt-3 text-[11px] text-[#71717A]">
               <span>PENYEBAB UMUM</span>
-              <span className="text-right text-[#AAAAAA]">Batas waktu habis / Koneksi terputus</span>
+              <span className="text-right text-[#A1A1AA]">Batas waktu habis / Pembatalan pengguna</span>
             </div>
           </div>
 
           {/* Action CTAs */}
           <div className="pt-2 flex flex-col sm:flex-row gap-3">
-            <MotionButton
+            <Link
               href="/checkout"
-              variant="white"
-              className="flex-1 py-3 text-center text-xs font-mono font-bold uppercase"
+              className="flex-1 py-3.5 px-5 rounded-full bg-white hover:bg-zinc-200 text-black font-mono text-xs font-bold uppercase tracking-wider transition-all cursor-pointer text-center inline-flex items-center justify-center gap-1.5 shadow-lg group"
             >
-              COBA BAYAR ULANG →
-            </MotionButton>
+              <span>Coba Bayar Ulang</span>
+              <KeyboardArrowRight className="w-4 h-4 stroke-[2.5] group-hover:translate-x-0.5 transition-transform" />
+            </Link>
             <Link
               href="/cart"
-              className="flex-1 py-3 text-center border border-[#333333] hover:border-white text-xs font-mono font-bold uppercase text-[#CCCCCC] hover:text-white transition-colors flex items-center justify-center"
+              className="flex-1 py-3.5 px-5 rounded-full bg-[#141414] hover:bg-[#1E1E1E] border border-[#2A2A2A] text-zinc-300 hover:text-white font-mono text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer text-center flex items-center justify-center shadow-sm"
             >
-              KEMBALI KE KERANJANG
+              Kembali ke Keranjang
             </Link>
           </div>
 
           <div className="pt-2 text-center">
             <Link
               href="/"
-              className="text-[11px] font-mono text-[#666666] hover:text-[#999999] uppercase tracking-wider transition-colors"
+              className="text-[11px] font-mono text-[#71717A] hover:text-white uppercase tracking-wider transition-colors"
             >
               ← Kembali ke Halaman Utama
             </Link>

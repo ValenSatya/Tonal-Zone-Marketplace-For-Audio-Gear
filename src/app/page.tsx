@@ -4,8 +4,8 @@ import Footer from "@/components/Footer";
 import FigmaHero from "@/components/landing/FigmaHero";
 import FigmaNewArrival from "@/components/landing/FigmaNewArrival";
 import FigmaBestSellers from "@/components/landing/FigmaBestSellers";
-import FigmaAudiophileHype from "@/components/landing/FigmaAudiophileHype";
-import FigmaSignatureJourney from "@/components/landing/FigmaSignatureJourney";
+import FigmaStartJourney from "@/components/landing/FigmaStartJourney";
+import FigmaCollaboration from "@/components/landing/FigmaCollaboration";
 import FigmaAuthorizedPartners from "@/components/landing/FigmaAuthorizedPartners";
 
 export default function Home() {
@@ -24,11 +24,11 @@ export default function Home() {
         {/* 4. Best Sellers Section: Sennheiser Editorial Showcase (Figma Frame 17) */}
         <FigmaBestSellers />
 
-        {/* 5. Spotlight: Hype FOR AUDIOPHILE (Moondrop x Crinacle Dusk) (Figma Frame 17) */}
-        <FigmaAudiophileHype />
+        {/* 5. Start Your Journey Here: Bento Grid for Beginners (Figma Frame 125) */}
+        <FigmaStartJourney />
 
-        {/* 6. Sound Signature Journey: Start your journey here (Figma Frame 17) */}
-        <FigmaSignatureJourney />
+        {/* 6. Collaboration Showcase: Honkai Star Rail x Moondrop Sparxie TWS (Figma Frame 121) */}
+        <FigmaCollaboration />
 
         {/* 7. Authorized Partners: OUR AUTHORIZED PARTNERS (Figma Frame 17) */}
         <FigmaAuthorizedPartners />

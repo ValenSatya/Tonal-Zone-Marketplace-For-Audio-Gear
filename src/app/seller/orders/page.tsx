@@ -3,8 +3,20 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/context/LanguageContext";
-import CustomSelect from "@/components/ui/custom-select";
 import { triggerAppNotification } from "@/context/NotificationContext";
+import {
+  Package,
+  Truck,
+  CheckCircle2,
+  Clock,
+  Search,
+  Download,
+  AlertCircle,
+  FileText,
+  Sparkles,
+  Printer,
+  ExternalLink,
+} from "lucide-react";
 
 export interface SellerOrder {
   id: string;
@@ -17,80 +29,35 @@ export interface SellerOrder {
   totalPriceUSD: number;
   courier: string;
   waybill?: string;
-  status: "TO_SHIP" | "IN_TRANSIT" | "COMPLETED" | "DISPUTED";
+  status: "TO_SHIP" | "IN_TRANSIT" | "COMPLETED" | "DISPUTED" | "CANCELLED";
   escrowStatus: "HELD_IN_ESCROW" | "RELEASED" | "REFUNDED";
+  isDelivered?: boolean;
+  platformFee?: number;
+  platformCommissionRate?: number;
+  platformCommissionFee?: number;
+  netSellerPayout?: number;
+  cancelReason?: string;
+  cancelledBy?: "BUYER" | "SELLER";
+  cancelledAt?: string;
+  shippingFee?: number;
+  insuranceFee?: number;
 }
 
-const INITIAL_ORDERS: SellerOrder[] = [
-  {
-    id: "ORD-9941",
-    createdAt: "2026-08-16 15:42",
-    buyerName: "Budi Santoso",
-    buyerCity: "Surabaya, Jawa Timur",
-    buyerAddress: "Jl. Pemuda No. 45, Gubeng",
-    productName: "Sennheiser IE 900 Flagship",
-    productQty: 1,
-    totalPriceUSD: 1299,
-    courier: "J&T Express",
-    status: "TO_SHIP",
-    escrowStatus: "HELD_IN_ESCROW",
-  },
-  {
-    id: "ORD-9938",
-    createdAt: "2026-08-16 11:20",
-    buyerName: "Sarah Jenkins",
-    buyerCity: "Singapore",
-    buyerAddress: "12 Marina Boulevard, Tower 3",
-    productName: "64 Audio U12t Reference",
-    productQty: 1,
-    totalPriceUSD: 2499,
-    courier: "DHL Express",
-    waybill: "DHL-88942109",
-    status: "IN_TRANSIT",
-    escrowStatus: "HELD_IN_ESCROW",
-  },
-  {
-    id: "ORD-9935",
-    createdAt: "2026-08-15 18:05",
-    buyerName: "Reza Pratama",
-    buyerCity: "Bandung, Jawa Barat",
-    buyerAddress: "Jl. Dago No. 112, Coblong",
-    productName: "Moondrop Blessing 3 Hybrid",
-    productQty: 1,
-    totalPriceUSD: 319,
-    courier: "JNE YES",
-    waybill: "JNE-01994821",
-    status: "COMPLETED",
-    escrowStatus: "RELEASED",
-  },
-  {
-    id: "ORD-9930",
-    createdAt: "2026-08-15 09:30",
-    buyerName: "Kenji Tanaka",
-    buyerCity: "Tokyo, Japan",
-    buyerAddress: "Shibuya-ku, Jingumae 4-12",
-    productName: "Effect Audio Ares S 4.4mm Cable",
-    productQty: 1,
-    totalPriceUSD: 249,
-    courier: "FedEx Priority",
-    waybill: "FDX-77401928",
-    status: "COMPLETED",
-    escrowStatus: "RELEASED",
-  },
-  {
-    id: "ORD-9922",
-    createdAt: "2026-08-14 14:10",
-    buyerName: "Michael Chang",
-    buyerCity: "Jakarta Selatan, DKI Jakarta",
-    buyerAddress: "Senopati Suites Tower 2, Kebayoran Baru",
-    productName: "Tangzu Wan'er S.G Studio Edition",
-    productQty: 2,
-    totalPriceUSD: 44,
-    courier: "SiCepat REG",
-    waybill: "SCP-66190241",
-    status: "COMPLETED",
-    escrowStatus: "RELEASED",
-  },
+const SELLER_CANCEL_REASONS = [
+  "Stok produk habis / cacat produksi fisik",
+  "Toko sedang tutup sementara / renovasi fasilitas",
+  "Alamat pembeli di luar jangkauan kurir ekspedisi",
+  "Permintaan pembeli langsung via obrolan",
+  "Lainnya",
+];
+
+const COURIER_OPTIONS = [
+  "JNE Express",
+  "SiCepat Ekspres",
+  "J&T Express",
+  "AnterAja",
+  "Lion Parcel",
+  "FedEx Priority",
 ];
 
 export default function SellerOrdersPage() {
@@ -98,55 +65,77 @@ export default function SellerOrdersPage() {
   const isEn = language === "English";
 
   const [orders, setOrders] = useState<SellerOrder[]>([]);
-  const [sellerMode, setSellerMode] = useState<"RETAIL_MERCHANT" | "OFFICIAL_BRAND">("RETAIL_MERCHANT");
-  const [activeTab, setActiveTab] = useState<"ALL" | "TO_SHIP" | "IN_TRANSIT" | "COMPLETED" | "DISPUTED">("ALL");
+  const [isLoading, setIsLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<"ALL" | "TO_SHIP" | "IN_TRANSIT" | "COMPLETED" | "DISPUTED" | "CANCELLED">("ALL");
   const [searchQuery, setSearchQuery] = useState("");
-
-  // Sync mode
-  useEffect(() => {
-    const loadMode = () => {
-      const savedMode = localStorage.getItem("tonalzone_seller_mode") as "RETAIL_MERCHANT" | "OFFICIAL_BRAND" | null;
-      if (savedMode) setSellerMode(savedMode);
-    };
-    loadMode();
-    window.addEventListener("storage", loadMode);
-    return () => window.removeEventListener("storage", loadMode);
-  }, []);
 
   // Waybill Dispatch Modal State
   const [dispatchOrder, setDispatchOrder] = useState<SellerOrder | null>(null);
-  const [selectedCourier, setSelectedCourier] = useState("J&T Express");
+  const [selectedCourier, setSelectedCourier] = useState(COURIER_OPTIONS[0]);
   const [waybillInput, setWaybillInput] = useState("");
+  const [isSubmittingDispatch, setIsSubmittingDispatch] = useState(false);
+
+  // Seller Cancel Modal State
+  const [sellerCancelOrder, setSellerCancelOrder] = useState<SellerOrder | null>(null);
+  const [sellerCancelReason, setSellerCancelReason] = useState(SELLER_CANCEL_REASONS[0]);
+  const [sellerCancelNotes, setSellerCancelNotes] = useState("");
+  const [isSubmittingSellerCancel, setIsSubmittingSellerCancel] = useState(false);
 
   // Packing Slip Modal State
   const [slipOrder, setSlipOrder] = useState<SellerOrder | null>(null);
 
+  // Alert toast
+  const [alertMessage, setAlertMessage] = useState<string | null>(null);
+
   // Fetch live orders
   const loadSellerOrders = async () => {
-    const savedMode = (localStorage.getItem("tonalzone_seller_mode") as "RETAIL_MERCHANT" | "OFFICIAL_BRAND" | null) || "RETAIL_MERCHANT";
-    
-    if (savedMode === "OFFICIAL_BRAND") {
-      setOrders(INITIAL_ORDERS);
-      return;
-    }
+    setIsLoading(true);
+    try {
+      let storeIdParam = "";
+      let emailParam = "";
+      const savedMode = localStorage.getItem("tonalzone_seller_mode");
+      const stored = localStorage.getItem("tonalzone_user");
+      if (stored) {
+        try {
+          const u = JSON.parse(stored);
+          if (u.storeId) storeIdParam = u.storeId;
+          if (u.email) emailParam = u.email;
+        } catch (e) {}
+      }
+      if (!storeIdParam && (savedMode === "OFFICIAL_BRAND" || !stored)) {
+        storeIdParam = "store-moondrop-official";
+      }
 
-    // For new retail store, load only custom orders or start with 0
-    const localOrders = localStorage.getItem("tonalzone_seller_orders");
-    if (localOrders) {
-      try {
-        const parsed = JSON.parse(localOrders);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setOrders(parsed);
+      const query = new URLSearchParams();
+      if (storeIdParam) query.set("storeId", storeIdParam);
+      if (emailParam) query.set("email", emailParam);
+
+      const res = await fetch(`/api/seller/orders${query.toString() ? `?${query.toString()}` : ""}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.success && Array.isArray(data.orders)) {
+          setOrders(data.orders);
+          localStorage.setItem("tonalzone_seller_orders", JSON.stringify(data.orders));
           return;
         }
-      } catch (e) {}
+      }
+      setOrders([]);
+    } catch (err) {
+      console.error("Failed to load /api/seller/orders:", err);
+      setOrders([]);
+    } finally {
+      setIsLoading(false);
     }
-    setOrders([]);
   };
 
   useEffect(() => {
     loadSellerOrders();
-  }, [sellerMode]);
+  }, []);
+
+  const triggerToast = (msg: string) => {
+    setAlertMessage(msg);
+    setTimeout(() => setAlertMessage(null), 4000);
+  };
 
   // Filter orders
   const filteredOrders = useMemo(() => {
@@ -167,69 +156,198 @@ export default function SellerOrdersPage() {
   // Handle waybill submission
   const handleConfirmDispatch = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (dispatchOrder && waybillInput.trim()) {
-      const waybillClean = waybillInput.trim().toUpperCase();
-      try {
-        await fetch(`/api/orders/${dispatchOrder.id}/ship`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ waybillNumber: waybillClean, courierCode: selectedCourier }),
-        });
-        loadSellerOrders();
-      } catch (err) {
-        console.error("Error submitting waybill:", err);
+    if (!dispatchOrder || !waybillInput.trim()) return;
+
+    setIsSubmittingDispatch(true);
+    const waybillClean = waybillInput.trim().toUpperCase();
+    const orderIdToShip = dispatchOrder.id;
+    const productName = dispatchOrder.productName;
+
+    // 1. Optimistic local state update (INSTANT feedback)
+    setOrders((prev) =>
+      prev.map((o) =>
+        o.id === orderIdToShip
+          ? {
+              ...o,
+              status: "IN_TRANSIT",
+              waybill: waybillClean,
+              courier: selectedCourier,
+              isDelivered: false,
+            }
+          : o
+      )
+    );
+    setActiveTab("IN_TRANSIT");
+
+    try {
+      const res = await fetch(`/api/orders/${orderIdToShip}/ship`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ waybillNumber: waybillClean, courierCode: selectedCourier }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Gagal mengonfirmasi pengiriman.");
       }
 
-      setOrders((prev) =>
-        prev.map((o) =>
-          o.id === dispatchOrder.id
-            ? {
-                ...o,
-                courier: selectedCourier,
-                waybill: waybillClean,
-                status: "IN_TRANSIT",
-              }
-            : o
-        )
-      );
-
+      triggerToast(`Paket #${orderIdToShip} berhasil dikirim! Status langsung berubah ke Sedang Dikirim. Paket otomatis tiba dalam 3 detik untuk ulasan pembeli.`);
       triggerAppNotification({
         type: "order",
         title: "Pesanan Dikirim ke Pembeli",
-        message: `Pesanan #${dispatchOrder.id} (${dispatchOrder.productName}) telah berhasil di-dispatch dengan resi ${waybillClean} via ${selectedCourier}.`,
+        message: `Pesanan #${orderIdToShip} (${productName}) telah di-dispatch via ${selectedCourier} (${waybillClean}).`,
         actionLink: "/orders",
         meta: {
-          orderId: dispatchOrder.id,
-          productName: dispatchOrder.productName,
+          orderId: orderIdToShip,
+          productName: productName,
         },
       });
 
       setDispatchOrder(null);
       setWaybillInput("");
+      await loadSellerOrders();
+
+      // Otomatis refresh kembali setelah 3.5 detik saat paket tiba di tujuan
+      setTimeout(() => {
+        loadSellerOrders();
+      }, 3500);
+    } catch (err: any) {
+      triggerToast(err.message || "Gagal menyimpan nomor resi.");
+      loadSellerOrders();
+    } finally {
+      setIsSubmittingDispatch(false);
+    }
+  };
+
+  const handleConfirmSellerCancel = async () => {
+    if (!sellerCancelOrder) return;
+    setIsSubmittingSellerCancel(true);
+    const orderIdToCancel = sellerCancelOrder.id;
+    const prodName = sellerCancelOrder.productName;
+    const finalReason = sellerCancelNotes.trim()
+      ? `${sellerCancelReason}: ${sellerCancelNotes.trim()}`
+      : sellerCancelReason;
+
+    try {
+      const res = await fetch(`/api/orders/${orderIdToCancel}/cancel`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          reason: finalReason,
+          cancelledBy: "SELLER",
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Gagal membatalkan pesanan.");
+      }
+
+      triggerToast(`Pesanan #${orderIdToCancel} berhasil dibatalkan. Pembeli telah menerima pengembalian dana 100%.`);
+      triggerAppNotification({
+        type: "order",
+        title: "Pesanan Dibatalkan oleh Penjual",
+        message: `Pesanan #${orderIdToCancel} (${prodName}) telah dibatalkan oleh pihak toko. Alasan: ${finalReason}`,
+        actionLink: "/orders",
+      });
+
+      setSellerCancelOrder(null);
+      setSellerCancelNotes("");
+      await loadSellerOrders();
+    } catch (err: any) {
+      triggerToast(err.message || "Gagal membatalkan pesanan.");
+    } finally {
+      setIsSubmittingSellerCancel(false);
+    }
+  };
+
+  // Auto-generate realistic test waybill
+  const generateRandomWaybill = () => {
+    const prefix = selectedCourier.includes("SiCepat")
+      ? "SCP"
+      : selectedCourier.includes("J&T")
+      ? "JNT"
+      : selectedCourier.includes("Lion")
+      ? "LP"
+      : "JNE";
+    const randomDigits = Math.floor(10000000 + Math.random() * 90000000);
+    setWaybillInput(`${prefix}-${randomDigits}`);
+  };
+
+  const getStatusBadge = (order: SellerOrder) => {
+    switch (order.status) {
+      case "TO_SHIP":
+        return {
+          label: "Perlu Dikemas",
+          bg: "bg-[#181818]",
+          text: "text-[#D4D4D8]",
+          icon: <Clock className="w-3.5 h-3.5" />,
+        };
+      case "IN_TRANSIT":
+        return {
+          label: order.isDelivered ? "Tiba di Pembeli" : "Sedang Dikirim",
+          bg: order.isDelivered ? "bg-[#141F17]" : "bg-[#181818]",
+          text: order.isDelivered ? "text-emerald-400" : "text-white",
+          icon: order.isDelivered ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> : <Truck className="w-3.5 h-3.5 text-white" />,
+        };
+      case "COMPLETED":
+        return {
+          label: "Selesai",
+          bg: "bg-[#141F17]",
+          text: "text-emerald-400",
+          icon: <CheckCircle2 className="w-3.5 h-3.5" />,
+        };
+      case "DISPUTED":
+        return {
+          label: "Dalam Retur / Komplain",
+          bg: "bg-[#241414]",
+          text: "text-red-400",
+          icon: <AlertCircle className="w-3.5 h-3.5" />,
+        };
+      case "CANCELLED":
+        return {
+          label: "Dibatalkan",
+          bg: "bg-[#241414]",
+          text: "text-red-400",
+          icon: <AlertCircle className="w-3.5 h-3.5" />,
+        };
     }
   };
 
   return (
-    <div className="space-y-6">
-      {/* Top Header & Export Controls */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-[#1E1E1E]">
+    <div className="flex-1 min-h-screen bg-[#030303] text-[#FAF9F6] p-6 sm:p-8 space-y-6">
+      {/* Toast Alert */}
+      <AnimatePresence>
+        {alertMessage && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            className="p-4 rounded-2xl bg-[#141414] text-white text-xs font-sans flex items-center gap-3"
+          >
+            <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
+            <span>{alertMessage}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2.5">
-            <h1 className="text-xl font-bold font-sans tracking-tight text-white">
-              {isEn ? "Store Orders & Waybill Dispatch" : "Pesanan Toko & Pengiriman Resi"}
-            </h1>
-            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#050505] text-[#FAF9F6] border border-[#2E2E2E]">
-              {orders.length} {isEn ? "Total Orders" : "Total Pesanan"}
+          <div className="flex items-center gap-2 mb-1.5">
+            <span className="text-[11px] font-mono text-[#BFDD25] uppercase tracking-widest font-semibold">
+              Pusat Pemenuhan Pesanan Toko • Escrow Verified
             </span>
           </div>
-          <p className="text-xs font-mono text-[#8E8E93] mt-1">
-            {isEn
-              ? "Process buyer orders, input courier waybills, generate shipping labels, and track earnings settlement."
-              : "Proses pesanan pembeli, input nomor resi kurir, cetak label pengiriman, dan pantau status penerimaan dana toko."}
+          <h1 className="text-2xl sm:text-3xl font-bold uppercase tracking-tight text-white font-heading">
+            Pesanan Masuk & Pengiriman Paket
+          </h1>
+          <p className="text-xs text-[#8E8E93] font-sans mt-1 max-w-2xl">
+            Kemas pesanan pembeli, input nomor resi kurir, dan pantau pencairan otomatis saldo escrow toko Anda.
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={() => {
@@ -249,280 +367,417 @@ export default function SellerOrdersPage() {
               link.click();
               document.body.removeChild(link);
             }}
-            className="inline-flex items-center gap-1.5 bg-[#050505] hover:bg-[#050505] text-[#FAF9F6] border border-[#1c1c1c] hover:border-[#3E3E3E] px-3.5 py-1.5 rounded-lg text-xs font-sans font-medium transition-colors cursor-pointer"
+            className="px-4 py-2.5 rounded-full bg-[#111111] hover:bg-[#1A1A1A] text-xs font-mono text-[#A1A1AA] hover:text-white transition-all flex items-center gap-2"
           >
-            <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
-            </svg>
-            {isEn ? "Export Order List" : "Ekspor Pesanan"}
+            <Download className="w-3.5 h-3.5" />
+            <span>Ekspor CSV</span>
           </button>
         </div>
       </div>
 
-      {/* Main Table Card */}
-      <div className="bg-[#050505] border border-[#222222] rounded-xl overflow-hidden flex flex-col">
-        {/* Toolbar: Status Tabs & Search */}
-        <div className="p-4 border-b border-[#1E1E1E] bg-[#050505] flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 lg:pb-0">
-            {[
-              { id: "ALL", label: isEn ? "All Orders" : "Semua Pesanan", count: orders.length },
-              { id: "TO_SHIP", label: isEn ? "To Ship" : "Perlu Kirim", count: orders.filter((o) => o.status === "TO_SHIP").length },
-              { id: "IN_TRANSIT", label: isEn ? "In Transit" : "Dalam Pengiriman", count: orders.filter((o) => o.status === "IN_TRANSIT").length },
-              { id: "COMPLETED", label: isEn ? "Delivered & Settled" : "Selesai", count: orders.filter((o) => o.status === "COMPLETED").length },
-              { id: "DISPUTED", label: isEn ? "Disputes" : "Komplain", count: orders.filter((o) => o.status === "DISPUTED").length },
-            ].map((tab) => (
+      {/* Tabs & Search Toolbar (Rounded-full, Zero Border) */}
+      <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4 pt-2">
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
+          {[
+            { id: "ALL", label: "Semua Pesanan", count: orders.length },
+            {
+              id: "TO_SHIP",
+              label: "Perlu Dikemas",
+              count: orders.filter((o) => o.status === "TO_SHIP").length,
+            },
+            {
+              id: "IN_TRANSIT",
+              label: "Dalam Pengiriman",
+              count: orders.filter((o) => o.status === "IN_TRANSIT").length,
+            },
+            {
+              id: "COMPLETED",
+              label: "Selesai",
+              count: orders.filter((o) => o.status === "COMPLETED").length,
+            },
+            {
+              id: "DISPUTED",
+              label: "Retur / Komplain",
+              count: orders.filter((o) => o.status === "DISPUTED").length,
+            },
+            {
+              id: "CANCELLED",
+              label: "Dibatalkan",
+              count: orders.filter((o) => o.status === "CANCELLED").length,
+            },
+          ].map((tab) => {
+            const isActive = activeTab === tab.id;
+            return (
               <button
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-sans transition-all cursor-pointer whitespace-nowrap border ${
-                  activeTab === tab.id
-                    ? "bg-[#050505] text-[#FAF9F6] font-semibold border-[#383838] shadow-sm"
-                    : "text-[#8E8E93] hover:text-[#FAF9F6] hover:bg-[#050505] border-transparent"
+                className={`px-4 py-2 rounded-full text-xs font-sans whitespace-nowrap transition-all flex items-center gap-2 cursor-pointer ${
+                  isActive
+                    ? "bg-white text-black font-bold shadow-md"
+                    : "bg-[#0E0E0E] hover:bg-[#181818] text-[#A1A1AA]"
                 }`}
               >
-                {tab.label}
-                <span className="ml-1.5 text-[10px] font-mono text-[#777]">({tab.count})</span>
+                <span>{tab.label}</span>
+                {tab.count > 0 && (
+                  <span
+                    className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold ${
+                      isActive ? "bg-black text-white" : "bg-[#27272A] text-white"
+                    }`}
+                  >
+                    {tab.count}
+                  </span>
+                )}
               </button>
-            ))}
-          </div>
-
-          <div className="relative w-full sm:w-64">
-            <svg className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#71717A]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={isEn ? "Search order, buyer, waybill..." : "Cari pesanan, pembeli, resi..."}
-              className="w-full bg-[#050505] border border-[#2A2A2A] rounded-lg pl-9 pr-8 py-1.5 text-xs font-sans text-white placeholder:text-[#666] focus:outline-none focus:border-[#555] transition-colors"
-            />
-          </div>
+            );
+          })}
         </div>
 
-        {/* Orders Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse font-sans text-xs">
-            <thead>
-              <tr className="border-b border-[#1E1E1E] bg-[#030303] text-[10px] font-mono uppercase text-[#777] tracking-wider">
-                <th className="px-5 py-3.5">{isEn ? "Order ID / Date" : "ID Pesanan / Waktu"}</th>
-                <th className="px-5 py-3.5">{isEn ? "Product" : "Produk"}</th>
-                <th className="px-5 py-3.5">{isEn ? "Buyer & Destination" : "Pembeli & Alamat"}</th>
-                <th className="px-5 py-3.5">{isEn ? "Courier / Waybill" : "Ekspedisi / No Resi"}</th>
-                <th className="px-5 py-3.5 text-right">{isEn ? "Amount" : "Total Bayar"}</th>
-                <th className="px-5 py-3.5 text-center">{isEn ? "Payment Status" : "Status Pembayaran"}</th>
-                <th className="px-5 py-3.5 text-right">{isEn ? "Actions" : "Aksi"}</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#1A1A1A]">
-              {filteredOrders.length > 0 ? (
-                filteredOrders.map((ord) => (
-                  <tr key={ord.id} className="hover:bg-[#050505] transition-colors">
-                    {/* Order ID & Date */}
-                    <td className="px-5 py-3.5 whitespace-nowrap">
-                      <div className="flex flex-col">
-                        <span className="font-mono font-bold text-white text-xs">{ord.id}</span>
-                        <span className="text-[10px] font-mono text-[#888] mt-0.5">{ord.createdAt}</span>
-                      </div>
-                    </td>
-
-                    {/* Product Info */}
-                    <td className="px-5 py-3.5">
-                      <div className="flex flex-col max-w-xs">
-                        <span className="font-semibold text-white truncate">{ord.productName}</span>
-                        <span className="text-[10px] font-mono text-[#888]">Qty: {ord.productQty}x</span>
-                      </div>
-                    </td>
-
-                    {/* Buyer & Destination */}
-                    <td className="px-5 py-3.5">
-                      <div className="flex flex-col max-w-xs">
-                        <span className="font-medium text-white">{ord.buyerName}</span>
-                        <span className="text-[11px] text-[#888] truncate">{ord.buyerCity}</span>
-                      </div>
-                    </td>
-
-                    {/* Courier / Waybill */}
-                    <td className="px-5 py-3.5 whitespace-nowrap">
-                      <div className="flex flex-col">
-                        <span className="font-mono text-xs text-white">{ord.courier}</span>
-                        {ord.waybill ? (
-                          <span className="font-mono text-[10px] text-[#CCCCCC] font-bold tracking-wider">
-                            {ord.waybill}
-                          </span>
-                        ) : (
-                          <span className="text-[10px] font-mono text-[#777777]">
-                            {isEn ? "Pending Waybill" : "Belum Ada Resi"}
-                          </span>
-                        )}
-                      </div>
-                    </td>
-
-                    {/* Amount */}
-                    <td className="px-5 py-3.5 text-right whitespace-nowrap font-mono font-bold text-white text-xs">
-                      ${ord.totalPriceUSD.toLocaleString()}
-                    </td>
-
-                    {/* Payment Status */}
-                    <td className="px-5 py-3.5 text-center whitespace-nowrap">
-                      <span className="inline-flex items-center gap-2 px-2.5 py-1 text-xs font-mono font-medium bg-[#050505] text-[#CCCCCC] border border-[#222222]">
-                        <span
-                          className={`w-1.5 h-1.5 rounded-full ${
-                            ord.escrowStatus === "RELEASED" ? "bg-white" : "bg-[#777777]"
-                          }`}
-                        />
-                        {ord.escrowStatus === "RELEASED"
-                          ? isEn ? "Settled" : "Dana Diterima"
-                          : isEn ? "Payment Verified" : "Sudah Dibayar"}
-                      </span>
-                    </td>
-
-                    {/* Actions */}
-                    <td className="px-5 py-3.5 text-right whitespace-nowrap">
-                      <div className="flex items-center justify-end gap-1.5">
-                        {ord.status === "TO_SHIP" ? (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setDispatchOrder(ord);
-                              setSelectedCourier(ord.courier);
-                              setWaybillInput("");
-                            }}
-                            className="px-3 py-1 bg-[#050505] hover:bg-[#050505] text-white border border-[#2E2E2E] hover:border-white text-xs font-mono font-bold rounded-lg transition-colors cursor-pointer shadow-sm"
-                          >
-                            {isEn ? "Input Resi" : "Input Resi"}
-                          </button>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => setSlipOrder(ord)}
-                            className="px-2.5 py-1 bg-[#050505] hover:bg-[#050505] border border-[#2E2E2E] text-white text-[11px] font-mono rounded transition-colors cursor-pointer"
-                          >
-                            {isEn ? "Packing Slip" : "Cetak Resi"}
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={7} className="py-16 text-center">
-                    <div className="flex flex-col items-center justify-center max-w-md mx-auto space-y-3">
-                      <div className="w-12 h-12 rounded-2xl bg-[#050505] border border-[#1c1c1c] flex items-center justify-center text-[#71717A]">
-                        <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.175V3.375c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75" />
-                        </svg>
-                      </div>
-                      <div>
-                        <h3 className="text-sm font-bold text-white font-sans">
-                          {isEn ? "No Orders Received Yet" : "Belum Ada Pesanan Masuk"}
-                        </h3>
-                        <p className="text-xs font-mono text-[#8E8E93] mt-1">
-                          {isEn
-                            ? "Customer purchases for your store will automatically appear here for fulfillment."
-                            : "Transaksi pembelian dari pelanggan untuk toko Anda akan otomatis muncul di sini untuk Anda proses dan kirimkan."}
-                        </p>
-                      </div>
-                    </div>
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+        <div className="relative min-w-[260px]">
+          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#71717A]" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Cari ID pesanan, pembeli, resi..."
+            className="w-full pl-10 pr-4 py-2.5 rounded-full bg-[#0E0E0E] text-xs text-white placeholder:text-[#52525B] outline-none border-0 focus:ring-1 focus:ring-white/30"
+          />
         </div>
       </div>
 
-      {/* MODAL 1: INPUT WAYBILL / RESI PENGIRIMAN */}
+      {/* Orders List Container */}
+      {isLoading ? (
+        <div className="py-24 text-center space-y-3">
+          <div className="w-8 h-8 border-2 border-[#333333] border-t-white rounded-full animate-spin mx-auto" />
+          <p className="text-xs font-mono text-[#71717A] tracking-wider uppercase">
+            Memuat Daftar Pesanan Toko...
+          </p>
+        </div>
+      ) : filteredOrders.length === 0 ? (
+        <div className="py-20 text-center rounded-2xl bg-[#0A0A0A] p-10 space-y-2">
+          <Package className="w-10 h-10 text-[#52525B] mx-auto mb-2" />
+          <h3 className="text-sm font-semibold text-white">Tidak Ada Pesanan Ditemukan</h3>
+          <p className="text-xs text-[#71717A] max-w-sm mx-auto">
+            {activeTab === "ALL"
+              ? "Belum ada pesanan yang masuk ke toko Anda."
+              : "Tidak ada pesanan di kategori status ini."}
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {filteredOrders.map((ord) => {
+            const badge = getStatusBadge(ord);
+
+            return (
+              <div
+                key={ord.id}
+                className="rounded-2xl bg-[#0A0A0A] p-6 sm:p-7 space-y-5 transition-all hover:bg-[#0C0C0C]"
+              >
+                {/* Card Top: Order ID, Date, Status */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <span className="px-3 py-1 rounded-full bg-[#181818] text-xs font-mono font-bold text-white">
+                      #{ord.id}
+                    </span>
+                    <span className="text-xs font-mono text-[#71717A]">{ord.createdAt}</span>
+                    <span className="text-[#3F3F46]">•</span>
+                    <span className="text-xs font-mono text-[#A1A1AA]">{ord.buyerCity}</span>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium ${badge.bg} ${badge.text}`}
+                    >
+                      {badge.icon}
+                      <span>{badge.label}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Card Content Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                  {/* Product & Qty (Col 5) */}
+                  <div className="lg:col-span-5 space-y-1">
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-[#71717A] block">
+                      Produk Pesanan
+                    </span>
+                    <h4 className="text-sm font-semibold text-white tracking-tight">
+                      {ord.productName}
+                    </h4>
+                    <p className="text-xs font-mono text-[#8E8E93]">
+                      Jumlah: {ord.productQty} unit
+                    </p>
+                    <p className="text-xs font-mono font-bold text-white mt-1">
+                      Total: ${ord.totalPriceUSD.toLocaleString()}
+                    </p>
+                  </div>
+
+                  {/* Buyer & Address (Col 4) */}
+                  <div className="lg:col-span-4 space-y-1">
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-[#71717A] block">
+                      Tujuan Pengiriman
+                    </span>
+                    <p className="text-xs font-semibold text-white">{ord.buyerName}</p>
+                    <p className="text-xs text-[#8E8E93] leading-relaxed line-clamp-2">
+                      {ord.buyerAddress || ord.buyerCity}
+                    </p>
+                  </div>
+
+                  {/* Logistics & Resi (Col 3) */}
+                  <div className="lg:col-span-3 space-y-1">
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-[#71717A] block">
+                      Ekspedisi & Resi
+                    </span>
+                    <p className="text-xs font-medium text-white">{ord.courier}</p>
+                    {ord.waybill ? (
+                      <span className="inline-block px-2.5 py-1 rounded-full bg-[#181818] text-white text-xs font-mono font-bold mt-1">
+                        {ord.waybill}
+                      </span>
+                    ) : (
+                      <p className="text-xs text-[#71717A] italic mt-0.5">
+                        Menunggu input resi toko
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Cancellation Banner */}
+                {ord.status === "CANCELLED" && (
+                  <div className="p-3.5 bg-red-500/10 rounded-xl text-xs font-mono text-red-300 border-0">
+                    <span className="font-bold text-red-400 uppercase tracking-wider block">
+                      Pesanan Dibatalkan oleh {ord.cancelledBy === "SELLER" ? "Penjual" : "Pembeli"}
+                    </span>
+                    <p className="text-[11px] text-zinc-400 mt-1">
+                      Alasan: {ord.cancelReason || "Dibatalkan sebelum pengiriman"}
+                    </p>
+                    <span className="text-[10px] text-zinc-500 mt-0.5 block">
+                      Dana escrow telah dikembalikan 100% ke pembeli.
+                    </span>
+                  </div>
+                )}
+
+                {/* Financial Breakdown (Platform Commission & Net Payout) */}
+                {(() => {
+                  const commVal = (ord.platformCommissionFee && ord.platformCommissionFee > 0)
+                    ? ord.platformCommissionFee
+                    : Math.round(ord.totalPriceUSD * 0.03 * 100) / 100;
+                  const netVal = (ord.netSellerPayout && ord.netSellerPayout > 0)
+                    ? ord.netSellerPayout
+                    : Math.round((ord.totalPriceUSD - commVal) * 100) / 100;
+
+                  return (
+                    <div className="p-4 rounded-xl bg-[#141414] border-0 flex flex-wrap items-center justify-between gap-3 text-xs font-mono">
+                      <div className="flex flex-wrap items-center gap-5 text-[#A1A1AA]">
+                        <div>
+                          <span className="text-[10px] text-[#71717A] uppercase block">Nilai Transaksi</span>
+                          <span className="text-white font-medium">${ord.totalPriceUSD.toLocaleString()}</span>
+                        </div>
+                        <div>
+                          <span className="text-[10px] text-[#71717A] uppercase block">Komisi Platform (3.0%)</span>
+                          <span className="text-amber-400 font-medium">
+                            -${commVal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-[10px] text-[#71717A] uppercase block">Pendapatan Bersih Toko</span>
+                          <span className="text-emerald-400 font-bold">
+                            ${netVal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-[10px] text-[#71717A] uppercase block">Proteksi Escrow</span>
+                        <span
+                          className={`text-[11px] font-bold ${
+                            ord.status === "COMPLETED"
+                              ? "text-emerald-400"
+                              : ord.status === "CANCELLED"
+                              ? "text-red-400"
+                              : "text-[#BFDD25]"
+                          }`}
+                        >
+                          {ord.status === "COMPLETED"
+                            ? "Dana Cair ke Toko"
+                            : ord.status === "CANCELLED"
+                            ? "Dibatalkan (Refunded)"
+                            : "Tersimpan di Escrow"}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* Card Action Footer */}
+                <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setSlipOrder(ord)}
+                      className="px-4 py-2 rounded-full bg-[#141414] hover:bg-[#1E1E1E] text-xs font-semibold text-[#D4D4D8] hover:text-white flex items-center gap-1.5 transition-all cursor-pointer border-0"
+                    >
+                      <FileText className="w-3.5 h-3.5" />
+                      <span>Cetak Label Pengiriman</span>
+                    </button>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    {ord.status === "TO_SHIP" && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSellerCancelOrder(ord);
+                            setSellerCancelReason(SELLER_CANCEL_REASONS[0]);
+                            setSellerCancelNotes("");
+                          }}
+                          className="px-4 py-2.5 rounded-full bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs font-mono font-medium transition-all cursor-pointer border-0"
+                        >
+                          Batalkan
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setDispatchOrder(ord);
+                            setSelectedCourier(ord.courier || COURIER_OPTIONS[0]);
+                            setWaybillInput("");
+                          }}
+                          className="px-6 py-2.5 rounded-full bg-white hover:bg-[#E4E4E7] text-black text-xs font-bold uppercase tracking-wider transition-all cursor-pointer shadow-md flex items-center gap-2 border-0"
+                        >
+                          <Truck className="w-3.5 h-3.5" />
+                          <span>Kemas & Input Resi</span>
+                        </button>
+                      </>
+                    )}
+
+                    {ord.status === "IN_TRANSIT" && (
+                      <span className="text-xs text-[#D4D4D8] font-medium py-1 flex items-center gap-1.5">
+                        {ord.isDelivered ? (
+                          <>
+                            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                            <span className="text-white">Paket telah tiba di penerima • Menunggu ulasan pembeli</span>
+                          </>
+                        ) : (
+                          <>
+                            <Truck className="w-3.5 h-3.5 text-white" />
+                            <span>Paket dalam perjalanan via kurir</span>
+                          </>
+                        )}
+                      </span>
+                    )}
+
+                    {ord.status === "COMPLETED" && (
+                      <span className="text-xs text-emerald-400 font-medium py-1 flex items-center gap-1.5">
+                        <CheckCircle2 className="w-4 h-4" />
+                        <span>Barang telah sampai & dana diterima</span>
+                      </span>
+                    )}
+
+                    {ord.status === "CANCELLED" && (
+                      <span className="text-xs text-red-400 font-mono font-medium py-1">
+                        Pesanan Telah Dibatalkan
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* MODAL 1: INPUT WAYBILL / RESI PENGIRIMAN (Rounded-2xl, Zero Border) */}
       <AnimatePresence>
         {dispatchOrder && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setDispatchOrder(null)}
-              className="fixed inset-0 bg-black/80 backdrop-blur-md"
-            />
-
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="relative w-full max-w-md bg-[#050505] border border-[#2A2A2A] rounded-2xl shadow-2xl p-6 font-sans z-10 space-y-4"
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="w-full max-w-lg rounded-2xl bg-[#0E0E0E] p-6 sm:p-8 space-y-5"
             >
-              <div className="flex items-center justify-between pb-3 border-b border-[#222]">
-                <h3 className="text-sm font-bold text-white">
-                  {isEn ? "Fulfill Order & Dispatch Waybill" : "Kirim Pesanan & Input Nomor Resi"}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-white text-xs font-mono uppercase tracking-wider font-semibold">
+                  <Truck className="w-4 h-4 text-emerald-400" />
+                  <span>Kemas & Kirimkan Pesanan</span>
+                </div>
+                <span className="text-xs font-mono text-white font-bold">
+                  #{dispatchOrder.id}
+                </span>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-bold text-white">
+                  Konfirmasi Pengiriman Kurir
                 </h3>
-                <button onClick={() => setDispatchOrder(null)} className="text-[#888] hover:text-white">
-                  <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
+                <p className="text-xs text-[#8E8E93] mt-1">
+                  Masukkan nomor resi ekspedisi setelah paket di-pick up kurir. Pembeli akan langsung menerima notifikasi pelacakan real-time.
+                </p>
               </div>
 
-              <div className="bg-[#050505] p-3 rounded-xl border border-[#1c1c1c] space-y-1 text-xs">
-                <div className="flex justify-between font-mono">
-                  <span className="text-[#888]">Order ID:</span>
-                  <span className="font-bold text-white">{dispatchOrder.id}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-[#888]">Buyer:</span>
-                  <span className="text-white">{dispatchOrder.buyerName}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-[#888]">Destination:</span>
-                  <span className="text-white truncate max-w-[200px]">{dispatchOrder.buyerCity}</span>
-                </div>
+              {/* Order Info Snippet */}
+              <div className="p-4 rounded-xl bg-[#141414] space-y-1">
+                <p className="text-xs font-semibold text-white">{dispatchOrder.productName}</p>
+                <p className="text-[11px] text-[#71717A]">
+                  Tujuan: {dispatchOrder.buyerName} • {dispatchOrder.buyerCity}
+                </p>
               </div>
 
-              <form onSubmit={handleConfirmDispatch} className="space-y-3 pt-1">
+              <form onSubmit={handleConfirmDispatch} className="space-y-4">
                 <div>
-                  <label className="block text-[10px] font-mono text-[#888] uppercase mb-1">
-                    {isEn ? "Courier Fleet Partner" : "Kurir Ekspedisi"}
+                  <label className="block text-[11px] font-mono uppercase tracking-wider text-[#71717A] mb-2">
+                    Pilih Ekspedisi Kurir
                   </label>
-                  <CustomSelect
+                  <select
                     value={selectedCourier}
-                    onChange={(val) => setSelectedCourier(val)}
-                    options={[
-                      { label: "J&T Express", value: "J&T Express" },
-                      { label: "JNE Express (REG / YES)", value: "JNE Express" },
-                      { label: "SiCepat Cargo / REG", value: "SiCepat" },
-                      { label: "DHL Express Priority", value: "DHL Express" },
-                      { label: "FedEx International", value: "FedEx" },
-                    ]}
-                  />
+                    onChange={(e) => setSelectedCourier(e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl bg-[#181818] text-xs text-white outline-none border-0 focus:ring-1 focus:ring-white/30 cursor-pointer"
+                  >
+                    {COURIER_OPTIONS.map((c) => (
+                      <option key={c} value={c} className="bg-[#181818] text-white">
+                        {c}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-mono text-[#888] uppercase mb-1">
-                    {isEn ? "Air Waybill Number (Resi) *" : "Nomor Resi Pengiriman (No. AWB) *"}
-                  </label>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-[11px] font-mono uppercase tracking-wider text-[#71717A]">
+                      Nomor Resi Pengiriman *
+                    </label>
+                    <button
+                      type="button"
+                      onClick={generateRandomWaybill}
+                      className="text-[10px] font-mono text-[#A1A1AA] hover:text-white flex items-center gap-1 cursor-pointer"
+                    >
+                      <Sparkles className="w-3 h-3 text-emerald-400" />
+                      <span>Generate Resi Otomatis</span>
+                    </button>
+                  </div>
                   <input
                     type="text"
-                    required
-                    placeholder={isEn ? "e.g. JNT-88942109ID" : "Contoh: JNT-88942109ID"}
                     value={waybillInput}
                     onChange={(e) => setWaybillInput(e.target.value)}
-                    className="w-full bg-[#050505] border border-[#2A2A2A] rounded-lg px-3 py-2 text-xs font-mono font-bold text-white uppercase placeholder:text-[#555] outline-none focus:border-white"
+                    placeholder="Contoh: JNE-88491024"
+                    className="w-full px-4 py-3 rounded-xl bg-[#181818] text-xs font-mono uppercase text-white placeholder:text-[#52525B] outline-none border-0 focus:ring-1 focus:ring-white/30"
+                    required
                   />
                 </div>
 
-                <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#222]">
+                <div className="flex items-center justify-end gap-3 pt-3">
                   <button
                     type="button"
                     onClick={() => setDispatchOrder(null)}
-                    className="px-3.5 py-1.5 bg-[#050505] hover:bg-[#050505] text-white text-xs font-mono rounded-lg transition-colors cursor-pointer"
+                    className="px-5 py-2.5 rounded-full bg-[#181818] hover:bg-[#222222] text-xs font-semibold text-[#A1A1AA] transition-all cursor-pointer"
                   >
-                    {isEn ? "Cancel" : "Batal"}
+                    Batal
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-black font-bold text-xs font-sans rounded-lg transition-colors cursor-pointer shadow-sm"
+                    disabled={isSubmittingDispatch || !waybillInput.trim()}
+                    className="px-6 py-2.5 rounded-full bg-white hover:bg-[#E4E4E7] text-black text-xs font-bold uppercase tracking-wider transition-all disabled:opacity-50 cursor-pointer shadow-md"
                   >
-                    {isEn ? "Confirm & Mark Dispatched" : "Konfirmasi Pengiriman"}
+                    {isSubmittingDispatch ? "Menyimpan..." : "Konfirmasi & Kirim Paket"}
                   </button>
                 </div>
               </form>
@@ -531,69 +786,184 @@ export default function SellerOrdersPage() {
         )}
       </AnimatePresence>
 
-      {/* MODAL 2: PACKING SLIP / LABEL */}
+      {/* MODAL 2: PACKING SLIP & SHIPPING LABEL */}
       <AnimatePresence>
         {slipOrder && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setSlipOrder(null)}
-              className="fixed inset-0 bg-black/80 backdrop-blur-md"
-            />
-
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="relative w-full max-w-lg bg-[#FAF9F6] text-black rounded-2xl shadow-2xl p-6 font-sans z-10 space-y-4"
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="w-full max-w-md rounded-2xl bg-[#0E0E0E] p-6 sm:p-8 space-y-5"
             >
-              <div className="flex items-center justify-between pb-3 border-b border-black/10">
-                <div className="flex items-center gap-2">
-                  <div className="w-5 h-5 bg-black text-white flex items-center justify-center font-bold text-[10px] rounded">
-                    TZ
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-white text-xs font-mono uppercase tracking-wider font-bold">
+                  <FileText className="w-4 h-4 text-white" />
+                  <span>Label Pengiriman Toko</span>
+                </div>
+                <span className="text-xs font-mono text-white font-bold">#{slipOrder.id}</span>
+              </div>
+
+              {/* Printable Label Box */}
+              <div className="p-5 rounded-2xl bg-white text-black space-y-3 font-sans text-xs shadow-lg">
+                <div className="bg-black/[0.04] p-3 rounded-xl flex justify-between items-center">
+                  <div>
+                    <h4 className="font-bold uppercase tracking-wider text-xs font-mono">
+                      TONAL ZONE ESCROW
+                    </h4>
+                    <p className="text-[10px] text-gray-500 font-mono">Official Audiophile Logistics</p>
                   </div>
-                  <span className="font-mono font-bold text-xs">TONAL ZONE SHIPPING SLIP</span>
+                  <div className="text-right font-mono text-xs font-bold">
+                    {slipOrder.courier}
+                  </div>
                 </div>
-                <button onClick={() => setSlipOrder(null)} className="text-black/50 hover:text-black font-bold">
-                  ✕
+
+                <div className="bg-black/[0.02] p-3 rounded-xl space-y-1">
+                  <span className="text-[10px] font-mono text-gray-400 uppercase block">
+                    Penerima Paket:
+                  </span>
+                  <p className="font-bold text-sm">{slipOrder.buyerName}</p>
+                  <p className="text-xs text-gray-600 leading-snug">
+                    {slipOrder.buyerAddress || slipOrder.buyerCity}
+                  </p>
+                </div>
+
+                <div className="bg-black/[0.02] p-3 rounded-xl space-y-1">
+                  <span className="text-[10px] font-mono text-gray-400 uppercase block">
+                    Isi Paket:
+                  </span>
+                  <p className="font-semibold text-xs">{slipOrder.productName}</p>
+                  <p className="text-[11px] text-gray-500 font-mono">
+                    Qty: {slipOrder.productQty}x • Total: ${slipOrder.totalPriceUSD}
+                  </p>
+                </div>
+
+                {slipOrder.waybill && (
+                  <div className="bg-black/[0.04] p-3 rounded-xl text-center">
+                    <p className="font-mono font-bold text-sm tracking-widest">{slipOrder.waybill}</p>
+                    <div className="h-6 bg-black/10 rounded-lg mt-1.5 flex items-center justify-center text-[9px] font-mono text-gray-400">
+                      ||| | |||| | ||| |||| | || | |||
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setSlipOrder(null)}
+                  className="px-5 py-2.5 rounded-full bg-[#181818] hover:bg-[#222222] text-xs font-semibold text-[#A1A1AA] transition-all cursor-pointer"
+                >
+                  Tutup
                 </button>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4 text-xs font-mono border-b border-black/10 pb-4">
-                <div>
-                  <span className="text-black/50 text-[10px] block">FROM (SELLER):</span>
-                  <p className="font-bold">AudioZone Official Store</p>
-                  <p className="text-[11px] text-black/70">Jakarta Barat, DKI Jakarta</p>
-                </div>
-                <div>
-                  <span className="text-black/50 text-[10px] block">SHIP TO (BUYER):</span>
-                  <p className="font-bold">{slipOrder.buyerName}</p>
-                  <p className="text-[11px] text-black/70">{slipOrder.buyerAddress}</p>
-                  <p className="text-[11px] text-black/70">{slipOrder.buyerCity}</p>
-                </div>
-              </div>
-
-              <div className="space-y-2 py-2 border-b border-black/10 text-xs font-mono">
-                <div className="flex justify-between">
-                  <span>Courier: {slipOrder.courier}</span>
-                  <span className="font-bold">AWB: {slipOrder.waybill || "N/A"}</span>
-                </div>
-                <div className="flex justify-between font-bold">
-                  <span>{slipOrder.productName} (x{slipOrder.productQty})</span>
-                  <span>${slipOrder.totalPriceUSD}</span>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between pt-2">
-                <span className="text-[10px] font-mono text-black/50">Audiophile Fragile Handling Required</span>
                 <button
                   type="button"
                   onClick={() => window.print()}
-                  className="px-4 py-2 bg-black text-white text-xs font-bold font-mono rounded-lg hover:bg-black/80 transition-colors"
+                  className="px-6 py-2.5 rounded-full bg-white hover:bg-[#E4E4E7] text-black text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer"
                 >
-                  {isEn ? "Print Shipping Slip" : "Cetak Label Resi"}
+                  <Printer className="w-3.5 h-3.5" />
+                  <span>Cetak Label</span>
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* MODAL 3: SELLER CANCEL ORDER (Rounded-2xl, Zero Border) */}
+      <AnimatePresence>
+        {sellerCancelOrder && (
+          <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="w-full max-w-lg rounded-2xl bg-[#0E0E0E] p-6 sm:p-8 space-y-5 border-0"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-mono text-red-400 uppercase tracking-wider font-bold">
+                  PEMBATALAN OLEH PENJUAL
+                </span>
+                <span className="text-xs font-mono text-zinc-400 font-bold">
+                  #{sellerCancelOrder.id}
+                </span>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-bold text-white">
+                  Batalkan Pesanan Ini?
+                </h3>
+                <p className="text-xs text-[#8E8E93] mt-1">
+                  Jika toko membatalkan pesanan, dana escrow akan dikembalikan 100% ke pembeli dan stok otomatis dipulihkan ke etalase.
+                </p>
+              </div>
+
+              <div className="p-3.5 bg-[#141414] rounded-xl text-xs font-mono text-zinc-300 space-y-1 border-0">
+                <div className="font-semibold text-white">{sellerCancelOrder.productName}</div>
+                <div className="text-[11px] text-zinc-400">
+                  Pembeli: {sellerCancelOrder.buyerName} ({sellerCancelOrder.buyerCity}) • Total: ${sellerCancelOrder.totalPriceUSD}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-mono uppercase text-zinc-400 block font-semibold">
+                  Alasan Pembatalan:
+                </label>
+                <div className="space-y-2">
+                  {SELLER_CANCEL_REASONS.map((r) => (
+                    <label
+                      key={r}
+                      onClick={() => setSellerCancelReason(r)}
+                      className={`flex items-center gap-3.5 p-3 rounded-xl cursor-pointer transition-all text-xs font-mono border ${
+                        sellerCancelReason === r
+                          ? "bg-[#181818] border-white/50 text-white shadow-sm ring-1 ring-white/20"
+                          : "bg-[#121212] border-[#222222] text-zinc-400 hover:text-zinc-200 hover:bg-[#161616] hover:border-[#2A2A2A]"
+                      }`}
+                    >
+                      <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 transition-colors ${
+                        sellerCancelReason === r
+                          ? "border-white bg-transparent"
+                          : "border-zinc-600 bg-transparent"
+                      }`}>
+                        {sellerCancelReason === r && (
+                          <div className="w-2 h-2 rounded-full bg-white" />
+                        )}
+                      </div>
+                      <span className="leading-snug">{r}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-mono uppercase text-zinc-400 block mb-1.5">
+                  Catatan Tambahan untuk Pembeli (Opsional):
+                </label>
+                <textarea
+                  rows={2}
+                  value={sellerCancelNotes}
+                  onChange={(e) => setSellerCancelNotes(e.target.value)}
+                  placeholder="Beri alasan spesifik jika perlu..."
+                  className="w-full bg-[#141414] p-3 text-white text-xs font-mono placeholder:text-zinc-600 focus:ring-1 focus:ring-white/30 outline-none rounded-xl border-0"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  disabled={isSubmittingSellerCancel}
+                  onClick={() => setSellerCancelOrder(null)}
+                  className="px-5 py-2.5 rounded-full bg-[#141414] hover:bg-[#1E1E1E] text-xs font-mono text-[#D4D4D8] transition-colors cursor-pointer border-0"
+                >
+                  Kembali
+                </button>
+                <button
+                  type="button"
+                  disabled={isSubmittingSellerCancel}
+                  onClick={handleConfirmSellerCancel}
+                  className="px-6 py-2.5 rounded-full bg-red-600 hover:bg-red-500 text-white text-xs font-bold font-mono uppercase tracking-wider transition-colors cursor-pointer disabled:opacity-50 border-0"
+                >
+                  {isSubmittingSellerCancel ? "Memproses..." : "Konfirmasi Batal"}
                 </button>
               </div>
             </motion.div>

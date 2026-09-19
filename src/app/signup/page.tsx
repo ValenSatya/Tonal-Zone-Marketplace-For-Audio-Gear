@@ -74,9 +74,9 @@ function CustomSelectBar({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full bg-[#050505] hover:bg-[#050505] focus:bg-[#050505] text-white text-sm px-4.5 py-4 outline-none flex items-center justify-between transition-colors cursor-pointer rounded-none font-sans"
+        className="w-full bg-[#141414] hover:bg-[#181818] focus:bg-[#1C1C1C] ring-1 ring-white/10 hover:ring-white/20 focus:ring-1 focus:ring-white/40 shadow-inner text-white text-sm px-4.5 py-3.5 outline-none flex items-center justify-between transition-all cursor-pointer rounded-xl font-sans"
       >
-        <span className="text-[#888] text-xs font-mono uppercase tracking-wider">{label}</span>
+        <span className="text-[#A1A1AA] text-xs font-mono uppercase tracking-wider">{label}</span>
         <div className="flex items-center gap-2">
           <span className="text-white text-xs font-mono font-medium truncate">
             {selected.label}
@@ -91,7 +91,7 @@ function CustomSelectBar({
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-[#050505] border border-[#1c1c1c] shadow-[0_20px_40px_rgba(0,0,0,0.9)] z-50 overflow-hidden">
+        <div className="absolute top-full left-0 right-0 mt-1.5 bg-[#141414] ring-1 ring-white/10 shadow-[0_20px_40px_rgba(0,0,0,0.9)] z-50 rounded-xl overflow-hidden p-1 space-y-0.5">
           {options.map((opt) => (
             <button
               key={opt.value}
@@ -100,17 +100,19 @@ function CustomSelectBar({
                 onChange(opt.value);
                 setIsOpen(false);
               }}
-              className={`w-full text-left px-4 py-3 text-xs font-mono transition-colors cursor-pointer flex items-center justify-between ${
+              className={`w-full text-left px-3.5 py-2.5 rounded-lg text-xs font-mono transition-colors cursor-pointer flex items-center justify-between ${
                 opt.value === value
-                  ? "bg-[#050505] text-[#BFDD25] font-bold"
-                  : "text-[#888] hover:text-white hover:bg-[#050505]"
+                  ? "bg-white/10 text-white font-bold"
+                  : "text-[#888] hover:text-white hover:bg-[#1A1A1A]"
               }`}
             >
               <div>
                 <p className="font-medium text-white">{opt.label}</p>
-                {opt.sub && <p className="text-[10px] text-[#666] mt-0.5">{opt.sub}</p>}
+                {opt.sub && <p className="text-[10px] text-[#666]">{opt.sub}</p>}
               </div>
-              {opt.value === value && <Check size={13} className="text-[#BFDD25] shrink-0 ml-2" />}
+              {opt.value === value && (
+                <span className="w-1.5 h-1.5 rounded-full bg-white shadow-[0_0_6px_rgba(255,255,255,0.8)]" />
+              )}
             </button>
           ))}
         </div>
@@ -336,7 +338,7 @@ function SignupContent() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-[#030303] text-[#FAF9F6] font-sans flex flex-col justify-between selection:bg-[#BFDD25] selection:text-[#030303] relative overflow-hidden">
+    <div className="min-h-screen w-full bg-[#030303] text-[#FAF9F6] font-sans flex flex-col justify-between selection:bg-white selection:text-black relative overflow-hidden">
       
       {/* 1. AUTHENTIC TONALZONE NAVBAR */}
       <Navbar />
@@ -355,7 +357,7 @@ function SignupContent() {
           )}
 
           {successMessage && (
-            <div className="w-full mb-5 p-3.5 bg-[#050505] text-[#BFDD25] text-xs font-mono text-left border-l-2 border-[#BFDD25]">
+            <div className="w-full mb-5 p-3.5 bg-[#141414] text-white text-xs font-mono text-left border-l-2 border-white">
               {successMessage}
             </div>
           )}
@@ -384,7 +386,7 @@ function SignupContent() {
                   type="button"
                   onClick={handleGoogleAuth}
                   disabled={isSubmitting}
-                  className="w-full bg-[#050505] hover:bg-[#050505] active:scale-[0.99] text-white py-3.5 px-4 text-xs font-mono font-semibold uppercase tracking-wider flex items-center justify-center gap-3 transition-colors cursor-pointer mb-4 disabled:opacity-50"
+                  className="w-full bg-[#111] hover:bg-[#181818] active:scale-[0.99] text-white py-3.5 px-4 text-xs font-mono font-semibold uppercase tracking-wider flex items-center justify-center gap-3 transition-colors cursor-pointer mb-4 disabled:opacity-50 rounded-xl border border-white/10"
                 >
                   <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
                     <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17Z" />
@@ -397,9 +399,9 @@ function SignupContent() {
 
                 {/* Minimal Divider */}
                 <div className="w-full flex items-center gap-3 mb-4">
-                  <div className="flex-1 h-px bg-[#050505]" />
+                  <div className="flex-1 h-px bg-[#222]" />
                   <span className="text-[10px] font-mono text-[#555] uppercase tracking-widest">atau</span>
-                  <div className="flex-1 h-px bg-[#050505]" />
+                  <div className="flex-1 h-px bg-[#222]" />
                 </div>
 
                 <form onSubmit={handleNextToStep2} className="w-full flex flex-col gap-3 sm:gap-3.5 text-left">
@@ -409,7 +411,7 @@ function SignupContent() {
                     placeholder="Email"
                     value={signupEmail}
                     onChange={(e) => setSignupEmail(e.target.value)}
-                    className="w-full bg-[#050505] hover:bg-[#050505] focus:bg-[#050505] text-white text-sm px-4.5 py-4 outline-none placeholder:text-[#555] transition-colors rounded-none font-sans"
+                    className="w-full bg-[#141414] hover:bg-[#181818] focus:bg-[#1C1C1C] ring-1 ring-white/10 hover:ring-white/20 focus:ring-1 focus:ring-white/40 shadow-inner text-white text-sm px-4.5 py-3.5 outline-none placeholder:text-[#666] transition-all rounded-xl font-sans"
                   />
 
                   <div className="relative w-full">
@@ -419,7 +421,7 @@ function SignupContent() {
                       placeholder="Password"
                       value={signupPassword}
                       onChange={(e) => setSignupPassword(e.target.value)}
-                      className="w-full bg-[#050505] hover:bg-[#050505] focus:bg-[#050505] text-white text-sm px-4.5 py-4 pr-12 outline-none placeholder:text-[#555] transition-colors rounded-none font-sans"
+                      className="w-full bg-[#141414] hover:bg-[#181818] focus:bg-[#1C1C1C] ring-1 ring-white/10 hover:ring-white/20 focus:ring-1 focus:ring-white/40 shadow-inner text-white text-sm px-4.5 py-3.5 pr-12 outline-none placeholder:text-[#666] transition-all rounded-xl font-sans"
                     />
                     <button
                       type="button"
@@ -437,7 +439,7 @@ function SignupContent() {
                     placeholder="Confirm Password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full bg-[#050505] hover:bg-[#050505] focus:bg-[#050505] text-white text-sm px-4.5 py-4 outline-none placeholder:text-[#555] transition-colors rounded-none font-sans"
+                    className="w-full bg-[#141414] hover:bg-[#181818] focus:bg-[#1C1C1C] ring-1 ring-white/10 hover:ring-white/20 focus:ring-1 focus:ring-white/40 shadow-inner text-white text-sm px-4.5 py-3.5 outline-none placeholder:text-[#666] transition-all rounded-xl font-sans"
                   />
 
                   {/* Clean Minimalist Selection Bars */}
@@ -459,14 +461,14 @@ function SignupContent() {
                       { value: "Indonesia", label: "Indonesia" },
                       { value: "Singapore", label: "Singapore" },
                       { value: "Malaysia", label: "Malaysia" },
-                      { value: "International", label: "International" },
+                      { value: "International", label: "International (Other)" },
                     ]}
                   />
 
                   {/* Submit Button */}
                   <button
                     type="submit"
-                    className="w-full bg-[#FAF9F6] hover:bg-white active:scale-[0.99] text-[#0e0e0e] font-mono font-bold text-xs uppercase tracking-[0.25em] py-4.5 transition-all duration-200 cursor-pointer mt-3 flex items-center justify-center gap-2 rounded-none shadow-sm"
+                    className="w-full bg-white hover:bg-zinc-200 active:scale-[0.99] text-black font-mono font-bold text-xs uppercase tracking-[0.2em] py-3.5 transition-all duration-200 cursor-pointer mt-3 flex items-center justify-center gap-2 rounded-full shadow-md"
                   >
                     <CornerDownRight size={14} strokeWidth={2.5} />
                     <span>CONTINUE</span>
@@ -475,9 +477,9 @@ function SignupContent() {
                   <div className="flex justify-center mt-3">
                     <Link
                       href="/login"
-                      className="text-xs font-sans text-[#888] hover:text-[#FAF9F6] transition-colors cursor-pointer"
+                      className="text-xs font-sans text-zinc-400 hover:text-white transition-colors cursor-pointer"
                     >
-                      Sudah punya akun? <span className="underline font-semibold text-white hover:text-[#BFDD25]">Masuk di sini</span>
+                      Sudah punya akun? <span className="font-semibold text-white hover:underline">Masuk di sini</span>
                     </Link>
                   </div>
                 </form>
@@ -506,21 +508,21 @@ function SignupContent() {
                   {/* Minimalist Profile Picture Bar */}
                   <div
                     onClick={() => avatarInputRef.current?.click()}
-                    className="w-full bg-[#050505] hover:bg-[#050505] px-4.5 py-3.5 flex items-center justify-between cursor-pointer transition-colors"
+                    className="w-full bg-[#141414] hover:bg-[#181818] ring-1 ring-white/10 hover:ring-white/20 shadow-inner px-4.5 py-3.5 flex items-center justify-between cursor-pointer transition-all rounded-xl"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-none bg-[#050505] border border-[#333] overflow-hidden flex items-center justify-center shrink-0">
+                      <div className="w-9 h-9 rounded-full bg-[#1c1c1c] overflow-hidden flex items-center justify-center shrink-0 ring-1 ring-white/10">
                         {avatarPreview && avatarPreview !== "/placeholder.svg" ? (
                           <img src={avatarPreview} alt="Avatar" className="w-full h-full object-cover" />
                         ) : (
                           <Camera size={14} className="text-[#888]" />
                         )}
                       </div>
-                      <span className="text-xs font-mono text-[#888] uppercase tracking-wider">
+                      <span className="text-xs font-mono text-[#A1A1AA] font-semibold uppercase tracking-wider">
                         Foto Profil
                       </span>
                     </div>
-                    <span className="text-xs font-mono text-[#BFDD25] hover:underline">
+                    <span className="text-xs font-mono text-zinc-300 hover:text-white transition-colors">
                       {avatarPreview && avatarPreview !== "/placeholder.svg" ? "Ganti" : "Upload"}
                     </span>
                   </div>
@@ -541,13 +543,13 @@ function SignupContent() {
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     autoFocus
-                    className="w-full bg-[#050505] hover:bg-[#050505] focus:bg-[#050505] text-white text-sm px-4.5 py-4 outline-none placeholder:text-[#555] transition-colors rounded-none font-sans"
+                    className="w-full bg-[#141414] hover:bg-[#181818] focus:bg-[#1C1C1C] ring-1 ring-white/10 hover:ring-white/20 focus:ring-1 focus:ring-white/40 shadow-inner text-white text-sm px-4.5 py-3.5 outline-none placeholder:text-[#666] transition-all rounded-xl font-sans"
                   />
 
                   {/* Action Button */}
                   <button
                     type="submit"
-                    className="w-full bg-[#FAF9F6] hover:bg-white active:scale-[0.99] text-[#0e0e0e] font-mono font-bold text-xs uppercase tracking-[0.25em] py-4.5 transition-all duration-200 cursor-pointer mt-3 flex items-center justify-center gap-2 rounded-none shadow-sm"
+                    className="w-full bg-white hover:bg-zinc-200 active:scale-[0.99] text-black font-mono font-bold text-xs uppercase tracking-[0.2em] py-3.5 transition-all duration-200 cursor-pointer mt-3 flex items-center justify-center gap-2 rounded-full shadow-md"
                   >
                     <CornerDownRight size={14} strokeWidth={2.5} />
                     <span>CONTINUE</span>
@@ -556,7 +558,7 @@ function SignupContent() {
                   <button
                     type="button"
                     onClick={() => setStep(1)}
-                    className="text-xs font-sans text-[#888] hover:text-white transition-colors mt-2 text-center underline cursor-pointer"
+                    className="text-xs font-sans text-[#888] hover:text-white transition-colors mt-2 text-center cursor-pointer"
                   >
                     ← Kembali ke Kredensial
                   </button>
@@ -596,10 +598,10 @@ function SignupContent() {
                             className="group text-left cursor-pointer flex flex-col transition-all duration-200"
                           >
                             {/* Card Image Box */}
-                            <div className={`relative w-full aspect-[16/10] overflow-hidden bg-[#050505] border transition-all duration-200 ${
+                            <div className={`relative w-full aspect-[16/10] overflow-hidden bg-[#0a0a0a] rounded-xl border transition-all duration-200 ${
                               isSelected
-                                ? "border-[#BFDD25] ring-1 ring-[#BFDD25] shadow-[0_0_15px_rgba(191, 221, 37,0.18)]"
-                                : "border-[#222] group-hover:border-[#444]"
+                                ? "border-white ring-2 ring-white/30 shadow-lg"
+                                : "border-zinc-800/80 group-hover:border-zinc-600"
                             }`}>
                               <img
                                 src={item.image}
@@ -622,7 +624,7 @@ function SignupContent() {
                               <div className={`w-4 h-4 rounded-full flex items-center justify-center transition-all ${
                                 isSelected 
                                   ? "bg-white text-[#0a0a0a]" 
-                                  : "border border-[#444] group-hover:border-[#777]"
+                                  : "border border-zinc-700 group-hover:border-zinc-500"
                               }`}>
                                 {isSelected && <Check size={10} strokeWidth={3.5} />}
                               </div>
@@ -656,7 +658,7 @@ function SignupContent() {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full bg-[#BFDD25] hover:bg-[#c2eb00] active:scale-[0.99] text-[#0e0e0e] font-mono font-bold text-xs uppercase tracking-[0.25em] py-4.5 transition-all duration-200 cursor-pointer disabled:opacity-50 mt-1 flex items-center justify-center gap-2 rounded-none shadow-sm"
+                    className="w-full bg-white hover:bg-zinc-200 active:scale-[0.99] text-black font-mono font-bold text-xs uppercase tracking-[0.2em] py-3.5 transition-all duration-200 cursor-pointer disabled:opacity-50 mt-1 flex items-center justify-center gap-2 rounded-full shadow-lg"
                   >
                     <CornerDownRight size={14} strokeWidth={2.5} />
                     <span>{isSubmitting ? "MEMPROSES..." : "CREATE ACCOUNT"}</span>
@@ -665,7 +667,7 @@ function SignupContent() {
                   <button
                     type="button"
                     onClick={() => setStep(2)}
-                    className="text-xs font-sans text-[#888] hover:text-white transition-colors text-center underline cursor-pointer"
+                    className="text-xs font-sans text-[#888] hover:text-white transition-colors text-center cursor-pointer"
                   >
                     ← Kembali ke Profil
                   </button>

@@ -73,14 +73,14 @@ export default function BrandCampaignsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-[#1E1E1E]">
+      {/* Top Header (Zero border, soft modern elevation) */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
         <div>
           <div className="flex items-center gap-2.5">
-            <h1 className="text-xl font-bold font-sans tracking-tight text-white">
+            <h1 className="text-xl sm:text-2xl font-bold font-sans tracking-tight text-white">
               {isEn ? "Pre-Order & Group-Buy Campaigns" : "Kampanye Pre-Order & Peluncuran"}
             </h1>
-            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-[#050505] text-[#A1A1AA] border border-[#27272A]">
+            <span className="px-3 py-1 rounded-full text-[10px] font-mono font-medium bg-[#141414] text-[#A1A1AA]">
               Direct-To-Consumer
             </span>
           </div>
@@ -93,45 +93,45 @@ export default function BrandCampaignsPage() {
 
         <button
           type="button"
-          className="inline-flex items-center gap-1.5 bg-[#FAF9F6] text-black hover:bg-[#E5E5E5] px-3.5 py-1.5 rounded-lg text-xs font-sans font-bold transition-all shadow-sm cursor-pointer"
+          className="inline-flex items-center gap-2 bg-white text-black hover:bg-[#E5E5E5] px-5 py-2.5 rounded-full text-xs font-sans font-bold transition-all shadow-md cursor-pointer shrink-0"
         >
-          <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+          <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
           </svg>
           {isEn ? "New Campaign" : "Mulai Pre-Order Baru"}
         </button>
       </div>
 
-      {/* Clean Industrial Campaign Cards */}
+      {/* Clean Industrial Campaign Cards (Rounded-2xl, Zero Stroke) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {campaigns.map((camp) => {
           const percentFilled = Math.round((camp.reservedSlots / camp.targetSlots) * 100);
 
           return (
-            <div key={camp.id} className="bg-[#050505] border border-[#222222] rounded-xl p-5 space-y-5">
+            <div key={camp.id} className="bg-[#0A0A0A] rounded-2xl p-6 sm:p-7 space-y-6 shadow-sm">
               {/* Header: Model Code & Title */}
-              <div className="flex items-start justify-between gap-4 pb-3 border-b border-[#1C1C1C]">
+              <div className="flex items-start justify-between gap-4">
                 <div>
                   <span className="text-[10px] font-mono text-[#71717A] uppercase tracking-wider block mb-1">
                     {camp.modelCode}
                   </span>
-                  <h3 className="text-sm font-semibold text-white leading-snug">{camp.title}</h3>
+                  <h3 className="text-base font-bold text-white leading-snug font-sans">{camp.title}</h3>
                 </div>
                 <div className="text-right shrink-0">
-                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono bg-[#050505] border border-[#2A2A2A] text-[#D4D4D8]">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-mono bg-[#141F17] text-[#BFDD25]">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#BFDD25] shadow-[0_0_6px_rgba(191,221,37,0.8)]" />
                     {camp.daysRemaining} {isEn ? "days left" : "hari tersisa"}
                   </span>
                 </div>
               </div>
 
               {/* Price & Target Telemetry */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-3 rounded-lg bg-[#030303] border border-[#1E1E1E] font-mono text-xs">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-4 rounded-xl bg-[#121212] font-mono text-xs">
                 <div>
                   <span className="text-[10px] text-[#71717A] uppercase block">
                     {isEn ? "Early Bird" : "Harga Pre-Order"}
                   </span>
-                  <span className="font-bold text-white text-sm mt-0.5 block">
+                  <span className="font-bold text-white text-sm mt-1 block">
                     {currency === "IDR"
                       ? `Rp ${camp.discountPriceIDR.toLocaleString("id-ID")}`
                       : `$${camp.discountPriceUSD}`}
@@ -142,7 +142,7 @@ export default function BrandCampaignsPage() {
                   <span className="text-[10px] text-[#71717A] uppercase block">
                     {isEn ? "Retail MSRP" : "Harga Resmi"}
                   </span>
-                  <span className="text-[#71717A] line-through text-xs mt-0.5 block">
+                  <span className="text-[#71717A] line-through text-xs mt-1 block">
                     {currency === "IDR"
                       ? `Rp ${camp.retailMSRPIDR.toLocaleString("id-ID")}`
                       : `$${camp.retailMSRPUSD}`}
@@ -153,28 +153,28 @@ export default function BrandCampaignsPage() {
                   <span className="text-[10px] text-[#71717A] uppercase block">
                     {isEn ? "Backers" : "Slot Terisi"}
                   </span>
-                  <span className="text-[#A1A1AA] text-xs mt-0.5 block">
+                  <span className="text-[#A1A1AA] text-xs mt-1 block">
                     <strong className="text-white">{camp.reservedSlots}</strong> / {camp.targetSlots} ({percentFilled}%)
                   </span>
                 </div>
               </div>
 
-              {/* Minimal Horizontal Progress Bar */}
-              <div className="space-y-1.5">
+              {/* Minimal Horizontal Progress Bar with TonalZone Volt Accent */}
+              <div className="space-y-2">
                 <div className="flex items-center justify-between text-[11px] font-mono text-[#71717A]">
                   <span>{isEn ? "Allocation Progress" : "Progres Kuota"}</span>
-                  <span className="text-[#D4D4D8]">{percentFilled}%</span>
+                  <span className="text-[#BFDD25] font-semibold">{percentFilled}%</span>
                 </div>
-                <div className="w-full bg-[#050505] h-1 rounded-full overflow-hidden">
+                <div className="w-full bg-[#141414] h-1.5 rounded-full overflow-hidden">
                   <div
-                    className="bg-[#D4D4D8] h-full rounded-full transition-all duration-300"
+                    className="bg-[#BFDD25] h-full rounded-full transition-all duration-300 shadow-[0_0_8px_rgba(191,221,37,0.6)]"
                     style={{ width: `${percentFilled}%` }}
                   />
                 </div>
               </div>
 
-              {/* MINIMALIST LINEAR TIMELINE STEPPER (Clean, Industrial, Zero Slop) */}
-              <div className="pt-3 border-t border-[#1C1C1C] space-y-3">
+              {/* MINIMALIST LINEAR TIMELINE STEPPER (Clean, Industrial, Zero Border) */}
+              <div className="pt-2 space-y-3">
                 <div className="flex items-center justify-between text-[10px] font-mono text-[#71717A] uppercase tracking-wider">
                   <span>{isEn ? "Manufacturing Timeline" : "Tahapan Manufaktur"}</span>
                   <span className="text-[#D4D4D8]">
@@ -195,8 +195,8 @@ export default function BrandCampaignsPage() {
                             isDone
                               ? "bg-white"
                               : isCurrent
-                              ? "bg-white"
-                              : "bg-[#050505]"
+                              ? "bg-[#BFDD25] shadow-[0_0_6px_rgba(191,221,37,0.8)]"
+                              : "bg-[#161616]"
                           }`}
                         />
                         {/* Step Label */}
@@ -206,7 +206,7 @@ export default function BrandCampaignsPage() {
                               isDone
                                 ? "text-[#A1A1AA]"
                                 : isCurrent
-                                ? "text-white font-semibold"
+                                ? "text-[#BFDD25] font-semibold"
                                 : "text-[#52525B]"
                             }`}
                           >

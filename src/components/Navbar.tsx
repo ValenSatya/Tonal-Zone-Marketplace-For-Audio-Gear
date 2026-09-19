@@ -12,49 +12,54 @@ import { useCart } from "@/context/CartContext";
 import { useNotifications, formatRelativeTime } from "@/context/NotificationContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { getAuthSession, signOutUser } from "@/app/actions/auth";
-import { fetchProductsFromDb, CatalogProduct, FALLBACK_CATALOG, searchCatalog } from "@/lib/products-db";
+import { fetchProductsFromDb, CatalogProduct } from "@/lib/products-db";
 import SearchDrawer from "@/components/SearchDrawer";
+import { KeyboardArrowRight, KeyboardArrowDown } from "@/components/ui/keyboard-arrow";
 
 const SEARCH_CATEGORIES = [
   "IN-EAR MONITORS",
-  "TWS",
-  "HEADPHONE",
-  "DAC/AMP",
-  "ACCESSORIES",
-  "FLAGSHIP MODELS",
-  "PORTABLE AUDIO",
+  "HEADPHONES",
+  "WIRELESS & TWS",
+  "DAC / AMPS",
+  "ACCESSORIES & CABLES",
 ];
 
 export default function Navbar() {
-  const router = useRouter();
   const pathname = usePathname();
+  const router = useRouter();
   const { language, setLanguage, t } = useLanguage();
   const { formatPrice, currency, setCurrency } = useLocation();
   const { isCartOpen, setIsCartOpen, totalCount } = useCart();
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const unreadChatCount = useMemo(() => (notifications || []).filter((n) => n.unread && n.type === "chat").length, [notifications]);
+
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("ALL");
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isCurrencyOpen, setIsCurrencyOpen] = useState(false);
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [userSession, setUserSession] = useState<{ name: string; email: string; avatar?: string; role?: string; isSeller?: boolean; sellerStatus?: string; tuning?: string } | null>(null);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const [dbProducts, setDbProducts] = useState<CatalogProduct[]>(FALLBACK_CATALOG);
+  const [dbProducts, setDbProducts] = useState<CatalogProduct[]>([]);
 
+  // Lazy-load catalog only when search drawer or mobile menu is opened by user
   React.useEffect(() => {
-    async function loadLiveProducts() {
-      try {
-        const live = await fetchProductsFromDb();
-        if (live && live.length > 0) {
+    if ((!isSearchOpen && !isMobileMenuOpen) || dbProducts.length > 0) return;
+    let cancelled = false;
+    fetchProductsFromDb()
+      .then((live) => {
+        if (!cancelled && live && live.length > 0) {
           setDbProducts(live);
         }
-      } catch (e) {
-        console.error("Failed to load live products for navbar:", e);
-      }
-    }
-    loadLiveProducts();
-  }, []);
+      })
+      .catch((e) => console.error("Failed to load live products for navbar:", e));
+    return () => {
+      cancelled = true;
+    };
+  }, [isSearchOpen, isMobileMenuOpen, dbProducts.length]);
 
   React.useEffect(() => {
     setMounted(true);
@@ -62,19 +67,19 @@ export default function Navbar() {
       try {
         const stored = localStorage.getItem("tonalzone_user");
         if (stored) {
-          setUserSession(JSON.parse(stored));
-          return;
+          try {
+            setUserSession(JSON.parse(stored));
+          } catch {}
         }
 
-        // Fallback: Fetch active server session via server action
+        // Always sync with live server session and Supabase database in background
         const sessionRes = await getAuthSession();
         if (sessionRes.success && sessionRes.user) {
           localStorage.setItem("tonalzone_user", JSON.stringify(sessionRes.user));
           setUserSession(sessionRes.user);
-          return;
+        } else if (!stored) {
+          setUserSession(null);
         }
-
-        setUserSession(null);
       } catch (e) {
         setUserSession(null);
       }
@@ -162,20 +167,11 @@ export default function Navbar() {
     }
   };
 
-  const filteredSearchProducts = useMemo(() => {
-    const allProducts = dbProducts && dbProducts.length > 0 ? dbProducts : FALLBACK_CATALOG;
-    if (!searchQuery.trim()) {
-      return allProducts.slice(0, 4);
-    }
-    const matches = searchCatalog(allProducts, searchQuery);
-    return matches.slice(0, 4);
-  }, [searchQuery, dbProducts]);
-
   const getNavClass = (isActive: boolean) => {
     if (isActive) {
-      return "text-[#D4FF00] border-b-2 border-[#D4FF00]";
+      return "text-white border-b-2 border-white font-semibold";
     }
-    return "text-white hover:text-[#D4FF00] border-b-2 border-transparent";
+    return "text-[#cccccc] hover:text-white border-b-2 border-transparent";
   };
 
   return (
@@ -187,7 +183,7 @@ export default function Navbar() {
             : "bg-transparent backdrop-blur-none border-b border-transparent shadow-none"
         } ${isHidden && !isSearchOpen ? "-translate-y-full" : "translate-y-0"}`}
       >
-      <div className="flex h-20 items-center justify-between px-6 sm:px-10 lg:px-16 max-w-[1500px] mx-auto">
+      <div className="flex h-20 items-center justify-between px-5 sm:px-8 lg:px-12 max-w-[1360px] mx-auto">
         {/* Logo & Brand */}
         <Link href="/" className="flex items-center gap-3.5 group">
           <div className="relative w-10 h-10 flex items-center justify-center">
@@ -216,30 +212,63 @@ export default function Navbar() {
             </Link>
 
             {/* Dropdown Box */}
-            <div className="absolute top-full left-0 pt-4 w-[540px] opacity-0 -translate-y-2 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto transition-all duration-300 z-50">
-              <div className="grid grid-cols-2 bg-[#161616] border border-[#2b2b2b] rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.95)] overflow-hidden">
+            <div className="absolute top-full left-0 pt-3 w-[560px] opacity-0 -translate-y-2 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto transition-all duration-200 z-50">
+              <div className="grid grid-cols-2 gap-1.5 p-2 bg-[#121212] rounded-[24px] shadow-2xl shadow-black/90">
                 <Link
                   href="/#bestseller"
-                  className="flex flex-col justify-center p-5 hover:bg-[#202020] transition-colors group/item border-r border-b border-[#262626]"
+                  className="flex items-start gap-3.5 p-3.5 rounded-[16px] hover:bg-[#1c1c1c] transition-colors group/item"
                 >
-                  <h4 className="text-sm font-heading font-bold text-[#FAF9F6] group-hover/item:text-[#D4FF00] transition-colors">{t("nav.homeBestSellers")}</h4>
-                  <p className="text-[11px] font-sans text-[#FAF9F6]/50 leading-relaxed mt-1 group-hover/item:text-[#FAF9F6]/80 transition-colors">{t("nav.homeBestSellersDesc")}</p>
+                  <div className="w-9 h-9 rounded-full bg-[#1a1a1a] group-hover/item:bg-white group-hover/item:text-black text-zinc-300 flex items-center justify-center transition-colors shrink-0 mt-0.5">
+                    <svg width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.004 0A5.25 5.25 0 0012 9.75a5.25 5.25 0 00-2.5 4.5m5.004 0h-5.004" />
+                    </svg>
+                  </div>
+                  <div className="min-w-0">
+                    <h4 className="text-sm font-semibold text-white tracking-wide group-hover/item:text-white transition-colors">
+                      {t("nav.homeBestSellers")}
+                    </h4>
+                    <p className="text-xs text-zinc-400 leading-relaxed mt-0.5 group-hover/item:text-zinc-300 transition-colors">
+                      {t("nav.homeBestSellersDesc")}
+                    </p>
+                  </div>
                 </Link>
 
                 <Link
                   href="/#collab"
-                  className="flex flex-col justify-center p-5 hover:bg-[#202020] transition-colors group/item border-b border-[#262626]"
+                  className="flex items-start gap-3.5 p-3.5 rounded-[16px] hover:bg-[#1c1c1c] transition-colors group/item"
                 >
-                  <h4 className="text-sm font-heading font-bold text-[#FAF9F6] group-hover/item:text-[#D4FF00] transition-colors">{t("nav.homeCollab")}</h4>
-                  <p className="text-[11px] font-sans text-[#FAF9F6]/50 leading-relaxed mt-1 group-hover/item:text-[#FAF9F6]/80 transition-colors">{t("nav.homeCollabDesc")}</p>
+                  <div className="w-9 h-9 rounded-full bg-[#1a1a1a] group-hover/item:bg-white group-hover/item:text-black text-zinc-300 flex items-center justify-center transition-colors shrink-0 mt-0.5">
+                    <svg width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z" />
+                    </svg>
+                  </div>
+                  <div className="min-w-0">
+                    <h4 className="text-sm font-semibold text-white tracking-wide group-hover/item:text-white transition-colors">
+                      {t("nav.homeCollab")}
+                    </h4>
+                    <p className="text-xs text-zinc-400 leading-relaxed mt-0.5 group-hover/item:text-zinc-300 transition-colors">
+                      {t("nav.homeCollabDesc")}
+                    </p>
+                  </div>
                 </Link>
 
                 <Link
                   href="/#new-arrival"
-                  className="flex flex-col justify-center p-5 hover:bg-[#202020] transition-colors group/item col-span-2"
+                  className="flex items-start gap-3.5 p-3.5 rounded-[16px] hover:bg-[#1c1c1c] transition-colors group/item col-span-2"
                 >
-                  <h4 className="text-sm font-heading font-bold text-[#FAF9F6] group-hover/item:text-[#D4FF00] transition-colors">{t("nav.homeNewArrivals")}</h4>
-                  <p className="text-[11px] font-sans text-[#FAF9F6]/50 leading-relaxed mt-1 group-hover/item:text-[#FAF9F6]/80 transition-colors">{t("nav.homeNewArrivalsDesc")}</p>
+                  <div className="w-9 h-9 rounded-full bg-[#1a1a1a] group-hover/item:bg-white group-hover/item:text-black text-zinc-300 flex items-center justify-center transition-colors shrink-0 mt-0.5">
+                    <svg width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div className="min-w-0">
+                    <h4 className="text-sm font-semibold text-white tracking-wide group-hover/item:text-white transition-colors">
+                      {t("nav.homeNewArrivals")}
+                    </h4>
+                    <p className="text-xs text-zinc-400 leading-relaxed mt-0.5 group-hover/item:text-zinc-300 transition-colors">
+                      {t("nav.homeNewArrivalsDesc")}
+                    </p>
+                  </div>
                 </Link>
               </div>
             </div>
@@ -254,83 +283,155 @@ export default function Navbar() {
               {t("nav.collection")}
             </Link>
 
-            {/* Full-Width Mega Menu Box */}
-            <div className="fixed top-[80px] left-0 w-full bg-[#0e0e0e]/95 backdrop-blur-2xl border-b border-[#222] opacity-0 -translate-y-2 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto transition-all duration-300 z-40 shadow-[0_30px_60px_rgba(0,0,0,0.8)]">
-              <div className="max-w-[1600px] mx-auto px-6 lg:px-12 py-12 flex gap-16">
-                
-                {/* Column 1: Categories */}
-                <div className="w-[250px] shrink-0 flex flex-col justify-between">
-                  <div>
-                    <div className="text-[10px] font-mono text-[#D4FF00] uppercase tracking-widest pb-3 border-b border-[#222] mb-5 font-bold flex items-center justify-between">
-                      <span>{t("nav.categories")}</span>
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#D4FF00] animate-pulse"></span>
-                    </div>
-                    <div className="space-y-2">
-                      <Link href="/collection" className="block text-xs font-medium text-[#FAF9F6]/70 hover:text-[#D4FF00] transition-colors">{t("nav.allProducts")}</Link>
-                      <Link href="/collection" className="block text-xs font-medium text-[#FAF9F6]/70 hover:text-[#D4FF00] transition-colors">{t("nav.inEarMonitors")}</Link>
-                      <Link href="/collection" className="block text-xs font-medium text-[#FAF9F6]/70 hover:text-[#D4FF00] transition-colors">{t("nav.dacAmps")}</Link>
-                      <Link href="/collection" className="block text-xs font-medium text-[#FAF9F6]/70 hover:text-[#D4FF00] transition-colors">{t("nav.accessories")}</Link>
-                      <Link href="/collection" className="block text-xs font-medium text-[#FAF9F6]/70 hover:text-[#D4FF00] transition-colors">Cables & Adapters</Link>
-                      <Link href="/collection" className="block text-xs font-medium text-[#FAF9F6]/70 hover:text-[#D4FF00] transition-colors">Merchandise</Link>
-                    </div>
-                  </div>
-                  <Link href="/collection" className="mt-8 text-[11px] font-mono text-[#D4FF00] hover:underline flex items-center justify-between font-bold group/link">
-                    <span>{t("nav.exploreCatalog")}</span>
-                    <span className="group-hover/link:translate-x-1 transition-transform">→</span>
-                  </Link>
-                </div>
-
-                {/* Column 2: Popular Brands */}
-                <div className="w-[250px] shrink-0 border-l border-[#222] pl-16">
-                  <div className="text-[10px] font-mono text-[#FAF9F6]/50 uppercase tracking-widest pb-3 border-b border-[#222] mb-5 font-bold">
-                    <span>Popular Brands</span>
-                  </div>
-                  <div className="space-y-2">
-                    <Link href="/collection" className="block text-xs font-medium text-[#FAF9F6]/70 hover:text-white transition-colors">Sennheiser</Link>
-                    <Link href="/collection" className="block text-xs font-medium text-[#FAF9F6]/70 hover:text-white transition-colors">64 Audio</Link>
-                    <Link href="/collection" className="block text-xs font-medium text-[#FAF9F6]/70 hover:text-white transition-colors">Campfire Audio</Link>
-                    <Link href="/collection" className="block text-xs font-medium text-[#FAF9F6]/70 hover:text-white transition-colors">Chord Electronics</Link>
-                    <Link href="/collection" className="block text-xs font-medium text-[#FAF9F6]/70 hover:text-white transition-colors">ThieAudio</Link>
-                    <Link href="/collection" className="block text-xs font-medium text-[#FAF9F6]/70 hover:text-white transition-colors">Moondrop</Link>
-                  </div>
-                </div>
-
-                {/* Column 3 & 4: Featured Showcases */}
-                <div className="flex-1 border-l border-[#222] pl-16">
-                  <div className="text-[10px] font-mono text-[#FAF9F6]/50 uppercase tracking-widest pb-3 border-b border-[#222] mb-6 font-bold flex items-center justify-between">
-                    <span>{t("nav.featuredModels")}</span>
-                    <span className="text-[#D4FF00]">{t("nav.topRated")}</span>
-                  </div>
+            {/* Floating Mega Menu Container */}
+            <div className="fixed top-[76px] left-1/2 -translate-x-1/2 w-[94vw] max-w-[1240px] opacity-0 -translate-y-2 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto transition-all duration-300 z-50">
+              <div className="bg-[#0b0b0d]/98 backdrop-blur-2xl border border-white/10 rounded-[28px] p-8 lg:p-9 shadow-[0_25px_70px_rgba(0,0,0,0.95)]">
+                <div className="grid grid-cols-12 gap-8 items-start">
                   
-                  <div className="grid grid-cols-2 gap-8">
-                    {/* Featured 1 */}
-                    <Link href="/collection" className="group/prod block">
-                      <div className="relative w-full aspect-[16/9] bg-[#111] rounded-lg overflow-hidden mb-4 border border-[#222] group-hover/prod:border-[#D4FF00] transition-colors">
-                        <Image src="/model-iem-untuk-hero.webp" alt="64 Audio U12t" fill className="object-cover group-hover/prod:scale-105 transition-transform duration-700 opacity-80 group-hover/prod:opacity-100" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-4">
-                           <span className="px-2 py-1 bg-[#D4FF00] text-black text-[9px] font-mono font-bold uppercase tracking-widest rounded-sm">EDITOR'S CHOICE</span>
-                        </div>
-                      </div>
-                      <h5 className="font-sans text-lg font-normal tracking-wide text-[#FAF9F6] group-hover/prod:text-[#D4FF00] transition-colors">64 Audio U12t Reference</h5>
-                      <p className="text-xs text-[#FAF9F6]/50 mt-1 mb-2 line-clamp-1">Industry standard 12-driver in-ear monitor.</p>
-                      <span className="font-mono text-sm font-bold tracking-wider text-[#D4FF00]">{formatPrice(2499)}</span>
+                  {/* Left Column 1: By Category */}
+                  <div className="col-span-12 md:col-span-3">
+                    <span className="text-[12px] font-sans font-medium text-[#888888] block mb-4">
+                      By Category
+                    </span>
+                    <div className="space-y-3">
+                      <Link
+                        href="/collection"
+                        className="block text-[15px] font-medium text-white hover:text-zinc-300 transition-colors"
+                      >
+                        In-Ear Monitors (IEM)
+                      </Link>
+                      <Link
+                        href="/collection?category=WIRELESS"
+                        className="block text-[15px] font-medium text-white hover:text-zinc-300 transition-colors"
+                      >
+                        Wireless &amp; TWS
+                      </Link>
+                      <Link
+                        href="/collection?category=DAC"
+                        className="block text-[15px] font-medium text-white hover:text-zinc-300 transition-colors"
+                      >
+                        DAC &amp; Headphone Amp
+                      </Link>
+                      <Link
+                        href="/collection?category=DAP"
+                        className="block text-[15px] font-medium text-white hover:text-zinc-300 transition-colors"
+                      >
+                        Digital Audio Players
+                      </Link>
+                      <Link
+                        href="/collection?category=CABLES"
+                        className="block text-[15px] font-medium text-white hover:text-zinc-300 transition-colors"
+                      >
+                        Cables &amp; Adapters
+                      </Link>
+                      <Link
+                        href="/collection?category=ACCESSORIES"
+                        className="block text-[15px] font-medium text-white hover:text-zinc-300 transition-colors"
+                      >
+                        Ear Tips &amp; Accessories
+                      </Link>
+                    </div>
+                  </div>
+
+                  {/* Left Column 2: By Sound Signature */}
+                  <div className="col-span-12 md:col-span-3">
+                    <span className="text-[12px] font-sans font-medium text-[#888888] block mb-4">
+                      By Sound Signature
+                    </span>
+                    <div className="space-y-3">
+                      <Link
+                        href="/collection?signature=WARM"
+                        className="block text-[15px] font-medium text-white hover:text-zinc-300 transition-colors"
+                      >
+                        Warm &amp; Musical Bass
+                      </Link>
+                      <Link
+                        href="/collection?signature=HARMAN"
+                        className="block text-[15px] font-medium text-white hover:text-zinc-300 transition-colors"
+                      >
+                        Harman Target Curve
+                      </Link>
+                      <Link
+                        href="/collection?signature=NEUTRAL"
+                        className="block text-[15px] font-medium text-white hover:text-zinc-300 transition-colors"
+                      >
+                        Neutral Reference
+                      </Link>
+                      <Link
+                        href="/collection?signature=V_SHAPE"
+                        className="block text-[15px] font-medium text-white hover:text-zinc-300 transition-colors"
+                      >
+                        V-Shape Dynamic Punch
+                      </Link>
+                      <Link
+                        href="/collection?signature=BRIGHT"
+                        className="block text-[15px] font-medium text-white hover:text-zinc-300 transition-colors"
+                      >
+                        Analytical &amp; Treble
+                      </Link>
+                      <Link
+                        href="/graph"
+                        className="block text-[15px] font-medium text-white hover:text-zinc-300 transition-colors"
+                      >
+                        Squiglink Graph
+                      </Link>
+                      <Link
+                        href="/collection"
+                        className="block text-[15px] font-medium text-white hover:text-zinc-300 transition-colors"
+                      >
+                        Custom In-Ear Series
+                      </Link>
+                    </div>
+                  </div>
+
+                  {/* Right Column: 3 Showcase Visual Images (Pure Photography like Reference) */}
+                  <div className="col-span-12 md:col-span-6 flex items-center gap-3.5">
+                    {/* Vertical Pill Card 1 */}
+                    <Link
+                      href="/product/prod-blessing-3"
+                      className="relative w-[110px] lg:w-[130px] h-[270px] rounded-[24px] overflow-hidden group/img shrink-0 border border-white/10 bg-[#161616] block"
+                    >
+                      <Image
+                        src="/hero-blessing-3.jpg"
+                        alt="Audiophile IEM"
+                        fill
+                        className="object-cover object-center group-hover/img:scale-105 transition-transform duration-500 ease-out"
+                      />
                     </Link>
 
-                    {/* Featured 2 */}
-                    <Link href="/collection" className="group/prod block">
-                      <div className="relative w-full aspect-[16/9] bg-[#111] rounded-lg overflow-hidden mb-4 border border-[#222] group-hover/prod:border-[#D4FF00] transition-colors">
-                        <Image src="/placeholder.svg" alt="Chord Mojo 2" fill className="object-cover group-hover/prod:scale-105 transition-transform duration-700 opacity-80 group-hover/prod:opacity-100" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-4">
-                           <span className="px-2 py-1 bg-white text-black text-[9px] font-mono font-bold uppercase tracking-widest rounded-sm">BEST SELLER</span>
-                        </div>
+                    {/* Vertical Pill Card 2 */}
+                    <Link
+                      href="/collection"
+                      className="relative w-[145px] lg:w-[165px] h-[270px] rounded-[24px] overflow-hidden group/img shrink-0 border border-white/10 bg-[#161616] block"
+                    >
+                      <Image
+                        src="/model-iem-untuk-hero.webp"
+                        alt="Audiophile Lifestyle"
+                        fill
+                        className="object-cover object-center group-hover/img:scale-105 transition-transform duration-500 ease-out"
+                      />
+                    </Link>
+
+                    {/* Wide Landscape Card 3 */}
+                    <Link
+                      href="/collection"
+                      className="relative flex-1 min-w-[200px] h-[270px] rounded-[24px] overflow-hidden group/img border border-white/10 bg-[#161616] block"
+                    >
+                      <Image
+                        src="/images/Headphone-Zone-Moondrop-Chu-III-Homepage-Desktop-Banner-02.webp"
+                        alt="Audiophile Collection"
+                        fill
+                        className="object-cover object-center group-hover/img:scale-105 transition-transform duration-500 ease-out"
+                      />
+                      <div className="absolute top-4 left-4 z-10">
+                        <span className="px-3.5 py-1.5 rounded-full bg-[#2e2e2e] text-white font-sans font-bold text-[10px] tracking-wider uppercase shadow-md inline-block leading-none">
+                          BEST SELLER
+                        </span>
                       </div>
-                      <h5 className="font-sans text-lg font-normal tracking-wide text-[#FAF9F6] group-hover/prod:text-[#D4FF00] transition-colors">Chord Mojo 2 DAC</h5>
-                      <p className="text-xs text-[#FAF9F6]/50 mt-1 mb-2 line-clamp-1">Portable DAC/Headphone Amplifier with lossless DSP.</p>
-                      <span className="font-mono text-sm font-bold tracking-wider text-[#D4FF00]">{formatPrice(899)}</span>
                     </Link>
                   </div>
-                </div>
 
+                </div>
               </div>
             </div>
           </div>
@@ -345,38 +446,82 @@ export default function Navbar() {
             </Link>
 
             {/* Dropdown Box */}
-            <div className="absolute top-full left-0 pt-4 w-[520px] opacity-0 -translate-y-2 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto transition-all duration-300 z-50">
-              <div className="grid grid-cols-2 bg-[#161616] border border-[#2b2b2b] rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.95)] overflow-hidden">
+            <div className="absolute top-full left-0 pt-3 w-[560px] opacity-0 -translate-y-2 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto transition-all duration-200 z-50">
+              <div className="grid grid-cols-2 gap-1.5 p-2 bg-[#121212] rounded-[24px] shadow-2xl shadow-black/90">
                 <Link
                   href="/graph"
-                  className="flex flex-col justify-center p-5 hover:bg-[#202020] transition-colors group/item border-r border-b border-[#262626]"
+                  className="flex items-start gap-3.5 p-3.5 rounded-[16px] hover:bg-[#1c1c1c] transition-colors group/item"
                 >
-                  <h4 className="text-sm font-heading font-medium tracking-wider text-[#FAF9F6] group-hover/item:text-[#D4FF00] transition-colors">How To Read Graph</h4>
-                  <p className="text-[11px] font-sans text-[#FAF9F6]/50 leading-relaxed mt-1 group-hover/item:text-[#FAF9F6]/80 transition-colors">Learn the basics of reading frequency response curves.</p>
+                  <div className="w-9 h-9 rounded-full bg-[#1a1a1a] group-hover/item:bg-white group-hover/item:text-black text-zinc-300 flex items-center justify-center transition-colors shrink-0 mt-0.5">
+                    <svg width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5M9 11.25l1.5-1.5 2.25 2.25 3.75-3.75" />
+                    </svg>
+                  </div>
+                  <div className="min-w-0">
+                    <h4 className="text-sm font-semibold text-white tracking-wide group-hover/item:text-white transition-colors">
+                      How To Read Graph
+                    </h4>
+                    <p className="text-xs text-zinc-400 leading-relaxed mt-0.5 group-hover/item:text-zinc-300 transition-colors">
+                      Learn the basics of reading frequency response curves.
+                    </p>
+                  </div>
                 </Link>
 
                 <Link
                   href="/graph"
-                  className="flex flex-col justify-center p-5 hover:bg-[#202020] transition-colors group/item border-b border-[#262626]"
+                  className="flex items-start gap-3.5 p-3.5 rounded-[16px] hover:bg-[#1c1c1c] transition-colors group/item"
                 >
-                  <h4 className="text-sm font-heading font-medium tracking-wider text-[#FAF9F6] group-hover/item:text-[#D4FF00] transition-colors">IEM Signature</h4>
-                  <p className="text-[11px] font-sans text-[#FAF9F6]/50 leading-relaxed mt-1 group-hover/item:text-[#FAF9F6]/80 transition-colors">Discover V-Shape, Neutral, and other sound profiles.</p>
+                  <div className="w-9 h-9 rounded-full bg-[#1a1a1a] group-hover/item:bg-white group-hover/item:text-black text-zinc-300 flex items-center justify-center transition-colors shrink-0 mt-0.5">
+                    <svg width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
+                    </svg>
+                  </div>
+                  <div className="min-w-0">
+                    <h4 className="text-sm font-semibold text-white tracking-wide group-hover/item:text-white transition-colors">
+                      IEM Signature
+                    </h4>
+                    <p className="text-xs text-zinc-400 leading-relaxed mt-0.5 group-hover/item:text-zinc-300 transition-colors">
+                      Discover V-Shape, Neutral, and other sound profiles.
+                    </p>
+                  </div>
                 </Link>
 
                 <Link
                   href="/graph"
-                  className="flex flex-col justify-center p-5 hover:bg-[#202020] transition-colors group/item border-r border-[#262626]"
+                  className="flex items-start gap-3.5 p-3.5 rounded-[16px] hover:bg-[#1c1c1c] transition-colors group/item"
                 >
-                  <h4 className="text-sm font-heading font-medium tracking-wider text-[#FAF9F6] group-hover/item:text-[#D4FF00] transition-colors">Find Your Signature</h4>
-                  <p className="text-[11px] font-sans text-[#FAF9F6]/50 leading-relaxed mt-1 group-hover/item:text-[#FAF9F6]/80 transition-colors">Select a musical genre to reveal the ideal tuning profile.</p>
+                  <div className="w-9 h-9 rounded-full bg-[#1a1a1a] group-hover/item:bg-white group-hover/item:text-black text-zinc-300 flex items-center justify-center transition-colors shrink-0 mt-0.5">
+                    <svg width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM10.5 7.5v6m3-3h-6" />
+                    </svg>
+                  </div>
+                  <div className="min-w-0">
+                    <h4 className="text-sm font-semibold text-white tracking-wide group-hover/item:text-white transition-colors">
+                      Find Your Signature
+                    </h4>
+                    <p className="text-xs text-zinc-400 leading-relaxed mt-0.5 group-hover/item:text-zinc-300 transition-colors">
+                      Select a musical genre to reveal the ideal tuning profile.
+                    </p>
+                  </div>
                 </Link>
 
                 <Link
                   href="/graph"
-                  className="flex flex-col justify-center p-5 hover:bg-[#202020] transition-colors group/item"
+                  className="flex items-start gap-3.5 p-3.5 rounded-[16px] hover:bg-[#1c1c1c] transition-colors group/item"
                 >
-                  <h4 className="text-sm font-heading font-medium tracking-wider text-[#FAF9F6] group-hover/item:text-[#D4FF00] transition-colors">Try Squiglink</h4>
-                  <p className="text-[11px] font-sans text-[#FAF9F6]/50 leading-relaxed mt-1 group-hover/item:text-[#FAF9F6]/80 transition-colors">Compare frequency responses using our interactive database.</p>
+                  <div className="w-9 h-9 rounded-full bg-[#1a1a1a] group-hover/item:bg-white group-hover/item:text-black text-zinc-300 flex items-center justify-center transition-colors shrink-0 mt-0.5">
+                    <svg width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 14.25v2.25m3-4.5v4.5m3-6.75v6.75m3-9v9M6 20.25h12A2.25 2.25 0 0020.25 18V6A2.25 2.25 0 0018 3.75H6A2.25 2.25 0 003.75 6v12A2.25 2.25 0 006 20.25z" />
+                    </svg>
+                  </div>
+                  <div className="min-w-0">
+                    <h4 className="text-sm font-semibold text-white tracking-wide group-hover/item:text-white transition-colors">
+                      Try Squiglink
+                    </h4>
+                    <p className="text-xs text-zinc-400 leading-relaxed mt-0.5 group-hover/item:text-zinc-300 transition-colors">
+                      Compare frequency responses using our interactive database.
+                    </p>
+                  </div>
                 </Link>
               </div>
             </div>
@@ -392,38 +537,82 @@ export default function Navbar() {
             </Link>
 
             {/* Dropdown Box */}
-            <div className="absolute top-full right-0 pt-4 w-[520px] opacity-0 -translate-y-2 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto transition-all duration-300 z-50">
-              <div className="grid grid-cols-2 bg-[#161616] border border-[#2b2b2b] rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.95)] overflow-hidden">
+            <div className="absolute top-full right-0 pt-3 w-[560px] opacity-0 -translate-y-2 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto transition-all duration-200 z-50">
+              <div className="grid grid-cols-2 gap-1.5 p-2 bg-[#121212] rounded-[24px] shadow-2xl shadow-black/90">
                 <Link
                   href="/support#faq"
-                  className="flex flex-col justify-center p-5 hover:bg-[#202020] transition-colors group/item border-r border-b border-[#262626]"
+                  className="flex items-start gap-3.5 p-3.5 rounded-[16px] hover:bg-[#1c1c1c] transition-colors group/item"
                 >
-                  <h4 className="text-sm font-heading font-medium tracking-wider text-[#FAF9F6] group-hover/item:text-[#D4FF00] transition-colors">General FAQ</h4>
-                  <p className="text-[11px] font-sans text-[#FAF9F6]/50 leading-relaxed mt-1 group-hover/item:text-[#FAF9F6]/80 transition-colors">Common questions about products and accounts.</p>
+                  <div className="w-9 h-9 rounded-full bg-[#1a1a1a] group-hover/item:bg-white group-hover/item:text-black text-zinc-300 flex items-center justify-center transition-colors shrink-0 mt-0.5">
+                    <svg width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M12 18h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div className="min-w-0">
+                    <h4 className="text-sm font-semibold text-white tracking-wide group-hover/item:text-white transition-colors">
+                      General FAQ
+                    </h4>
+                    <p className="text-xs text-zinc-400 leading-relaxed mt-0.5 group-hover/item:text-zinc-300 transition-colors">
+                      Common questions about products and accounts.
+                    </p>
+                  </div>
                 </Link>
 
                 <Link
                   href="/support#shipping"
-                  className="flex flex-col justify-center p-5 hover:bg-[#202020] transition-colors group/item border-b border-[#262626]"
+                  className="flex items-start gap-3.5 p-3.5 rounded-[16px] hover:bg-[#1c1c1c] transition-colors group/item"
                 >
-                  <h4 className="text-sm font-heading font-medium tracking-wider text-[#FAF9F6] group-hover/item:text-[#D4FF00] transition-colors">Shipping & Returns</h4>
-                  <p className="text-[11px] font-sans text-[#FAF9F6]/50 leading-relaxed mt-1 group-hover/item:text-[#FAF9F6]/80 transition-colors">Delivery times, tracking, and return policy.</p>
+                  <div className="w-9 h-9 rounded-full bg-[#1a1a1a] group-hover/item:bg-white group-hover/item:text-black text-zinc-300 flex items-center justify-center transition-colors shrink-0 mt-0.5">
+                    <svg width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.175V3.375c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75" />
+                    </svg>
+                  </div>
+                  <div className="min-w-0">
+                    <h4 className="text-sm font-semibold text-white tracking-wide group-hover/item:text-white transition-colors">
+                      Shipping & Returns
+                    </h4>
+                    <p className="text-xs text-zinc-400 leading-relaxed mt-0.5 group-hover/item:text-zinc-300 transition-colors">
+                      Delivery times, tracking, and return policy.
+                    </p>
+                  </div>
                 </Link>
 
                 <Link
                   href="/support#warranty"
-                  className="flex flex-col justify-center p-5 hover:bg-[#202020] transition-colors group/item border-r border-[#262626]"
+                  className="flex items-start gap-3.5 p-3.5 rounded-[16px] hover:bg-[#1c1c1c] transition-colors group/item"
                 >
-                  <h4 className="text-sm font-heading font-medium tracking-wider text-[#FAF9F6] group-hover/item:text-[#D4FF00] transition-colors">Warranty Claims</h4>
-                  <p className="text-[11px] font-sans text-[#FAF9F6]/50 leading-relaxed mt-1 group-hover/item:text-[#FAF9F6]/80 transition-colors">Process for repairs and defective units.</p>
+                  <div className="w-9 h-9 rounded-full bg-[#1a1a1a] group-hover/item:bg-white group-hover/item:text-black text-zinc-300 flex items-center justify-center transition-colors shrink-0 mt-0.5">
+                    <svg width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+                    </svg>
+                  </div>
+                  <div className="min-w-0">
+                    <h4 className="text-sm font-semibold text-white tracking-wide group-hover/item:text-white transition-colors">
+                      Warranty Claims
+                    </h4>
+                    <p className="text-xs text-zinc-400 leading-relaxed mt-0.5 group-hover/item:text-zinc-300 transition-colors">
+                      Process for repairs and defective units.
+                    </p>
+                  </div>
                 </Link>
 
                 <Link
                   href="/support#contact"
-                  className="flex flex-col justify-center p-5 hover:bg-[#202020] transition-colors group/item"
+                  className="flex items-start gap-3.5 p-3.5 rounded-[16px] hover:bg-[#1c1c1c] transition-colors group/item"
                 >
-                  <h4 className="text-sm font-heading font-medium tracking-wider text-[#FAF9F6] group-hover/item:text-[#D4FF00] transition-colors">Contact Us</h4>
-                  <p className="text-[11px] font-sans text-[#FAF9F6]/50 leading-relaxed mt-1 group-hover/item:text-[#FAF9F6]/80 transition-colors">Get in touch with our audio specialists.</p>
+                  <div className="w-9 h-9 rounded-full bg-[#1a1a1a] group-hover/item:bg-white group-hover/item:text-black text-zinc-300 flex items-center justify-center transition-colors shrink-0 mt-0.5">
+                    <svg width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a.75.75 0 01-.818-.836 5.86 5.86 0 01.99-2.73C4.062 16.035 3 14.12 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z" />
+                    </svg>
+                  </div>
+                  <div className="min-w-0">
+                    <h4 className="text-sm font-semibold text-white tracking-wide group-hover/item:text-white transition-colors">
+                      Contact Us
+                    </h4>
+                    <p className="text-xs text-zinc-400 leading-relaxed mt-0.5 group-hover/item:text-zinc-300 transition-colors">
+                      Get in touch with our audio specialists.
+                    </p>
+                  </div>
                 </Link>
               </div>
             </div>
@@ -435,7 +624,7 @@ export default function Navbar() {
           <button
             onClick={() => setIsSearchOpen(!isSearchOpen)}
             className={`hover:scale-110 active:scale-95 transition-all duration-300 cursor-pointer ${
-              isSearchOpen ? "text-[#D4FF00] scale-110" : isDarkNav ? "text-[#FAF9F6] hover:text-[#D4FF00]" : "text-[#0e0e0e] hover:text-[#D4FF00]"
+              isSearchOpen ? "text-white scale-110" : isDarkNav ? "text-[#FAF9F6] hover:text-white" : "text-[#0e0e0e] hover:text-black"
             }`}
           >
             <span className="sr-only">Search</span>
@@ -461,16 +650,18 @@ export default function Navbar() {
               <Link
                 href="/messages"
                 className={`hover:scale-110 active:scale-95 transition-all duration-300 relative cursor-pointer flex items-center ${
-                  isDarkNav ? "text-[#FAF9F6] hover:text-[#D4FF00]" : "text-[#0e0e0e] hover:text-[#D4FF00]"
+                  isDarkNav ? "text-[#FAF9F6] hover:text-white" : "text-[#0e0e0e] hover:text-black"
                 }`}
               >
                 <span className="sr-only">Messages</span>
                 <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
                 </svg>
-                <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#D4FF00] text-[9px] font-bold text-black border border-[#0e0e0e]">
-                  1
-                </span>
+                {unreadChatCount > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-4 px-1 items-center justify-center rounded-full bg-[#ef4444] text-[9px] font-bold text-white border border-[#0e0e0e] shadow-sm">
+                    {unreadChatCount > 9 ? "9+" : unreadChatCount}
+                  </span>
+                )}
               </Link>
               {/* Notifications Dropdown Toggle */}
               <div className="relative flex items-center h-full">
@@ -486,7 +677,7 @@ export default function Navbar() {
                   type="button"
                   onClick={() => setIsNotifOpen(!isNotifOpen)}
                   className={`hover:scale-110 active:scale-95 transition-all duration-300 relative cursor-pointer flex items-center ${
-                    isDarkNav ? "text-[#FAF9F6] hover:text-[#D4FF00]" : "text-[#0e0e0e] hover:text-[#D4FF00]"
+                    isDarkNav ? "text-[#FAF9F6] hover:text-white" : "text-[#0e0e0e] hover:text-black"
                   }`}
                 >
                   <span className="sr-only">Notifications</span>
@@ -494,7 +685,7 @@ export default function Navbar() {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
                   </svg>
                   {unreadCount > 0 && (
-                    <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-4 px-1 items-center justify-center rounded-full bg-[#D4FF00] text-[9px] font-bold text-black border border-[#0e0e0e] animate-pulse">
+                    <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-4 px-1 items-center justify-center rounded-full bg-[#ef4444] text-[9px] font-bold text-white border border-[#0e0e0e] shadow-sm">
                       {unreadCount > 9 ? "9+" : unreadCount}
                     </span>
                   )}
@@ -511,7 +702,7 @@ export default function Navbar() {
                     <div className="flex items-center gap-2">
                       <h3 className="font-heading font-medium text-sm text-[#FAF9F6] tracking-wide">Notifikasi</h3>
                       {unreadCount > 0 && (
-                        <span className="text-[10px] font-mono bg-emerald-950/80 text-emerald-400 border border-emerald-800/60 px-2 py-0.5 rounded-full font-bold">
+                        <span className="text-[10px] font-mono bg-red-500/20 text-red-400 border border-red-500/30 px-2 py-0.5 rounded-full font-bold">
                           {unreadCount} baru
                         </span>
                       )}
@@ -520,7 +711,7 @@ export default function Navbar() {
                       <button
                         type="button"
                         onClick={markAllAsRead}
-                        className="text-[11px] font-mono text-[#D4FF00] hover:underline cursor-pointer transition-colors"
+                        className="text-[11px] font-mono text-white/80 hover:text-white hover:underline cursor-pointer transition-colors"
                       >
                         Tandai Semua Dibaca
                       </button>
@@ -547,7 +738,7 @@ export default function Navbar() {
                           }`}
                         >
                           {notif.unread && (
-                            <div className="absolute left-1.5 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-[#D4FF00] rounded-full" />
+                            <div className="absolute left-1.5 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-[#ef4444] rounded-full" />
                           )}
 
                           {/* Icon based on type */}
@@ -587,11 +778,11 @@ export default function Navbar() {
                     <Link
                       href="/notifications"
                       onClick={() => setIsNotifOpen(false)}
-                      className="text-xs font-mono font-bold uppercase tracking-wider text-[#FAF9F6] hover:text-[#D4FF00] transition-colors inline-flex items-center gap-1.5"
+                      className="text-xs font-mono font-bold uppercase tracking-wider text-[#FAF9F6] hover:text-white transition-colors inline-flex items-center gap-1.5 group"
                     >
                       <span>Lihat Semua Notifikasi</span>
                       <span>({notifications.length})</span>
-                      <span>→</span>
+                      <KeyboardArrowRight className="w-3.5 h-3.5 stroke-[2.5] group-hover:translate-x-0.5 transition-transform" />
                     </Link>
                   </div>
                 </div>
@@ -602,7 +793,7 @@ export default function Navbar() {
           <button
             onClick={() => setIsCartOpen(true)}
             className={`hover:scale-110 active:scale-95 transition-all duration-300 relative cursor-pointer ${
-              isDarkNav ? "text-[#FAF9F6] hover:text-[#D4FF00]" : "text-[#0e0e0e] hover:text-[#D4FF00]"
+              isDarkNav ? "text-[#FAF9F6] hover:text-white" : "text-[#0e0e0e] hover:text-black"
             }`}
           >
             <span className="sr-only">Cart</span>
@@ -620,12 +811,10 @@ export default function Navbar() {
                 d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
               ></path>
             </svg>
-            {totalCount > 0 ? (
-              <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#D4FF00] text-[9px] font-bold text-black border border-[#0e0e0e]">
-                {totalCount}
+            {totalCount > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-4 px-1 items-center justify-center rounded-full bg-[#ef4444] text-[9px] font-bold text-white border border-[#0e0e0e] shadow-sm">
+                {totalCount > 99 ? "99+" : totalCount}
               </span>
-            ) : (
-              <span className="absolute -top-1 -right-1 w-2 h-2 bg-[#D4FF00]/50 rounded-full"></span>
             )}
           </button>
           <div className="hidden md:block">
@@ -689,6 +878,22 @@ export default function Navbar() {
                           <span>{t("nav.settings")}</span>
                         </div>
                       </Link>
+
+                      {/* ADMIN STATE MENU ITEM (Valen Satya / Admin Exclusive) */}
+                      {(userSession.email?.toLowerCase().includes("valenandrasatya") || userSession.role === "ADMIN" || (userSession as any).role === "admin") && (
+                        <Link
+                          href="/admin"
+                          className="flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-amber-400 hover:text-amber-300 hover:bg-[#1f1f1f] transition-all duration-150 group/item"
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24" className="text-amber-400 group-hover/item:text-amber-300 transition-colors">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+                            </svg>
+                            <span>Dashboard Admin</span>
+                          </div>
+                          <span className="text-[10px] font-mono text-amber-400/90 bg-amber-400/10 border border-amber-400/20 px-1.5 py-0.5 rounded tracking-widest font-semibold">ADMIN</span>
+                        </Link>
+                      )}
 
                       {/* SELLER STATE MENU ITEM */}
                       {userSession.isSeller || userSession.sellerStatus === "APPROVED" ? (
@@ -757,19 +962,18 @@ export default function Navbar() {
                 </div>
               </div>
             ) : (
-              <MotionButton 
-                href={pathname === "/signup" ? "/login" : "/signup"} 
-                variant={isDarkNav ? "neon" : "neon-dark"} 
-                className="px-6 py-2.5 ml-2"
+              <Link
+                href={pathname === "/signup" ? "/login" : "/signup"}
+                className="px-5 py-2.5 ml-2 rounded-full bg-[#BFDD25] hover:bg-[#cbf026] text-black font-mono font-bold text-xs uppercase tracking-wider transition-all duration-200 shadow-sm inline-flex items-center justify-center cursor-pointer"
               >
                 {pathname === "/signup" ? (language === "id" ? "MASUK" : "SIGN IN") : t("nav.signUp")}
-              </MotionButton>
+              </Link>
             )}
           </div>
 
           <button 
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className={`md:hidden p-2 -mr-2 transition-colors cursor-pointer ${isDarkNav ? "text-[#FAF9F6] hover:text-[#D4FF00]" : "text-[#0e0e0e] hover:text-[#D4FF00]"}`}
+            className={`md:hidden p-2 -mr-2 transition-colors cursor-pointer ${isDarkNav ? "text-[#FAF9F6] hover:text-white" : "text-[#0e0e0e] hover:text-black"}`}
           >
             <span className="sr-only">Toggle Menu</span>
             <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
@@ -791,78 +995,227 @@ export default function Navbar() {
         products={dbProducts}
       />
 
-      {/* 3.5 Mobile Full-Screen Menu Overlay */}
+      {/* 3.5 Modern Mobile Menu Drawer (Inspired by Hims clean sheet, tailored to Tonal Zone) */}
       <AnimatePresence>
         {isMobileMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3 }}
-            className="fixed top-[80px] left-0 w-full h-[calc(100vh-80px)] z-40 bg-[#0e0e0e] border-t border-[#222] flex flex-col p-6 overflow-y-auto shadow-2xl"
-          >
-            <div className="flex flex-col gap-6 w-full pb-20">
-              <Link href="/" onClick={() => setIsMobileMenuOpen(false)} className="text-xl font-heading font-bold text-white uppercase tracking-widest border-b border-[#222] pb-4">
-                {t("nav.home")}
-              </Link>
-              <Link href="/collection" onClick={() => setIsMobileMenuOpen(false)} className="text-xl font-heading font-bold text-white uppercase tracking-widest border-b border-[#222] pb-4">
-                {t("nav.collection")}
-              </Link>
-              <Link href="/graph" onClick={() => setIsMobileMenuOpen(false)} className="text-xl font-heading font-bold text-white uppercase tracking-widest border-b border-[#222] pb-4">
-                {t("nav.graph")}
-              </Link>
-              <Link href="/support" onClick={() => setIsMobileMenuOpen(false)} className="text-xl font-heading font-bold text-white uppercase tracking-widest border-b border-[#222] pb-4">
-                {t("nav.support")}
-              </Link>
+          <div className="fixed inset-0 z-50 md:hidden">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.25 }}
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            />
 
-              {/* Mobile User Section */}
-              <div className="mt-4 border-t border-[#222] pt-6 flex flex-col gap-4">
-                {userSession ? (
-                  <>
-                    <div className="flex items-center gap-4 mb-4">
-                      <div className="w-10 h-10 rounded-full bg-[#222] border border-[#333] flex items-center justify-center text-[#bbb]">
-                         <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                      </div>
-                      <div>
-                        <p className="text-sm font-sans font-bold text-white">{userSession.name || userSession.email || "User"}</p>
-                        <p className="text-xs font-mono text-[#888]">{userSession.email}</p>
-                      </div>
-                    </div>
-                    <Link href="/notifications" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center justify-between text-sm font-mono uppercase tracking-widest text-white/70 hover:text-white">
-                      <span>Notifications</span>
-                      {unreadCount > 0 && (
-                        <span className="flex h-4 min-w-4 px-1 items-center justify-center rounded-full bg-[#D4FF00] text-[9px] font-bold text-black">
-                          {unreadCount}
-                        </span>
-                      )}
-                    </Link>
-                    <Link href="/orders" onClick={() => setIsMobileMenuOpen(false)} className="text-sm font-mono uppercase tracking-widest text-white/70 hover:text-white">{t("nav.orders")}</Link>
-                    
-                    {(userSession.isSeller || userSession.sellerStatus === "APPROVED") ? (
-                      <Link href="/seller" onClick={() => setIsMobileMenuOpen(false)} className="text-sm font-mono uppercase tracking-widest text-emerald-400 hover:text-emerald-300">{t("nav.sellerVault")}</Link>
-                    ) : (
-                      <Link href="/sell" onClick={() => setIsMobileMenuOpen(false)} className="text-sm font-mono uppercase tracking-widest text-purple-400 hover:text-purple-300">{t("nav.openStore")}</Link>
+            {/* Slide-in Drawer Container */}
+            <motion.div
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "spring", damping: 30, stiffness: 320 }}
+              className="absolute top-0 right-0 bottom-0 w-[86vw] max-w-[380px] bg-[#0A0A0A] border-l border-[#222] shadow-[0_0_50px_rgba(0,0,0,0.9)] flex flex-col z-10 overflow-hidden font-sans"
+            >
+              {/* Top Action Header */}
+              <div className="h-20 px-6 border-b border-[#1C1C1C] flex items-center justify-between shrink-0 bg-[#0A0A0A]/95 backdrop-blur-md">
+                <span className="font-heading font-extrabold text-xl tracking-tight text-white uppercase">
+                  Menu
+                </span>
+                
+                <div className="flex items-center gap-2">
+                  {/* Account Action */}
+                  <Link
+                    href={userSession ? "/profile" : "/login"}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    aria-label="Account"
+                    className="w-10 h-10 rounded-full bg-[#161616] hover:bg-[#202020] border border-[#262626] flex items-center justify-center text-zinc-300 hover:text-white transition-colors"
+                  >
+                    <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+                      <circle cx="12" cy="7" r="4" />
+                    </svg>
+                  </Link>
+
+                  {/* Cart Action */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      setIsCartOpen(true);
+                    }}
+                    aria-label="Cart"
+                    className="relative w-10 h-10 rounded-full bg-[#161616] hover:bg-[#202020] border border-[#262626] flex items-center justify-center text-zinc-300 hover:text-white transition-colors"
+                  >
+                    <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                    </svg>
+                    {totalCount > 0 && (
+                      <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#BFDD25] text-black text-[10px] font-bold flex items-center justify-center">
+                        {totalCount}
+                      </span>
                     )}
-                    
-                    <button 
-                      type="button"
-                      onClick={() => {
-                        setIsMobileMenuOpen(false);
-                        setIsLogoutModalOpen(true);
-                      }} 
-                      className="text-sm font-mono uppercase tracking-widest text-red-400 hover:text-red-300 text-left mt-2 cursor-pointer"
-                    >
-                      {t("nav.logout")}
-                    </button>
-                  </>
-                ) : (
-                  <MotionButton href="/signup" variant="neon" className="w-full text-center py-3">
-                    {t("nav.signUp")}
-                  </MotionButton>
-                )}
+                  </button>
+
+                  {/* Close Circle Button */}
+                  <button
+                    type="button"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    aria-label="Close menu"
+                    className="w-10 h-10 rounded-full bg-[#1C1C1C] hover:bg-[#262626] border border-[#333] flex items-center justify-center text-white transition-all ml-1"
+                  >
+                    <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
               </div>
-            </div>
-          </motion.div>
+
+              {/* Scrollable Content */}
+              <div className="flex-1 overflow-y-auto px-6 py-6 scrollbar-none flex flex-col gap-8">
+                {/* 1. Explore Section (Home, Collection, Graph, Support) */}
+                <div>
+                  <span className="block font-mono text-[11px] font-bold tracking-[2px] uppercase text-zinc-500 mb-3">
+                    EXPLORE
+                  </span>
+
+                  <div className="flex flex-col">
+                    {[
+                      { label: t("nav.home"), href: "/" },
+                      { label: t("nav.collection"), href: "/collection" },
+                      { label: t("nav.graph"), href: "/graph" },
+                      { label: t("nav.support"), href: "/support" },
+                    ].map((item, idx) => (
+                      <Link
+                        key={idx}
+                        href={item.href}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="flex items-center justify-between py-4 border-b border-[#181818] group cursor-pointer"
+                      >
+                        <span className="font-sans font-semibold text-[18px] text-zinc-200 group-hover:text-white transition-colors">
+                          {item.label}
+                        </span>
+                        <svg
+                          width="18"
+                          height="18"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="text-zinc-600 group-hover:text-[#BFDD25] group-hover:translate-x-1 transition-all"
+                        >
+                          <path d="M9 18l6-6-6-6" />
+                        </svg>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 3. Account / Portal Area */}
+                <div className="pt-2 pb-6 border-t border-[#1C1C1C]">
+                  {userSession ? (
+                    <div className="flex flex-col gap-3">
+                      <div className="flex items-center gap-3 p-3 rounded-2xl bg-[#141414] border border-[#242424]">
+                        <div className="w-10 h-10 rounded-full bg-[#202020] border border-[#303030] flex items-center justify-center text-zinc-300 shrink-0 font-mono text-sm font-bold">
+                          {userSession.name?.[0]?.toUpperCase() || userSession.email?.[0]?.toUpperCase() || "U"}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-sans font-bold text-sm text-white truncate">
+                            {userSession.name || "Audiophile Member"}
+                          </p>
+                          <p className="font-mono text-[11px] text-zinc-400 truncate">
+                            {userSession.email}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2 mt-1">
+                        <Link
+                          href="/orders"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                          className="px-3.5 py-2.5 rounded-xl bg-[#161616] hover:bg-[#202020] border border-[#262626] text-center font-sans font-semibold text-xs text-zinc-200"
+                        >
+                          {t("nav.orders")}
+                        </Link>
+                        <Link
+                          href="/notifications"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                          className="px-3.5 py-2.5 rounded-xl bg-[#161616] hover:bg-[#202020] border border-[#262626] text-center font-sans font-semibold text-xs text-zinc-200 flex items-center justify-center gap-1.5"
+                        >
+                          <span>Notifikasi</span>
+                          {unreadCount > 0 && (
+                            <span className="w-2 h-2 rounded-full bg-[#ef4444]" />
+                          )}
+                        </Link>
+                      </div>
+
+                      {(userSession.email?.toLowerCase().includes("valenandrasatya") || userSession.role === "ADMIN" || (userSession as any).role === "admin") && (
+                        <Link
+                          href="/admin"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                          className="w-full py-2.5 px-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 hover:text-amber-300 font-sans font-bold text-xs flex items-center justify-between"
+                        >
+                          <span>Dashboard Admin</span>
+                          <span className="text-[10px] uppercase tracking-wider font-mono">PANEL &rarr;</span>
+                        </Link>
+                      )}
+
+                      {(userSession.isSeller || userSession.sellerStatus === "APPROVED") ? (
+                        <Link
+                          href="/seller"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                          className="w-full py-2.5 px-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:text-emerald-300 font-sans font-bold text-xs flex items-center justify-between"
+                        >
+                          <span>{t("nav.sellerVault")}</span>
+                          <span className="text-[10px] uppercase tracking-wider font-mono">STORE &rarr;</span>
+                        </Link>
+                      ) : (
+                        <Link
+                          href="/sell"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                          className="w-full py-2.5 px-4 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400 hover:text-purple-300 font-sans font-bold text-xs flex items-center justify-between"
+                        >
+                          <span>{t("nav.openStore")}</span>
+                          <span className="text-[10px] uppercase tracking-wider font-mono">JOIN &rarr;</span>
+                        </Link>
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsMobileMenuOpen(false);
+                          setIsLogoutModalOpen(true);
+                        }}
+                        className="w-full py-2.5 text-center text-xs font-sans font-semibold text-red-400 hover:text-red-300 transition-colors cursor-pointer mt-1"
+                      >
+                        {t("nav.logout")}
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col gap-2.5">
+                      <Link
+                        href="/signup"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="w-full py-3.5 rounded-full bg-[#BFDD25] hover:bg-[#cbf026] text-black font-sans font-bold text-xs tracking-wider uppercase text-center transition-all shadow-md"
+                      >
+                        {t("nav.signUp")}
+                      </Link>
+                      <Link
+                        href="/login"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="w-full py-3 rounded-full bg-[#181818] hover:bg-[#222] border border-[#2E2E2E] text-white font-sans font-semibold text-xs tracking-wider uppercase text-center transition-all"
+                      >
+                        {language === "id" ? "MASUK" : "SIGN IN"}
+                      </Link>
+                    </div>
+                  )}
+                </div>
+
+              </div>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
 
@@ -890,32 +1243,32 @@ export default function Navbar() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 12 }}
               transition={{ duration: 0.18, ease: "easeOut" }}
-              className="relative w-full max-w-[420px] bg-[#121212] border border-[#262626] p-6 shadow-[0_25px_60px_rgba(0,0,0,0.9)] z-10 font-sans"
+              className="relative w-full max-w-[420px] bg-[#0E0E0E] border border-[#262626] rounded-2xl p-6 sm:p-7 shadow-[0_25px_60px_rgba(0,0,0,0.9)] z-10 font-sans"
             >
               {/* Header Icon + Title */}
               <div className="flex items-start gap-4">
-                <div className="w-10 h-10 shrink-0 bg-red-500/10 border border-red-500/30 flex items-center justify-center text-red-400">
+                <div className="w-10 h-10 shrink-0 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400">
                   <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                   </svg>
                 </div>
-                <div className="flex-1">
-                  <h3 className="text-sm font-heading font-bold uppercase tracking-wider text-[#FAF9F6]">
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-sm font-heading font-bold uppercase tracking-wider text-white">
                     Konfirmasi Keluar
                   </h3>
-                  <p className="text-xs text-[#FAF9F6]/60 leading-relaxed mt-2">
+                  <p className="text-xs text-[#A1A1AA] leading-relaxed mt-2">
                     Apakah Anda yakin ingin keluar dari akun Tonalzone? Anda perlu masuk kembali untuk mengakses keranjang belanja, wishlist, dan riwayat pesanan Anda.
                   </p>
                 </div>
               </div>
 
               {/* Action Buttons */}
-              <div className="flex items-center justify-end gap-3 mt-6 pt-4 border-t border-[#222]">
+              <div className="flex items-center justify-end gap-3 mt-6 pt-4 border-t border-[#1C1C1C]">
                 <button
                   type="button"
                   disabled={isLoggingOut}
                   onClick={() => setIsLogoutModalOpen(false)}
-                  className="px-4 py-2 text-xs font-mono uppercase tracking-wider text-[#FAF9F6]/70 hover:text-white hover:bg-[#1f1f1f] border border-[#333] transition-colors cursor-pointer disabled:opacity-50"
+                  className="px-5 py-2.5 text-xs font-mono uppercase tracking-wider text-[#A1A1AA] hover:text-white bg-[#181818] hover:bg-[#222222] border border-[#282828] rounded-full transition-colors cursor-pointer disabled:opacity-50"
                 >
                   Batal
                 </button>
@@ -923,11 +1276,11 @@ export default function Navbar() {
                   type="button"
                   disabled={isLoggingOut}
                   onClick={handleConfirmLogout}
-                  className="px-4 py-2 text-xs font-mono uppercase tracking-wider text-black bg-red-500 hover:bg-red-400 font-bold transition-colors cursor-pointer flex items-center gap-2 disabled:opacity-50"
+                  className="px-5 py-2.5 text-xs font-mono uppercase tracking-wider text-white bg-red-600 hover:bg-red-500 font-bold rounded-full transition-all cursor-pointer flex items-center gap-2 shadow-lg disabled:opacity-50"
                 >
                   {isLoggingOut ? (
                     <>
-                      <span className="w-3 h-3 border-2 border-black border-t-transparent rounded-full animate-spin"></span>
+                      <span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
                       <span>Keluar...</span>
                     </>
                   ) : (

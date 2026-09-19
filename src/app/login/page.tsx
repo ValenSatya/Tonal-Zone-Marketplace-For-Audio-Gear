@@ -155,7 +155,7 @@ function LoginContent() {
           )}
 
           {successMessage && (
-            <div className="w-full mb-5 p-3.5 bg-[#050505] text-[#BFDD25] text-xs font-mono text-left border-l-2 border-[#BFDD25]">
+            <div className="w-full mb-5 p-3.5 bg-[#141414] text-white text-xs font-mono text-left border-l-2 border-white">
               {successMessage}
             </div>
           )}
@@ -165,7 +165,7 @@ function LoginContent() {
             type="button"
             onClick={handleGoogleAuth}
             disabled={isSubmitting}
-            className="w-full bg-[#050505] hover:bg-[#050505] active:scale-[0.99] text-white py-3.5 px-4 text-xs font-mono font-semibold uppercase tracking-wider flex items-center justify-center gap-3 transition-colors cursor-pointer mb-5 disabled:opacity-50"
+            className="w-full bg-[#111] hover:bg-[#181818] active:scale-[0.99] text-white py-3.5 px-4 text-xs font-mono font-semibold uppercase tracking-wider flex items-center justify-center gap-3 transition-colors cursor-pointer mb-5 disabled:opacity-50 rounded-xl border border-white/10"
           >
             <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17Z" />
@@ -178,9 +178,9 @@ function LoginContent() {
 
           {/* Minimal Divider */}
           <div className="w-full flex items-center gap-3 mb-5">
-            <div className="flex-1 h-px bg-[#050505]" />
+            <div className="flex-1 h-px bg-[#222]" />
             <span className="text-[10px] font-mono text-[#555] uppercase tracking-widest">atau</span>
-            <div className="flex-1 h-px bg-[#050505]" />
+            <div className="flex-1 h-px bg-[#222]" />
           </div>
 
           {/* LOGIN FORM STACK */}
@@ -191,7 +191,7 @@ function LoginContent() {
               placeholder="Email"
               value={loginEmail}
               onChange={(e) => setLoginEmail(e.target.value)}
-              className="w-full bg-[#050505] hover:bg-[#050505] focus:bg-[#050505] text-white text-sm px-4.5 py-4 outline-none placeholder:text-[#555] transition-colors rounded-none font-sans"
+              className="w-full bg-[#141414] hover:bg-[#181818] focus:bg-[#1C1C1C] ring-1 ring-white/10 hover:ring-white/20 focus:ring-1 focus:ring-white/40 shadow-inner text-white text-sm px-4.5 py-3.5 outline-none placeholder:text-[#666] transition-all rounded-xl font-sans"
             />
 
             <div className="relative w-full">
@@ -201,7 +201,7 @@ function LoginContent() {
                 placeholder="Password"
                 value={loginPassword}
                 onChange={(e) => setLoginPassword(e.target.value)}
-                className="w-full bg-[#050505] hover:bg-[#050505] focus:bg-[#050505] text-white text-sm px-4.5 py-4 pr-12 outline-none placeholder:text-[#555] transition-colors rounded-none font-sans"
+                className="w-full bg-[#141414] hover:bg-[#181818] focus:bg-[#1C1C1C] ring-1 ring-white/10 hover:ring-white/20 focus:ring-1 focus:ring-white/40 shadow-inner text-white text-sm px-4.5 py-3.5 pr-12 outline-none placeholder:text-[#666] transition-all rounded-xl font-sans"
               />
               <button
                 type="button"
@@ -213,11 +213,11 @@ function LoginContent() {
               </button>
             </div>
 
-            {/* Submit Button with Corner Arrow Indicator */}
+            {/* Submit Button with Corner Arrow Indicator in Accent Color */}
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full bg-[#FAF9F6] hover:bg-white active:scale-[0.99] text-[#0e0e0e] font-mono font-bold text-xs uppercase tracking-[0.25em] py-4.5 transition-all duration-200 cursor-pointer disabled:opacity-50 mt-3 sm:mt-4 flex items-center justify-center gap-2 rounded-none shadow-sm"
+              className="w-full bg-[#BFDD25] hover:bg-[#cbf026] active:scale-[0.99] text-black font-mono font-bold text-xs uppercase tracking-[0.2em] py-3.5 transition-all duration-200 cursor-pointer disabled:opacity-50 mt-3 sm:mt-4 flex items-center justify-center gap-2 rounded-full shadow-lg"
             >
               <CornerDownRight size={14} strokeWidth={2.5} />
               <span>{isSubmitting ? "MEMPROSES..." : "SIGN IN"}</span>
@@ -234,9 +234,9 @@ function LoginContent() {
               </button>
               <Link
                 href="/signup"
-                className="text-xs font-sans text-[#888] hover:text-[#BFDD25] transition-colors cursor-pointer"
+                className="text-xs font-sans text-[#888] hover:text-white transition-colors cursor-pointer"
               >
-                Belum punya akun? <span className="underline font-semibold">Daftar sekarang</span>
+                Belum punya akun? <span className="underline font-semibold text-white">Daftar sekarang</span>
               </Link>
             </div>
           </form>

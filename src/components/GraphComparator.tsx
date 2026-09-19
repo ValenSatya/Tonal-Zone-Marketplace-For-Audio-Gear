@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { useLanguage } from "@/context/LanguageContext";
 import { useLocation } from "@/context/LocationContext";
+import { KeyboardArrowRight } from "@/components/ui/keyboard-arrow";
 
 export interface IEMCurveData {
   id: string;
@@ -104,21 +105,21 @@ export const COMPARATOR_IEMS: IEMCurveData[] = [
     ],
   },
   {
-    id: "prod-dusk",
-    name: "Moondrop x Crinacle Dusk",
+    id: "prod-aria2",
+    name: "Moondrop Aria 2",
     brand: "MOONDROP",
-    category: "TRIBRID IN-EAR (IEM)",
-    driverType: "2DD (HODDDUS) + 2BA + 2Planar Tribrid",
+    category: "DYNAMIC IN-EAR (IEM)",
+    driverType: "10mm TiN Ceramic-Coated Spherical Dome Dynamic Driver",
     signature: "NEUTRAL",
-    priceUSD: 359.00,
-    color: "#F43F5E", // Rose Red
-    image: "/figma/dusk-iem.png",
-    description: "Kolaborasi crossover revolusioner Crinacle (AutoEq/Crinacle). Treble planar mikro-detail, bass punch HODDDUS, dan 5 profil tuning DSP.",
+    priceUSD: 89.99,
+    color: "#F43F5E", // Rose Red / Champagne
+    image: "https://cdn.shopify.com/s/files/1/0153/8863/files/Headphone-Zone-Moondrop-Aria2-Gallary-01.jpg",
+    description: "Benchmark IEM generasi kedua dengan kubah keramik TiN, housing CNC zinc alloy satin, serta kabel modular 3.5mm dan 4.4mm seimbang bawaan.",
     points: [
-      [20, 83.8], [30, 83.9], [50, 83.6], [80, 82.8], [120, 81.7],
-      [200, 80.9], [350, 79.7], [500, 79.1], [800, 79.1], [1000, 80.0],
-      [1500, 84.3], [2200, 87.4], [3000, 88.8], [4200, 85.6], [6000, 85.2],
-      [8000, 87.5], [10000, 77.0], [14000, 72.4], [18000, 79.3], [20000, 77.9]
+      [20, 84.5], [30, 84.6], [50, 84.1], [80, 83.2], [120, 81.9],
+      [200, 81.0], [350, 79.8], [500, 79.2], [800, 79.2], [1000, 80.0],
+      [1500, 84.0], [2200, 87.2], [3000, 88.5], [4200, 85.0], [6000, 84.8],
+      [8000, 86.2], [10000, 75.8], [14000, 73.5], [18000, 75.0], [20000, 70.2]
     ],
   },
   {
@@ -173,6 +174,42 @@ export const COMPARATOR_IEMS: IEMCurveData[] = [
       [200, 81.4], [350, 79.8], [500, 79.2], [800, 79.4], [1000, 80.0],
       [1500, 82.8], [2200, 86.2], [3000, 89.4], [4200, 87.0], [6000, 84.2],
       [8000, 82.5], [10000, 76.2], [14000, 73.8], [18000, 67.5], [20000, 63.2]
+    ],
+  },
+  {
+    id: "prod-tanchjim-nora",
+    name: "Tanchjim Nora",
+    brand: "TANCHJIM",
+    category: "IEM",
+    driverType: "DMT5 Dynamic Driver (DLC Dome)",
+    signature: "NEUTRAL",
+    priceUSD: 109.99,
+    color: "#38BDF8",
+    image: "/images/tanchjim-nora-showcase.webp",
+    description: "Monitor studio Hi-Fi referensi dengan arsitektur DMT5 & kubah DLC (AutoEq/Crinacle). Resolusi instrumen mikroskopis dengan linearitas vokal ultra-akurat.",
+    points: [
+      [20, 84.5], [30, 84.2], [50, 83.1], [80, 81.5], [120, 80.2],
+      [200, 79.8], [350, 79.5], [500, 79.7], [800, 79.8], [1000, 80.0],
+      [1500, 82.8], [2200, 86.5], [3000, 90.5], [4200, 86.8], [6000, 82.5],
+      [8000, 81.2], [10000, 75.6], [14000, 74.2], [18000, 70.1], [20000, 65.8]
+    ],
+  },
+  {
+    id: "prod-tanchjim-bunny",
+    name: "Tanchjim Bunny",
+    brand: "TANCHJIM",
+    category: "IEM",
+    driverType: "DMT 4 Ultra Dual-Chamber Dynamic Driver",
+    signature: "WARM",
+    priceUSD: 21.99,
+    color: "#F472B6",
+    image: "/images/tanchjim-bunny.webp",
+    description: "IEM ultra-budget berarsitektur DMT 4 Ultra dual-cavity (AutoEq/Crinacle). Respon bass empuk bertenaga dengan midrange intim dan treble lembut non-fatiguing.",
+    points: [
+      [20, 87.8], [30, 87.5], [50, 86.2], [80, 84.5], [120, 82.8],
+      [200, 81.2], [350, 80.0], [500, 79.6], [800, 79.8], [1000, 80.0],
+      [1500, 82.5], [2200, 85.8], [3000, 89.2], [4200, 86.0], [6000, 83.5],
+      [8000, 82.0], [10000, 76.5], [14000, 73.0], [18000, 67.2], [20000, 62.5]
     ],
   },
 ];
@@ -409,23 +446,23 @@ export default function GraphComparator() {
   const gridDbs = [60, 70, 80, 90, 100];
 
   return (
-    <div className="w-full bg-black text-neutral-200 border-y border-neutral-900 py-16 font-sans">
+    <div className="w-full bg-[#080808] text-neutral-200 py-16 font-sans">
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
         {/* Clean Minimal Header */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
           <div>
-            <span className="text-[11px] font-mono text-neutral-500 uppercase tracking-widest font-semibold block mb-1">
+            <span className="text-[11px] font-mono text-[#71717a] uppercase tracking-widest font-semibold block mb-1">
               Audio Measurement Lab
             </span>
             <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
               Komparator Respons Frekuensi
             </h2>
-            <p className="text-xs sm:text-sm text-neutral-400 mt-1 max-w-xl">
+            <p className="text-xs sm:text-sm text-[#a1a1aa] mt-1 max-w-xl">
               Bandingkan kurva respons suara earphone dan headphone secara langsung berdasarkan data AutoEq terkalibrasi.
             </p>
           </div>
 
-          <div className="flex items-center gap-2 text-xs font-mono text-neutral-400 bg-neutral-950 border border-neutral-800 px-3 py-1.5 rounded-lg self-start sm:self-auto">
+          <div className="flex items-center gap-2 text-xs font-mono text-[#a1a1aa] bg-[#141414] px-4 py-1.5 rounded-full self-start sm:self-auto shadow-sm">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
             <span>AutoEq Calibrated</span>
           </div>
@@ -437,21 +474,21 @@ export default function GraphComparator() {
           {/* LEFT SIDEBAR: Clean & Minimalist Model Phonebook & Controls */}
           {/* ============================================================ */}
           <div className="lg:col-span-4 xl:col-span-3 space-y-4">
-            <div className="bg-neutral-950 border border-neutral-800/80 rounded-xl p-4 space-y-3.5">
+            <div className="bg-[#141414] rounded-[24px] p-4 sm:p-5 space-y-4 shadow-xl">
               {/* Header with Counter & Reset */}
-              <div className="flex items-center justify-between pb-2 border-b border-neutral-900">
+              <div className="flex items-center justify-between pb-1">
                 <span className="text-xs font-semibold text-white tracking-wide">
                   Pilih Model
                 </span>
                 <div className="flex items-center gap-2">
-                  <span className="text-[11px] font-mono text-neutral-400 bg-neutral-900 px-2 py-0.5 rounded border border-neutral-800">
+                  <span className="text-[11px] font-mono text-[#a1a1aa] bg-[#1e1e1e] px-2.5 py-0.5 rounded-full">
                     {selectedIemIds.length}/4 Aktif
                   </span>
                   {selectedIemIds.length > 1 && (
                     <button
                       type="button"
                       onClick={() => setSelectedIemIds([COMPARATOR_IEMS[0].id])}
-                      className="text-[11px] text-neutral-500 hover:text-white transition-colors cursor-pointer"
+                      className="text-[11px] text-[#71717a] hover:text-white transition-colors cursor-pointer font-medium"
                     >
                       Reset
                     </button>
@@ -460,16 +497,16 @@ export default function GraphComparator() {
               </div>
 
               {/* Category Filter Pills */}
-              <div className="flex gap-1 p-0.5 bg-neutral-900 border border-neutral-800/80 rounded-lg">
+              <div className="flex gap-1 p-1 bg-[#1a1a1a] rounded-full">
                 {(["ALL", "HEADPHONE", "TWS", "IEM"] as const).map((cat) => (
                   <button
                     key={cat}
                     type="button"
                     onClick={() => setCategoryFilter(cat)}
-                    className={`flex-1 py-1 text-[11px] font-medium rounded-md transition-colors cursor-pointer text-center ${
+                    className={`flex-1 py-1.5 text-[11px] font-medium rounded-full transition-all cursor-pointer text-center ${
                       categoryFilter === cat
-                        ? "bg-neutral-800 text-white font-semibold shadow-sm"
-                        : "text-neutral-400 hover:text-neutral-200"
+                        ? "bg-white text-[#131313] font-bold shadow-sm"
+                        : "text-[#888888] hover:text-white"
                     }`}
                   >
                     {cat === "ALL" ? "Semua" : cat}
@@ -484,10 +521,10 @@ export default function GraphComparator() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Cari nama, brand, tipe..."
-                  className="w-full bg-neutral-900/70 border border-neutral-800 rounded-lg px-3 py-1.5 pl-8 text-xs text-neutral-200 placeholder-neutral-500 focus:outline-none focus:border-neutral-600 transition-colors"
+                  className="w-full bg-[#1e1e1e] rounded-full px-4 py-2 pl-9 text-xs text-white placeholder-[#909090] focus:outline-none transition-colors"
                 />
                 <svg
-                  className="w-3.5 h-3.5 text-neutral-500 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none"
+                  className="w-3.5 h-3.5 text-[#909090] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -498,17 +535,17 @@ export default function GraphComparator() {
                   <button
                     type="button"
                     onClick={() => setSearchQuery("")}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-neutral-400 hover:text-white cursor-pointer"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[#888888] hover:text-white cursor-pointer"
                   >
                     ✕
                   </button>
                 )}
               </div>
 
-              {/* Scrollable Model List */}
-              <div className="space-y-1 max-h-[320px] overflow-y-auto pr-1 select-none">
+              {/* Scrollable Model List: Concentric R_inner = 24 - 16 = 8px */}
+              <div className="space-y-1.5 max-h-[320px] overflow-y-auto pr-1 select-none">
                 {filteredIems.length === 0 ? (
-                  <div className="text-center py-6 text-xs text-neutral-500">
+                  <div className="text-center py-6 text-xs text-[#71717a]">
                     Tidak ada model cocok
                   </div>
                 ) : (
@@ -519,10 +556,10 @@ export default function GraphComparator() {
                         key={iem.id}
                         type="button"
                         onClick={() => toggleIem(iem.id)}
-                        className={`w-full text-left p-2.5 rounded-lg border transition-all cursor-pointer flex items-center justify-between gap-2.5 ${
+                        className={`w-full text-left p-3 rounded-[8px] transition-all cursor-pointer flex items-center justify-between gap-2.5 ${
                           isSelected
-                            ? "bg-neutral-900 border-neutral-700 text-white"
-                            : "bg-neutral-950 border-neutral-900 text-neutral-400 hover:bg-neutral-900/50 hover:text-neutral-200 hover:border-neutral-800"
+                            ? "bg-[#222222] text-white shadow-sm"
+                            : "bg-[#181818] text-[#a1a1aa] hover:bg-[#1e1e1e] hover:text-white"
                         }`}
                       >
                         <div className="flex items-center gap-2.5 min-w-0">
@@ -534,24 +571,24 @@ export default function GraphComparator() {
                             <div className={`text-xs truncate ${isSelected ? "font-semibold text-white" : "font-normal text-neutral-300"}`}>
                               {iem.name}
                             </div>
-                            <div className="text-[10px] text-neutral-500 truncate">
+                            <div className="text-[10px] text-[#71717a] truncate">
                               {iem.brand} • {iem.category || "Audio"}
                             </div>
                           </div>
                         </div>
 
                         <div className="flex items-center gap-2 shrink-0">
-                          <span className="text-[11px] font-mono text-neutral-400">
+                          <span className="text-[11px] font-mono text-[#a1a1aa]">
                             ${iem.priceUSD}
                           </span>
                           {isSelected ? (
-                            <div className="w-4 h-4 rounded bg-neutral-200 text-black flex items-center justify-center">
+                            <div className="w-4 h-4 rounded-full bg-white text-black flex items-center justify-center">
                               <svg className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor">
                                 <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                               </svg>
                             </div>
                           ) : (
-                            <div className="w-4 h-4 rounded border border-neutral-700" />
+                            <div className="w-4 h-4 rounded-full bg-[#2a2a2a]" />
                           )}
                         </div>
                       </button>
@@ -561,16 +598,16 @@ export default function GraphComparator() {
               </div>
 
               {/* Controls: Target & Normalisasi */}
-              <div className="pt-3 border-t border-neutral-900 space-y-3">
+              <div className="pt-2 space-y-3.5">
                 {/* Target Curve */}
                 <div>
-                  <div className="text-[11px] font-medium text-neutral-400 mb-1.5 flex items-center justify-between">
+                  <div className="text-[11px] font-medium text-[#a1a1aa] mb-1.5 flex items-center justify-between">
                     <span>Target Acuan</span>
                     {selectedTargetId && (
                       <button
                         type="button"
                         onClick={() => setSelectedTargetId("")}
-                        className="text-neutral-500 hover:text-white transition-colors cursor-pointer text-[10px]"
+                        className="text-[#71717a] hover:text-white transition-colors cursor-pointer text-[10px]"
                       >
                         Nonaktifkan
                       </button>
@@ -582,14 +619,14 @@ export default function GraphComparator() {
                         key={t.id}
                         type="button"
                         onClick={() => setSelectedTargetId(selectedTargetId === t.id ? "" : t.id)}
-                        className={`px-2.5 py-1.5 rounded-lg text-left text-xs transition-colors cursor-pointer flex items-center justify-between ${
+                        className={`px-3 py-2 rounded-[8px] text-left text-xs transition-all cursor-pointer flex items-center justify-between ${
                           selectedTargetId === t.id
-                            ? "bg-neutral-800 text-white font-medium border border-neutral-700"
-                            : "text-neutral-400 hover:text-neutral-200 hover:bg-neutral-900 border border-transparent"
+                            ? "bg-[#252525] text-white font-medium shadow-sm"
+                            : "text-[#888888] hover:text-white hover:bg-[#1a1a1a]"
                         }`}
                       >
                         <span className="truncate">{t.name}</span>
-                        <span className="text-[10px] text-neutral-500 font-mono">Dashed</span>
+                        <span className="text-[10px] text-[#71717a] font-mono">Dashed</span>
                       </button>
                     ))}
                   </div>
@@ -597,15 +634,15 @@ export default function GraphComparator() {
 
                 {/* Normalisasi */}
                 <div>
-                  <div className="text-[11px] font-medium text-neutral-400 mb-1.5">
+                  <div className="text-[11px] font-medium text-[#a1a1aa] mb-1.5">
                     Normalisasi Desibel
                   </div>
-                  <div className="flex gap-1 p-0.5 bg-neutral-900 border border-neutral-800/80 rounded-lg text-xs">
+                  <div className="flex gap-1 p-1 bg-[#1a1a1a] rounded-full text-xs">
                     <button
                       type="button"
                       onClick={() => setNormMode("1k")}
-                      className={`flex-1 py-1 rounded-md text-center transition-colors cursor-pointer ${
-                        normMode === "1k" ? "bg-neutral-800 text-white font-medium shadow-sm" : "text-neutral-400 hover:text-neutral-200"
+                      className={`flex-1 py-1.5 rounded-full text-center text-[11px] font-medium transition-all cursor-pointer ${
+                        normMode === "1k" ? "bg-white text-[#131313] font-bold shadow-sm" : "text-[#888888] hover:text-white"
                       }`}
                     >
                       1 kHz
@@ -613,8 +650,8 @@ export default function GraphComparator() {
                     <button
                       type="button"
                       onClick={() => setNormMode("500")}
-                      className={`flex-1 py-1 rounded-md text-center transition-colors cursor-pointer ${
-                        normMode === "500" ? "bg-neutral-800 text-white font-medium shadow-sm" : "text-neutral-400 hover:text-neutral-200"
+                      className={`flex-1 py-1.5 rounded-full text-center text-[11px] font-medium transition-all cursor-pointer ${
+                        normMode === "500" ? "bg-white text-[#131313] font-bold shadow-sm" : "text-[#888888] hover:text-white"
                       }`}
                     >
                       500 Hz
@@ -622,8 +659,8 @@ export default function GraphComparator() {
                     <button
                       type="button"
                       onClick={() => setNormMode("raw")}
-                      className={`flex-1 py-1 rounded-md text-center transition-colors cursor-pointer ${
-                        normMode === "raw" ? "bg-neutral-800 text-white font-medium shadow-sm" : "text-neutral-400 hover:text-neutral-200"
+                      className={`flex-1 py-1.5 rounded-full text-center text-[11px] font-medium transition-all cursor-pointer ${
+                        normMode === "raw" ? "bg-white text-[#131313] font-bold shadow-sm" : "text-[#888888] hover:text-white"
                       }`}
                     >
                       Raw
@@ -638,19 +675,19 @@ export default function GraphComparator() {
           {/* RIGHT MAIN PANEL: Interactive SVG Graph Canvas & Readout HUD */}
           {/* ============================================================ */}
           <div className="lg:col-span-8 xl:col-span-9 space-y-4">
-            {/* Graph Canvas Container */}
+            {/* Graph Canvas Container: Concentric R_outer = 24px, Padding = 16px */}
             <div
               ref={containerRef}
-              className="bg-neutral-950 border border-neutral-800/80 rounded-xl p-3 sm:p-5 overflow-hidden select-none"
+              className="bg-[#141414] rounded-[24px] p-4 sm:p-5 overflow-hidden select-none shadow-2xl"
             >
-              {/* Acoustic Frequency Zone Sub-Headers */}
-              <div className="grid grid-cols-6 border-b border-neutral-900 text-[10px] text-neutral-500 pb-2.5 mb-2 text-center">
+              {/* Acoustic Frequency Zone Sub-Headers: Concentric R_inner = 24 - 16 = 8px */}
+              <div className="grid grid-cols-6 text-[10px] text-[#71717a] pb-2 mb-3 text-center bg-[#1a1a1a] py-2 px-1 rounded-[8px]">
                 {FREQ_ZONES.map((z, idx) => (
-                  <div key={idx} className="border-r border-neutral-900 last:border-r-0 px-1">
+                  <div key={idx} className="px-1">
                     <span className="font-medium text-neutral-300 block truncate">
                       {z.name}
                     </span>
-                    <span className="text-[9px] text-neutral-500 block truncate">
+                    <span className="text-[9px] text-[#71717a] block truncate">
                       {z.range}
                     </span>
                   </div>
@@ -675,14 +712,14 @@ export default function GraphComparator() {
                           y1={y}
                           x2={width - padding.right}
                           y2={y}
-                          stroke={db === 80 ? "#27272a" : "#18181b"}
+                          stroke={db === 80 ? "#262626" : "#1a1a1a"}
                           strokeWidth={db === 80 ? "1.5" : "1"}
                           strokeDasharray={db === 80 ? "none" : "2,4"}
                         />
                         <text
                           x={padding.left - 8}
                           y={y + 3}
-                          fill={db === 80 ? "#d4d4d8" : "#52525b"}
+                          fill={db === 80 ? "#a1a1aa" : "#52525b"}
                           fontSize="10"
                           fontFamily="monospace"
                           textAnchor="end"
@@ -704,7 +741,7 @@ export default function GraphComparator() {
                           y1={padding.top}
                           x2={x}
                           y2={height - padding.bottom}
-                          stroke={freq === 1000 ? "#27272a" : "#18181b"}
+                          stroke={freq === 1000 ? "#262626" : "#1a1a1a"}
                           strokeWidth={freq === 1000 ? "1.5" : "1"}
                           strokeDasharray={freq === 1000 ? "none" : "2,4"}
                         />
@@ -789,13 +826,13 @@ export default function GraphComparator() {
               </div>
 
               {/* Minimal Live Probe HUD */}
-              <div className="pt-3 mt-2 border-t border-neutral-900 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
-                <div className="flex items-center gap-2 text-neutral-400">
-                  <span className="text-neutral-500">Frekuensi:</span>
-                  <span className="font-mono text-white font-medium bg-neutral-900 px-2 py-0.5 rounded border border-neutral-800">
+              <div className="pt-3 mt-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+                <div className="flex items-center gap-2 text-[#a1a1aa]">
+                  <span className="text-[#71717a]">Frekuensi:</span>
+                  <span className="font-mono text-white font-medium bg-[#1e1e1e] px-3 py-1 rounded-full">
                     {hoveredHz ? `${hoveredHz.toLocaleString()} Hz` : "1,000 Hz"}
                   </span>
-                  <span className="text-neutral-400">
+                  <span className="text-[#71717a]">
                     ({currentZone.name})
                   </span>
                 </div>
@@ -808,10 +845,10 @@ export default function GraphComparator() {
                     return (
                       <div
                         key={iem.id}
-                        className="flex items-center gap-1.5 bg-neutral-900 px-2.5 py-1 rounded-md border border-neutral-800 text-[11px]"
+                        className="flex items-center gap-2 bg-[#1e1e1e] px-3 py-1 rounded-full text-[11px]"
                       >
                         <span className="w-2 h-2 rounded-full" style={{ backgroundColor: iem.color }} />
-                        <span className="text-neutral-300 truncate max-w-[100px]">{iem.name}:</span>
+                        <span className="text-[#d4d4d8] truncate max-w-[100px]">{iem.name}:</span>
                         <span className="font-mono font-medium text-white">{dbVal} dB</span>
                       </div>
                     );
@@ -826,17 +863,17 @@ export default function GraphComparator() {
                 return (
                   <div
                     key={iem.id}
-                    className="bg-neutral-950 border border-neutral-800/80 rounded-xl p-3.5 flex flex-col justify-between hover:border-neutral-700 transition-colors space-y-3"
+                    className="bg-[#141414] hover:bg-[#181818] rounded-[16px] p-4 flex flex-col justify-between transition-all space-y-3.5 shadow-lg"
                   >
                     <div>
-                      <div className="flex items-center justify-between mb-1.5">
+                      <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-1.5">
                           <span className="w-2 h-2 rounded-full" style={{ backgroundColor: iem.color }} />
-                          <span className="text-[10px] font-mono text-neutral-400 uppercase tracking-wider">
+                          <span className="text-[10px] font-mono text-[#a1a1aa] uppercase tracking-wider font-medium">
                             {iem.brand}
                           </span>
                         </div>
-                        <span className="text-[10px] font-mono text-neutral-400 bg-neutral-900 px-2 py-0.5 rounded border border-neutral-800">
+                        <span className="text-[10px] font-mono text-[#a1a1aa] bg-[#1e1e1e] px-2.5 py-0.5 rounded-full">
                           {iem.signature}
                         </span>
                       </div>
@@ -844,12 +881,12 @@ export default function GraphComparator() {
                       <h4 className="text-sm font-semibold text-white truncate">
                         {iem.name}
                       </h4>
-                      <p className="text-[11px] text-neutral-400 mt-0.5 line-clamp-1">
+                      <p className="text-[11px] text-[#71717a] mt-0.5 line-clamp-1">
                         {iem.driverType}
                       </p>
                     </div>
 
-                    <div className="pt-2.5 border-t border-neutral-900 flex items-center justify-between">
+                    <div className="pt-2 flex items-center justify-between">
                       <span className="text-xs font-mono font-bold text-white">
                         {formatPrice(iem.priceUSD)}
                       </span>
@@ -859,9 +896,10 @@ export default function GraphComparator() {
                             ? `/product/${iem.id}`
                             : `/search?q=${encodeURIComponent(iem.name)}`
                         }
-                        className="text-xs text-neutral-300 hover:text-white transition-colors"
+                        className="rounded-full bg-[#1e1e1e] hover:bg-[#282828] text-white px-3.5 py-1.5 text-xs font-medium transition-all inline-flex items-center gap-1 cursor-pointer group"
                       >
-                        Lihat Unit →
+                        <span>Lihat Unit</span>
+                        <KeyboardArrowRight className="w-3.5 h-3.5 stroke-[2.5] group-hover:translate-x-0.5 transition-transform" />
                       </Link>
                     </div>
                   </div>

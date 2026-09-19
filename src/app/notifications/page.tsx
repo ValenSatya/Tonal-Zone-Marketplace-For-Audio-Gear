@@ -7,6 +7,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useLanguage } from "@/context/LanguageContext";
 import { useNotifications, formatRelativeTime, NotificationItem } from "@/context/NotificationContext";
+import { KeyboardArrowRight } from "@/components/ui/keyboard-arrow";
 
 export default function NotificationsPage() {
   const router = useRouter();
@@ -75,19 +76,19 @@ export default function NotificationsPage() {
 
       <main className="flex-1 w-full max-w-4xl mx-auto px-4 sm:px-6 pt-32 pb-20">
         {/* Top Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 border-b border-[#1c1c1c] pb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
             <div className="flex items-center gap-3">
               <h1 className="font-heading text-3xl sm:text-4xl font-bold uppercase tracking-tight text-white">
                 {isEn ? "Notifications" : "Pusat Notifikasi"}
               </h1>
               {unreadCount > 0 && (
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-[#BFDD25] text-black">
+                <span className="px-3 py-1 rounded-full text-xs font-mono font-bold bg-[#BFDD25] text-black shadow-[0_0_10px_rgba(191,221,37,0.4)]">
                   {unreadCount} {isEn ? "new" : "baru"}
                 </span>
               )}
             </div>
-            <p className="text-xs font-mono text-[#888] mt-1.5">
+            <p className="text-xs font-mono text-[#888] mt-2">
               {isEn
                 ? `You have ${unreadCount} unread update${unreadCount !== 1 ? "s" : ""} across orders, messages, and security.`
                 : `Anda memiliki ${unreadCount} notifikasi belum dibaca seputar transaksi, chat toko, dan keamanan.`}
@@ -100,7 +101,7 @@ export default function NotificationsPage() {
               <button
                 type="button"
                 onClick={markAllAsRead}
-                className="text-xs font-mono font-medium text-[#BFDD25] hover:text-white transition-colors cursor-pointer"
+                className="px-4 py-2 rounded-full bg-[#0A0A0A] hover:bg-[#141414] text-xs font-mono font-medium text-[#BFDD25] transition-all cursor-pointer"
               >
                 {isEn ? "Mark all as read" : "Tandai Semua Dibaca"}
               </button>
@@ -113,7 +114,7 @@ export default function NotificationsPage() {
                     clearAllNotifications();
                   }
                 }}
-                className="text-xs font-mono text-[#666] hover:text-red-400 transition-colors cursor-pointer"
+                className="px-4 py-2 rounded-full bg-[#0A0A0A] hover:bg-red-500/10 text-xs font-mono text-[#777] hover:text-red-400 transition-all cursor-pointer"
               >
                 {isEn ? "Clear all" : "Bersihkan Semua"}
               </button>
@@ -122,7 +123,7 @@ export default function NotificationsPage() {
         </div>
 
         {/* Filter Tabs & Search Bar */}
-        <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center justify-between mb-6 pb-2 border-b border-[#1c1c1c]">
+        <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center justify-between mb-8">
           {/* Category Tabs */}
           <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
             {[
@@ -136,15 +137,15 @@ export default function NotificationsPage() {
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-sans transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
+                className={`px-4 py-2 rounded-full text-xs font-sans transition-all whitespace-nowrap cursor-pointer flex items-center gap-2 ${
                   activeTab === tab.id
-                    ? "bg-[#1c1c1c] text-white font-semibold border border-[#333]"
-                    : "text-[#888] hover:text-white hover:bg-[#050505]"
+                    ? "bg-white text-black font-bold shadow-sm"
+                    : "bg-[#0A0A0A] text-[#888] hover:text-white hover:bg-[#141414]"
                 }`}
               >
                 <span>{tab.label}</span>
                 {tab.count > 0 && (
-                  <span className={`text-[10px] font-mono px-1.5 rounded-full ${activeTab === tab.id ? "bg-white/20 text-white" : "bg-[#050505] text-[#777]"}`}>
+                  <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full ${activeTab === tab.id ? "bg-black text-white" : "bg-[#141414] text-[#888]"}`}>
                     {tab.count}
                   </span>
                 )}
@@ -153,7 +154,7 @@ export default function NotificationsPage() {
           </div>
 
           {/* Quick Search */}
-          <div className="relative w-full sm:w-60 shrink-0">
+          <div className="relative w-full sm:w-64 shrink-0">
             <svg
               width="13"
               height="13"
@@ -161,7 +162,7 @@ export default function NotificationsPage() {
               stroke="currentColor"
               strokeWidth="2"
               viewBox="0 0 24 24"
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-[#666]"
+              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#666]"
             >
               <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
             </svg>
@@ -170,7 +171,7 @@ export default function NotificationsPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={isEn ? "Search updates..." : "Cari notifikasi..."}
-              className="w-full bg-[#050505] border border-[#222] focus:border-[#444] rounded-lg pl-8 pr-3 py-1.5 text-xs text-white placeholder:text-[#666] outline-none transition-colors"
+              className="w-full bg-[#0A0A0A] focus:bg-[#141414] rounded-full pl-9 pr-4 py-2 text-xs text-white placeholder:text-[#666] outline-none transition-colors"
             />
           </div>
         </div>
@@ -179,8 +180,8 @@ export default function NotificationsPage() {
         <div className="space-y-3">
           <AnimatePresence>
             {filteredNotifications.length === 0 ? (
-              <div className="text-center py-20 border border-[#1c1c1c] bg-[#050505] rounded-2xl p-8">
-                <div className="w-12 h-12 rounded-full bg-[#050505] border border-[#1c1c1c] flex items-center justify-center mx-auto mb-3 text-[#666]">
+              <div className="text-center py-20 bg-[#0A0A0A] rounded-2xl p-8">
+                <div className="w-12 h-12 rounded-full bg-[#141414] flex items-center justify-center mx-auto mb-3 text-[#666]">
                   <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
                   </svg>
@@ -203,16 +204,16 @@ export default function NotificationsPage() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ duration: 0.2 }}
-                  className={`p-4 rounded-xl border transition-all flex flex-col sm:flex-row gap-3.5 sm:items-center justify-between group ${
+                  className={`p-4 sm:p-5 rounded-2xl transition-all flex flex-col sm:flex-row gap-4 sm:items-center justify-between group ${
                     notif.unread
-                      ? "bg-[#050505] border-[#2c2c2c] hover:border-[#404040]"
-                      : "bg-[#030303] border-[#1a1a1a] hover:border-[#1c1c1c] opacity-80 hover:opacity-100"
+                      ? "bg-[#0E0E0E] hover:bg-[#141414]"
+                      : "bg-[#0A0A0A] hover:bg-[#121212] opacity-80 hover:opacity-100"
                   }`}
                 >
                   {/* Left: Icon & Text Body */}
                   <div className="flex items-start gap-3.5 min-w-0 flex-1">
                     {/* Type Icon */}
-                    <div className="w-10 h-10 rounded-xl bg-[#050505] border border-[#2a2a2a] shrink-0 flex items-center justify-center text-white mt-0.5">
+                    <div className="w-11 h-11 rounded-xl bg-[#141414] shrink-0 flex items-center justify-center text-white mt-0.5">
                       {notif.type === "order" && (
                         <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
                       )}
@@ -230,14 +231,14 @@ export default function NotificationsPage() {
                     {/* Content Details */}
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 mb-1 flex-wrap">
-                        <span className="text-[10px] font-mono uppercase px-1.5 py-0.2 rounded bg-[#050505] text-[#aaa]">
+                        <span className="text-[10px] font-mono uppercase px-2.5 py-0.5 rounded-full bg-[#141414] text-[#aaa]">
                           {notif.type === "order" ? "Pesanan" : notif.type === "chat" ? "Chat Toko" : notif.type === "system" ? "Sistem" : "Promo"}
                         </span>
                         <h3 className={`text-sm font-semibold truncate ${notif.unread ? "text-white" : "text-[#ddd]"}`}>
                           {notif.title}
                         </h3>
                         {notif.unread && (
-                          <span className="w-2 h-2 rounded-full bg-[#BFDD25] shrink-0" />
+                          <span className="w-2 h-2 rounded-full bg-[#BFDD25] shadow-[0_0_8px_rgba(191,221,37,0.8)] shrink-0" />
                         )}
                         <span className="text-[11px] font-mono text-[#666] ml-auto sm:ml-0">
                           • {formatRelativeTime(notif.createdAt)}
@@ -251,12 +252,12 @@ export default function NotificationsPage() {
                   </div>
 
                   {/* Right: Quick Action Buttons */}
-                  <div className="flex items-center gap-2.5 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-[#1c1c1c] justify-end">
+                  <div className="flex items-center gap-2.5 shrink-0 pt-2 sm:pt-0 justify-end">
                     {notif.unread && (
                       <button
                         type="button"
                         onClick={() => markAsRead(notif.id)}
-                        className="text-xs font-sans text-[#888] hover:text-white px-2.5 py-1 rounded hover:bg-[#050505] transition-colors cursor-pointer"
+                        className="text-xs font-sans text-[#888] hover:text-white px-3.5 py-1.5 rounded-full bg-[#141414] hover:bg-[#1f1f1f] transition-colors cursor-pointer"
                       >
                         {isEn ? "Mark read" : "Tandai Dibaca"}
                       </button>
@@ -265,17 +266,17 @@ export default function NotificationsPage() {
                     <button
                       type="button"
                       onClick={() => handleOpenNotification(notif)}
-                      className="px-3.5 py-1.5 bg-white hover:bg-[#e0e0e0] text-black font-sans font-semibold text-xs rounded-lg transition-colors cursor-pointer flex items-center gap-1 shrink-0"
+                      className="px-4 py-2 bg-white hover:bg-[#BFDD25] hover:shadow-[0_0_12px_rgba(191,221,37,0.5)] text-black font-sans font-semibold text-xs rounded-full transition-all cursor-pointer flex items-center gap-1.5 shrink-0 group"
                     >
                       <span>{isEn ? "Open" : "Buka"}</span>
-                      <span>→</span>
+                      <KeyboardArrowRight className="w-3.5 h-3.5 stroke-[2.5] group-hover:translate-x-0.5 transition-transform" />
                     </button>
 
                     <button
                       type="button"
                       onClick={() => deleteNotification(notif.id)}
                       title={isEn ? "Delete" : "Hapus notifikasi"}
-                      className="p-1.5 text-[#555] hover:text-red-400 hover:bg-[#050505] rounded-lg transition-colors cursor-pointer"
+                      className="w-8 h-8 flex items-center justify-center text-[#666] hover:text-red-400 bg-[#141414] hover:bg-red-500/10 rounded-full transition-colors cursor-pointer"
                     >
                       <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />

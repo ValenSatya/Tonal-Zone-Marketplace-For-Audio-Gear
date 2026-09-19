@@ -1,5 +1,8 @@
+"use client";
+
 import React from "react";
 import Link from "next/link";
+import { useLanguage } from "@/context/LanguageContext";
 
 const PARTNERS = [
   "SENNHEISER",
@@ -13,14 +16,16 @@ const PARTNERS = [
 ];
 
 export default function FigmaAuthorizedPartners() {
+  const { t } = useLanguage();
+
   return (
     <section className="w-full bg-[#030303] py-36 lg:py-48">
-      <div className="w-full max-w-[1500px] mx-auto px-6 sm:px-10 lg:px-16 text-center">
+      <div className="w-full max-w-[1360px] mx-auto px-5 sm:px-8 lg:px-12 text-center">
         
         {/* Title: "OUR AUTHORIZED PARTNERS" - General Sans */}
         <div className="max-w-[845px] mx-auto mb-20">
           <h2 className="font-sans font-bold text-4xl sm:text-6xl lg:text-[64px] leading-[78px] tracking-[2.2px] text-white uppercase text-center">
-            OUR AUTHORIZED PARTNERS
+            {t("landing.authorizedPartners")}
           </h2>
         </div>
 

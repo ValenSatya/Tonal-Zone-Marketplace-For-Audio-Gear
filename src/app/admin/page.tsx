@@ -117,14 +117,14 @@ export default function AdminDashboard() {
   return (
     <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-300">
       
-      {/* Title & Status Header */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-2 border-b border-[#1E1E1E]">
+      {/* Title & Status Header (Zero border, clean modern elevation) */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-2">
         <div>
-          <div className="flex items-center gap-2">
-            <h2 className="text-xl sm:text-2xl font-bold font-sans text-[#FAF9F6] tracking-tight">
+          <div className="flex items-center gap-2.5">
+            <h2 className="text-xl sm:text-2xl font-bold font-sans text-white tracking-tight">
               {isEn ? "System Overview & Telemetry" : "Ringkasan Utama Sistem"}
             </h2>
-            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-white/10 text-[#FAF9F6] border border-white/15">
+            <span className="px-3 py-1 rounded-full text-[10px] font-mono font-bold bg-[#141F17] text-[#BFDD25]">
               {isEn ? "ADMIN PORTAL" : "PANEL ADMIN"}
             </span>
           </div>
@@ -134,70 +134,68 @@ export default function AdminDashboard() {
               : "Pantau perputaran penjualan toko, status rekening bersama, dan daftar persetujuan produk."}
           </p>
         </div>
-        <div className="flex items-center gap-2 bg-[#050505] border border-[#1c1c1c] px-3 py-1.5 rounded-md">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-          <span className="text-[10px] font-mono text-[#FAF9F6] uppercase tracking-wider font-semibold">
+        <div className="flex items-center gap-2 bg-[#0E0E0E] px-4 py-2 rounded-full shadow-sm">
+          <span className="text-[10px] font-mono text-white uppercase tracking-wider font-semibold">
             {isEn ? "Live Telemetry Connected" : "Data Terhubung Real-Time"}
           </span>
         </div>
       </div>
 
-      {/* Bento Telemetry Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      {/* Bento Telemetry Grid (Rounded-2xl, Zero Stroke) */}
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
         
         {/* Main GMV Card (Spans 2 cols) */}
-        <div className="col-span-1 md:col-span-2 bg-[#030303] border border-[#1E1E1E] rounded-xl p-5 sm:p-6 flex flex-col justify-between relative overflow-hidden group hover:border-[#2C2C2C] transition-all">
+        <div className="col-span-1 md:col-span-2 bg-[#0A0A0A] rounded-2xl p-6 sm:p-7 flex flex-col justify-between relative overflow-hidden group hover:bg-[#0D0D0D] transition-all shadow-sm">
           <div className="relative z-10 flex items-start justify-between">
             <div>
-              <div className="flex items-center gap-2 mb-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+              <div className="flex items-center gap-2 mb-2">
                 <h3 className="text-[11px] font-mono font-bold text-[#A1A1AA] uppercase tracking-wider">
                   {isEn ? "Gross Merchandise Volume (GMV)" : "Total Transaksi Penjualan (GMV)"}
                 </h3>
               </div>
-              <p className="text-2xl sm:text-4xl font-mono font-bold text-[#FAF9F6] tracking-tight">
+              <p className="text-2xl sm:text-4xl font-mono font-bold text-white tracking-tight">
                 {formatPrice(totalGMV)}
               </p>
             </div>
-            <div className="w-28 h-12 relative opacity-70 group-hover:opacity-100 transition-opacity">
+            <div className="w-28 h-12 relative opacity-80 group-hover:opacity-100 transition-opacity">
               <AreaChart data={sparklineGMV} aspectRatio="2 / 1" className="w-full h-full" margin={{ top: 5, right: 0, bottom: 0, left: 0 }}>
-                <Area dataKey="val" stroke="#FAF9F6" fill="#FAF9F6" strokeWidth={1.5} fillOpacity={0.15} />
+                <Area dataKey="val" stroke="#BFDD25" fill="#BFDD25" strokeWidth={1.75} fillOpacity={0.15} />
               </AreaChart>
             </div>
           </div>
-          <div className="relative z-10 flex items-center justify-between pt-4 mt-4 border-t border-[#1A1A1A]">
-            <span className="text-xs font-mono text-[#71717A]">
+          <div className="relative z-10 flex items-center justify-between pt-4 mt-4 text-xs font-mono">
+            <span className="text-[#71717A]">
               {isEn ? "Settled Orders Volume" : "Total Pembayaran Berhasil"}
             </span>
-            <span className="text-[10px] font-mono font-bold text-[#FAF9F6] bg-white/10 px-2 py-0.5 rounded border border-white/15">
+            <span className="text-[10px] font-mono font-bold text-white bg-[#141414] px-3 py-1 rounded-full">
               {orders.length} {isEn ? "Orders Processed" : "Pesanan Terproses"}
             </span>
           </div>
         </div>
 
         {/* Verified Merchants Card */}
-        <div className="bg-[#030303] border border-[#1E1E1E] rounded-xl p-5 flex flex-col justify-between hover:border-[#2C2C2C] transition-all group relative overflow-hidden">
+        <div className="bg-[#0A0A0A] rounded-2xl p-6 flex flex-col justify-between hover:bg-[#0D0D0D] transition-all group relative overflow-hidden shadow-sm">
           <div className="flex items-start justify-between">
             <h3 className="text-[11px] font-mono font-bold text-[#A1A1AA] uppercase tracking-wider">
               {isEn ? "Verified Stores" : "Toko Terverifikasi"}
             </h3>
-            <div className="w-16 h-8 relative opacity-50 group-hover:opacity-100 transition-opacity">
+            <div className="w-16 h-8 relative opacity-70 group-hover:opacity-100 transition-opacity">
               <AreaChart data={sparklineSellers} aspectRatio="2 / 1" className="w-full h-full" margin={{ top: 2, right: 0, bottom: 0, left: 0 }}>
-                <Area dataKey="val" stroke="#FAF9F6" fill="#FAF9F6" strokeWidth={1.5} fillOpacity={0.12} />
+                <Area dataKey="val" stroke="#FFFFFF" fill="#FFFFFF" strokeWidth={1.5} fillOpacity={0.12} />
               </AreaChart>
             </div>
           </div>
           <div className="my-2">
-            <p className="text-3xl font-mono font-bold text-[#FAF9F6]">
+            <p className="text-3xl font-mono font-bold text-white">
               {activeSellers}
             </p>
             <span className="text-[11px] text-[#71717A] font-mono">
               {isEn ? "Active Merchant Vaults" : "Toko Siap Berjualan"}
             </span>
           </div>
-          <div className="pt-2 border-t border-[#1A1A1A] flex items-center justify-between text-[11px] font-mono">
+          <div className="pt-3 flex items-center justify-between text-[11px] font-mono">
             <span className="text-[#71717A]">{isEn ? "KYC Approved" : "KTP Disetujui"}</span>
-            <Link href="/admin/approvals/sellers" className="text-[#FAF9F6] hover:underline flex items-center gap-1">
+            <Link href="/admin/approvals/sellers" className="text-white hover:text-[#BFDD25] flex items-center gap-1 transition-colors">
               {isEn ? "View Stores" : "Lihat Toko"}
               <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>
             </Link>
@@ -205,28 +203,28 @@ export default function AdminDashboard() {
         </div>
 
         {/* Curated Catalog Items Card */}
-        <div className="bg-[#030303] border border-[#1E1E1E] rounded-xl p-5 flex flex-col justify-between hover:border-[#2C2C2C] transition-all group relative overflow-hidden">
+        <div className="bg-[#0A0A0A] rounded-2xl p-6 flex flex-col justify-between hover:bg-[#0D0D0D] transition-all group relative overflow-hidden shadow-sm">
           <div className="flex items-start justify-between">
             <h3 className="text-[11px] font-mono font-bold text-[#A1A1AA] uppercase tracking-wider">
               {isEn ? "Active Catalog Products" : "Daftar Produk Aktif"}
             </h3>
-            <div className="w-16 h-8 relative opacity-50 group-hover:opacity-100 transition-opacity">
+            <div className="w-16 h-8 relative opacity-70 group-hover:opacity-100 transition-opacity">
               <AreaChart data={sparklineProducts} aspectRatio="2 / 1" className="w-full h-full" margin={{ top: 2, right: 0, bottom: 0, left: 0 }}>
-                <Area dataKey="val" stroke="#FAF9F6" fill="#FAF9F6" strokeWidth={1.5} fillOpacity={0.12} />
+                <Area dataKey="val" stroke="#BFDD25" fill="#BFDD25" strokeWidth={1.5} fillOpacity={0.12} />
               </AreaChart>
             </div>
           </div>
           <div className="my-2">
-            <p className="text-3xl font-mono font-bold text-[#FAF9F6]">
+            <p className="text-3xl font-mono font-bold text-white">
               {products.length}
             </p>
             <span className="text-[11px] text-[#71717A] font-mono">
               {isEn ? "IEM, DAC & Accessories" : "IEM, DAC & Aksesoris"}
             </span>
           </div>
-          <div className="pt-2 border-t border-[#1A1A1A] flex items-center justify-between text-[11px] font-mono">
+          <div className="pt-3 flex items-center justify-between text-[11px] font-mono">
             <span className="text-[#71717A]">{isEn ? "QC Verified" : "Produk Lolos Uji"}</span>
-            <Link href="/admin/approvals/products" className="text-[#FAF9F6] hover:underline flex items-center gap-1">
+            <Link href="/admin/approvals/products" className="text-white hover:text-[#BFDD25] flex items-center gap-1 transition-colors">
               {isEn ? "Catalog" : "Katalog"}
               <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>
             </Link>
@@ -234,29 +232,27 @@ export default function AdminDashboard() {
         </div>
 
         {/* Moderation Action Required (Spans 2 cols on large) */}
-        <div className="col-span-1 md:col-span-3 lg:col-span-2 bg-[#030303] border border-[#1E1E1E] rounded-xl p-5 sm:p-6 flex flex-col justify-between hover:border-[#2C2C2C] transition-all">
+        <div className="col-span-1 md:col-span-3 lg:col-span-2 bg-[#0A0A0A] rounded-2xl p-6 sm:p-7 flex flex-col justify-between hover:bg-[#0D0D0D] transition-all shadow-sm">
           <div className="flex justify-between items-start">
             <div className="flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-white"></span>
-              <h3 className="text-[11px] font-mono font-bold text-[#A1A1AA] uppercase tracking-wider">
+              <h3 className="text-xs font-bold font-sans text-white uppercase tracking-wider">
                 {isEn ? "Action Required (Queue)" : "Perlu Tindakan Admin"}
               </h3>
             </div>
             {totalPending > 0 ? (
-              <span className="inline-flex items-center gap-1.5 text-[9px] font-mono font-medium text-[#FAF9F6] bg-[#050505] px-2 py-0.5 rounded border border-[#2E2E2E]">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+              <span className="inline-flex items-center gap-1.5 text-[10px] font-mono font-medium text-amber-300 bg-[#1A1811] px-3 py-1 rounded-full">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
                 {totalPending} {isEn ? "Pending Moderation" : "Menunggu Persetujuan"}
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1.5 text-[9px] font-mono font-medium text-[#FAF9F6] bg-[#050505] px-2 py-0.5 rounded border border-[#2E2E2E]">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+              <span className="inline-flex items-center gap-1.5 text-[10px] font-mono font-medium text-[#BFDD25] bg-[#141F17] px-3 py-1 rounded-full">
                 {isEn ? "Queue Clear" : "Semua Sudah Selesai"}
               </span>
             )}
           </div>
 
           <div className="my-4">
-            <p className="text-2xl sm:text-3xl font-bold font-sans text-[#FAF9F6] tracking-tight">
+            <p className="text-2xl sm:text-3xl font-bold font-sans text-white tracking-tight">
               {totalPending} {isEn ? "Items Pending Moderation" : "Pengajuan Menunggu Diperiksa"}
             </p>
             <p className="text-xs text-[#A1A1AA] font-sans mt-1">
@@ -266,10 +262,10 @@ export default function AdminDashboard() {
             </p>
           </div>
 
-          <div className="flex flex-wrap gap-2 pt-3 border-t border-[#1A1A1A]">
+          <div className="flex flex-wrap gap-2.5 pt-3">
             <Link
               href="/admin/approvals/sellers"
-              className="inline-flex items-center gap-1.5 text-xs font-sans font-medium bg-[#050505] hover:bg-[#050505] text-[#FAF9F6] px-3.5 py-1.5 rounded-md transition-colors border border-[#333333]"
+              className="inline-flex items-center gap-2 text-xs font-sans font-bold bg-white hover:bg-[#E5E5E5] text-black px-5 py-2.5 rounded-full transition-all shadow-md cursor-pointer"
             >
               {isEn ? "Review Stores" : "Periksa Toko"} ({pendingStoresCount})
               <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
@@ -278,13 +274,13 @@ export default function AdminDashboard() {
             </Link>
             <Link
               href="/admin/approvals/products"
-              className="inline-flex items-center gap-1.5 text-xs font-sans font-medium bg-[#050505] hover:bg-[#050505] text-[#FAF9F6] px-3.5 py-1.5 rounded-md transition-colors border border-[#1c1c1c]"
+              className="inline-flex items-center gap-1.5 text-xs font-sans font-medium bg-[#141414] hover:bg-[#1E1E1E] text-white px-4 py-2.5 rounded-full transition-colors cursor-pointer"
             >
               {isEn ? "Review Products" : "Periksa Produk"} ({pendingProductsCount})
             </Link>
             <Link
               href="/admin/approvals/brands"
-              className="inline-flex items-center gap-1.5 text-xs font-sans font-medium bg-[#050505] hover:bg-[#050505] text-[#FAF9F6] px-3.5 py-1.5 rounded-md transition-colors border border-[#1c1c1c]"
+              className="inline-flex items-center gap-1.5 text-xs font-sans font-medium bg-[#141414] hover:bg-[#1E1E1E] text-white px-4 py-2.5 rounded-full transition-colors cursor-pointer"
             >
               {isEn ? "Review Brands" : "Periksa Brand"} ({pendingBrandsCount})
             </Link>
@@ -292,27 +288,26 @@ export default function AdminDashboard() {
         </div>
 
         {/* User Base Registry Metric */}
-        <div className="bg-[#030303] border border-[#1E1E1E] rounded-xl p-5 flex flex-col justify-between hover:border-[#2C2C2C] transition-all">
+        <div className="bg-[#0A0A0A] rounded-2xl p-6 flex flex-col justify-between hover:bg-[#0D0D0D] transition-all shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-mono font-bold text-[#A1A1AA] uppercase">
+            <span className="text-[11px] font-mono font-bold text-[#A1A1AA] uppercase tracking-wider">
               {isEn ? "Total Users" : "Total Pengguna"}
             </span>
-            <span className="inline-flex items-center gap-1.5 text-[9px] font-mono font-medium text-[#FAF9F6] bg-[#050505] px-2 py-0.5 rounded border border-[#2E2E2E]">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+            <span className="inline-flex items-center gap-1.5 text-[10px] font-mono font-medium text-[#D4D4D8] bg-[#141414] px-3 py-1 rounded-full">
               {isEn ? "Active Accounts" : "Akun Aktif"}
             </span>
           </div>
           <div className="my-2">
-            <span className="text-3xl font-mono font-bold text-[#FAF9F6]">{users.length}</span>
+            <span className="text-3xl font-mono font-bold text-white">{users.length}</span>
             <p className="text-[11px] font-mono text-[#71717A] mt-0.5">
               {isEn ? "Buyers & Merchants" : "Akun Pembeli & Penjual"}
             </p>
           </div>
-          <div className="pt-2 border-t border-[#1A1A1A] flex items-center justify-between">
+          <div className="pt-3 flex items-center justify-between">
             <span className="text-[10px] font-mono text-[#71717A]">
               {isEn ? "User Registry" : "Data Pengguna"}
             </span>
-            <Link href="/admin/users" className="text-xs font-mono text-[#FAF9F6] hover:underline flex items-center gap-1">
+            <Link href="/admin/users" className="text-xs font-mono text-white hover:text-[#BFDD25] flex items-center gap-1 transition-colors">
               {isEn ? "View All" : "Lihat Semua"}
               <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>
             </Link>
@@ -320,43 +315,43 @@ export default function AdminDashboard() {
         </div>
 
         {/* Registered Brands Metric */}
-        <div className="bg-[#030303] border border-[#1E1E1E] rounded-xl p-5 flex flex-col justify-between hover:border-[#2C2C2C] transition-all">
+        <div className="bg-[#0A0A0A] rounded-2xl p-6 flex flex-col justify-between hover:bg-[#0D0D0D] transition-all shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-mono font-bold text-[#A1A1AA] uppercase">
+            <span className="text-[11px] font-mono font-bold text-[#A1A1AA] uppercase tracking-wider">
               {isEn ? "Official Brands" : "Daftar Brand Resmi"}
             </span>
-            <span className="text-[9px] font-mono text-[#A1A1AA] bg-white/5 px-1.5 py-0.5 rounded border border-white/10">
+            <span className="text-[10px] font-mono text-[#D4D4D8] bg-[#141414] px-3 py-1 rounded-full font-medium">
               {brands.length} {isEn ? "Brands" : "Brand"}
             </span>
           </div>
           <div className="my-2">
-            <span className="text-3xl font-mono font-bold text-[#FAF9F6]">{brands.length}</span>
+            <span className="text-3xl font-mono font-bold text-white">{brands.length}</span>
             <p className="text-[11px] font-mono text-[#71717A] mt-0.5">Tangzu, Moondrop, EPZ, etc</p>
           </div>
-          <div className="pt-2 border-t border-[#1A1A1A] flex items-center justify-between">
+          <div className="pt-3 flex items-center justify-between">
             <span className="text-[10px] font-mono text-[#71717A]">
               {isEn ? "Distributors" : "Distributor"}
             </span>
-            <Link href="/admin/approvals/brands" className="text-xs font-mono text-[#FAF9F6] hover:underline flex items-center gap-1">
+            <Link href="/admin/approvals/brands" className="text-xs font-mono text-white hover:text-[#BFDD25] flex items-center gap-1 transition-colors">
               {isEn ? "Manage" : "Kelola"}
               <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>
             </Link>
           </div>
         </div>
 
-        {/* Interactive GMV Revenue Chart Module */}
-        <div className="col-span-1 md:col-span-3 lg:col-span-4 bg-[#030303] border border-[#1E1E1E] rounded-xl p-5 sm:p-6">
+        {/* Interactive GMV Revenue Chart Module (Rounded-2xl, Zero Stroke) */}
+        <div className="col-span-1 md:col-span-3 lg:col-span-4 bg-[#0A0A0A] rounded-2xl p-6 sm:p-7 shadow-sm">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             <div>
-              <div className="flex items-center gap-2">
-                <h3 className="text-sm font-bold text-[#FAF9F6] tracking-tight font-sans">
+              <div className="flex items-center gap-2 mb-1">
+                <h3 className="text-base font-bold text-white tracking-tight font-sans">
                   {isEn ? "Gross Revenue Telemetry" : "Grafik Perputaran Uang Penjualan"}
                 </h3>
-                <span className="text-[9px] font-mono bg-white/10 text-[#FAF9F6] px-1.5 py-0.5 rounded border border-white/10">
+                <span className="text-[10px] font-mono bg-[#141414] text-[#D4D4D8] px-3 py-1 rounded-full font-medium">
                   {isEn ? "GMV Velocity" : "Grafik Penjualan"}
                 </span>
               </div>
-              <p className="text-xs text-[#A1A1AA] font-sans mt-0.5">
+              <p className="text-xs text-[#A1A1AA] font-sans">
                 {isEn
                   ? "Time-series curve of overall marketplace transaction volume and order intake."
                   : "Perkembangan total penjualan dan jumlah pesanan yang masuk."}
@@ -364,15 +359,15 @@ export default function AdminDashboard() {
             </div>
             
             {/* Range Toggle Pills */}
-            <div className="flex items-center gap-1 bg-[#050505] p-1 rounded-md border border-[#222]">
+            <div className="flex items-center gap-1 bg-[#121212] p-1 rounded-full">
               {(["7D", "30D", "ALL"] as const).map((r) => (
                 <button
                   key={r}
                   onClick={() => setTimeRange(r)}
-                  className={`px-3 py-1 text-xs font-mono font-semibold rounded transition-all border ${
+                  className={`px-3.5 py-1 text-xs font-mono font-bold rounded-full transition-all cursor-pointer ${
                     timeRange === r
-                      ? "bg-[#050505] text-[#FAF9F6] border-[#383838] shadow-sm"
-                      : "text-[#71717A] hover:text-[#FAF9F6] hover:bg-[#050505] border-transparent"
+                      ? "bg-white text-black shadow-md"
+                      : "text-[#71717A] hover:text-white"
                   }`}
                 >
                   {r === "7D" ? (isEn ? "7 Days" : "7 Hari") : r === "30D" ? (isEn ? "30 Days" : "30 Hari") : (isEn ? "All Time" : "Semua")}
@@ -381,23 +376,23 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          {/* Area Chart */}
+          {/* Area Chart with TonalZone Volt Green Accent */}
           <div className="w-full h-64 relative">
             <AreaChart data={chartData} aspectRatio="3 / 1" className="w-full h-full">
-              <Grid horizontal stroke="rgba(255,255,255,0.05)" strokeDasharray="3,3" />
-              <Area dataKey="revenue" stroke="#FAF9F6" fill="#FAF9F6" strokeWidth={1.75} fillOpacity={0.12} />
+              <Grid horizontal stroke="rgba(255,255,255,0.03)" strokeDasharray="3,3" />
+              <Area dataKey="revenue" stroke="#BFDD25" fill="#BFDD25" strokeWidth={2} fillOpacity={0.15} />
               <XAxis />
             </AreaChart>
           </div>
         </div>
 
         {/* Sound Signature & Escrow Breakdown Modules */}
-        <div className="col-span-1 md:col-span-2 bg-[#030303] border border-[#1E1E1E] rounded-xl p-5 sm:p-6">
+        <div className="col-span-1 md:col-span-2 bg-[#0A0A0A] rounded-2xl p-6 sm:p-7 shadow-sm">
           <div className="flex items-center justify-between mb-1">
-            <h3 className="text-sm font-bold text-[#FAF9F6] font-sans tracking-tight">
+            <h3 className="text-base font-bold text-white font-sans tracking-tight">
               {isEn ? "Catalog Acoustic Signatures" : "Karakter Suara Produk (Sound Signature)"}
             </h3>
-            <span className="text-[10px] font-mono text-[#71717A]">
+            <span className="text-[10px] font-mono text-[#71717A] uppercase tracking-wider">
               {isEn ? "Tuning" : "Tipe Suara"}
             </span>
           </div>
@@ -407,18 +402,18 @@ export default function AdminDashboard() {
               : "Jumlah produk berdasarkan tipe karakter suara (Bass, Netral, V-Shape, dll)."}
           </p>
 
-          <div className="space-y-3 font-sans text-xs">
+          <div className="space-y-3.5 font-sans text-xs">
             {Object.entries(soundSignatureCounts).map(([sig, count]) => {
               const pct = products.length > 0 ? Math.round((count / products.length) * 100) : 0;
               return (
                 <div key={sig} className="space-y-1.5">
                   <div className="flex justify-between text-[#A1A1AA]">
-                    <span className="font-medium text-[#FAF9F6]">{sig}</span>
-                    <span className="font-mono text-[#FAF9F6] font-semibold">{count} {isEn ? "items" : "produk"} ({pct}%)</span>
+                    <span className="font-semibold text-white">{sig}</span>
+                    <span className="font-mono text-white font-bold">{count} {isEn ? "items" : "produk"} ({pct}%)</span>
                   </div>
-                  <div className="w-full h-1.5 bg-[#050505] rounded-full overflow-hidden">
+                  <div className="w-full h-1.5 bg-[#141414] rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-white transition-all duration-500 rounded-full"
+                      className="h-full bg-[#BFDD25] transition-all duration-500 rounded-full shadow-[0_0_6px_rgba(191,221,37,0.6)]"
                       style={{ width: `${pct}%` }}
                     />
                   </div>
@@ -429,12 +424,12 @@ export default function AdminDashboard() {
         </div>
 
         {/* Escrow Liquidity Breakdown */}
-        <div className="col-span-1 md:col-span-2 bg-[#030303] border border-[#1E1E1E] rounded-xl p-5 sm:p-6">
+        <div className="col-span-1 md:col-span-2 bg-[#0A0A0A] rounded-2xl p-6 sm:p-7 shadow-sm">
           <div className="flex items-center justify-between mb-1">
-            <h3 className="text-sm font-bold text-[#FAF9F6] font-sans tracking-tight">
+            <h3 className="text-base font-bold text-white font-sans tracking-tight">
               {isEn ? "Escrow Settlement Stages" : "Status Dana Pembayaran (Rekening Bersama)"}
             </h3>
-            <span className="text-[10px] font-mono text-[#71717A]">
+            <span className="text-[10px] font-mono text-[#71717A] uppercase tracking-wider">
               {isEn ? "Escrow" : "Rekber"}
             </span>
           </div>
@@ -444,7 +439,7 @@ export default function AdminDashboard() {
               : "Alur dana pembeli dari mulai dibayar, barang dikirim, sampai diteruskan ke penjual."}
           </p>
 
-          <div className="space-y-3 font-sans text-xs">
+          <div className="space-y-3.5 font-sans text-xs">
             {Object.entries(orderStatusCounts).map(([st, count]) => {
               const pct = orders.length > 0 ? Math.round((count / orders.length) * 100) : 0;
               const labelMap: Record<string, string> = {
@@ -458,17 +453,17 @@ export default function AdminDashboard() {
                   <div className="flex justify-between text-[#A1A1AA]">
                     <div className="flex items-center gap-1.5">
                       <span className={`w-1.5 h-1.5 rounded-full ${
-                        st === "COMPLETED" ? "bg-emerald-500" :
+                        st === "COMPLETED" ? "bg-[#BFDD25] shadow-[0_0_6px_rgba(191,221,37,0.7)]" :
                         st === "PAID" ? "bg-amber-400" :
                         st === "SHIPPED" ? "bg-sky-400" : "bg-[#71717A]"
                       }`} />
-                      <span className="font-mono text-[11px] font-medium text-[#FAF9F6]">{labelMap[st] || st}</span>
+                      <span className="font-mono text-[11px] font-medium text-white">{labelMap[st] || st}</span>
                     </div>
-                    <span className="font-mono text-[#FAF9F6] font-semibold">{count} {isEn ? "orders" : "pesanan"} ({pct}%)</span>
+                    <span className="font-mono text-white font-bold">{count} {isEn ? "orders" : "pesanan"} ({pct}%)</span>
                   </div>
-                  <div className="w-full h-1.5 bg-[#050505] rounded-full overflow-hidden">
+                  <div className="w-full h-1.5 bg-[#141414] rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-white/80 transition-all duration-500 rounded-full"
+                      className="h-full bg-white transition-all duration-500 rounded-full"
                       style={{ width: `${pct}%` }}
                     />
                   </div>
@@ -478,44 +473,42 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Live Audit Log Stream */}
-        <div className="col-span-1 md:col-span-3 lg:col-span-4 bg-[#030303] border border-[#1E1E1E] rounded-xl p-5 sm:p-6">
-          <div className="flex items-center justify-between mb-4 pb-3 border-b border-[#1A1A1A]">
+        {/* Live Audit Log Stream (Rounded-2xl, Zero Stroke) */}
+        <div className="col-span-1 md:col-span-3 lg:col-span-4 bg-[#0A0A0A] rounded-2xl p-6 sm:p-7 shadow-sm">
+          <div className="flex items-center justify-between mb-5">
             <div>
-              <div className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                <h3 className="text-sm font-bold text-[#FAF9F6] tracking-tight font-sans">
+              <div className="flex items-center gap-2 mb-1">
+                <h3 className="text-base font-bold text-white tracking-tight font-sans">
                   {isEn ? "Real-Time System Audit Logs" : "Catatan Aktivitas Admin Terkini"}
                 </h3>
               </div>
-              <p className="text-xs text-[#A1A1AA] font-sans mt-0.5">
+              <p className="text-xs text-[#A1A1AA] font-sans">
                 {isEn
                   ? "Immutable trail of administrative decisions, merchant approvals, and status mutations."
                   : "Riwayat persetujuan, penolakan, dan perubahan status oleh admin."}
               </p>
             </div>
-            <span className="text-[10px] font-mono bg-white/10 text-[#FAF9F6] px-2 py-0.5 rounded border border-white/15">
+            <span className="text-[10px] font-mono bg-[#141414] text-[#D4D4D8] px-3 py-1 rounded-full font-medium">
               {auditLogs.length} {isEn ? "records" : "catatan"}
             </span>
           </div>
 
-          <div className="space-y-2 max-h-[260px] overflow-y-auto custom-scrollbar">
+          <div className="space-y-2.5 max-h-[280px] overflow-y-auto custom-scrollbar">
             {auditLogs.length > 0 ? (
               auditLogs.map((log) => (
                 <div
                   key={log.id}
-                  className="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-[#050505] hover:bg-[#050505] transition-colors rounded-lg border border-[#1E1E1E] font-mono text-xs gap-2"
+                  className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-[#121212] hover:bg-[#161616] transition-colors rounded-xl font-mono text-xs gap-2"
                 >
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <span className="w-1.5 h-1.5 rounded-full bg-white shrink-0"></span>
-                    <span className="font-bold text-[#FAF9F6] shrink-0">{log.action}:</span>
+                  <div className="flex items-center gap-3 min-w-0">
+                    <span className="font-bold text-white shrink-0">{log.action}:</span>
                     <span className="text-[#A1A1AA] truncate">{log.target}</span>
                   </div>
                   <span className="text-[#71717A] text-[11px] shrink-0">{log.timestamp}</span>
                 </div>
               ))
             ) : (
-              <div className="p-8 text-center text-xs text-[#71717A] font-mono">
+              <div className="p-8 text-center text-xs text-[#71717A] font-mono bg-[#121212] rounded-xl">
                 {isEn
                   ? "No audit records found. All administrative operations will be timestamped here."
                   : "Belum ada aktivitas yang dicatat. Setiap persetujuan atau perubahan data akan otomatis tercatat di sini."}

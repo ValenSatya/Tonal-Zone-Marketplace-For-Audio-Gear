@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { evaluateRouteAccess, UserSessionPayload } from "@/lib/auth/roles";
+import { evaluateRouteAccess, UserSessionPayload, sanitizeAvatarForCookie } from "@/lib/auth/roles";
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -15,16 +15,30 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // 2. Extract Session User from Cookies
+  // 2. Extract Session User from Cookies with auto-heal for bloated cookies
   let user: UserSessionPayload | null = null;
+  let needsCookieHeal = false;
+  let healedCookieValue = "";
 
   // Method A: Check custom JSON session cookie
   const sessionCookie = request.cookies.get("tonalzone_session")?.value;
   if (sessionCookie) {
     try {
-      user = JSON.parse(decodeURIComponent(sessionCookie));
+      const decoded = decodeURIComponent(sessionCookie);
+      const isOversized = sessionCookie.length > 1500 || decoded.includes("data:image");
+      
+      const parsed = JSON.parse(decoded);
+      if (isOversized) {
+        // Strip out any bloated fields (like base64 avatars) immediately
+        parsed.avatar = sanitizeAvatarForCookie(parsed.avatar);
+        healedCookieValue = encodeURIComponent(JSON.stringify(parsed));
+        needsCookieHeal = true;
+      }
+      user = parsed;
     } catch {
       user = null;
+      needsCookieHeal = true;
+      healedCookieValue = "";
     }
   }
 
@@ -68,11 +82,34 @@ export async function middleware(request: NextRequest) {
 
   if (!access.authorized && access.redirectUrl) {
     const redirectUrl = new URL(access.redirectUrl, request.url);
-    return NextResponse.redirect(redirectUrl);
+    const redirectResponse = NextResponse.redirect(redirectUrl);
+    if (needsCookieHeal) {
+      if (healedCookieValue) {
+        redirectResponse.cookies.set("tonalzone_session", healedCookieValue, {
+          path: "/",
+          maxAge: 60 * 60 * 24 * 7,
+          sameSite: "lax",
+        });
+      } else {
+        redirectResponse.cookies.delete("tonalzone_session");
+      }
+    }
+    return redirectResponse;
   }
 
   // 4. Inject High-Standard Security Headers
   const response = NextResponse.next();
+  if (needsCookieHeal) {
+    if (healedCookieValue) {
+      response.cookies.set("tonalzone_session", healedCookieValue, {
+        path: "/",
+        maxAge: 60 * 60 * 24 * 7,
+        sameSite: "lax",
+      });
+    } else {
+      response.cookies.delete("tonalzone_session");
+    }
+  }
   response.headers.set("X-Frame-Options", "SAMEORIGIN");
   response.headers.set("X-Content-Type-Options", "nosniff");
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");

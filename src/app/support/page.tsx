@@ -4,160 +4,14 @@ import React, { useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Counter from "@/components/Counter";
-import { ChevronDown, Truck, FileText, ShieldCheck, Package, RefreshCw, CreditCard, CheckCircle, ShoppingCart } from "lucide-react";
+import { ChevronDown, Truck, FileText, ShieldCheck, Package, RefreshCw, CreditCard, CheckCircle, ShoppingCart, Mail, Phone, Headset, MessageCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/context/LanguageContext";
+import { KeyboardArrowRight } from "@/components/ui/keyboard-arrow";
 
-const Step1Card = () => {
-  const { t } = useLanguage();
-  return (
-  <div className="w-full max-w-[400px] bg-[#050505] border border-[#222] p-8 mx-auto shadow-2xl relative z-20">
-    <h4 className="font-heading text-lg font-bold text-white mb-6 uppercase tracking-wider">{t("support.orderSummary")}</h4>
-    <div className="border-t border-[#333] pt-6 flex flex-col gap-6">
-      <div className="flex justify-between items-start">
-        <div className="flex gap-4">
-          <div className="w-12 h-12 bg-[#030303] border border-[#222] flex items-center justify-center shrink-0">
-            <span className="text-[5px] text-[#444] text-center">Image Placeholder</span>
-          </div>
-          <div>
-            <p className="text-[10px] text-[#888] uppercase mb-0.5 leading-none">Sennheiser</p>
-            <p className="text-sm font-bold text-white leading-tight">Sennheiser IE 900</p>
-            <p className="text-xs text-[#666] mt-0.5">4.4mm Pentaconn</p>
-          </div>
-        </div>
-        <span className="text-sm font-bold text-white shrink-0">$1,299.00</span>
-      </div>
-      <div className="flex justify-between items-start">
-        <div className="flex gap-4">
-          <div className="w-12 h-12 bg-[#030303] border border-[#222] flex items-center justify-center shrink-0">
-            <span className="text-[5px] text-[#444] text-center">Image Placeholder</span>
-          </div>
-          <div>
-            <p className="text-[10px] text-[#888] uppercase mb-0.5 leading-none">ProTech</p>
-            <p className="text-sm font-bold text-white leading-tight">ProTech 8-Core Pure Silver Cable</p>
-            <p className="text-xs text-[#666] mt-0.5">MMCX to 4.4mm</p>
-          </div>
-        </div>
-        <span className="text-sm font-bold text-white shrink-0">$149.00</span>
-      </div>
-    </div>
-    <div className="border-t border-[#333] mt-6 pt-6 flex flex-col gap-3">
-      <div className="flex justify-between text-sm">
-        <span className="text-[#888] uppercase">{t("cart.subtotal")}</span>
-        <span className="text-white font-bold">$1,448.00</span>
-      </div>
-      <div className="flex justify-between text-sm">
-        <span className="text-[#BFDD25] uppercase">{t("cart.discount")} (10%)</span>
-        <span className="text-[#BFDD25] font-bold">-$144.80</span>
-      </div>
-      <div className="flex justify-between text-sm">
-        <span className="text-[#888] uppercase">{t("checkout.shippingFeeLabel")} (Express)</span>
-        <span className="text-white font-bold">$15.00</span>
-      </div>
-    </div>
-    <div className="border-t border-[#333] mt-6 pt-6 flex justify-between items-center mb-8">
-      <span className="font-heading text-lg font-bold text-white uppercase">{t("cart.total")}</span>
-      <span className="font-heading text-2xl font-bold text-[#BFDD25]">$1,318.20</span>
-    </div>
-    <button className="w-full bg-[#BFDD25] text-black font-bold py-4 uppercase tracking-wider hover:bg-[#b3d600] transition-colors">
-      {t("checkout.placeOrder")} &rarr;
-    </button>
-  </div>
-)};
-
-const Step2Card = () => {
-  const { t } = useLanguage();
-  return (
-  <div className="w-full max-w-[400px] bg-[#050505] border border-[#222] p-8 mx-auto shadow-2xl relative z-20">
-    <h4 className="font-heading text-lg font-bold text-white mb-6 uppercase tracking-wider">{t("support.paymentMethod")}</h4>
-    <div className="flex flex-col gap-4">
-      <div className="border border-[#BFDD25] bg-[#BFDD25]/5 p-4 flex items-center justify-between cursor-pointer">
-        <div className="flex items-center gap-4">
-          <CreditCard className="text-[#BFDD25] w-6 h-6" />
-          <div>
-            <p className="text-sm font-bold text-white">Credit Card</p>
-            <p className="text-xs text-[#888]">Visa, Mastercard, Amex</p>
-          </div>
-        </div>
-        <div className="w-4 h-4 rounded-full border-2 border-[#BFDD25] bg-[#BFDD25] flex items-center justify-center">
-          <div className="w-2 h-2 rounded-full bg-[#050505]"></div>
-        </div>
-      </div>
-      <div className="border border-[#333] p-4 flex items-center justify-between cursor-pointer hover:border-[#444] bg-[#030303]">
-        <div className="flex items-center gap-4">
-          <CreditCard className="w-6 h-6 text-white" />
-          <div>
-            <p className="text-sm font-bold text-white">PayPal</p>
-            <p className="text-xs text-[#888]">Pay with your balance</p>
-          </div>
-        </div>
-        <div className="w-4 h-4 rounded-full border border-[#444]"></div>
-      </div>
-    </div>
-    <div className="mt-8">
-      <div className="w-full bg-[#050505] border border-[#333] p-4 text-white text-sm flex items-center justify-between mb-4">
-        <span>**** **** **** 1234</span>
-        <span className="text-[#888]">12/28</span>
-      </div>
-      <button className="w-full bg-[#BFDD25] text-black font-bold py-4 uppercase tracking-wider hover:bg-[#b3d600] transition-colors">
-        Continue to Verification
-      </button>
-    </div>
-  </div>
-)};
-
-const Step3Card = () => {
-  const { t } = useLanguage();
-  return (
-  <div className="w-full max-w-[400px] bg-[#050505] border border-[#222] p-8 mx-auto shadow-2xl relative z-20 text-center">
-    <ShieldCheck className="w-16 h-16 text-[#BFDD25] mx-auto mb-6" strokeWidth={1} />
-    <h4 className="font-heading text-xl font-bold text-white mb-2 uppercase tracking-wider">{t("support.securityVerification")}</h4>
-    <p className="text-sm text-[#888] mb-8 leading-relaxed">
-      To protect your account, we've sent a 6-digit code to your registered mobile number.
-    </p>
-    <div className="flex justify-center gap-3 mb-8">
-      {[1,2,3,4,5,6].map(i => (
-        <div key={i} className={`w-10 h-12 border-b-2 flex items-center justify-center text-2xl font-mono text-white ${i <= 3 ? 'border-[#BFDD25]' : 'border-[#444]'}`}>
-          {i <= 3 ? "•" : ""}
-        </div>
-      ))}
-    </div>
-    <button className="w-full bg-[#333] text-white font-bold py-4 uppercase tracking-wider hover:bg-[#080808] transition-colors">
-      Verify Payment
-    </button>
-  </div>
-)};
-
-const Step4Card = () => {
-  const { t } = useLanguage();
-  return (
-  <div className="w-full max-w-[400px] bg-[#050505] border border-[#222] p-8 mx-auto shadow-2xl relative z-20 text-center">
-    <div className="w-20 h-20 rounded-full bg-[#BFDD25]/10 border border-[#BFDD25] flex items-center justify-center mx-auto mb-6">
-      <CheckCircle className="w-10 h-10 text-[#BFDD25]" strokeWidth={2} />
-    </div>
-    <h4 className="font-heading text-2xl font-bold text-white mb-2 tracking-tight">{t("support.paymentSuccessful")}</h4>
-    <p className="text-sm text-[#888] mb-8 leading-relaxed">
-      Thank you for your order! Your payment of <span className="text-white font-bold">$1,318.20</span> has been processed.
-    </p>
-    <div className="bg-[#030303] border border-[#222] p-5 text-left flex flex-col gap-4 mb-8">
-      <div className="flex justify-between text-sm">
-        <span className="text-[#888]">Order ID</span>
-        <span className="font-mono text-white font-bold">#TZ-98214</span>
-      </div>
-      <div className="flex justify-between text-sm">
-        <span className="text-[#888]">Estimated Delivery</span>
-        <span className="text-white font-bold">Aug 14 - Aug 16</span>
-      </div>
-    </div>
-    <button className="w-full bg-[#BFDD25] text-black font-bold py-4 uppercase tracking-wider hover:bg-[#b3d600] transition-colors">
-      View Order Status
-    </button>
-  </div>
-)};
 
 export default function SupportPage() {
   const [openAccordion, setOpenAccordion] = useState<string | null>("contact");
-  const [activePaymentStep, setActivePaymentStep] = useState<number | null>(1);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const { t } = useLanguage();
 
@@ -170,10 +24,10 @@ export default function SupportPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#030303] text-[#FAF9F6] font-sans selection:bg-[#BFDD25] selection:text-[#030303] flex flex-col relative overflow-hidden">
+    <div className="min-h-screen bg-[#030303] text-[#FAF9F6] font-sans selection:bg-white selection:text-[#030303] flex flex-col relative overflow-hidden">
       <Navbar />
 
-      <main className="flex-1 w-full pt-32 pb-24 max-w-[1400px] mx-auto px-6 lg:px-12 flex flex-col gap-48">
+      <main className="flex-1 w-full pt-32 pb-24 max-w-[1360px] mx-auto px-5 sm:px-8 lg:px-12 flex flex-col gap-48">
         
         {/* =========================================
             HERO SECTION
@@ -191,10 +45,10 @@ export default function SupportPage() {
           </div>
 
           {/* Hero Image & Overlay */}
-          <div className="relative w-full min-h-[500px] md:min-h-[700px] lg:min-h-[750px] bg-[#030303] overflow-hidden group">
+          <div className="relative w-full min-h-[500px] md:min-h-[700px] lg:min-h-[750px] bg-[#030303] rounded-2xl md:rounded-3xl border border-[#222] overflow-hidden group shadow-2xl">
             {/* Image Placeholder */}
-            <div className="absolute inset-0 bg-[#030303] flex items-center justify-center overflow-hidden">
-               <img src="https://images.unsplash.com/photo-1590602847861-f357a9332bbc?q=80&w=2000&auto=format&fit=crop" alt="Hero Support" className="absolute inset-0 w-full h-full object-cover opacity-60" />
+            <div className="absolute inset-0 bg-[#030303] flex items-center justify-center overflow-hidden rounded-2xl md:rounded-3xl">
+               <img src="https://images.unsplash.com/photo-1590602847861-f357a9332bbc?q=80&w=2000&auto=format&fit=crop" alt="Hero Support" className="absolute inset-0 w-full h-full object-cover opacity-60 rounded-2xl md:rounded-3xl" />
             </div>
             
             {/* Bottom Overlay Stats */}
@@ -251,8 +105,8 @@ export default function SupportPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-16 lg:gap-20">
             {/* Left: Image */}
-            <div className="md:col-span-5 relative w-full aspect-[4/5] bg-[#030303] flex items-center justify-center overflow-hidden">
-              <img src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=1472&auto=format&fit=crop" alt="Earth from Space" className="absolute inset-0 w-full h-full object-cover opacity-90" />
+            <div className="md:col-span-5 relative w-full aspect-[4/5] bg-[#030303] rounded-2xl border border-[#222] flex items-center justify-center overflow-hidden shadow-xl">
+              <img src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=1472&auto=format&fit=crop" alt="Earth from Space" className="absolute inset-0 w-full h-full object-cover opacity-90 rounded-2xl" />
             </div>
             
             {/* Right: Text Content */}
@@ -261,7 +115,7 @@ export default function SupportPage() {
                 {/* Point 1 */}
                 <div>
                   <h3 className="font-sans text-2xl font-bold text-white mb-3 flex items-center gap-3">
-                    <span className="text-[#BFDD25]">/</span> {t("support.introPassionate")}
+                    <span className="text-zinc-300">/</span> {t("support.introPassionate")}
                   </h3>
                   <p className="font-sans text-[#FAF9F6]/70 text-base leading-relaxed">
                     {t("support.introPassionateDesc")}
@@ -270,7 +124,7 @@ export default function SupportPage() {
                 {/* Point 2 */}
                 <div>
                   <h3 className="font-sans text-2xl font-bold text-white mb-3 flex items-center gap-3">
-                    <span className="text-[#BFDD25]">/</span> {t("support.introGlobal")}
+                    <span className="text-zinc-300">/</span> {t("support.introGlobal")}
                   </h3>
                   <p className="font-sans text-[#FAF9F6]/70 text-base leading-relaxed">
                     {t("support.introGlobalDesc")}
@@ -279,7 +133,7 @@ export default function SupportPage() {
                 {/* Point 3 */}
                 <div>
                   <h3 className="font-sans text-2xl font-bold text-white mb-3 flex items-center gap-3">
-                    <span className="text-[#BFDD25]">/</span> {t("support.introAcoustic")}
+                    <span className="text-zinc-300">/</span> {t("support.introAcoustic")}
                   </h3>
                   <p className="font-sans text-[#FAF9F6]/70 text-base leading-relaxed">
                     {t("support.introAcousticDesc")}
@@ -288,15 +142,20 @@ export default function SupportPage() {
               </div>
 
               {/* Bottom Quick Links */}
-              <div className="mt-12 p-8 border border-[#222] bg-[#050505] flex flex-col md:flex-row gap-6 justify-between items-center">
+              <div className="mt-12 p-8 border border-[#222] bg-[#050505] rounded-2xl flex flex-col md:flex-row gap-6 justify-between items-center shadow-lg">
                 <div>
                   <h4 className="font-sans text-lg font-bold text-white mb-1">{t("support.introNeedHelp")}</h4>
                   <p className="font-sans text-sm text-[#FAF9F6]/60">{t("support.introNeedHelpDesc")}</p>
                 </div>
                 <div className="flex gap-4 w-full md:w-auto">
-                  <button className="flex-1 md:flex-none px-6 py-3 bg-white text-black font-bold text-sm uppercase tracking-wider hover:bg-[#BFDD25] transition-colors whitespace-nowrap">
+                  <a
+                    href="https://wa.me/6285162968089?text=Halo%20Customer%20Service%20Tonal%20Zone,%20saya%20ingin%20berkonsultasi%20mengenai%20produk%20audiophile."
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 md:flex-none px-7 py-3.5 bg-white text-black font-bold text-xs uppercase tracking-wider rounded-full hover:bg-white transition-colors whitespace-nowrap text-center"
+                  >
                     {t("support.chatExpert")}
-                  </button>
+                  </a>
                 </div>
               </div>
             </div>
@@ -310,10 +169,10 @@ export default function SupportPage() {
           {/* Tracking */}
           <div className="group border-b border-[#222] py-10 flex items-center justify-between cursor-pointer relative overflow-hidden transition-colors hover:bg-[#050505]">
             {/* Hover Background Accent */}
-            <div className="absolute left-0 top-0 bottom-0 w-0 bg-[#BFDD25] group-hover:w-2 transition-all duration-300"></div>
+            <div className="absolute left-0 top-0 bottom-0 w-0 bg-white group-hover:w-2 transition-all duration-300"></div>
             
             <div className="flex items-center gap-8 md:gap-16 relative z-10 w-full pl-6 md:pl-12">
-              <span className="font-mono text-sm text-[#555] group-hover:text-[#BFDD25] transition-colors">01</span>
+              <span className="font-mono text-sm text-[#555] group-hover:text-zinc-300 transition-colors">01</span>
               <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-16 w-full">
                 <h3 className="font-heading text-4xl md:text-5xl lg:text-[70px] font-bold text-white group-hover:translate-x-4 transition-transform duration-500 uppercase tracking-tighter leading-none m-0">
                   {t("support.tracking")}
@@ -325,8 +184,8 @@ export default function SupportPage() {
             </div>
             
             <div className="relative z-10 pr-6 md:pr-12 transform translate-x-12 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-500">
-              <div className="w-16 h-16 rounded-full bg-[#050505] border border-[#333] group-hover:border-[#BFDD25] flex items-center justify-center">
-                <Truck className="w-6 h-6 text-[#BFDD25]" />
+              <div className="w-16 h-16 rounded-full bg-[#050505] border border-[#333] group-hover:border-white/40 flex items-center justify-center">
+                <Truck className="w-6 h-6 text-zinc-300" />
               </div>
             </div>
           </div>
@@ -334,10 +193,10 @@ export default function SupportPage() {
           {/* Warranty */}
           <div className="group border-b border-[#222] py-10 flex items-center justify-between cursor-pointer relative overflow-hidden transition-colors hover:bg-[#050505]">
             {/* Hover Background Accent */}
-            <div className="absolute left-0 top-0 bottom-0 w-0 bg-[#BFDD25] group-hover:w-2 transition-all duration-300"></div>
+            <div className="absolute left-0 top-0 bottom-0 w-0 bg-white group-hover:w-2 transition-all duration-300"></div>
             
             <div className="flex items-center gap-8 md:gap-16 relative z-10 w-full pl-6 md:pl-12">
-              <span className="font-mono text-sm text-[#555] group-hover:text-[#BFDD25] transition-colors">02</span>
+              <span className="font-mono text-sm text-[#555] group-hover:text-zinc-300 transition-colors">02</span>
               <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-16 w-full">
                 <h3 className="font-heading text-4xl md:text-5xl lg:text-[70px] font-bold text-white group-hover:translate-x-4 transition-transform duration-500 uppercase tracking-tighter leading-none m-0">
                   {t("support.warranty")}
@@ -349,8 +208,8 @@ export default function SupportPage() {
             </div>
             
             <div className="relative z-10 pr-6 md:pr-12 transform translate-x-12 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-500">
-              <div className="w-16 h-16 rounded-full bg-[#050505] border border-[#333] group-hover:border-[#BFDD25] flex items-center justify-center">
-                <ShieldCheck className="w-6 h-6 text-[#BFDD25]" />
+              <div className="w-16 h-16 rounded-full bg-[#050505] border border-[#333] group-hover:border-white/40 flex items-center justify-center">
+                <ShieldCheck className="w-6 h-6 text-zinc-300" />
               </div>
             </div>
           </div>
@@ -358,10 +217,10 @@ export default function SupportPage() {
           {/* Returns */}
           <div className="group border-b border-[#222] py-10 flex items-center justify-between cursor-pointer relative overflow-hidden transition-colors hover:bg-[#050505]">
             {/* Hover Background Accent */}
-            <div className="absolute left-0 top-0 bottom-0 w-0 bg-[#BFDD25] group-hover:w-2 transition-all duration-300"></div>
+            <div className="absolute left-0 top-0 bottom-0 w-0 bg-white group-hover:w-2 transition-all duration-300"></div>
             
             <div className="flex items-center gap-8 md:gap-16 relative z-10 w-full pl-6 md:pl-12">
-              <span className="font-mono text-sm text-[#555] group-hover:text-[#BFDD25] transition-colors">03</span>
+              <span className="font-mono text-sm text-[#555] group-hover:text-zinc-300 transition-colors">03</span>
               <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-16 w-full">
                 <h3 className="font-heading text-4xl md:text-5xl lg:text-[70px] font-bold text-white group-hover:translate-x-4 transition-transform duration-500 uppercase tracking-tighter leading-none m-0">
                   {t("support.return")}
@@ -373,8 +232,8 @@ export default function SupportPage() {
             </div>
             
             <div className="relative z-10 pr-6 md:pr-12 transform translate-x-12 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-500">
-              <div className="w-16 h-16 rounded-full bg-[#050505] border border-[#333] group-hover:border-[#BFDD25] flex items-center justify-center">
-                <Package className="w-6 h-6 text-[#BFDD25]" />
+              <div className="w-16 h-16 rounded-full bg-[#050505] border border-[#333] group-hover:border-white/40 flex items-center justify-center">
+                <Package className="w-6 h-6 text-zinc-300" />
               </div>
             </div>
           </div>
@@ -383,7 +242,7 @@ export default function SupportPage() {
         {/* =========================================
             SPLIT SECTION (Text + Giant Numbers)
         ========================================= */}
-        <section className="w-full bg-[#030303] border border-[#222] flex flex-col lg:flex-row">
+        <section className="w-full bg-[#030303] border border-[#222] rounded-2xl md:rounded-3xl overflow-hidden flex flex-col lg:flex-row shadow-2xl">
           <div className="w-full lg:w-1/2 border-b lg:border-b-0 lg:border-r border-[#222] p-12 lg:p-20 flex flex-col justify-center">
             <h2 className="font-heading text-4xl lg:text-5xl font-bold text-white mb-6 tracking-tight">
               {t("support.tech")}
@@ -391,9 +250,14 @@ export default function SupportPage() {
             <p className="font-sans text-lg text-[#FAF9F6]/70 leading-relaxed mb-10">
               {t("support.techDesc")}
             </p>
-            <button className="self-start px-8 py-4 bg-[#BFDD25] text-black font-bold uppercase tracking-wider text-sm hover:bg-white transition-colors">
+            <a
+              href="https://wa.me/6285162968089?text=Halo%20Customer%20Service%20Tonal%20Zone,%20saya%20ingin%20konsultasi%20teknis%20audio."
+              target="_blank"
+              rel="noopener noreferrer"
+              className="self-start px-8 py-4 bg-white text-black font-bold uppercase tracking-wider text-xs rounded-full hover:bg-white transition-colors"
+            >
               {t("support.chatExpert")}
-            </button>
+            </a>
           </div>
           <div className="w-full lg:w-1/2 p-12 lg:p-20 relative overflow-hidden flex flex-col justify-center">
             {/* Massive background number */}
@@ -409,13 +273,13 @@ export default function SupportPage() {
                   { q: t("support.faq3Q"), a: t("support.faq3A") },
                   { q: t("support.faq4Q"), a: t("support.faq4A") }
                 ].map((faq, idx) => (
-                  <div key={idx} className={`border-l-2 transition-colors duration-300 ${openFaq === idx ? 'border-[#BFDD25]' : 'border-[#333] hover:border-[#BFDD25]'}`}>
+                  <div key={idx} className={`border-l-2 transition-colors duration-300 ${openFaq === idx ? 'border-white/40' : 'border-[#333] hover:border-white/40'}`}>
                     <button 
                       onClick={() => toggleFaq(idx)}
                       className="w-full flex items-center justify-between text-left pl-6 py-3 group focus:outline-none"
                     >
-                      <h4 className={`font-bold transition-colors ${openFaq === idx ? 'text-[#BFDD25]' : 'text-white group-hover:text-[#BFDD25]'}`}>{faq.q}</h4>
-                      <ChevronDown className={`w-5 h-5 transition-transform duration-300 ${openFaq === idx ? "rotate-180 text-[#BFDD25]" : "text-white"}`} />
+                      <h4 className={`font-bold transition-colors ${openFaq === idx ? 'text-zinc-300' : 'text-white group-hover:text-zinc-300'}`}>{faq.q}</h4>
+                      <ChevronDown className={`w-5 h-5 transition-transform duration-300 ${openFaq === idx ? "rotate-180 text-zinc-300" : "text-white"}`} />
                     </button>
                     <AnimatePresence initial={false}>
                       {openFaq === idx && (
@@ -444,8 +308,8 @@ export default function SupportPage() {
           <div className="max-w-[1200px] mx-auto px-6 lg:px-12 grid grid-cols-1 md:grid-cols-12 gap-12 lg:gap-8 items-start">
             {/* Left Column: Number / Header */}
             <div className="md:col-span-4 flex flex-col justify-start">
-              <div className="font-mono text-[#BFDD25] text-xs tracking-[0.2em] uppercase mb-4 md:mb-8 flex items-center gap-3 opacity-80">
-                <span className="w-4 h-px bg-[#BFDD25]"></span>
+              <div className="font-mono text-zinc-300 text-xs tracking-[0.2em] uppercase mb-4 md:mb-8 flex items-center gap-3 opacity-80">
+                <span className="w-4 h-px bg-white"></span>
                 {t("support.aboutTonalZone")}
               </div>
               <span className="font-heading text-[100px] md:text-[140px] font-bold text-[#1f1f1f] leading-[0.8] tracking-tighter select-none">
@@ -477,231 +341,233 @@ export default function SupportPage() {
               02
             </span>
             <h2 className="font-sans text-4xl md:text-5xl font-bold text-white mb-4">
-              Built to Last, Guaranteed
+              {t("support.warrantyTitle")}
             </h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6 auto-rows-[250px]">
             {/* Step 1: Submit */}
-            <div className="md:col-span-4 bg-[#030303] border border-[#222] p-8 flex flex-col justify-between group hover:border-[#444] transition-colors duration-300">
-              <FileText className="w-10 h-10 text-[#BFDD25]" />
+            <div className="md:col-span-4 bg-[#030303] border border-[#222] rounded-2xl p-8 flex flex-col justify-between group hover:border-[#444] transition-colors duration-300 shadow-sm">
+              <FileText className="w-10 h-10 text-zinc-300" />
               <div>
-                <span className="font-mono text-xs text-[#BFDD25] tracking-widest mb-2 block">STEP 01</span>
-                <h3 className="font-sans text-xl font-bold text-white mb-2">Submit Claim</h3>
+                <span className="font-mono text-xs text-zinc-300 tracking-widest mb-2 block">STEP 01</span>
+                <h3 className="font-sans text-xl font-bold text-white mb-2">{t("support.warrantyStep1Title")}</h3>
                 <p className="font-sans text-[#FAF9F6]/60 text-sm leading-relaxed">
-                  Fill out our warranty request form with your order details and a description of the issue.
+                  {t("support.warrantyStep1Desc")}
                 </p>
               </div>
             </div>
 
             {/* Step 2: Verification */}
-            <div className="md:col-span-8 bg-[#030303] border border-[#222] p-8 flex flex-col justify-between group hover:border-[#444] transition-colors duration-300 relative overflow-hidden">
-              <ShieldCheck className="w-10 h-10 text-[#BFDD25] relative z-10" />
+            <div className="md:col-span-8 bg-[#030303] border border-[#222] rounded-2xl p-8 flex flex-col justify-between group hover:border-[#444] transition-colors duration-300 relative overflow-hidden shadow-sm">
+              <ShieldCheck className="w-10 h-10 text-zinc-300 relative z-10" />
               <ShieldCheck className="w-64 h-64 text-[#151515] absolute -bottom-10 -right-10 z-0 group-hover:text-[#1a1a1a] transition-colors duration-500" />
               <div className="relative z-10 md:w-1/2">
-                <span className="font-mono text-xs text-[#BFDD25] tracking-widest mb-2 block">STEP 02</span>
-                <h3 className="font-sans text-xl font-bold text-white mb-2">Verification</h3>
+                <span className="font-mono text-xs text-zinc-300 tracking-widest mb-2 block">STEP 02</span>
+                <h3 className="font-sans text-xl font-bold text-white mb-2">{t("support.warrantyStep2Title")}</h3>
                 <p className="font-sans text-[#FAF9F6]/60 text-sm leading-relaxed">
-                  Our audio experts will review your request within 24-48 hours. If approved, you will receive an RMA number and return instructions.
+                  {t("support.warrantyStep2Desc")}
                 </p>
               </div>
             </div>
 
             {/* Step 3: Return Item */}
-            <div className="md:col-span-8 bg-[#030303] border border-[#222] p-8 flex flex-col justify-between group hover:border-[#444] transition-colors duration-300 relative overflow-hidden">
-              <Package className="w-10 h-10 text-[#BFDD25] relative z-10" />
+            <div className="md:col-span-8 bg-[#030303] border border-[#222] rounded-2xl p-8 flex flex-col justify-between group hover:border-[#444] transition-colors duration-300 relative overflow-hidden shadow-sm">
+              <Package className="w-10 h-10 text-zinc-300 relative z-10" />
               <Package className="w-64 h-64 text-[#151515] absolute -bottom-10 -right-10 z-0 group-hover:text-[#1a1a1a] transition-colors duration-500" />
               <div className="relative z-10 md:w-1/2">
-                <span className="font-mono text-xs text-[#BFDD25] tracking-widest mb-2 block">STEP 03</span>
-                <h3 className="font-sans text-xl font-bold text-white mb-2">Return Item</h3>
+                <span className="font-mono text-xs text-zinc-300 tracking-widest mb-2 block">STEP 03</span>
+                <h3 className="font-sans text-xl font-bold text-white mb-2">{t("support.warrantyStep3Title")}</h3>
                 <p className="font-sans text-[#FAF9F6]/60 text-sm leading-relaxed">
-                  Securely pack your item with all original accessories and ship it to our designated service center using the provided label.
+                  {t("support.warrantyStep3Desc")}
                 </p>
               </div>
             </div>
 
             {/* Step 4: Resolution */}
-            <div className="md:col-span-4 bg-[#030303] border border-[#222] p-8 flex flex-col justify-between group hover:border-[#444] transition-colors duration-300">
-              <RefreshCw className="w-10 h-10 text-[#BFDD25]" />
+            <div className="md:col-span-4 bg-[#030303] border border-[#222] rounded-2xl p-8 flex flex-col justify-between group hover:border-[#444] transition-colors duration-300 shadow-sm">
+              <RefreshCw className="w-10 h-10 text-zinc-300" />
               <div>
-                <span className="font-mono text-xs text-[#BFDD25] tracking-widest mb-2 block">STEP 04</span>
-                <h3 className="font-sans text-xl font-bold text-white mb-2">Resolution</h3>
+                <span className="font-mono text-xs text-zinc-300 tracking-widest mb-2 block">STEP 04</span>
+                <h3 className="font-sans text-xl font-bold text-white mb-2">{t("support.warrantyStep4Title")}</h3>
                 <p className="font-sans text-[#FAF9F6]/60 text-sm leading-relaxed">
-                  Once received, we will repair or replace your unit and ship it back to you at no additional cost.
+                  {t("support.warrantyStep4Desc")}
                 </p>
               </div>
             </div>
           </div>
         </section>
 
-        {/* =========================================
-            SECTION 03: PAYMENT GUIDE
-        ========================================= */}
-        <section className="w-full flex flex-col gap-10">
-          <div className="flex items-end justify-between border-b border-[#222] pb-6">
-            <div className="mb-4">
-              <h2 className="font-sans text-4xl md:text-5xl font-bold text-white mb-2">
-                {t("support.seamless")}
-              </h2>
-              <p className="font-sans text-lg text-[#FAF9F6]/70">{t("support.seamlessDesc")}</p>
-            </div>
-            <span className="font-heading text-8xl md:text-[120px] font-bold text-[#222] leading-none select-none">
-              03
-            </span>
-          </div>
-
-          <div className="w-full bg-[#030303] border border-[#222] p-8 md:p-12 flex flex-col gap-12">
-            
-            {/* Stepper Navigation */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-4 relative">
-              {/* Connecting Line (Desktop only) */}
-              <div className="hidden md:block absolute top-6 left-10 right-10 h-px bg-[#333] z-0"></div>
-
-              {/* Step 1 */}
-              <div 
-                onClick={() => setActivePaymentStep(activePaymentStep === 1 ? null : 1)}
-                className={`flex flex-col gap-4 relative z-10 cursor-pointer group transition-all duration-300 ${activePaymentStep === 1 ? 'opacity-100' : 'opacity-50 hover:opacity-100'}`}
-              >
-                <div className={`w-12 h-12 rounded-full bg-[#050505] border flex items-center justify-center transition-colors duration-300 ${activePaymentStep === 1 ? 'border-[#BFDD25]' : 'border-[#333] group-hover:border-[#BFDD25]'}`}>
-                  <ShoppingCart className={`w-5 h-5 transition-colors duration-300 ${activePaymentStep === 1 ? 'text-[#BFDD25]' : 'text-white group-hover:text-[#BFDD25]'}`} />
-                </div>
-                <div>
-                  <h3 className="font-sans text-lg font-bold text-white mb-2">1. {t("support.stepCheckout")}</h3>
-                  <p className="font-sans text-[#FAF9F6]/60 text-sm leading-relaxed pr-4">
-                    {t("support.stepCheckoutDesc")}
-                  </p>
-                </div>
-              </div>
-
-              {/* Step 2 */}
-              <div 
-                onClick={() => setActivePaymentStep(activePaymentStep === 2 ? null : 2)}
-                className={`flex flex-col gap-4 relative z-10 cursor-pointer group transition-all duration-300 ${activePaymentStep === 2 ? 'opacity-100' : 'opacity-50 hover:opacity-100'}`}
-              >
-                <div className={`w-12 h-12 rounded-full bg-[#050505] border flex items-center justify-center transition-colors duration-300 ${activePaymentStep === 2 ? 'border-[#BFDD25]' : 'border-[#333] group-hover:border-[#BFDD25]'}`}>
-                  <CreditCard className={`w-5 h-5 transition-colors duration-300 ${activePaymentStep === 2 ? 'text-[#BFDD25]' : 'text-white group-hover:text-[#BFDD25]'}`} />
-                </div>
-                <div>
-                  <h3 className="font-sans text-lg font-bold text-white mb-2">2. {t("support.stepPayment")}</h3>
-                  <p className="font-sans text-[#FAF9F6]/60 text-sm leading-relaxed pr-4">
-                    {t("support.stepPaymentDesc")}
-                  </p>
-                </div>
-              </div>
-
-              {/* Step 3 */}
-              <div 
-                onClick={() => setActivePaymentStep(activePaymentStep === 3 ? null : 3)}
-                className={`flex flex-col gap-4 relative z-10 cursor-pointer group transition-all duration-300 ${activePaymentStep === 3 ? 'opacity-100' : 'opacity-50 hover:opacity-100'}`}
-              >
-                <div className={`w-12 h-12 rounded-full bg-[#050505] border flex items-center justify-center transition-colors duration-300 ${activePaymentStep === 3 ? 'border-[#BFDD25]' : 'border-[#333] group-hover:border-[#BFDD25]'}`}>
-                  <ShieldCheck className={`w-5 h-5 transition-colors duration-300 ${activePaymentStep === 3 ? 'text-[#BFDD25]' : 'text-white group-hover:text-[#BFDD25]'}`} />
-                </div>
-                <div>
-                  <h3 className="font-sans text-lg font-bold text-white mb-2">3. {t("support.stepVerification")}</h3>
-                  <p className="font-sans text-[#FAF9F6]/60 text-sm leading-relaxed pr-4">
-                    {t("support.stepVerificationDesc")}
-                  </p>
-                </div>
-              </div>
-
-              {/* Step 4 */}
-              <div 
-                onClick={() => setActivePaymentStep(activePaymentStep === 4 ? null : 4)}
-                className={`flex flex-col gap-4 relative z-10 cursor-pointer group transition-all duration-300 ${activePaymentStep === 4 ? 'opacity-100' : 'opacity-50 hover:opacity-100'}`}
-              >
-                <div className={`w-12 h-12 rounded-full bg-[#050505] border flex items-center justify-center transition-colors duration-300 ${activePaymentStep === 4 ? 'border-[#BFDD25]' : 'border-[#333] group-hover:border-[#BFDD25]'}`}>
-                  <CheckCircle className={`w-5 h-5 transition-colors duration-300 ${activePaymentStep === 4 ? 'text-[#BFDD25]' : 'text-white group-hover:text-[#BFDD25]'}`} />
-                </div>
-                <div>
-                  <h3 className="font-sans text-lg font-bold text-white mb-2">4. {t("support.stepConfirmation")}</h3>
-                  <p className="font-sans text-[#FAF9F6]/60 text-sm leading-relaxed pr-4">
-                    {t("support.stepConfirmationDesc")}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Interactive UI Display */}
-            <AnimatePresence initial={false}>
-              {activePaymentStep !== null && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "auto", opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.4, ease: [0.04, 0.62, 0.23, 0.98] }}
-                  className="w-full relative overflow-hidden mt-4"
-                >
-                  <div className="w-full min-h-[500px] md:min-h-[600px] bg-[#030303] border border-[#222] relative flex items-center justify-center py-12 px-4">
-                    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-[#222] via-[#0e0e0e] to-[#0e0e0e] opacity-50 z-0"></div>
-                    
-                    {/* Conditional UI Cards with Crossfade */}
-                    <AnimatePresence mode="wait">
-                      <motion.div
-                        key={activePaymentStep}
-                        initial={{ y: 15, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        exit={{ y: -15, opacity: 0 }}
-                        transition={{ duration: 0.3 }}
-                        className="relative z-20 w-full flex justify-center"
-                      >
-                        {activePaymentStep === 1 && <Step1Card />}
-                        {activePaymentStep === 2 && <Step2Card />}
-                        {activePaymentStep === 3 && <Step3Card />}
-                        {activePaymentStep === 4 && <Step4Card />}
-                      </motion.div>
-                    </AnimatePresence>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-          </div>
-        </section>
-
+        
         {/* =========================================
             SECTION 04: CONTACT & HELP CENTER
         ========================================= */}
-        <section className="w-full grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-24 items-start pb-20">
+        <section className="w-full grid grid-cols-1 md:grid-cols-2 gap-10 lg:gap-16 items-start pb-20">
           
-          {/* Accordions */}
-          <div className="flex flex-col w-full">
+          {/* Left: Accordions */}
+          <div className="flex flex-col w-full gap-4">
             {/* Contact Us Accordion */}
-            <div className="border-b border-[#333]">
+            <div className="bg-[#050505] border border-[#222] rounded-2xl p-6 transition-colors">
               <button 
                 onClick={() => toggleAccordion("contact")}
-                className="w-full flex items-center justify-between py-6 text-left cursor-pointer group"
+                className="w-full flex items-center justify-between text-left cursor-pointer group"
               >
-                <h3 className="font-sans text-3xl font-bold text-white">{t("support.contactUs")}</h3>
-                <ChevronDown className={`w-6 h-6 text-white transition-transform duration-300 ${openAccordion === "contact" ? "rotate-180" : ""}`} />
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-[#141414] border border-[#262626] flex items-center justify-center text-zinc-300">
+                    <Headset className="w-5 h-5" />
+                  </div>
+                  <h3 className="font-sans text-2xl font-bold text-white group-hover:text-zinc-300 transition-colors">{t("support.contactUs")}</h3>
+                </div>
+                <ChevronDown className={`w-5 h-5 text-white transition-transform duration-300 ${openAccordion === "contact" ? "rotate-180 text-zinc-300" : ""}`} />
               </button>
-              <div className={`overflow-hidden transition-all duration-300 ${openAccordion === "contact" ? "max-h-[500px] pb-8 opacity-100" : "max-h-0 opacity-0"}`}>
-                <p className="font-sans text-[#FAF9F6]/70 text-base leading-relaxed">
+              <div className={`overflow-hidden transition-all duration-300 ${openAccordion === "contact" ? "max-h-[500px] pt-5 opacity-100" : "max-h-0 opacity-0"}`}>
+                <p className="font-sans text-[#FAF9F6]/70 text-sm leading-relaxed mb-5">
                   {t("support.contactUsDesc")}
                 </p>
+                <div className="flex flex-col sm:flex-row gap-3 pt-3 border-t border-[#1C1C1C]">
+                  <a
+                    href="mailto:tonalzone@gmail.com"
+                    className="flex-1 p-3.5 bg-[#0C0C0C] hover:bg-[#141414] border border-[#222] rounded-xl flex items-center gap-3 transition-colors group"
+                  >
+                    <Mail className="w-4 h-4 text-zinc-300" />
+                    <div className="min-w-0">
+                      <p className="text-[10px] font-mono text-[#777] uppercase">Email</p>
+                      <p className="text-xs font-mono font-bold text-white group-hover:text-zinc-300 truncate">tonalzone@gmail.com</p>
+                    </div>
+                  </a>
+                  <a
+                    href="tel:085162968089"
+                    className="flex-1 p-3.5 bg-[#0C0C0C] hover:bg-[#141414] border border-[#222] rounded-xl flex items-center gap-3 transition-colors group"
+                  >
+                    <Phone className="w-4 h-4 text-zinc-300" />
+                    <div className="min-w-0">
+                      <p className="text-[10px] font-mono text-[#777] uppercase">Telepon / WA</p>
+                      <p className="text-xs font-mono font-bold text-white group-hover:text-zinc-300 truncate">085162968089</p>
+                    </div>
+                  </a>
+                </div>
               </div>
             </div>
 
             {/* Help Center Accordion */}
-            <div className="border-b border-[#333]">
+            <div className="bg-[#050505] border border-[#222] rounded-2xl p-6 transition-colors">
               <button 
                 onClick={() => toggleAccordion("help")}
-                className="w-full flex items-center justify-between py-6 text-left cursor-pointer group"
+                className="w-full flex items-center justify-between text-left cursor-pointer group"
               >
-                <h3 className="font-sans text-3xl font-bold text-white">{t("support.helpCenter")}</h3>
-                <ChevronDown className={`w-6 h-6 text-white transition-transform duration-300 ${openAccordion === "help" ? "rotate-180" : ""}`} />
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-[#141414] border border-[#262626] flex items-center justify-center text-zinc-300">
+                    <ShieldCheck className="w-5 h-5" />
+                  </div>
+                  <h3 className="font-sans text-2xl font-bold text-white group-hover:text-zinc-300 transition-colors">{t("support.helpCenter")}</h3>
+                </div>
+                <ChevronDown className={`w-5 h-5 text-white transition-transform duration-300 ${openAccordion === "help" ? "rotate-180 text-zinc-300" : ""}`} />
               </button>
-              <div className={`overflow-hidden transition-all duration-300 ${openAccordion === "help" ? "max-h-[500px] pb-8 opacity-100" : "max-h-0 opacity-0"}`}>
-                <p className="font-sans text-[#FAF9F6]/70 text-base leading-relaxed">
+              <div className={`overflow-hidden transition-all duration-300 ${openAccordion === "help" ? "max-h-[500px] pt-5 opacity-100" : "max-h-0 opacity-0"}`}>
+                <p className="font-sans text-[#FAF9F6]/70 text-sm leading-relaxed mb-4">
                   {t("support.helpCenterDesc")}
                 </p>
+                <div className="p-4 bg-[#0C0C0C] rounded-xl border border-[#1C1C1C] text-xs font-sans text-[#888] space-y-2">
+                  <p className="text-white font-medium">Bantuan Cepat:</p>
+                  <p>• Transaksi dilindungi 100% dengan Rekening Bersama Escrow Tonal Zone.</p>
+                  <p>• Verifikasi barang & unboxing dalam 48 jam sebelum dana diteruskan ke penjual.</p>
+                  <p>• Layanan retur & klaim garansi resmi dipandu langsung oleh audio engineer kami.</p>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Right Image */}
-          <div className="relative w-full aspect-square md:aspect-[4/5] bg-[#030303] border border-[#222] flex items-center justify-center overflow-hidden">
-            <img src="https://plus.unsplash.com/premium_photo-1663091684433-db98edd5d130?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Moody Contact Desk" className="absolute inset-0 w-full h-full object-cover grayscale-[0.3]" />
+          {/* Right: Official Customer Service Card (Tanpa Gambar Orang) */}
+          <div className="w-full bg-[#080808] border border-[#222] rounded-2xl md:rounded-3xl p-8 sm:p-10 flex flex-col justify-between shadow-2xl relative overflow-hidden">
+            {/* Ambient Background Accent */}
+            <div className="absolute -right-16 -top-16 w-56 h-56 bg-white/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute -left-16 -bottom-16 w-56 h-56 bg-white/5 rounded-full blur-3xl pointer-events-none" />
+
+            <div className="relative z-10 space-y-6">
+              <div>
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#141414] border border-[#222] mb-3">
+                  <Headset className="w-3.5 h-3.5 text-zinc-300" />
+                  <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-300 font-bold">
+                    Official Support Desk
+                  </span>
+                </div>
+                <h3 className="font-heading text-2xl sm:text-3xl font-bold text-white tracking-tight">
+                  Hubungi Customer Service
+                </h3>
+                <p className="font-sans text-sm text-[#FAF9F6]/70 mt-2 leading-relaxed">
+                  Punya pertanyaan seputar kurva suara IEM, kendala transaksi escrow, atau klaim garansi? Tim support kami siap melayani Anda secara responsif.
+                </p>
+              </div>
+
+              {/* Direct Contact Cards */}
+              <div className="space-y-3 pt-1">
+                {/* Email Box */}
+                <a
+                  href="mailto:tonalzone@gmail.com"
+                  className="flex items-center justify-between p-4 rounded-2xl bg-[#0D0D0D] hover:bg-[#141414] border border-[#202020] transition-all group"
+                >
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <div className="w-11 h-11 rounded-xl bg-[#181818] border border-white/5 flex items-center justify-center text-zinc-300 shrink-0 group-hover:scale-105 transition-transform">
+                      <Mail className="w-5 h-5" />
+                    </div>
+                    <div className="min-w-0">
+                      <span className="text-[10px] font-mono uppercase tracking-wider text-[#777] block">
+                        Email Resmi
+                      </span>
+                      <span className="text-sm font-mono font-bold text-white group-hover:text-zinc-300 transition-colors truncate block">
+                        tonalzone@gmail.com
+                      </span>
+                    </div>
+                  </div>
+                  <span className="text-xs font-mono text-[#888] group-hover:text-white shrink-0 hidden sm:inline-block">
+                    Kirim Email &rarr;
+                  </span>
+                </a>
+
+                {/* Phone & WhatsApp Box */}
+                <a
+                  href="https://wa.me/6285162968089?text=Halo%20Customer%20Service%20Tonal%20Zone,%20saya%20memerlukan%20bantuan."
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-between p-4 rounded-2xl bg-[#0D0D0D] hover:bg-[#141414] border border-[#202020] transition-all group"
+                >
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <div className="w-11 h-11 rounded-xl bg-[#181818] border border-white/5 flex items-center justify-center text-zinc-300 shrink-0 group-hover:scale-105 transition-transform">
+                      <Phone className="w-5 h-5" />
+                    </div>
+                    <div className="min-w-0">
+                      <span className="text-[10px] font-mono uppercase tracking-wider text-[#777] block">
+                        Telepon & WhatsApp
+                      </span>
+                      <span className="text-sm font-mono font-bold text-white group-hover:text-zinc-300 transition-colors truncate block">
+                        085162968089
+                      </span>
+                    </div>
+                  </div>
+                  <span className="text-xs font-mono text-[#888] group-hover:text-white shrink-0 hidden sm:inline-block">
+                    Chat WhatsApp &rarr;
+                  </span>
+                </a>
+              </div>
+
+              {/* Main Primary Action Button */}
+              <div className="pt-2">
+                <a
+                  href="https://wa.me/6285162968089?text=Halo%20Customer%20Service%20Tonal%20Zone,%20saya%20memerlukan%20bantuan."
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full py-4 px-6 bg-white hover:bg-white text-black font-sans font-bold text-xs uppercase tracking-wider rounded-full transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-[0_0_20px_rgba(191,221,37,0.4)] cursor-pointer"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  <span>Hubungi Customer Service</span>
+                </a>
+              </div>
+
+              <div className="flex items-center justify-between pt-2 border-t border-[#181818] text-[11px] font-mono text-[#777]">
+                <span>Setiap Hari (08.00 - 22.00 WIB)</span>
+                <span className="text-zinc-300 font-semibold">Respon Cepat</span>
+              </div>
+            </div>
           </div>
 
         </section>

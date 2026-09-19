@@ -38,43 +38,47 @@ export default function ProductCard({
 }: ProductCardProps) {
   const { formatPrice } = useLocation();
 
-  // Dynamic marketplace tag (e.g. NEW ARRIVAL, BEST SELLER, FLAGSHIP, TOP RATED)
-  const displayBadge =
-    badgeText ||
-    product.badge ||
-    (product.price >= 1200
-      ? "FLAGSHIP"
-      : product.reviews >= 100
-      ? "BEST SELLER"
-      : product.rating >= 4.9
-      ? "TOP RATED"
-      : "NEW ARRIVAL");
+  // Strictly enforce only 3 product tags: NEW ARRIVAL, BEST SELLER, TOP RATED.
+  // Legendary Classic and any other tags are strictly disallowed and deleted.
+  const rawBadge = (badgeText || product.badge || "").trim().toLowerCase().replace(/[\-_]/g, " ");
+  let displayBadge: "NEW ARRIVAL" | "BEST SELLER" | "TOP RATED" | undefined = undefined;
+
+  if (rawBadge === "new arrival") {
+    displayBadge = "NEW ARRIVAL";
+  } else if (rawBadge === "best seller" || rawBadge === "bestseller") {
+    displayBadge = "BEST SELLER";
+  } else if (rawBadge === "top rated" || rawBadge === "toprated") {
+    displayBadge = "TOP RATED";
+  }
 
   const formattedTitle = formatProductTitle(product.name);
 
   return (
     <Link
       href={`/product/${product.id}`}
+      prefetch={false}
       className={`group cursor-pointer block flex flex-col h-full ${className}`}
     >
-      {/* 1. Square Image Container with Dark Industrial Border */}
-      <div className="aspect-square border border-[#1c1c1c] group-hover:border-[#444444] bg-[#050505] relative overflow-hidden flex items-center justify-center transition-colors duration-300">
+      {/* 1. Image Container with 16px Rounded Corners (Zero Borders) */}
+      <div className="aspect-square rounded-2xl bg-[#141414] group-hover:bg-[#1a1a1a] relative overflow-hidden flex items-center justify-center transition-colors duration-300">
         <img
           src={product.image}
           alt={product.name}
+          loading="lazy"
+          decoding="async"
           className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
         />
 
-        {/* Top-Right Tag Badge */}
+        {/* Top-Right Tag Badge (Rounded-Full Pill, Zero Border) */}
         {displayBadge && (
-          <div className="absolute top-2 right-2 sm:top-3 sm:right-3 bg-black/90 px-1.5 sm:px-2.5 py-0.5 sm:py-1 text-[8px] sm:text-[10px] font-mono text-[#CCCCCC] border border-[#222222] z-10 uppercase tracking-wider group-hover:border-[#444444] group-hover:text-white transition-colors">
+          <div className="absolute top-2.5 right-2.5 sm:top-3 sm:right-3 bg-[#2e2e2e] px-3 py-1 text-[9px] sm:text-[10px] font-sans font-bold text-white rounded-full z-10 uppercase tracking-wider shadow-md leading-none">
             {displayBadge}
           </div>
         )}
       </div>
 
       {/* 2. Crystal-Clear Visual Hierarchy & Title Case */}
-      <div className="flex flex-col mt-2 sm:mt-3 gap-0.5 sm:gap-1 w-full flex-1">
+      <div className="flex flex-col mt-2.5 sm:mt-3 gap-0.5 sm:gap-1 w-full flex-1">
         {/* Tier 1: Store / Brand Name */}
         <span className="text-[9px] sm:text-[11px] font-mono text-[#7A7A80] group-hover:text-[#A0A0A5] uppercase tracking-wider block truncate transition-colors">
           {product.storeName || product.brand || "Official Store"}
@@ -85,18 +89,24 @@ export default function ProductCard({
           {formattedTitle}
         </h3>
 
-        {/* Tier 3: Price on Bottom-Left (Soft Ivory) & Review on Bottom-Right */}
+        {/* Tier 3: Price on Bottom-Left & Warm Gold Review on Bottom-Right */}
         <div className="flex items-baseline justify-between gap-1.5 sm:gap-2 mt-auto pt-1 sm:pt-1.5">
           {/* Price */}
           <span className="font-sans text-xs sm:text-base md:text-lg font-bold text-[#EDEDED] tracking-wide">
             {formatPrice(product.price)}
           </span>
 
-          {/* Review at Bottom Right */}
+          {/* Review at Bottom Right (Warm Gold #fbbf24) */}
           <div className="flex items-center gap-0.5 sm:gap-1 text-[10px] sm:text-xs font-mono text-[#7A7A80] shrink-0">
-            <span className="text-[#BFDD25]">★</span>
-            <span className="font-medium text-[#C7C7CC]">{product.rating || 4.9}</span>
-            <span className="hidden sm:inline text-[#555555]">({product.reviews || 124})</span>
+            <span className="text-[#fbbf24]">★</span>
+            {product.reviews && product.reviews > 0 ? (
+              <>
+                <span className="font-medium text-[#C7C7CC]">{(product.rating || 0).toFixed(1)}</span>
+                <span className="hidden sm:inline text-[#555555]">({product.reviews})</span>
+              </>
+            ) : (
+              <span className="text-[#555555]">(0)</span>
+            )}
           </div>
         </div>
       </div>

@@ -101,14 +101,14 @@ export default function BrandCurvesPage() {
 
   return (
     <div className="space-y-6">
-      {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-[#1E1E1E]">
+      {/* Top Header (Zero border, soft modern elevation) */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
         <div>
           <div className="flex items-center gap-2.5">
-            <h1 className="text-xl font-bold font-sans tracking-tight text-white">
+            <h1 className="text-xl sm:text-2xl font-bold font-sans tracking-tight text-white">
               {isEn ? "Master Catalog & Acoustic FR Vault" : "Master Katalog & Kurva Akustik FR"}
             </h1>
-            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-[#050505] text-[#A1A1AA] border border-[#27272A]">
+            <span className="px-3 py-1 rounded-full text-[10px] font-mono font-medium bg-[#141414] text-[#A1A1AA]">
               IEC-711 Standard
             </span>
           </div>
@@ -119,11 +119,11 @@ export default function BrandCurvesPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2.5">
           <Link
             href="/graph"
             target="_blank"
-            className="inline-flex items-center gap-1.5 bg-[#050505] hover:bg-[#050505] text-[#FAF9F6] border border-[#1c1c1c] px-3.5 py-1.5 rounded-lg text-xs font-sans font-medium transition-colors cursor-pointer"
+            className="inline-flex items-center gap-2 bg-[#141414] hover:bg-[#1E1E1E] text-[#FAF9F6] px-4 py-2.5 rounded-full text-xs font-sans font-medium transition-colors cursor-pointer"
           >
             <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
@@ -132,7 +132,7 @@ export default function BrandCurvesPage() {
           </Link>
           <button
             type="button"
-            className="inline-flex items-center gap-1.5 bg-[#FAF9F6] text-black hover:bg-[#E5E5E5] px-3.5 py-1.5 rounded-lg text-xs font-sans font-bold transition-all shadow-sm cursor-pointer"
+            className="inline-flex items-center gap-2 bg-white text-black hover:bg-[#E5E5E5] px-5 py-2.5 rounded-full text-xs font-sans font-bold transition-all shadow-md cursor-pointer shrink-0"
           >
             <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -142,22 +142,23 @@ export default function BrandCurvesPage() {
         </div>
       </div>
 
-      {/* Selected Curve Visualizer Preview */}
+      {/* Selected Curve Visualizer Preview (Rounded-2xl, Zero Stroke) */}
       {selectedModel && (
-        <div className="bg-[#050505] border border-[#222222] rounded-xl p-5 space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-[#1E1E1E]">
+        <div className="bg-[#0A0A0A] rounded-2xl p-6 sm:p-7 space-y-5 shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1">
             <div>
-              <div className="flex items-center gap-2">
-                <h3 className="text-sm font-semibold text-white">{selectedModel.name}</h3>
-                <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#050505] text-[#D4D4D8] border border-[#2A2A2A]">
+              <div className="flex items-center gap-2.5">
+                <h3 className="text-base font-bold text-white font-sans">{selectedModel.name}</h3>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-mono bg-[#141F17] text-[#BFDD25]">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#BFDD25] shadow-[0_0_6px_rgba(191,221,37,0.8)]" />
                   {selectedModel.targetCompliance}
                 </span>
               </div>
-              <p className="text-xs font-mono text-[#71717A] mt-0.5">{selectedModel.driverConfig}</p>
+              <p className="text-xs font-mono text-[#71717A] mt-1">{selectedModel.driverConfig}</p>
             </div>
-            <div className="text-right font-mono text-xs">
-              <span className="text-[#71717A] block text-[10px] uppercase">Official MSRP</span>
-              <span className="text-white font-semibold">
+            <div className="text-left sm:text-right font-mono">
+              <span className="text-[#71717A] block text-[10px] uppercase tracking-wider">Official MSRP</span>
+              <span className="text-white font-bold text-base">
                 {currency === "IDR"
                   ? `Rp ${selectedModel.msrpIDR.toLocaleString("id-ID")}`
                   : `$${selectedModel.msrpUSD}`}
@@ -166,7 +167,7 @@ export default function BrandCurvesPage() {
           </div>
 
           {/* Clean FR Canvas */}
-          <div className="h-48 bg-[#030303] border border-[#1E1E1E] rounded-lg p-4 relative overflow-hidden flex flex-col justify-between">
+          <div className="h-52 bg-[#121212] rounded-xl p-5 relative overflow-hidden flex flex-col justify-between">
             <div className="flex justify-between items-center text-[10px] font-mono text-[#52525B]">
               <span>20 Hz</span>
               <span>100 Hz</span>
@@ -179,48 +180,48 @@ export default function BrandCurvesPage() {
             {/* SVG Frequency Response Curve */}
             <div className="relative w-full h-28 my-auto">
               <svg className="w-full h-full" preserveAspectRatio="none" viewBox="0 0 500 100">
-                <line x1="0" y1="50" x2="500" y2="50" stroke="#1A1A1A" strokeDasharray="3 3" strokeWidth="1" />
-                <line x1="0" y1="25" x2="500" y2="25" stroke="#141414" strokeWidth="1" />
-                <line x1="0" y1="75" x2="500" y2="75" stroke="#141414" strokeWidth="1" />
+                <line x1="0" y1="50" x2="500" y2="50" stroke="#222222" strokeDasharray="3 3" strokeWidth="1" />
+                <line x1="0" y1="25" x2="500" y2="25" stroke="#1A1A1A" strokeWidth="1" />
+                <line x1="0" y1="75" x2="500" y2="75" stroke="#1A1A1A" strokeWidth="1" />
                 
                 {/* Target Baseline Curve */}
                 <path
                   d="M0 65 Q50 35 100 50 T200 50 T300 20 T400 60 T500 70"
                   fill="none"
-                  stroke="#3F3F46"
+                  stroke="#52525B"
                   strokeWidth="1.5"
                   strokeDasharray="4 4"
                 />
                 
-                {/* Official Model Curve */}
+                {/* Official Model Curve with TonalZone Volt Accent */}
                 <path
                   d="M0 60 Q50 30 100 48 T200 49 T300 18 T400 55 T500 65"
                   fill="none"
-                  stroke="#FAF9F6"
-                  strokeWidth="2"
+                  stroke="#BFDD25"
+                  strokeWidth="2.5"
                 />
               </svg>
             </div>
 
-            <div className="flex items-center justify-between text-[10px] font-mono text-[#71717A]">
+            <div className="flex flex-wrap items-center justify-between gap-3 text-[10px] font-mono text-[#71717A]">
               <div className="flex items-center gap-4">
                 <span className="flex items-center gap-1.5 text-white">
-                  <span className="w-2.5 h-0.5 bg-white inline-block" /> {selectedModel.name.split(" ")[1]} Measurement
+                  <span className="w-2.5 h-0.5 bg-[#BFDD25] inline-block rounded-full shadow-[0_0_6px_rgba(191,221,37,0.8)]" /> {selectedModel.name.split(" ")[1]} Measurement
                 </span>
                 <span className="flex items-center gap-1.5 text-[#71717A]">
-                  <span className="w-2.5 h-0.5 bg-[#52525B] inline-block border-dashed" /> Harman Target
+                  <span className="w-2.5 h-0.5 bg-[#52525B] inline-block" /> Harman Target
                 </span>
               </div>
-              <span>{selectedModel.couplerStandard} • 1/12 Oct Smoothed</span>
+              <span className="px-2.5 py-1 rounded-full bg-[#181818] text-[#A1A1AA]">{selectedModel.couplerStandard} • 1/12 Oct Smoothed</span>
             </div>
           </div>
         </div>
       )}
 
-      {/* Master Models Table */}
-      <div className="bg-[#050505] border border-[#222222] rounded-xl overflow-hidden">
-        <div className="p-4 border-b border-[#1E1E1E] bg-[#050505] flex items-center justify-between">
-          <h3 className="text-xs font-bold text-white uppercase tracking-wider font-mono">
+      {/* Master Models Table (Rounded-2xl, Zero Stroke) */}
+      <div className="bg-[#0A0A0A] rounded-2xl overflow-hidden shadow-sm">
+        <div className="p-5 bg-[#0A0A0A] flex items-center justify-between">
+          <h3 className="text-xs font-bold text-white uppercase tracking-wider font-sans">
             {isEn ? "Master Acoustic Lineup" : "Daftar Model Master TANGZU"}
           </h3>
           <span className="text-xs font-mono text-[#71717A]">{models.length} Official Designs</span>
@@ -229,59 +230,59 @@ export default function BrandCurvesPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse font-sans text-xs">
             <thead>
-              <tr className="border-b border-[#1E1E1E] bg-[#030303] text-[10px] font-mono uppercase text-[#71717A] tracking-wider">
-                <th className="px-5 py-3.5">Model & Transducer</th>
-                <th className="px-5 py-3.5">Coupler</th>
-                <th className="px-5 py-3.5">Target Compliance</th>
-                <th className="px-5 py-3.5 text-right">MSRP</th>
-                <th className="px-5 py-3.5 text-center">Status</th>
-                <th className="px-5 py-3.5 text-right">Action</th>
+              <tr className="bg-[#0E0E0E] text-[10px] font-mono uppercase text-[#71717A] tracking-wider">
+                <th className="px-5 py-4 font-semibold">Model & Transducer</th>
+                <th className="px-5 py-4 font-semibold">Coupler</th>
+                <th className="px-5 py-4 font-semibold">Target Compliance</th>
+                <th className="px-5 py-4 text-right font-semibold">MSRP</th>
+                <th className="px-5 py-4 text-center font-semibold">Status</th>
+                <th className="px-5 py-4 text-right font-semibold">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#1A1A1A]">
+            <tbody className="divide-y divide-[#141414]/50">
               {models.map((m) => (
                 <tr
                   key={m.id}
                   onClick={() => setSelectedModel(m)}
-                  className={`hover:bg-[#050505] cursor-pointer transition-colors ${
-                    selectedModel?.id === m.id ? "bg-[#050505]" : ""
+                  className={`hover:bg-[#121212] cursor-pointer transition-colors ${
+                    selectedModel?.id === m.id ? "bg-[#141414]" : ""
                   }`}
                 >
-                  <td className="px-5 py-3.5">
+                  <td className="px-5 py-4">
                     <div className="flex flex-col">
-                      <span className="font-medium text-white">{m.name}</span>
-                      <span className="text-[11px] text-[#71717A] font-mono">{m.driverConfig}</span>
+                      <span className="font-semibold text-white">{m.name}</span>
+                      <span className="text-[11px] text-[#71717A] font-mono mt-0.5">{m.driverConfig}</span>
                     </div>
                   </td>
 
-                  <td className="px-5 py-3.5 font-mono text-xs text-[#A1A1AA]">
+                  <td className="px-5 py-4 font-mono text-xs text-[#A1A1AA]">
                     {m.couplerStandard}
                   </td>
 
-                  <td className="px-5 py-3.5 font-mono text-xs text-[#D4D4D8]">
+                  <td className="px-5 py-4 font-mono text-xs text-[#D4D4D8]">
                     {m.targetCompliance}
                   </td>
 
-                  <td className="px-5 py-3.5 text-right font-mono font-medium text-white text-xs">
+                  <td className="px-5 py-4 text-right font-mono font-bold text-white text-xs">
                     {currency === "IDR"
                       ? `Rp ${m.msrpIDR.toLocaleString("id-ID")}`
                       : `$${m.msrpUSD}`}
                   </td>
 
-                  <td className="px-5 py-3.5 text-center">
-                    <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#050505] text-[#A1A1AA] border border-[#27272A]">
+                  <td className="px-5 py-4 text-center">
+                    <span className="px-3 py-1 rounded-full text-[10px] font-mono bg-[#141414] text-[#A1A1AA]">
                       {m.status === "ACTIVE_PRODUCTION" ? "Active" : "Prototype"}
                     </span>
                   </td>
 
-                  <td className="px-5 py-3.5 text-right">
+                  <td className="px-5 py-4 text-right">
                     <button
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
                         setSelectedModel(m);
                       }}
-                      className="px-2.5 py-1 bg-[#050505] hover:bg-[#050505] text-[#D4D4D8] text-[10px] font-mono rounded border border-[#2A2A2A] transition-colors"
+                      className="px-3.5 py-1.5 bg-[#181818] hover:bg-[#222222] text-[#D4D4D8] hover:text-white text-[11px] font-mono rounded-full transition-colors cursor-pointer"
                     >
                       View
                     </button>

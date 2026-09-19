@@ -198,13 +198,60 @@ export default function SellerProductsPage() {
           setMasterDbList(dbList);
         }
 
+        let userStored: any = null;
+        try {
+          const raw = localStorage.getItem("tonalzone_user");
+          if (raw) userStored = JSON.parse(raw);
+        } catch (e) {}
+
+        const queryParams = new URLSearchParams();
+        let targetStoreId = userStored?.storeId;
+        if (!targetStoreId && sellerMode === "OFFICIAL_BRAND") {
+          targetStoreId = "store-moondrop-official";
+        }
+        if (targetStoreId) queryParams.set("storeId", targetStoreId);
+        if (userStored?.email) queryParams.set("sellerEmail", userStored.email);
+
+        let liveProducts: SellerProductItem[] = [];
+        try {
+          const res = await fetch(`/api/seller/products?${queryParams.toString()}`);
+          const data = await res.json();
+          if (data.success && Array.isArray(data.products) && data.products.length > 0) {
+            liveProducts = data.products;
+          }
+        } catch (err) {
+          console.warn("Failed to fetch /api/seller/products, checking fallback:", err);
+        }
+
+        // Merge with local storage custom products
+        const custom = localStorage.getItem("tonalzone_custom_products");
+        let customList: SellerProductItem[] = [];
+        if (custom) {
+          try {
+            customList = JSON.parse(custom);
+          } catch (e) {}
+        }
+
+        if (liveProducts.length > 0) {
+          const missing = customList.filter(
+            (cp) => !liveProducts.some((lp) => lp.id === cp.id || lp.name.toLowerCase() === cp.name.toLowerCase())
+          );
+          setProducts([...missing, ...liveProducts]);
+          return;
+        }
+
+        if (customList.length > 0) {
+          setProducts(customList);
+          return;
+        }
+
         if (sellerMode === "OFFICIAL_BRAND") {
-          // Official Brand (TANGZU) mode: load verified TANGZU models from database
-          const tangzuDb = (dbList || []).filter((p) => p.brand?.toUpperCase().includes("TANGZU"));
-          const mapped: SellerProductItem[] = tangzuDb.map((p, idx) => ({
-            id: p.id || `PRD-TZ-${idx + 1}`,
+          const brandName = userStored?.brandName || "MOONDROP";
+          const brandDb = (dbList || []).filter((p) => p.brand?.toUpperCase().includes(brandName.toUpperCase()));
+          const mapped: SellerProductItem[] = brandDb.map((p, idx) => ({
+            id: p.id || `PRD-BRAND-${idx + 1}`,
             name: p.name,
-            brand: "TANGZU",
+            brand: p.brand || brandName,
             category: p.category || "IN-EAR MONITORS",
             specsSummary: `${p.soundSignature ? p.soundSignature.replace(/_/g, " ") : "Studio Tuning"} • ${p.experienceLevel || "Official Model"}`,
             priceUSD: p.price,
@@ -221,37 +268,6 @@ export default function SellerProductsPage() {
           }));
           setProducts(mapped);
         } else {
-          // RETAIL_MERCHANT mode: Fetch products from database via /api/seller/products
-          let userStored: any = null;
-          try {
-            const raw = localStorage.getItem("tonalzone_user");
-            if (raw) userStored = JSON.parse(raw);
-          } catch (e) {}
-
-          const queryParams = new URLSearchParams();
-          if (userStored?.email) queryParams.set("sellerEmail", userStored.email);
-          if (userStored?.storeId) queryParams.set("storeId", userStored.storeId);
-
-          try {
-            const res = await fetch(`/api/seller/products?${queryParams.toString()}`);
-            const data = await res.json();
-            if (data.success && Array.isArray(data.products) && data.products.length > 0) {
-              setProducts(data.products);
-              return;
-            }
-          } catch (err) {
-            console.warn("Failed to fetch /api/seller/products, checking fallback:", err);
-          }
-
-          // Fallback to local storage if API returned empty or offline
-          const custom = localStorage.getItem("tonalzone_custom_products");
-          if (custom) {
-            try {
-              const customList: SellerProductItem[] = JSON.parse(custom);
-              setProducts(customList);
-              return;
-            } catch (e) {}
-          }
           setProducts([]);
         }
       } catch (err) {
@@ -644,16 +660,15 @@ export default function SellerProductsPage() {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="p-4 rounded-xl bg-[#050505] border border-[#2E2E2E] text-white text-xs font-mono flex items-center justify-between shadow-xl"
+            className="p-4 rounded-2xl bg-[#0E0E0E] text-white text-xs font-sans flex items-center justify-between shadow-xl"
           >
             <div className="flex items-center gap-2.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
-              <span>{claimToast}</span>
+              <span className="font-medium">{claimToast}</span>
             </div>
             <button
               type="button"
               onClick={() => setClaimToast(null)}
-              className="text-[#888] hover:text-white text-xs font-mono"
+              className="text-[#888] hover:text-white text-xs font-mono p-1 rounded-full hover:bg-[#1A1A1A] transition-colors"
             >
               ✕
             </button>
@@ -662,7 +677,7 @@ export default function SellerProductsPage() {
       </AnimatePresence>
 
       {/* Top Header & Action Controls */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-[#1E1E1E]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
         <div>
           <div className="flex items-center gap-2.5">
             <h1 className="text-xl font-bold font-sans tracking-tight text-white">
@@ -670,7 +685,7 @@ export default function SellerProductsPage() {
                 ? (isEn ? "TANGZU Audio Official Lineup" : "Katalog Resmi TANGZU Audio")
                 : (isEn ? "Store Product Catalog & Inventory" : "Katalog Produk & Inventaris Toko")}
             </h1>
-            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#050505] text-[#FAF9F6] border border-[#2E2E2E]">
+            <span className="px-3 py-1 rounded-full text-xs font-mono font-medium bg-[#121212] text-[#BFDD25]">
               {filteredProducts.length} {isEn ? "Products" : "Produk"}
             </span>
           </div>
@@ -692,7 +707,7 @@ export default function SellerProductsPage() {
               setSelectedMasterProduct(null);
               setIsMasterCatalogModalOpen(true);
             }}
-            className="inline-flex items-center gap-1.5 bg-[#FAF9F6] text-black hover:bg-[#E5E5E5] px-3.5 py-1.5 rounded-lg text-xs font-sans font-bold transition-all shadow-sm cursor-pointer"
+            className="inline-flex items-center gap-2 bg-white text-black hover:bg-neutral-200 px-4 py-2 rounded-full text-xs font-sans font-bold transition-all shadow-sm cursor-pointer"
           >
             <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 16.875h3.375m0 0h3.375m-3.375 0V13.5m0 3.375v3.375M6 5.625a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.875 0a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm12 0a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0z" />
@@ -702,7 +717,7 @@ export default function SellerProductsPage() {
 
           <Link
             href="/seller/products/new"
-            className="inline-flex items-center gap-1.5 bg-[#050505] hover:bg-[#050505] text-white border border-[#2E2E2E] hover:border-white px-3.5 py-1.5 rounded-lg text-xs font-sans font-medium transition-colors cursor-pointer"
+            className="inline-flex items-center gap-2 bg-[#141414] hover:bg-[#1E1E1E] text-white px-4 py-2 rounded-full text-xs font-sans font-medium transition-colors cursor-pointer"
           >
             <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -713,7 +728,7 @@ export default function SellerProductsPage() {
           <button
             type="button"
             onClick={handleExportCSV}
-            className="inline-flex items-center gap-1.5 bg-[#050505] hover:bg-[#050505] text-[#FAF9F6] border border-[#1c1c1c] hover:border-[#3E3E3E] px-3.5 py-1.5 rounded-lg text-xs font-sans font-medium transition-colors cursor-pointer"
+            className="inline-flex items-center gap-2 bg-[#141414] hover:bg-[#1E1E1E] text-white px-4 py-2 rounded-full text-xs font-sans font-medium transition-colors cursor-pointer"
           >
             <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
@@ -724,7 +739,7 @@ export default function SellerProductsPage() {
           <button
             type="button"
             onClick={() => setIsImportModalOpen(true)}
-            className="inline-flex items-center gap-1.5 bg-[#050505] hover:bg-[#050505] text-white border border-[#2E2E2E] hover:border-white px-3.5 py-1.5 rounded-lg text-xs font-sans font-medium transition-colors cursor-pointer"
+            className="inline-flex items-center gap-2 bg-[#141414] hover:bg-[#1E1E1E] text-white px-4 py-2 rounded-full text-xs font-sans font-medium transition-colors cursor-pointer"
           >
             <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
@@ -734,10 +749,10 @@ export default function SellerProductsPage() {
         </div>
       </div>
 
-      {/* Main Table Card Container */}
-      <div className="bg-[#050505] border border-[#222222] rounded-xl overflow-hidden flex flex-col">
+      {/* Main Table Card Container (Zero-Stroke Elevation) */}
+      <div className="bg-[#0A0A0A] rounded-2xl overflow-hidden flex flex-col shadow-sm">
         {/* Toolbar: Search, Filters & Tabs */}
-        <div className="p-4 border-b border-[#1E1E1E] bg-[#050505] flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div className="p-5 bg-[#0A0A0A] flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           {/* Status Tabs */}
           <div className="flex items-center gap-1.5 overflow-x-auto pb-1 lg:pb-0">
             {[
@@ -750,14 +765,14 @@ export default function SellerProductsPage() {
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-sans transition-all cursor-pointer whitespace-nowrap border ${
+                className={`px-4 py-2 rounded-full text-xs font-sans transition-all cursor-pointer whitespace-nowrap ${
                   activeTab === tab.id
-                    ? "bg-[#050505] text-[#FAF9F6] font-semibold border-[#383838] shadow-sm"
-                    : "text-[#8E8E93] hover:text-[#FAF9F6] hover:bg-[#050505] border-transparent"
+                    ? "bg-white text-black font-semibold shadow-md"
+                    : "text-[#8E8E93] hover:text-white hover:bg-[#141414]"
                 }`}
               >
                 {tab.label}
-                <span className="ml-1.5 text-[10px] font-mono text-[#777]">({tab.count})</span>
+                <span className={`ml-1.5 text-[10px] font-mono ${activeTab === tab.id ? "text-black/60" : "text-[#777]"}`}>({tab.count})</span>
               </button>
             ))}
           </div>
@@ -781,7 +796,7 @@ export default function SellerProductsPage() {
             </div>
 
             <div className="relative w-full sm:w-64">
-              <svg className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#71717A]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <svg className="w-3.5 h-3.5 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#71717A]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
               <input
@@ -789,7 +804,7 @@ export default function SellerProductsPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={isEn ? "Search model, brand, specs..." : "Cari produk, brand, spek..."}
-                className="w-full bg-[#050505] border border-[#2A2A2A] rounded-lg pl-9 pr-8 py-1.5 text-xs font-sans text-white placeholder:text-[#666] focus:outline-none focus:border-[#555] transition-colors"
+                className="w-full bg-[#121212] rounded-xl pl-9 pr-8 py-2.5 text-xs font-sans text-white placeholder:text-[#666] outline-none border-0 focus:ring-1 focus:ring-white/20 transition-all"
               />
               {searchQuery && (
                 <button
@@ -810,7 +825,7 @@ export default function SellerProductsPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse font-sans text-xs">
             <thead>
-              <tr className="border-b border-[#1E1E1E] bg-[#030303] text-[10px] font-mono uppercase text-[#777] tracking-wider">
+              <tr className="bg-[#0E0E0E] text-[10px] font-mono uppercase text-[#777] tracking-wider">
                 <th className="px-5 py-3.5">{isEn ? "Product & Gallery" : "Produk & Galeri"}</th>
                 <th className="px-5 py-3.5">{isEn ? "Brand / Category" : "Brand / Kategori"}</th>
                 <th className="px-5 py-3.5 text-right">{isEn ? "Price" : "Harga Jual"}</th>
@@ -819,7 +834,7 @@ export default function SellerProductsPage() {
                 <th className="px-5 py-3.5 text-right">{isEn ? "Actions" : "Aksi"}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#1A1A1A]">
+            <tbody className="divide-y divide-white/[0.04]">
               {filteredProducts.length > 0 ? (
                 filteredProducts.map((prod) => {
                   const hasVariants = prod.variants && prod.variants.length > 0;
@@ -837,12 +852,12 @@ export default function SellerProductsPage() {
 
                   return (
                     <React.Fragment key={prod.id}>
-                      <tr className="hover:bg-[#050505] transition-colors">
+                      <tr className="hover:bg-[#121212]/60 transition-colors">
                         {/* Product Thumbnail & Name & Specs */}
                         <td className="px-5 py-3.5">
                           <div className="flex items-center gap-3">
                             {/* Product Image / Placeholder Graphic with Photo Count Pill */}
-                            <div className="w-12 h-12 rounded-lg bg-[#050505] border border-[#2A2A2A] overflow-hidden flex items-center justify-center text-[#777] shrink-0 relative group shadow-inner">
+                            <div className="w-12 h-12 rounded-xl bg-[#121212] overflow-hidden flex items-center justify-center text-[#777] shrink-0 relative group">
                               {coverImage ? (
                                 <img src={coverImage} alt={prod.name} className="w-full h-full object-cover" />
                               ) : (
@@ -870,7 +885,7 @@ export default function SellerProductsPage() {
                               )}
 
                               {allImages.length > 1 && (
-                                <span className="absolute bottom-0.5 right-0.5 bg-black/80 text-[8px] font-mono text-white px-1 rounded">
+                                <span className="absolute bottom-0.5 right-0.5 bg-black/80 text-[8px] font-mono text-white px-1.5 py-0.5 rounded-full">
                                   +{allImages.length}
                                 </span>
                               )}
@@ -883,7 +898,7 @@ export default function SellerProductsPage() {
                                   <button
                                     type="button"
                                     onClick={() => toggleExpandVariants(prod.id)}
-                                    className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-[#050505] hover:bg-[#050505] text-[#AAA] border border-[#333] transition-colors cursor-pointer flex items-center gap-1"
+                                    className="px-2 py-0.5 rounded-full text-[9px] font-mono font-medium bg-[#141414] hover:bg-[#1E1E1E] text-[#AAA] hover:text-white transition-colors cursor-pointer flex items-center gap-1"
                                   >
                                     <span>{prod.variants!.length} {isEn ? "Variants" : "Varian"}</span>
                                     <svg
@@ -906,7 +921,7 @@ export default function SellerProductsPage() {
                           </div>
                         </td>
 
-                        {/* Brand & Category (Subtle Gray Visual Hierarchy) */}
+                        {/* Brand & Category */}
                         <td className="px-5 py-3.5 whitespace-nowrap">
                           <div className="flex flex-col">
                             <span className="font-mono font-bold text-white text-xs">{prod.brand}</span>
@@ -934,11 +949,11 @@ export default function SellerProductsPage() {
 
                         {/* Status */}
                         <td className="px-5 py-3.5 text-center whitespace-nowrap">
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[10px] font-mono font-medium uppercase tracking-wider bg-[#050505] text-[#D4D4D8] border border-[#27272A]">
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-mono font-medium uppercase tracking-wider bg-[#121212] text-[#D4D4D8]">
                             <span
                               className={`w-1.5 h-1.5 rounded-full ${
                                 prod.status === "APPROVED"
-                                  ? "bg-emerald-400"
+                                  ? "bg-[#BFDD25] shadow-[0_0_6px_rgba(191,221,37,0.7)]"
                                   : prod.status === "PENDING"
                                   ? "bg-amber-400"
                                   : "bg-rose-400"
@@ -958,14 +973,14 @@ export default function SellerProductsPage() {
                             <button
                               type="button"
                               onClick={() => setEditProduct(prod)}
-                              className="px-2.5 py-1 bg-[#050505] hover:bg-[#050505] border border-[#2E2E2E] text-white text-[11px] font-mono rounded transition-colors cursor-pointer"
+                              className="px-3 py-1.5 bg-[#141414] hover:bg-[#1E1E1E] text-white text-[11px] font-mono rounded-full transition-colors cursor-pointer"
                             >
                               {isEn ? "Quick Edit" : "Edit Cepat"}
                             </button>
                             <button
                               type="button"
                               onClick={() => setDeleteProduct(prod)}
-                              className="p-1 bg-[#050505] hover:bg-[#050505] border border-[#2E2E2E] hover:border-white text-[#888] hover:text-white rounded transition-colors cursor-pointer"
+                              className="p-2 bg-[#141414] hover:bg-rose-500/20 text-[#888] hover:text-rose-400 rounded-full transition-colors cursor-pointer"
                               title={isEn ? "Delete Product" : "Hapus Produk"}
                             >
                               <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -978,24 +993,24 @@ export default function SellerProductsPage() {
 
                       {/* EXPANDED VARIANTS SUB-ROWS */}
                       {hasVariants && isExpanded && (
-                        <tr className="bg-[#030303]">
-                          <td colSpan={6} className="px-5 py-3 border-y border-[#1A1A1A]">
+                        <tr className="bg-[#0D0D0D]">
+                          <td colSpan={6} className="px-5 py-4">
                             <div className="space-y-2 pl-14">
                               <span className="text-[10px] font-mono uppercase text-[#777] tracking-wider block">
                                 {isEn ? "Product Variants & Option Breakdown:" : "Rincian Varian & Opsi Produk:"}
                               </span>
-                              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
                                 {prod.variants!.map((v) => (
                                   <div
                                     key={v.id}
-                                    className="p-2.5 rounded-lg bg-[#050505] border border-[#222] flex items-center justify-between text-xs font-mono"
+                                    className="p-3 rounded-xl bg-[#141414] flex items-center justify-between text-xs font-mono"
                                   >
                                     <div>
                                       <p className="text-white font-medium text-[11px]">{v.name}</p>
                                       {v.sku && <p className="text-[9px] text-[#666]">{v.sku}</p>}
                                     </div>
                                     <div className="text-right">
-                                      <p className="font-bold text-emerald-400">{formatPrice(v.priceUSD)}</p>
+                                      <p className="font-bold text-[#BFDD25]">{formatPrice(v.priceUSD)}</p>
                                       <p className="text-[10px] text-[#888]">{v.stock} {isEn ? "units" : "unit"}</p>
                                     </div>
                                   </div>
@@ -1011,8 +1026,8 @@ export default function SellerProductsPage() {
               ) : (
                 <tr>
                   <td colSpan={6} className="py-16 text-center">
-                    <div className="flex flex-col items-center justify-center max-w-md mx-auto space-y-3">
-                      <div className="w-12 h-12 rounded-2xl bg-[#050505] border border-[#1c1c1c] flex items-center justify-center text-[#71717A]">
+                    <div className="flex flex-col items-center justify-center max-w-md mx-auto space-y-4">
+                      <div className="w-14 h-14 rounded-2xl bg-[#121212] flex items-center justify-center text-[#71717A]">
                         <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" />
                         </svg>
@@ -1034,7 +1049,7 @@ export default function SellerProductsPage() {
                             setSelectedMasterProduct(null);
                             setIsMasterCatalogModalOpen(true);
                           }}
-                          className="px-4 py-2 bg-[#FAF9F6] text-black hover:bg-[#E5E5E5] text-xs font-sans font-bold rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer shadow-sm"
+                          className="px-5 py-2.5 bg-white text-black hover:bg-neutral-200 text-xs font-sans font-bold rounded-full transition-colors flex items-center gap-1.5 cursor-pointer shadow-sm"
                         >
                           <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 16.875h3.375m0 0h3.375m-3.375 0V13.5m0 3.375v3.375M6 5.625a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.875 0a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm12 0a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0z" />
@@ -1043,7 +1058,7 @@ export default function SellerProductsPage() {
                         </button>
                         <Link
                           href="/seller/products/new"
-                          className="px-4 py-2 bg-[#050505] hover:bg-[#050505] text-white border border-[#2E2E2E] text-xs font-sans rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer"
+                          className="px-5 py-2.5 bg-[#141414] hover:bg-[#1E1E1E] text-white text-xs font-sans font-medium rounded-full transition-colors flex items-center gap-1.5 cursor-pointer"
                         >
                           <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -1053,7 +1068,7 @@ export default function SellerProductsPage() {
                         <button
                           type="button"
                           onClick={() => setIsImportModalOpen(true)}
-                          className="px-4 py-2 bg-[#050505] hover:bg-[#050505] text-white border border-[#2E2E2E] text-xs font-mono rounded-lg transition-colors cursor-pointer"
+                          className="px-5 py-2.5 bg-[#141414] hover:bg-[#1E1E1E] text-white text-xs font-mono rounded-full transition-colors cursor-pointer"
                         >
                           {isEn ? "Import CSV" : "Import File CSV"}
                         </button>
@@ -1083,9 +1098,9 @@ export default function SellerProductsPage() {
               initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
-              className="relative w-full max-w-2xl bg-[#050505] border border-[#2A2A2A] rounded-2xl shadow-2xl p-6 font-sans z-10 max-h-[90vh] overflow-y-auto"
+              className="relative w-full max-w-2xl bg-[#0A0A0A] rounded-2xl shadow-2xl p-6 sm:p-7 font-sans z-10 max-h-[90vh] overflow-y-auto"
             >
-              <div className="flex items-center justify-between pb-4 border-b border-[#222]">
+              <div className="flex items-center justify-between pb-4">
                 <div>
                   <h3 className="text-base font-bold text-white">
                     {isEn ? "Import Universal Audio Products from CSV" : "Import Produk Audio dari File CSV"}
@@ -1099,7 +1114,7 @@ export default function SellerProductsPage() {
                 <button
                   type="button"
                   onClick={() => setIsImportModalOpen(false)}
-                  className="p-1 rounded text-[#777] hover:text-white"
+                  className="p-1.5 rounded-full text-[#777] hover:text-white hover:bg-[#1A1A1A] transition-colors"
                 >
                   <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -1108,10 +1123,10 @@ export default function SellerProductsPage() {
               </div>
 
               {/* Upload Dropzone */}
-              <div className="mt-5 space-y-4">
+              <div className="mt-4 space-y-4">
                 <div
                   onClick={() => fileInputRef.current?.click()}
-                  className="border-2 border-dashed border-[#333] hover:border-[#555] bg-[#050505] hover:bg-[#050505] rounded-xl p-8 flex flex-col items-center justify-center text-center cursor-pointer transition-all"
+                  className="bg-[#121212] hover:bg-[#161616] rounded-2xl p-8 flex flex-col items-center justify-center text-center cursor-pointer transition-all"
                 >
                   <input
                     ref={fileInputRef}
@@ -1124,8 +1139,8 @@ export default function SellerProductsPage() {
                       }
                     }}
                   />
-                  <div className="w-12 h-12 rounded-full bg-[#050505] border border-[#333] flex items-center justify-center text-emerald-400 mb-3">
-                    <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <div className="w-14 h-14 rounded-2xl bg-[#181818] flex items-center justify-center text-[#BFDD25] mb-3 shadow-[0_0_12px_rgba(191,221,37,0.2)]">
+                    <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
                     </svg>
                   </div>
@@ -1137,12 +1152,12 @@ export default function SellerProductsPage() {
                   </p>
                 </div>
 
-                <div className="flex items-center justify-between text-xs font-mono">
+                <div className="flex items-center justify-between text-xs font-mono px-1">
                   <span className="text-[#777]">{isEn ? "Need the universal template?" : "Butuh template CSV universal?"}</span>
                   <button
                     type="button"
                     onClick={handleDownloadTemplate}
-                    className="text-emerald-400 hover:text-emerald-300 font-bold underline cursor-pointer"
+                    className="text-[#BFDD25] hover:underline font-bold cursor-pointer"
                   >
                     {isEn ? "Download Sample Template (.CSV)" : "Unduh Template Universal (.CSV)"}
                   </button>
@@ -1150,19 +1165,19 @@ export default function SellerProductsPage() {
 
                 {/* Parsed Data Preview Table */}
                 {parsedCsvData.length > 0 && (
-                  <div className="space-y-2 pt-2 border-t border-[#222]">
+                  <div className="space-y-2 pt-3">
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-bold text-white font-mono">
                         {isEn ? `Preview: ${parsedCsvData.length} Items Found` : `Pratinjau: ${parsedCsvData.length} Produk Terbaca`}
                       </span>
-                      <span className="text-[10px] font-mono text-emerald-400">
+                      <span className="text-[10px] font-mono text-[#BFDD25]">
                         {isEn ? "Ready to import" : "Siap diimport"}
                       </span>
                     </div>
 
-                    <div className="max-h-48 overflow-y-auto border border-[#2A2A2A] rounded-lg bg-[#030303]">
+                    <div className="max-h-48 overflow-y-auto rounded-xl bg-[#0D0D0D]">
                       <table className="w-full text-left text-[11px] font-sans">
-                        <thead className="bg-[#050505] border-b border-[#2A2A2A] font-mono text-[9px] uppercase text-[#777]">
+                        <thead className="bg-[#121212] font-mono text-[9px] uppercase text-[#777]">
                           <tr>
                             <th className="px-3 py-2">Name</th>
                             <th className="px-3 py-2">Brand</th>
@@ -1171,13 +1186,13 @@ export default function SellerProductsPage() {
                             <th className="px-3 py-2 text-right">Stock</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-[#1E1E1E]">
+                        <tbody className="divide-y divide-white/[0.04]">
                           {parsedCsvData.map((item, idx) => (
-                            <tr key={idx} className="hover:bg-[#050505]">
+                            <tr key={idx} className="hover:bg-[#161616]/60">
                               <td className="px-3 py-2 text-white font-medium">{item.name}</td>
                               <td className="px-3 py-2 text-[#AAA]">{item.brand}</td>
                               <td className="px-3 py-2 text-[#888] font-mono text-[10px]">{item.category}</td>
-                              <td className="px-3 py-2 text-right font-mono text-emerald-400">${item.priceUSD}</td>
+                              <td className="px-3 py-2 text-right font-mono text-[#BFDD25]">${item.priceUSD}</td>
                               <td className="px-3 py-2 text-right font-mono text-white">{item.stock}</td>
                             </tr>
                           ))}
@@ -1189,11 +1204,11 @@ export default function SellerProductsPage() {
               </div>
 
               {/* Modal Actions */}
-              <div className="flex items-center justify-end gap-2.5 pt-5 mt-5 border-t border-[#222]">
+              <div className="flex items-center justify-end gap-2.5 pt-6 mt-4">
                 <button
                   type="button"
                   onClick={() => setIsImportModalOpen(false)}
-                  className="px-4 py-2 bg-[#050505] hover:bg-[#050505] text-white text-xs font-mono rounded-lg transition-colors cursor-pointer"
+                  className="px-5 py-2.5 bg-[#141414] hover:bg-[#1E1E1E] text-white text-xs font-mono rounded-full transition-colors cursor-pointer"
                 >
                   {isEn ? "Cancel" : "Batal"}
                 </button>
@@ -1201,7 +1216,7 @@ export default function SellerProductsPage() {
                   type="button"
                   disabled={parsedCsvData.length === 0}
                   onClick={handleConfirmImport}
-                  className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-40 disabled:pointer-events-none text-black font-bold text-xs font-sans rounded-lg transition-colors shadow-sm cursor-pointer"
+                  className="px-6 py-2.5 bg-white hover:bg-neutral-200 disabled:opacity-40 disabled:pointer-events-none text-black font-bold text-xs font-sans rounded-full transition-colors shadow-sm cursor-pointer"
                 >
                   {isEn ? `Import ${parsedCsvData.length} Products` : `Import ${parsedCsvData.length} Produk`}
                 </button>
@@ -1227,17 +1242,17 @@ export default function SellerProductsPage() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="relative w-full max-w-lg bg-[#050505] border border-[#2A2A2A] rounded-2xl shadow-2xl p-6 font-sans z-10 space-y-5 max-h-[90vh] overflow-y-auto"
+              className="relative w-full max-w-lg bg-[#0A0A0A] rounded-2xl shadow-2xl p-6 sm:p-7 font-sans z-10 space-y-5 max-h-[90vh] overflow-y-auto"
             >
               {/* Header */}
-              <div className="flex items-center justify-between pb-3 border-b border-[#222]">
+              <div className="flex items-center justify-between pb-1">
                 <div>
                   <h3 className="text-sm font-bold text-white">
                     {isEn ? "Quick Edit Product & Gallery" : "Edit Cepat Produk & Galeri Foto"}
                   </h3>
-                  <p className="text-[10px] font-mono text-[#888]">{editProduct.brand} • {editProduct.name}</p>
+                  <p className="text-[10px] font-mono text-[#888] mt-0.5">{editProduct.brand} • {editProduct.name}</p>
                 </div>
-                <button onClick={() => setEditProduct(null)} className="text-[#888] hover:text-white">
+                <button onClick={() => setEditProduct(null)} className="p-1.5 rounded-full text-[#888] hover:text-white hover:bg-[#1A1A1A] transition-colors">
                   <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                   </svg>
@@ -1245,7 +1260,7 @@ export default function SellerProductsPage() {
               </div>
 
               {/* Multi-Image Gallery Manager in Quick Edit */}
-              <div className="space-y-3 p-3.5 rounded-xl bg-[#050505] border border-[#1c1c1c]">
+              <div className="space-y-3 p-4 rounded-2xl bg-[#121212]">
                 <div className="flex items-center justify-between">
                   <div>
                     <h4 className="text-xs font-bold text-white">
@@ -1270,7 +1285,7 @@ export default function SellerProductsPage() {
                   <button
                     type="button"
                     onClick={() => editImageInputRef.current?.click()}
-                    className="px-2.5 py-1 bg-[#050505] hover:bg-[#050505] text-white border border-[#2E2E2E] hover:border-white text-[10px] font-mono font-bold rounded-lg transition-colors cursor-pointer flex items-center gap-1"
+                    className="px-3 py-1.5 bg-[#181818] hover:bg-[#222] text-white text-[10px] font-mono font-medium rounded-full transition-colors cursor-pointer flex items-center gap-1"
                   >
                     <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -1285,13 +1300,13 @@ export default function SellerProductsPage() {
                     {editProduct.images.map((img, idx) => (
                       <div
                         key={idx}
-                        className={`relative rounded-lg overflow-hidden border h-20 bg-[#050505] group ${
-                          idx === 0 ? "border-white/50" : "border-[#1c1c1c]"
+                        className={`relative rounded-xl overflow-hidden h-20 bg-[#181818] group ${
+                          idx === 0 ? "ring-2 ring-[#BFDD25]/60" : ""
                         }`}
                       >
                         <img src={img} alt={`Gallery ${idx + 1}`} className="w-full h-full object-cover" />
                         {idx === 0 && (
-                          <span className="absolute top-1 left-1 bg-black/90 text-white text-[8px] font-mono px-1 rounded border border-[#333]">
+                          <span className="absolute top-1 left-1 bg-black/90 text-[#BFDD25] text-[8px] font-mono px-1.5 py-0.5 rounded-full">
                             Cover
                           </span>
                         )}
@@ -1300,7 +1315,7 @@ export default function SellerProductsPage() {
                             <button
                               type="button"
                               onClick={() => handleSetPrimaryImageInEdit(idx)}
-                              className="w-full py-0.5 bg-[#050505] hover:bg-[#050505] text-white text-[8px] font-mono rounded border border-[#444]"
+                              className="w-full py-1 bg-[#222] hover:bg-[#333] text-white text-[9px] font-mono rounded-lg transition-colors"
                               title="Set as Main Cover"
                             >
                               {isEn ? "Set Main" : "Utama"}
@@ -1309,7 +1324,7 @@ export default function SellerProductsPage() {
                           <button
                             type="button"
                             onClick={() => handleRemoveImageInEdit(idx)}
-                            className="w-full py-0.5 bg-[#050505] hover:bg-[#050505] text-white text-[8px] font-mono rounded border border-[#2E2E2E]"
+                            className="w-full py-1 bg-rose-500/20 hover:bg-rose-500/40 text-rose-300 text-[9px] font-mono rounded-lg transition-colors"
                           >
                             {isEn ? "Delete" : "Hapus"}
                           </button>
@@ -1319,13 +1334,13 @@ export default function SellerProductsPage() {
                   </div>
                 ) : editProduct.image ? (
                   <div className="flex items-center gap-3">
-                    <div className="w-16 h-16 rounded-lg overflow-hidden border border-[#333]">
+                    <div className="w-16 h-16 rounded-xl overflow-hidden bg-[#181818]">
                       <img src={editProduct.image} alt="Product" className="w-full h-full object-cover" />
                     </div>
                     <button
                       type="button"
                       onClick={() => editImageInputRef.current?.click()}
-                      className="px-3 py-1.5 bg-[#050505] hover:bg-[#050505] text-white text-xs font-mono rounded-lg border border-[#333]"
+                      className="px-4 py-2 bg-[#181818] hover:bg-[#222] text-white text-xs font-mono rounded-full transition-colors"
                     >
                       {isEn ? "Upload More Images" : "Tambah Foto Lagi"}
                     </button>
@@ -1333,7 +1348,7 @@ export default function SellerProductsPage() {
                 ) : (
                   <div
                     onClick={() => editImageInputRef.current?.click()}
-                    className="p-4 rounded-lg border border-dashed border-[#333] hover:border-[#555] bg-[#050505] text-center cursor-pointer"
+                    className="p-5 rounded-2xl bg-[#161616] hover:bg-[#1A1A1A] text-center cursor-pointer transition-colors"
                   >
                     <p className="text-xs text-[#888]">{isEn ? "Click to upload product gallery images" : "Klik untuk unggah foto galeri produk"}</p>
                   </div>
@@ -1347,12 +1362,12 @@ export default function SellerProductsPage() {
                     {currency === "IDR" ? (isEn ? "Base Price (USD)" : "Harga Dasar (USD)") : (isEn ? "Base Price (USD)" : "Harga Dasar (USD)")}
                   </label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-400 text-xs font-mono font-bold">$</span>
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#BFDD25] text-xs font-mono font-bold">$</span>
                     <input
                       type="number"
                       value={editProduct.priceUSD}
                       onChange={(e) => setEditProduct({ ...editProduct, priceUSD: parseFloat(e.target.value) || 0 })}
-                      className="w-full bg-[#050505] border border-[#2A2A2A] rounded-lg pl-7 pr-3 py-2 text-xs font-mono text-white outline-none focus:border-white font-bold text-emerald-400"
+                      className="w-full bg-[#121212] rounded-xl pl-8 pr-3 py-2.5 text-xs font-mono text-white outline-none border-0 focus:ring-1 focus:ring-white/20 font-bold text-[#BFDD25]"
                     />
                   </div>
                   {currency === "IDR" && (
@@ -1365,11 +1380,11 @@ export default function SellerProductsPage() {
                   <label className="block text-[10px] font-mono text-[#888] uppercase mb-1">
                     {isEn ? "Base Stock Count" : "Jumlah Stok Utama"}
                   </label>
-                  <div className="flex items-center bg-[#050505] border border-[#2A2A2A] rounded-lg overflow-hidden">
+                  <div className="flex items-center bg-[#121212] rounded-xl overflow-hidden">
                     <button
                       type="button"
                       onClick={() => setEditProduct({ ...editProduct, stock: Math.max(0, editProduct.stock - 1) })}
-                      className="px-3 py-2 text-[#888] hover:text-white hover:bg-[#080808] transition-colors font-mono"
+                      className="px-3.5 py-2.5 text-[#888] hover:text-white hover:bg-[#181818] transition-colors font-mono"
                     >
                       -
                     </button>
@@ -1382,7 +1397,7 @@ export default function SellerProductsPage() {
                     <button
                       type="button"
                       onClick={() => setEditProduct({ ...editProduct, stock: editProduct.stock + 1 })}
-                      className="px-3 py-2 text-[#888] hover:text-white hover:bg-[#080808] transition-colors font-mono"
+                      className="px-3.5 py-2.5 text-[#888] hover:text-white hover:bg-[#181818] transition-colors font-mono"
                     >
                       +
                     </button>
@@ -1391,7 +1406,7 @@ export default function SellerProductsPage() {
               </div>
 
               {/* Product Variants Section */}
-              <div className="space-y-3 pt-2 border-t border-[#222]">
+              <div className="space-y-3 pt-2">
                 <div className="flex items-center justify-between">
                   <div>
                     <h4 className="text-xs font-bold text-white">
@@ -1404,7 +1419,7 @@ export default function SellerProductsPage() {
                   <button
                     type="button"
                     onClick={handleAddVariantInEdit}
-                    className="px-2.5 py-1 bg-[#050505] hover:bg-[#050505] text-white border border-[#2E2E2E] hover:border-white text-[10px] font-mono font-bold rounded-lg transition-colors cursor-pointer flex items-center gap-1"
+                    className="px-3 py-1.5 bg-[#141414] hover:bg-[#1E1E1E] text-white text-[10px] font-mono font-medium rounded-full transition-colors cursor-pointer flex items-center gap-1"
                   >
                     <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -1419,7 +1434,7 @@ export default function SellerProductsPage() {
                     {editProduct.variants.map((v) => (
                       <div
                         key={v.id}
-                        className="p-2.5 rounded-lg bg-[#050505] border border-[#2A2A2A] flex items-center gap-2 text-xs font-mono"
+                        className="p-3 rounded-xl bg-[#121212] flex items-center gap-2 text-xs font-mono"
                       >
                         <div className="flex-1">
                           <input
@@ -1427,24 +1442,24 @@ export default function SellerProductsPage() {
                             value={v.name}
                             onChange={(e) => handleUpdateVariantInEdit(v.id, "name", e.target.value)}
                             placeholder="Variant Name"
-                            className="w-full bg-[#050505] border border-[#333] rounded px-2 py-1 text-[11px] text-white outline-none focus:border-white"
+                            className="w-full bg-[#181818] rounded-lg px-2.5 py-1.5 text-[11px] text-white outline-none border-0 focus:ring-1 focus:ring-white/20"
                           />
                         </div>
                         <div className="w-24 relative">
-                          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-emerald-400 text-[10px]">$</span>
+                          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#BFDD25] text-[10px] font-bold">$</span>
                           <input
                             type="number"
                             value={v.priceUSD}
                             onChange={(e) => handleUpdateVariantInEdit(v.id, "priceUSD", parseFloat(e.target.value) || 0)}
                             placeholder="Price"
-                            className="w-full bg-[#050505] border border-[#333] rounded pl-5 pr-2 py-1 text-[11px] text-emerald-400 font-bold outline-none focus:border-white text-right"
+                            className="w-full bg-[#181818] rounded-lg pl-5 pr-2 py-1.5 text-[11px] text-[#BFDD25] font-bold outline-none border-0 focus:ring-1 focus:ring-white/20 text-right"
                           />
                         </div>
-                        <div className="w-24 flex items-center bg-[#050505] border border-[#333] rounded overflow-hidden">
+                        <div className="w-24 flex items-center bg-[#181818] rounded-lg overflow-hidden">
                           <button
                             type="button"
                             onClick={() => handleUpdateVariantInEdit(v.id, "stock", Math.max(0, (v.stock || 0) - 1))}
-                            className="px-1.5 py-1 text-[#888] hover:text-white hover:bg-[#080808] transition-colors"
+                            className="px-2 py-1.5 text-[#888] hover:text-white hover:bg-[#222] transition-colors"
                           >
                             -
                           </button>
@@ -1458,7 +1473,7 @@ export default function SellerProductsPage() {
                           <button
                             type="button"
                             onClick={() => handleUpdateVariantInEdit(v.id, "stock", (v.stock || 0) + 1)}
-                            className="px-1.5 py-1 text-[#888] hover:text-white hover:bg-[#080808] transition-colors"
+                            className="px-2 py-1.5 text-[#888] hover:text-white hover:bg-[#222] transition-colors"
                           >
                             +
                           </button>
@@ -1466,7 +1481,7 @@ export default function SellerProductsPage() {
                         <button
                           type="button"
                           onClick={() => handleRemoveVariantInEdit(v.id)}
-                          className="p-1 text-[#666] hover:text-rose-400 transition-colors"
+                          className="p-1.5 text-[#666] hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors"
                           title="Delete variant"
                         >
                           <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -1477,18 +1492,18 @@ export default function SellerProductsPage() {
                     ))}
                   </div>
                 ) : (
-                  <div className="p-4 rounded-lg bg-[#050505] border border-[#222] text-center text-[11px] font-mono text-[#666]">
+                  <div className="p-4 rounded-xl bg-[#121212] text-center text-[11px] font-mono text-[#666]">
                     {isEn ? "No variants added yet. Click '+ Add Variant' above." : "Belum ada varian. Klik '+ Tambah Varian' di atas."}
                   </div>
                 )}
               </div>
 
               {/* Modal Save/Cancel */}
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#222]">
+              <div className="flex items-center justify-end gap-2.5 pt-4">
                 <button
                   type="button"
                   onClick={() => setEditProduct(null)}
-                  className="px-3.5 py-1.5 bg-[#050505] hover:bg-[#050505] text-white text-xs font-mono rounded-lg transition-colors cursor-pointer"
+                  className="px-5 py-2.5 bg-[#141414] hover:bg-[#1E1E1E] text-white text-xs font-mono rounded-full transition-colors cursor-pointer"
                 >
                   {isEn ? "Cancel" : "Batal"}
                 </button>
@@ -1540,7 +1555,7 @@ export default function SellerProductsPage() {
                       }
                     } catch (e) {}
                   }}
-                  className="px-3.5 py-1.5 bg-[#FAF9F6] text-black hover:bg-[#E5E5E5] text-xs font-bold font-sans rounded-lg transition-colors cursor-pointer"
+                  className="px-6 py-2.5 bg-white text-black hover:bg-neutral-200 text-xs font-bold font-sans rounded-full transition-colors cursor-pointer"
                 >
                   {isEn ? "Save Changes" : "Simpan Perubahan"}
                 </button>
@@ -1566,11 +1581,11 @@ export default function SellerProductsPage() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="relative w-full max-w-md bg-[#050505] border border-[#2E2E2E] rounded-2xl shadow-2xl p-6 font-sans z-10 space-y-4"
+              className="relative w-full max-w-md bg-[#0A0A0A] rounded-2xl shadow-2xl p-6 font-sans z-10 space-y-4"
             >
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-[#050505] border border-[#2E2E2E] flex items-center justify-center text-white shrink-0">
-                  <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <div className="w-12 h-12 rounded-full bg-rose-500/10 text-rose-400 flex items-center justify-center shrink-0">
+                  <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.008v.008H12v-.008z" />
                   </svg>
                 </div>
@@ -1586,11 +1601,11 @@ export default function SellerProductsPage() {
                   : "Apakah Anda yakin ingin menghapus produk audio ini dari katalog toko Anda secara permanen? Tindakan ini tidak dapat dibatalkan."}
               </p>
 
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#222]">
+              <div className="flex items-center justify-end gap-2.5 pt-3">
                 <button
                   type="button"
                   onClick={() => setDeleteProduct(null)}
-                  className="px-3.5 py-1.5 bg-[#050505] hover:bg-[#050505] text-white text-xs font-mono rounded-lg transition-colors cursor-pointer"
+                  className="px-5 py-2.5 bg-[#141414] hover:bg-[#1E1E1E] text-white text-xs font-mono rounded-full transition-colors cursor-pointer"
                 >
                   {isEn ? "Cancel" : "Batal"}
                 </button>
@@ -1632,7 +1647,7 @@ export default function SellerProductsPage() {
                       }
                     } catch (e) {}
                   }}
-                  className="px-3.5 py-1.5 bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs font-sans rounded-lg transition-colors cursor-pointer shadow-sm"
+                  className="px-5 py-2.5 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs font-sans rounded-full transition-colors cursor-pointer shadow-sm"
                 >
                   {isEn ? "Delete Product" : "Hapus Produk"}
                 </button>
@@ -1660,10 +1675,10 @@ export default function SellerProductsPage() {
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              className="relative w-full max-w-4xl bg-[#050505] border border-[#2E2E2E] rounded-2xl shadow-2xl p-6 font-sans z-10 max-h-[90vh] overflow-y-auto flex flex-col space-y-4 custom-scrollbar"
+              className="relative w-full max-w-4xl bg-[#0A0A0A] rounded-2xl shadow-2xl p-6 sm:p-7 font-sans z-10 max-h-[90vh] overflow-y-auto flex flex-col space-y-5 custom-scrollbar"
             >
               {/* Modal Header */}
-              <div className="flex items-start justify-between pb-4 border-b border-[#222]">
+              <div className="flex items-start justify-between pb-1">
                 <div>
                   <h2 className="text-base font-bold text-white">
                     {selectedMasterProduct
@@ -1687,7 +1702,7 @@ export default function SellerProductsPage() {
                     setIsMasterCatalogModalOpen(false);
                     setSelectedMasterProduct(null);
                   }}
-                  className="p-1.5 text-[#888] hover:text-white transition-colors cursor-pointer"
+                  className="p-1.5 rounded-full text-[#888] hover:text-white hover:bg-[#1A1A1A] transition-colors cursor-pointer"
                 >
                   <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -1697,9 +1712,9 @@ export default function SellerProductsPage() {
 
               {/* STEP 1: BROWSE & SEARCH MASTER CATALOG */}
               {!selectedMasterProduct ? (
-                <div className="space-y-3">
+                <div className="space-y-4">
                   {/* Search & Brand Filter Bar */}
-                  <div className="flex flex-col sm:flex-row gap-3 sm:items-center justify-between pb-1">
+                  <div className="flex flex-col sm:flex-row gap-3 sm:items-center justify-between">
                     <div className="relative w-full sm:w-72">
                       <svg
                         width="14"
@@ -1708,7 +1723,7 @@ export default function SellerProductsPage() {
                         stroke="currentColor"
                         strokeWidth="2"
                         viewBox="0 0 24 24"
-                        className="absolute left-3 top-1/2 -translate-y-1/2 text-[#777]"
+                        className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#777]"
                       >
                         <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
                       </svg>
@@ -1716,22 +1731,22 @@ export default function SellerProductsPage() {
                         type="text"
                         value={masterSearchQuery}
                         onChange={(e) => setMasterSearchQuery(e.target.value)}
-                        placeholder={isEn ? "Cari model, brand, tuning..." : "Cari model, brand, tuning..."}
-                        className="w-full bg-transparent border-b border-[#333] focus:border-white pl-8 pr-2 py-1.5 text-xs text-white placeholder:text-[#666] outline-none transition-colors font-sans"
+                        placeholder={isEn ? "Search model, brand, tuning..." : "Cari model, brand, tuning..."}
+                        className="w-full bg-[#121212] rounded-xl pl-9 pr-3 py-2.5 text-xs text-white placeholder:text-[#666] outline-none border-0 focus:ring-1 focus:ring-white/20 transition-all font-sans"
                       />
                     </div>
 
-                    {/* Brand Filter Text Tabs (No bulky card/pill containers) */}
-                    <div className="flex items-center gap-4 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0 no-scrollbar">
+                    {/* Brand Filter Pills */}
+                    <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0 no-scrollbar">
                       {masterBrands.map((b) => (
                         <button
                           key={b}
                           type="button"
                           onClick={() => setMasterSelectedBrand(b)}
-                          className={`text-xs transition-colors whitespace-nowrap cursor-pointer pb-0.5 ${
+                          className={`px-3.5 py-1.5 rounded-full text-xs font-sans transition-all whitespace-nowrap cursor-pointer ${
                             masterSelectedBrand === b
-                              ? "text-white font-bold border-b border-white"
-                              : "text-[#777] hover:text-[#bbb]"
+                              ? "bg-white text-black font-bold shadow-sm"
+                              : "bg-[#141414] text-[#888] hover:text-white hover:bg-[#1E1E1E]"
                           }`}
                         >
                           {b}
@@ -1740,26 +1755,26 @@ export default function SellerProductsPage() {
                     </div>
                   </div>
 
-                  {/* Clean, Flat List View (Pure typography & subtle divider lines) */}
-                  <div className="divide-y divide-[#222] max-h-[55vh] overflow-y-auto pr-1 custom-scrollbar">
+                  {/* Clean List View */}
+                  <div className="space-y-1.5 max-h-[55vh] overflow-y-auto pr-1 custom-scrollbar">
                     {filteredMasterCatalog.length > 0 ? (
                       filteredMasterCatalog.map((p) => (
                         <div
                           key={p.id}
-                          className="py-3.5 px-2 flex items-center justify-between gap-4 hover:bg-white/[0.02] rounded transition-colors group"
+                          className="py-3 px-3.5 flex items-center justify-between gap-4 hover:bg-[#141414] rounded-2xl transition-colors group"
                         >
                           <div className="flex items-center gap-3.5 min-w-0 flex-1">
                             {/* Product Thumbnail */}
                             <img
                               src={p.image || (p.images && p.images[0]) || "/model-iem-untuk-hero.webp"}
                               alt={p.name}
-                              className="w-12 h-12 rounded object-cover bg-black/40 shrink-0"
+                              className="w-12 h-12 rounded-xl object-cover bg-black/40 shrink-0"
                             />
 
-                            {/* Product Details as Clean Text */}
+                            {/* Product Details */}
                             <div className="min-w-0 flex-1">
                               <div className="text-[11px] text-[#777] font-mono mb-0.5">
-                                <span className="text-[#999] uppercase font-medium">{p.brand}</span>
+                                <span className="text-[#AAA] uppercase font-medium">{p.brand}</span>
                                 {p.soundSignature && ` • ${p.soundSignature.replace(/_/g, " ")}`}
                                 {p.experienceLevel && ` • ${p.experienceLevel}`}
                               </div>
@@ -1771,7 +1786,7 @@ export default function SellerProductsPage() {
                           </div>
 
                           {/* Price & Action */}
-                          <div className="flex items-center gap-5 shrink-0">
+                          <div className="flex items-center gap-4 shrink-0">
                             <div className="text-right">
                               <span className="text-[10px] font-mono text-[#666] uppercase block">
                                 MSRP Ref
@@ -1784,7 +1799,7 @@ export default function SellerProductsPage() {
                             <button
                               type="button"
                               onClick={() => handleSelectMasterToClaim(p)}
-                              className="px-3.5 py-1.5 border border-[#333] hover:border-white text-white hover:bg-white hover:text-black font-sans text-xs rounded transition-all cursor-pointer shrink-0"
+                              className="px-4 py-2 bg-white text-black hover:bg-neutral-200 font-sans font-bold text-xs rounded-full transition-all cursor-pointer shrink-0 shadow-sm"
                             >
                               {isEn ? "Pilih & Jual" : "Pilih & Jual"}
                             </button>
@@ -1799,29 +1814,29 @@ export default function SellerProductsPage() {
                   </div>
                 </div>
               ) : (
-                /* STEP 2: CONFIGURE STORE OFFER (Clean Layout, No Nested Cards) */
+                /* STEP 2: CONFIGURE STORE OFFER */
                 <form onSubmit={handleConfirmClaim} className="space-y-4">
                   {/* Back button */}
                   <div>
                     <button
                       type="button"
                       onClick={() => setSelectedMasterProduct(null)}
-                      className="text-xs text-[#888] hover:text-white transition-colors cursor-pointer flex items-center gap-1"
+                      className="text-xs text-[#888] hover:text-white transition-colors cursor-pointer flex items-center gap-1.5"
                     >
                       <span>← {isEn ? "Back to Catalog" : "Pilih Produk Lain"}</span>
                     </button>
                   </div>
 
-                  {/* Selected Product Summary (Clean Header Row, No Box Container) */}
-                  <div className="flex items-center gap-4 py-2 border-b border-[#222]">
+                  {/* Selected Product Summary Card */}
+                  <div className="flex items-center gap-4 p-4 rounded-2xl bg-[#121212]">
                     <img
                       src={selectedMasterProduct.image || (selectedMasterProduct.images && selectedMasterProduct.images[0]) || "/model-iem-untuk-hero.webp"}
                       alt={selectedMasterProduct.name}
-                      className="w-14 h-14 rounded object-cover shrink-0"
+                      className="w-14 h-14 rounded-xl object-cover shrink-0"
                     />
                     <div>
                       <p className="text-xs font-mono text-[#888]">
-                        <span className="uppercase text-[#aaa] font-medium">{selectedMasterProduct.brand}</span> • MSRP: {formatPrice(selectedMasterProduct.price)}
+                        <span className="uppercase text-[#AAA] font-medium">{selectedMasterProduct.brand}</span> • MSRP: {formatPrice(selectedMasterProduct.price)}
                       </p>
                       <h3 className="text-sm sm:text-base font-medium text-white mt-0.5">{selectedMasterProduct.name}</h3>
                       {selectedMasterProduct.description && (
@@ -1843,7 +1858,7 @@ export default function SellerProductsPage() {
                         min="1"
                         value={claimPriceUSD}
                         onChange={(e) => setClaimPriceUSD(parseFloat(e.target.value) || 0)}
-                        className="w-full bg-[#050505] border border-[#2E2E2E] rounded px-3.5 py-2 text-xs font-mono font-bold text-emerald-400 outline-none focus:border-white"
+                        className="w-full bg-[#121212] rounded-xl px-4 py-2.5 text-xs font-mono font-bold text-[#BFDD25] outline-none border-0 focus:ring-1 focus:ring-white/20"
                       />
                       <p className="text-[10px] font-mono text-[#666] mt-1">
                         {isEn ? `Est: ${formatPrice(claimPriceUSD)}` : `Setara: ${formatPrice(claimPriceUSD)}`}
@@ -1866,7 +1881,7 @@ export default function SellerProductsPage() {
                           setClaimVariant1Stock(Math.ceil(val / 2));
                           setClaimVariant2Stock(Math.floor(val / 2));
                         }}
-                        className="w-full bg-[#050505] border border-[#2E2E2E] rounded px-3.5 py-2 text-xs font-mono font-bold text-white outline-none focus:border-white"
+                        className="w-full bg-[#121212] rounded-xl px-4 py-2.5 text-xs font-mono font-bold text-white outline-none border-0 focus:ring-1 focus:ring-white/20"
                       />
                       <p className="text-[10px] font-mono text-[#666] mt-1">
                         {isEn ? "Available physical stock" : "Stok siap kirim"}
@@ -1890,13 +1905,13 @@ export default function SellerProductsPage() {
                     </div>
                   </div>
 
-                  {/* Variant Stock Allocation (Clean List, No Nested Card Boxes) */}
+                  {/* Variant Stock Allocation */}
                   <div className="pt-2">
                     <h4 className="text-xs font-mono text-[#888] uppercase tracking-wider mb-2">
                       {isEn ? "Cable Termination Stock Allocation:" : "Alokasi Stok Varian Kabel:"}
                     </h4>
-                    <div className="divide-y divide-[#222]">
-                      <div className="py-2.5 flex items-center justify-between">
+                    <div className="space-y-2">
+                      <div className="py-2.5 px-3.5 rounded-xl bg-[#121212] flex items-center justify-between">
                         <div>
                           <p className="text-xs font-medium text-white">Standard 3.5mm SE</p>
                           <p className="text-[10px] font-mono text-[#666]">Single-Ended Jack</p>
@@ -1907,13 +1922,13 @@ export default function SellerProductsPage() {
                             min="0"
                             value={claimVariant1Stock}
                             onChange={(e) => setClaimVariant1Stock(parseInt(e.target.value) || 0)}
-                            className="w-20 bg-[#050505] border border-[#2E2E2E] rounded px-2.5 py-1.5 text-xs font-mono text-center text-white outline-none focus:border-white"
+                            className="w-20 bg-[#181818] rounded-lg px-2.5 py-1.5 text-xs font-mono text-center text-white outline-none border-0 focus:ring-1 focus:ring-white/20"
                           />
                           <span className="text-[10px] font-mono text-[#777]">unit</span>
                         </div>
                       </div>
 
-                      <div className="py-2.5 flex items-center justify-between">
+                      <div className="py-2.5 px-3.5 rounded-xl bg-[#121212] flex items-center justify-between">
                         <div>
                           <p className="text-xs font-medium text-white">Balanced 4.4mm Pentaconn</p>
                           <p className="text-[10px] font-mono text-[#666]">Audiophile Balanced</p>
@@ -1924,7 +1939,7 @@ export default function SellerProductsPage() {
                             min="0"
                             value={claimVariant2Stock}
                             onChange={(e) => setClaimVariant2Stock(parseInt(e.target.value) || 0)}
-                            className="w-20 bg-[#050505] border border-[#2E2E2E] rounded px-2.5 py-1.5 text-xs font-mono text-center text-white outline-none focus:border-white"
+                            className="w-20 bg-[#181818] rounded-lg px-2.5 py-1.5 text-xs font-mono text-center text-white outline-none border-0 focus:ring-1 focus:ring-white/20"
                           />
                           <span className="text-[10px] font-mono text-[#777]">unit</span>
                         </div>
@@ -1932,9 +1947,8 @@ export default function SellerProductsPage() {
                     </div>
                   </div>
 
-                  {/* Instant Verification Notice (Clean text, no bulky container box) */}
-                  <div className="text-xs font-mono text-emerald-400 flex items-center gap-2 pt-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0"></span>
+                  {/* Instant Verification Notice */}
+                  <div className="text-xs font-mono text-[#BFDD25] flex items-center gap-2 pt-1">
                     <span>
                       {isEn
                         ? "Official master model verified. Listing will be instantly activated in your store without admin review delay."
@@ -1943,20 +1957,20 @@ export default function SellerProductsPage() {
                   </div>
 
                   {/* Form Action Buttons */}
-                  <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#222]">
+                  <div className="flex items-center justify-end gap-3 pt-4">
                     <button
                       type="button"
                       onClick={() => {
                         setIsMasterCatalogModalOpen(false);
                         setSelectedMasterProduct(null);
                       }}
-                      className="px-4 py-2 text-[#888] hover:text-white text-xs font-mono transition-colors cursor-pointer"
+                      className="px-5 py-2.5 text-[#888] hover:text-white text-xs font-mono transition-colors cursor-pointer"
                     >
                       {isEn ? "Cancel" : "Batal"}
                     </button>
                     <button
                       type="submit"
-                      className="px-5 py-2 bg-white text-black hover:bg-[#E5E5E5] text-xs font-sans font-bold rounded transition-all cursor-pointer"
+                      className="px-6 py-2.5 bg-white text-black hover:bg-neutral-200 text-xs font-sans font-bold rounded-full transition-all cursor-pointer shadow-sm"
                     >
                       {isEn ? "Activate in My Store (Instant)" : "Aktifkan di Toko Saya (Instan)"}
                     </button>

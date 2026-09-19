@@ -59,16 +59,18 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       breadcrumbs.push({ label: isEn ? "Escrow & Settlements" : "Rekening Bersama", path: "/admin/transactions" });
     } else if (parts[1] === "config") {
       breadcrumbs.push({ label: isEn ? "Categories" : "Kategori Produk", path: "/admin/config/catalog" });
+    } else if (parts[1] === "support") {
+      breadcrumbs.push({ label: isEn ? "Customer Support" : "Layanan Pelanggan (CS)", path: "/admin/support" });
     }
     return breadcrumbs;
   };
 
   const getLinkClass = (path: string) => {
     const isActive = pathname === path;
-    return `group flex items-center justify-between px-3 py-2 text-xs font-sans rounded-md transition-all duration-150 border ${
+    return `group flex items-center justify-between px-3.5 py-2.5 text-xs font-sans rounded-xl transition-all duration-150 ${
       isActive
-        ? "bg-[#050505] text-[#FAF9F6] font-medium border-[#333333] shadow-sm"
-        : "text-[#8E8E93] hover:bg-[#050505] hover:text-[#FAF9F6] border-transparent"
+        ? "bg-[#141414] text-[#FAF9F6] font-semibold shadow-sm"
+        : "text-[#8E8E93] hover:bg-[#0E0E0E] hover:text-[#FAF9F6]"
     }`;
   };
 
@@ -82,9 +84,9 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   const navContent = (
     <div className="flex flex-col h-full">
       {/* Brand Header */}
-      <div className="p-5 border-b border-[#1E1E1E] flex items-center justify-between bg-[#0B0B0B]">
+      <div className="p-5 flex items-center justify-between bg-[#060606]">
         <Link href="/" className="flex items-center gap-2.5 hover:opacity-85 transition-opacity">
-          <div className="w-7 h-7 rounded-md bg-[#050505] text-[#FAF9F6] border border-[#2E2E2E] flex items-center justify-center font-mono font-black text-xs shadow-sm">
+          <div className="w-8 h-8 rounded-xl bg-[#141414] text-[#FAF9F6] flex items-center justify-center font-mono font-black text-xs shadow-sm">
             TZ
           </div>
           <div>
@@ -92,7 +94,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
               <h1 className="text-xs font-bold text-[#FAF9F6] tracking-wider uppercase font-mono">
                 Tonal Zone
               </h1>
-              <span className="text-[9px] font-mono font-bold bg-white/10 text-[#FAF9F6] px-1.5 py-0.2 rounded border border-white/10">
+              <span className="text-[9px] font-mono font-bold bg-[#141F17] text-[#BFDD25] px-2 py-0.5 rounded-full">
                 ADMIN
               </span>
             </div>
@@ -110,7 +112,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           <h2 className="text-[9px] font-mono font-bold text-[#52525B] uppercase tracking-widest mb-1.5 px-3">
             {isEn ? "Core Overview" : "Ringkasan Utama"}
           </h2>
-          <div className="flex flex-col space-y-0.5">
+          <div className="flex flex-col space-y-1">
             <Link href="/admin" onClick={() => setMobileMenuOpen(false)} className={getLinkClass("/admin")}>
               <span className="flex items-center gap-2.5">
                 <svg className={getIconClass("/admin")} fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24">
@@ -128,11 +130,8 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             <h2 className="text-[9px] font-mono font-bold text-[#52525B] uppercase tracking-widest">
               {isEn ? "Approvals & Moderation" : "Persetujuan & Moderasi"}
             </h2>
-            {(pendingStores + pendingBrands + pendingProducts > 0) && (
-              <span className="w-1.5 h-1.5 rounded-full bg-white"></span>
-            )}
           </div>
-          <div className="flex flex-col space-y-0.5">
+          <div className="flex flex-col space-y-1">
             <Link href="/admin/approvals/sellers" onClick={() => setMobileMenuOpen(false)} className={getLinkClass("/admin/approvals/sellers")}>
               <span className="flex items-center gap-2.5">
                 <svg className={getIconClass("/admin/approvals/sellers")} fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24">
@@ -141,7 +140,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                 {isEn ? "Store Verification" : "Verifikasi Toko & Penjual"}
               </span>
               {pendingStores > 0 && (
-                <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-medium bg-[#050505] text-[#FAF9F6] border border-[#2E2E2E]">
+                <span className="px-2 py-0.5 rounded-full text-[9px] font-mono font-bold bg-[#141F17] text-[#BFDD25]">
                   {pendingStores}
                 </span>
               )}
@@ -156,7 +155,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                 {isEn ? "Brand Approvals" : "Persetujuan Brand"}
               </span>
               {pendingBrands > 0 && (
-                <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-medium bg-[#050505] text-[#FAF9F6] border border-[#2E2E2E]">
+                <span className="px-2 py-0.5 rounded-full text-[9px] font-mono font-bold bg-[#141F17] text-[#BFDD25]">
                   {pendingBrands}
                 </span>
               )}
@@ -170,7 +169,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                 {isEn ? "Product Approvals" : "Persetujuan Produk"}
               </span>
               {pendingProducts > 0 && (
-                <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-medium bg-[#050505] text-[#FAF9F6] border border-[#2E2E2E]">
+                <span className="px-2 py-0.5 rounded-full text-[9px] font-mono font-bold bg-[#141F17] text-[#BFDD25]">
                   {pendingProducts}
                 </span>
               )}
@@ -183,7 +182,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           <h2 className="text-[9px] font-mono font-bold text-[#52525B] uppercase tracking-widest mb-1.5 px-3">
             {isEn ? "Visuals & Promos" : "Tampilan & Promosi"}
           </h2>
-          <div className="flex flex-col space-y-0.5">
+          <div className="flex flex-col space-y-1">
             <Link href="/admin/banners" onClick={() => setMobileMenuOpen(false)} className={getLinkClass("/admin/banners")}>
               <span className="flex items-center gap-2.5">
                 <svg className={getIconClass("/admin/banners")} fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24">
@@ -200,7 +199,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           <h2 className="text-[9px] font-mono font-bold text-[#52525B] uppercase tracking-widest mb-1.5 px-3">
             {isEn ? "Logistics & Fleets" : "Pengiriman & Ekspedisi"}
           </h2>
-          <div className="flex flex-col space-y-0.5">
+          <div className="flex flex-col space-y-1">
             <Link href="/admin/logistics/tracking" onClick={() => setMobileMenuOpen(false)} className={getLinkClass("/admin/logistics/tracking")}>
               <span className="flex items-center gap-2.5">
                 <svg className={getIconClass("/admin/logistics/tracking")} fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24">
@@ -225,7 +224,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           <h2 className="text-[9px] font-mono font-bold text-[#52525B] uppercase tracking-widest mb-1.5 px-3">
             {isEn ? "Finance & Users" : "Keuangan & Pengguna"}
           </h2>
-          <div className="flex flex-col space-y-0.5">
+          <div className="flex flex-col space-y-1">
             <Link href="/admin/transactions" onClick={() => setMobileMenuOpen(false)} className={getLinkClass("/admin/transactions")}>
               <span className="flex items-center gap-2.5">
                 <svg className={getIconClass("/admin/transactions")} fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24">
@@ -250,20 +249,27 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                 {isEn ? "Product Categories" : "Kategori Produk"}
               </span>
             </Link>
+            <Link href="/admin/support" onClick={() => setMobileMenuOpen(false)} className={getLinkClass("/admin/support")}>
+              <span className="flex items-center gap-2.5">
+                <svg className={getIconClass("/admin/support")} fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a.75.75 0 01-.874-.954 5.485 5.485 0 00.867-2.147C3.903 16.275 3 14.24 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z" />
+                </svg>
+                {isEn ? "Customer Service" : "Layanan CS / Bantuan"}
+              </span>
+            </Link>
           </div>
         </div>
       </nav>
 
       {/* Admin User Footer */}
-      <div className="p-4 border-t border-[#1E1E1E] bg-[#030303]">
+      <div className="p-4 bg-[#060606]">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded bg-[#050505] text-[#FAF9F6] border border-[#2E2E2E] font-mono font-bold text-xs flex items-center justify-center shadow-sm">
+          <div className="w-8 h-8 rounded-xl bg-[#141414] text-[#FAF9F6] font-mono font-bold text-xs flex items-center justify-center shadow-sm">
             SA
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-xs font-semibold text-[#FAF9F6] truncate">Super Admin</p>
             <div className="flex items-center gap-1.5 mt-0.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
               <span className="text-[10px] font-mono text-[#71717A]">
                 {isEn ? "Full Access Level" : "Hak Akses Penuh"}
               </span>
@@ -277,10 +283,10 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   const breadcrumbs = getBreadcrumbs();
 
   return (
-    <div className="min-h-screen bg-[#030303] text-[#FAF9F6] font-sans selection:bg-white selection:text-black flex flex-col md:flex-row">
+    <div className="min-h-screen bg-[#000000] text-[#FAF9F6] font-sans selection:bg-[#141414] selection:text-[#FAF9F6] flex flex-col md:flex-row">
       
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex w-[260px] bg-[#030303] border-r border-[#1E1E1E] min-h-screen flex-col sticky top-0 z-30 shrink-0">
+      <aside className="hidden md:flex w-[260px] bg-[#060606] min-h-screen flex-col sticky top-0 z-30 shrink-0">
         {navContent}
       </aside>
 
@@ -298,7 +304,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
               animate={{ x: 0 }}
               exit={{ x: -280 }}
               transition={{ type: "spring", damping: 25, stiffness: 250 }}
-              className="w-[280px] bg-[#030303] border-r border-[#1E1E1E] h-full flex flex-col"
+              className="w-[280px] bg-[#060606] h-full flex flex-col"
             >
               {navContent}
             </motion.div>
@@ -311,13 +317,13 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       <main className="flex-1 w-full min-h-screen flex flex-col relative z-10">
         
         {/* Top Header */}
-        <header className="h-14 flex items-center px-4 sm:px-6 justify-between sticky top-0 z-20 bg-[#030303]/90 backdrop-blur-md border-b border-[#1E1E1E] gap-4">
+        <header className="h-14 flex items-center px-4 sm:px-6 justify-between sticky top-0 z-20 bg-[#000000]/80 backdrop-blur-md gap-4">
           
           {/* Mobile hamburger & Breadcrumbs */}
           <div className="flex items-center gap-3 min-w-0">
             <button 
               onClick={() => setMobileMenuOpen(true)}
-              className="md:hidden p-1.5 rounded-md hover:bg-white/5 text-[#A1A1AA] hover:text-white cursor-pointer"
+              className="md:hidden p-1.5 rounded-xl hover:bg-white/5 text-[#A1A1AA] hover:text-white cursor-pointer"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
@@ -328,7 +334,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             <button
               type="button"
               onClick={() => setIsCommandPaletteOpen(true)}
-              className="md:hidden p-1.5 rounded-md hover:bg-white/5 text-[#A1A1AA] hover:text-white cursor-pointer"
+              className="md:hidden p-1.5 rounded-xl hover:bg-white/5 text-[#A1A1AA] hover:text-white cursor-pointer"
               title={isEn ? "Search admin menu" : "Cari menu admin"}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -357,7 +363,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           {/* Center Search / Command palette trigger (Desktop) */}
           <div 
             onClick={() => setIsCommandPaletteOpen(true)}
-            className="flex-1 max-w-md relative hidden md:flex items-center bg-[#050505] hover:bg-[#050505] border border-[#1c1c1c] hover:border-[#3E3E3E] rounded-lg px-3.5 py-1.5 cursor-pointer transition-all group shadow-sm"
+            className="flex-1 max-w-md relative hidden md:flex items-center bg-[#0E0E0E] hover:bg-[#141414] rounded-xl px-4 py-2 cursor-pointer transition-all group shadow-sm"
           >
             <svg className="w-3.5 h-3.5 text-[#71717A] group-hover:text-[#FAF9F6] transition-colors shrink-0 mr-2.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -366,7 +372,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
               {isEn ? "Search admin menu, stores, IEMs..." : "Cari menu admin, toko, produk IEM..."}
             </span>
             <div className="flex items-center gap-1 shrink-0 pointer-events-none">
-              <kbd className="text-[10px] font-mono text-[#71717A] group-hover:text-[#FAF9F6] bg-[#050505] px-1.5 py-0.5 rounded border border-[#2E2E2E] transition-colors">
+              <kbd className="text-[10px] font-mono text-[#71717A] group-hover:text-[#FAF9F6] bg-[#181818] px-2 py-0.5 rounded-lg transition-colors">
                 Ctrl K
               </kbd>
             </div>
@@ -375,14 +381,14 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           {/* Right System Health, Language & Exit */}
           <div className="flex items-center gap-3 ml-auto">
              {/* Language Switcher Pill */}
-             <div className="flex items-center bg-[#050505] border border-[#1c1c1c] rounded-full p-0.5 text-[10px] font-mono shadow-sm">
+             <div className="flex items-center bg-[#0E0E0E] rounded-full p-0.5 text-xs font-mono font-medium shadow-sm">
                 <button
                   type="button"
                   onClick={() => setLanguage("English")}
-                  className={`px-2 py-0.5 rounded-full font-bold transition-all cursor-pointer ${
+                  className={`px-2.5 py-1 rounded-full font-bold transition-all cursor-pointer ${
                     language === "English"
-                      ? "bg-[#050505] text-[#FAF9F6] border border-[#3E3E3E] shadow-sm"
-                      : "text-[#888] hover:text-[#FAF9F6] border border-transparent"
+                      ? "bg-[#1E1E1E] text-[#FAF9F6] shadow-sm"
+                      : "text-[#888] hover:text-[#FAF9F6]"
                   }`}
                   title="Switch to English"
                 >
@@ -391,10 +397,10 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                 <button
                   type="button"
                   onClick={() => setLanguage("Bahasa Indonesia")}
-                  className={`px-2 py-0.5 rounded-full font-bold transition-all cursor-pointer ${
+                  className={`px-2.5 py-1 rounded-full font-bold transition-all cursor-pointer ${
                     language === "Bahasa Indonesia"
-                      ? "bg-[#050505] text-[#FAF9F6] border border-[#3E3E3E] shadow-sm"
-                      : "text-[#8E8E93] hover:text-[#FAF9F6] border border-transparent"
+                      ? "bg-[#1E1E1E] text-[#FAF9F6] shadow-sm"
+                      : "text-[#8E8E93] hover:text-[#FAF9F6]"
                   }`}
                   title="Ganti ke Bahasa Indonesia"
                 >
@@ -402,8 +408,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                 </button>
              </div>
 
-             <div className="hidden lg:flex items-center gap-2 px-2.5 py-1 rounded bg-[#050505] border border-[#222]">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+             <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#0E0E0E]">
                 <span className="text-[10px] font-mono text-[#A1A1AA]">
                   {language === "English" ? "System Normal • 14ms" : "Sistem Normal • 14ms"}
                 </span>
@@ -411,7 +416,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
              <Link 
                href="/" 
-               className="inline-flex items-center gap-1.5 text-xs font-mono font-medium text-[#A1A1AA] hover:text-[#FAF9F6] bg-[#050505] hover:bg-[#050505] border border-[#1c1c1c] transition-colors px-3 py-1.5 rounded-md cursor-pointer"
+               className="inline-flex items-center gap-1.5 text-xs font-mono font-medium text-[#A1A1AA] hover:text-[#FAF9F6] bg-[#0E0E0E] hover:bg-[#141414] transition-colors px-3.5 py-1.5 rounded-full cursor-pointer"
              >
                <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
