@@ -54,3 +54,17 @@ restore.js
 .claude/
 .windsurf/
 
+# Root utility scripts & data templates
+CLAUDE.md
+AGENTS.md
+generate-excel.ts
+generate_docx.js
+import-csv-to-db.ts
+seed-highlighted-products.ts
+test-db-verification.ts
+supabase_schema.json
+skills-lock.json
+*.csv
+*.xlsx
+
+
