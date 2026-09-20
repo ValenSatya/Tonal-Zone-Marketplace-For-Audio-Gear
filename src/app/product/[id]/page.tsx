@@ -731,30 +731,42 @@ export default function ProductDetailPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-8 xl:gap-10 items-start">
           {/* Left Column: Vertical Thumbnails + Main Photo */}
           <div className="lg:col-span-7 flex flex-col-reverse sm:flex-row gap-4 sm:gap-5 justify-start items-start w-full">
-            {/* Vertical Thumbnails (Authentic DB Images only, up to 8) */}
+            {/* Vertical Thumbnails Container with Scroll & Bottom Fade */}
             {galleryImages.length > 0 && (
-              <div className="flex sm:flex-col gap-2.5 sm:gap-3 shrink-0 overflow-x-auto sm:overflow-y-auto max-h-[506px] sm:max-h-[570px] pr-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-                {galleryImages.map((imgUrl, idx) => {
-                  const isSelected = selectedVariant === idx;
-                  return (
-                    <button
-                      key={idx}
-                      type="button"
-                      onClick={() => setSelectedVariant(idx)}
-                      className={`w-[76px] h-[76px] sm:w-[94px] sm:h-[94px] rounded-[6px] bg-[#111111] border border-[#222222] overflow-hidden relative cursor-pointer transition-all duration-200 shrink-0 ${
-                        isSelected
-                          ? "ring-2 ring-white ring-offset-2 ring-offset-[#030303] opacity-100 border-white"
-                          : "opacity-70 hover:opacity-100 hover:border-[#444444]"
-                      }`}
-                    >
-                      <img
-                        src={imgUrl}
-                        alt={`${product.name} view ${idx + 1}`}
-                        className="w-full h-full object-cover"
-                      />
-                    </button>
-                  );
-                })}
+              <div className="relative shrink-0 self-stretch sm:self-auto">
+                <div className="flex sm:flex-col gap-3 shrink-0 overflow-x-auto sm:overflow-y-auto max-h-[506px] sm:max-h-[560px] p-1.5 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden scroll-smooth">
+                  {galleryImages.map((imgUrl, idx) => {
+                    const isSelected = selectedVariant === idx;
+                    return (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => setSelectedVariant(idx)}
+                        className={`w-[76px] h-[76px] sm:w-[94px] sm:h-[94px] rounded-[8px] bg-[#111111] overflow-hidden relative cursor-pointer transition-all duration-200 shrink-0 ${
+                          isSelected
+                            ? "border-2 border-white shadow-[0_0_12px_rgba(255,255,255,0.3)] opacity-100"
+                            : "border border-[#262626] opacity-60 hover:opacity-100 hover:border-[#555555]"
+                        }`}
+                      >
+                        <img
+                          src={imgUrl}
+                          alt={`${product.name} view ${idx + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Bottom Fade Gradient for Desktop (smooth black fade overlay when list extends) */}
+                {galleryImages.length > 4 && (
+                  <div className="hidden sm:block absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-[#030303] via-[#030303]/80 to-transparent pointer-events-none rounded-b-lg z-10" />
+                )}
+
+                {/* Right Fade Gradient for Mobile */}
+                {galleryImages.length > 3 && (
+                  <div className="sm:hidden absolute top-0 bottom-0 right-0 w-12 bg-gradient-to-l from-[#030303] via-[#030303]/80 to-transparent pointer-events-none z-10" />
+                )}
               </div>
             )}
 
