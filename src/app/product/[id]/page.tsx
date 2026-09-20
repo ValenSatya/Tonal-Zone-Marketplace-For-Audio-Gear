@@ -520,54 +520,45 @@ export default function ProductDetailPage() {
 
   const galleryImages = useMemo(() => {
     if (!product) return [];
-    const rawImgs = Array.isArray(product.images) && product.images.length > 0 ? product.images : [product.image];
-    // Filter and deduplicate unique valid image strings
-    const unique = Array.from(new Set(rawImgs.filter((img) => typeof img === "string" && img.trim().length > 0)));
 
-    if (unique.length >= 3) {
-      return unique.slice(0, 4);
-    }
-
-    // Lookup fallback catalog for authentic multi-angle images
-    const fallback = findFallbackMatch(product.id, product.name);
-    if (fallback && Array.isArray(fallback.images)) {
-      for (const fImg of fallback.images) {
-        if (!unique.includes(fImg)) {
-          unique.push(fImg);
+    // 1. Kumpulkan seluruh gambar autentik dari produk di database
+    const rawImgs: string[] = [];
+    if (Array.isArray(product.images) && product.images.length > 0) {
+      for (const img of product.images) {
+        if (typeof img === "string" && img.trim().length > 0) {
+          rawImgs.push(img.trim());
         }
-        if (unique.length >= 3) break;
+      }
+    }
+    if (product.image && typeof product.image === "string" && product.image.trim().length > 0) {
+      const trimmed = product.image.trim();
+      if (!rawImgs.includes(trimmed)) {
+        rawImgs.unshift(trimmed);
       }
     }
 
-    // Supplemental high quality local assets to guarantee >= 3 distinct photos if needed
-    const isWireless =
-      product.category?.includes("WIRELESS") ||
-      product.category?.includes("TWS") ||
-      product.name?.toLowerCase().includes("tws");
-
-    const supplemental = isWireless
-      ? [
-          "/images/Headphone-Zone-Moondrop-Chu-II-01.jpg",
-          "/images/Headphone-Zone-Moondrop-Chu-II-02.jpg",
-        ]
-      : product.category?.includes("HEADPHONE")
-      ? [
-          "/figma/sennheiser-main.png",
-          "/figma/sennheiser-sec.png",
-        ]
-      : [
-          "/hero-blessing-3.jpg",
-          "/hero-blessing-3-right.jpg",
-        ];
-
-    for (const sup of supplemental) {
-      if (!unique.includes(sup)) {
-        unique.push(sup);
+    // 2. Jika di database belum ada array images, periksa fallback catalog untuk model produk yang sama persis
+    if (rawImgs.length <= 1) {
+      const fallback = findFallbackMatch(product.id, product.name);
+      if (fallback) {
+        if (Array.isArray(fallback.images)) {
+          for (const fImg of fallback.images) {
+            if (typeof fImg === "string" && fImg.trim().length > 0 && !rawImgs.includes(fImg.trim())) {
+              rawImgs.push(fImg.trim());
+            }
+          }
+        }
+        if (rawImgs.length === 0 && fallback.image) {
+          rawImgs.push(fallback.image.trim());
+        }
       }
-      if (unique.length >= 3) break;
     }
 
-    return unique.slice(0, 4);
+    // 3. Filter unik tanpa menyuntikkan aset dummy/filler apapun
+    const unique = Array.from(new Set(rawImgs));
+
+    // Mendukung hingga maksimal 8 gambar asli dari database
+    return unique.slice(0, 8);
   }, [product]);
 
   const handleAddToCart = () => {
@@ -740,30 +731,32 @@ export default function ProductDetailPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-8 xl:gap-10 items-start">
           {/* Left Column: Vertical Thumbnails + Main Photo */}
           <div className="lg:col-span-7 flex flex-col-reverse sm:flex-row gap-4 sm:gap-5 justify-start items-start w-full">
-            {/* 3 Vertical Thumbnails */}
-            <div className="flex sm:flex-col gap-3 sm:gap-3.5 shrink-0 overflow-x-auto sm:overflow-visible">
-              {galleryImages.map((imgUrl, idx) => {
-                const isSelected = selectedVariant === idx;
-                return (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => setSelectedVariant(idx)}
-                    className={`w-[80px] h-[80px] sm:w-[98px] sm:h-[98px] rounded-[6px] bg-[#111111] border border-[#222222] overflow-hidden relative cursor-pointer transition-all duration-200 shrink-0 ${
-                      isSelected
-                        ? "ring-2 ring-white ring-offset-2 ring-offset-[#030303] opacity-100 border-white"
-                        : "opacity-70 hover:opacity-100 hover:border-[#444444]"
-                    }`}
-                  >
-                    <img
-                      src={imgUrl}
-                      alt={`${product.name} view ${idx + 1}`}
-                      className="w-full h-full object-cover"
-                    />
-                  </button>
-                );
-              })}
-            </div>
+            {/* Vertical Thumbnails (Authentic DB Images only, up to 8) */}
+            {galleryImages.length > 0 && (
+              <div className="flex sm:flex-col gap-2.5 sm:gap-3 shrink-0 overflow-x-auto sm:overflow-y-auto max-h-[506px] sm:max-h-[570px] pr-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+                {galleryImages.map((imgUrl, idx) => {
+                  const isSelected = selectedVariant === idx;
+                  return (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => setSelectedVariant(idx)}
+                      className={`w-[76px] h-[76px] sm:w-[94px] sm:h-[94px] rounded-[6px] bg-[#111111] border border-[#222222] overflow-hidden relative cursor-pointer transition-all duration-200 shrink-0 ${
+                        isSelected
+                          ? "ring-2 ring-white ring-offset-2 ring-offset-[#030303] opacity-100 border-white"
+                          : "opacity-70 hover:opacity-100 hover:border-[#444444]"
+                      }`}
+                    >
+                      <img
+                        src={imgUrl}
+                        alt={`${product.name} view ${idx + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                    </button>
+                  );
+                })}
+              </div>
+            )}
 
             {/* Main Image (Enlarged to fill column space and close the gap with clean 8px rounded corners) */}
             <div className="w-full flex-1 min-w-0 aspect-[494/506] rounded-[8px] bg-[#111111] border border-[#222222] overflow-hidden isolate relative group shadow-2xl">
