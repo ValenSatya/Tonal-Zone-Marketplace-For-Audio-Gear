@@ -44,6 +44,17 @@ export default function Navbar() {
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [dbProducts, setDbProducts] = useState<CatalogProduct[]>([]);
+  const [isCartBouncing, setIsCartBouncing] = useState(false);
+  const prevCartCountRef = React.useRef(totalCount);
+
+  React.useEffect(() => {
+    if (mounted && totalCount > prevCartCountRef.current) {
+      setIsCartBouncing(true);
+      const timer = setTimeout(() => setIsCartBouncing(false), 900);
+      return () => clearTimeout(timer);
+    }
+    prevCartCountRef.current = totalCount;
+  }, [totalCount, mounted]);
 
   // Lazy-load catalog only when search drawer or mobile menu is opened by user
   React.useEffect(() => {
@@ -792,7 +803,11 @@ export default function Navbar() {
 
           <button
             onClick={() => setIsCartOpen(true)}
-            className={`hover:scale-110 active:scale-95 transition-all duration-300 relative cursor-pointer ${
+            className={`transition-all duration-300 relative cursor-pointer ${
+              isCartBouncing
+                ? "scale-125 text-white"
+                : "hover:scale-110 active:scale-95"
+            } ${
               isDarkNav ? "text-[#FAF9F6] hover:text-white" : "text-[#0e0e0e] hover:text-black"
             }`}
           >
@@ -804,6 +819,7 @@ export default function Navbar() {
               stroke="currentColor"
               strokeWidth="1.5"
               viewBox="0 0 24 24"
+              className={`transition-transform duration-300 ${isCartBouncing ? "rotate-[-12deg] scale-110" : ""}`}
             >
               <path
                 strokeLinecap="round"
@@ -812,7 +828,13 @@ export default function Navbar() {
               ></path>
             </svg>
             {totalCount > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-4 px-1 items-center justify-center rounded-full bg-[#ef4444] text-[9px] font-bold text-white border border-[#0e0e0e] shadow-sm">
+              <span
+                className={`absolute -top-1.5 -right-1.5 flex h-4 min-w-4 px-1 items-center justify-center rounded-full text-[9px] font-bold text-white border border-[#0e0e0e] shadow-sm transition-all duration-300 ${
+                  isCartBouncing
+                    ? "scale-140 bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.8)]"
+                    : "scale-100 bg-[#ef4444]"
+                }`}
+              >
                 {totalCount > 99 ? "99+" : totalCount}
               </span>
             )}

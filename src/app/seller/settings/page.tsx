@@ -15,6 +15,11 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
+const formatBankAccount = (val: string) => {
+  const digits = (val || "").replace(/\D/g, "").slice(0, 18);
+  return digits.replace(/(\d{4})(?=\d)/g, "$1 ");
+};
+
 export default function SellerSettingsPage() {
   const { language } = useLanguage();
   const isEn = language === "English";
@@ -619,10 +624,21 @@ export default function SellerSettingsPage() {
                   <input
                     type="text"
                     required
+                    placeholder="Contoh: 1234 5678 9012"
                     value={storeData.bankAccount}
-                    onChange={(e) => setStoreData({ ...storeData, bankAccount: e.target.value })}
-                    className="w-full bg-[#121212] rounded-xl px-4 py-3 text-xs font-mono text-white outline-none border-0 focus:ring-1 focus:ring-white/20 transition-all"
+                    onChange={(e) =>
+                      setStoreData({
+                        ...storeData,
+                        bankAccount: formatBankAccount(e.target.value),
+                      })
+                    }
+                    className="w-full bg-[#121212] rounded-xl px-4 py-3 text-xs font-mono text-white outline-none border-0 focus:ring-1 focus:ring-white/20 transition-all placeholder:text-[#52525B]"
                   />
+                  <p className="text-[10px] font-mono text-[#71717A] mt-1.5">
+                    {isEn
+                      ? "Digits only (auto-spaced every 4 numbers for precision)"
+                      : "Hanya angka (otomatis diformat spasi per 4 digit)"}
+                  </p>
                 </div>
                 <div>
                   <label className="block text-[11px] font-mono text-[#71717A] uppercase tracking-wider mb-2">
