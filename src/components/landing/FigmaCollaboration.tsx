@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { fetchProductByIdFromDb, CatalogProduct } from "@/lib/products-db";
 import { useLocation } from "@/context/LocationContext";
-import { fetchLandingConfigFromDb, DEFAULT_LANDING_CONFIG, CollaborationConfig } from "@/lib/landing-config";
+import { fetchLandingConfigFromDb, DEFAULT_LANDING_CONFIG, CollaborationConfig, sanitizeImageUrl } from "@/lib/landing-config";
 import { useLanguage } from "@/context/LanguageContext";
 
 export default function FigmaCollaboration() {
@@ -41,9 +41,9 @@ export default function FigmaCollaboration() {
     };
   }, []);
 
-  const bgImage = collabConfig.bgImage || "/images/collab-hsr-moondrop-bg.png";
-  const img1 = collabConfig.productImage1 || "/images/collab-sparxie-case.png";
-  const img2 = collabConfig.productImage2 || "/images/collab-sparxie-earbuds.png";
+  const bgImage = sanitizeImageUrl(collabConfig.bgImage, "/images/collab-hsr-moondrop-bg.png");
+  const img1 = sanitizeImageUrl(collabConfig.productImage1, "/images/collab-sparxie-case.png");
+  const img2 = sanitizeImageUrl(collabConfig.productImage2, "/images/collab-sparxie-earbuds.png");
   const title = collabConfig.title || "Moondrop X HSR Sparxie TWS";
   
   const defaultEnCollabDesc = "Official collaboration between HoYoverse Honkai: Star Rail and Moondrop, featuring customized sound tuning and collectible design.";

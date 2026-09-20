@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { fetchProductByIdFromDb, CatalogProduct } from "@/lib/products-db";
-import { fetchLandingConfigFromDb, DEFAULT_LANDING_CONFIG, HeroConfig } from "@/lib/landing-config";
+import { fetchLandingConfigFromDb, DEFAULT_LANDING_CONFIG, HeroConfig, sanitizeImageUrl } from "@/lib/landing-config";
 import { useLanguage } from "@/context/LanguageContext";
 
 export default function FigmaHero() {
@@ -39,7 +39,10 @@ export default function FigmaHero() {
     };
   }, []);
 
-  const heroImage = heroConfig.imageUrl || "/images/Headphone-Zone-Moondrop-Chu-III-Homepage-Desktop-Banner-02.webp";
+  const heroImage = sanitizeImageUrl(
+    heroConfig.imageUrl,
+    "/images/Headphone-Zone-Moondrop-Chu-III-Homepage-Desktop-Banner-02.webp"
+  );
   const heroTitle = heroConfig.productName || (product?.name ? (product.name.includes("CHU") ? "CHU III" : product.name) : "CHU III");
   
   // If description matches default Chu III English description, translate it dynamically via t("landing.heroFallbackDesc")

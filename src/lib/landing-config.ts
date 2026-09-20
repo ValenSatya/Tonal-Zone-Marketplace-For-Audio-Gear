@@ -1,4 +1,4 @@
-﻿import { supabase } from "./supabase";
+import { supabase } from "./supabase";
 
 export interface HeroConfig {
   productId?: string;
@@ -193,12 +193,52 @@ export async function fetchLandingConfigFromDb(): Promise<LandingConfig> {
   }
 }
 
+export function sanitizeImageUrl(url: string | null | undefined, fallback: string): string {
+  if (!url || typeof url !== "string") return fallback;
+  let cleaned = url.trim().replace(/\\/g, "/");
+  if (!cleaned) return fallback;
+
+  if (
+    cleaned.startsWith("http://") ||
+    cleaned.startsWith("https://") ||
+    cleaned.startsWith("data:") ||
+    cleaned.startsWith("blob:")
+  ) {
+    try {
+      if (cleaned.startsWith("http://") || cleaned.startsWith("https://")) {
+        new URL(cleaned);
+      }
+      return cleaned;
+    } catch {
+      return fallback;
+    }
+  }
+
+  if (!cleaned.startsWith("/")) {
+    cleaned = "/" + cleaned;
+  }
+
+  return cleaned;
+}
+
 export async function saveLandingConfigToDb(config: Partial<LandingConfig>): Promise<{ success: boolean; error?: string }> {
   try {
+    const hero = config.hero ? {
+      ...config.hero,
+      imageUrl: sanitizeImageUrl(config.hero.imageUrl, DEFAULT_LANDING_CONFIG.hero.imageUrl),
+    } : DEFAULT_LANDING_CONFIG.hero;
+
+    const collaboration = config.collaboration ? {
+      ...config.collaboration,
+      bgImage: sanitizeImageUrl(config.collaboration.bgImage, DEFAULT_LANDING_CONFIG.collaboration.bgImage),
+      productImage1: sanitizeImageUrl(config.collaboration.productImage1, DEFAULT_LANDING_CONFIG.collaboration.productImage1),
+      productImage2: sanitizeImageUrl(config.collaboration.productImage2, DEFAULT_LANDING_CONFIG.collaboration.productImage2),
+    } : DEFAULT_LANDING_CONFIG.collaboration;
+
     const payload = {
       id: "current",
-      hero: config.hero || DEFAULT_LANDING_CONFIG.hero,
-      collaboration: config.collaboration || DEFAULT_LANDING_CONFIG.collaboration,
+      hero,
+      collaboration,
       new_arrivals: config.new_arrivals || DEFAULT_LANDING_CONFIG.new_arrivals,
       best_sellers: config.best_sellers || DEFAULT_LANDING_CONFIG.best_sellers,
       start_journey: config.start_journey || DEFAULT_LANDING_CONFIG.start_journey,

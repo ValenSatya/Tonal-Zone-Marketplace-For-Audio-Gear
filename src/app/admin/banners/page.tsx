@@ -323,18 +323,45 @@ export default function LandingAndBannersCMSPage() {
 
             {/* Hero Image URL */}
             <div>
-              <label className="block text-[11px] font-mono text-[#888] uppercase tracking-wider mb-2">
-                {isEn ? "Hero Banner / Product Image URL *" : "URL Gambar Produk / Banner Hero *"}
-              </label>
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-[11px] font-mono text-[#888] uppercase tracking-wider">
+                  {isEn ? "Hero Banner / Product Image URL *" : "URL / File Gambar Produk Banner Hero *"}
+                </label>
+                <label className="text-[11px] font-mono text-[#BFDD25] hover:underline cursor-pointer flex items-center gap-1">
+                  <span>{isEn ? "+ Upload File" : "+ Unggah Gambar"}</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (ev) => {
+                          const res = ev.target?.result as string;
+                          if (res) {
+                            setConfig((prev) => ({
+                              ...prev,
+                              hero: { ...prev.hero, imageUrl: res },
+                            }));
+                          }
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }}
+                  />
+                </label>
+              </div>
               <input
                 type="text"
                 value={config.hero.imageUrl}
-                onChange={(e) =>
+                onChange={(e) => {
+                  const cleaned = e.target.value.replace(/\\/g, "/");
                   setConfig((prev) => ({
                     ...prev,
-                    hero: { ...prev.hero, imageUrl: e.target.value },
-                  }))
-                }
+                    hero: { ...prev.hero, imageUrl: cleaned },
+                  }));
+                }}
                 placeholder="/images/... or https://..."
                 className="w-full bg-[#121212] rounded-xl px-4 py-3 text-xs font-mono text-white outline-none border border-white/5 focus:border-[#BFDD25] transition-colors"
               />
@@ -493,22 +520,71 @@ export default function LandingAndBannersCMSPage() {
             </div>
 
             {/* Background Image URL */}
+            {/* Background Image URL */}
             <div>
-              <label className="block text-[11px] font-mono text-[#888] uppercase tracking-wider mb-2">
-                {isEn ? "Section Background Image URL *" : "URL Gambar Background Section *"}
-              </label>
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-[11px] font-mono text-[#888] uppercase tracking-wider">
+                  {isEn ? "Section Background Image *" : "URL / File Gambar Background Section *"}
+                </label>
+                <label className="text-[11px] font-mono text-[#BFDD25] hover:underline cursor-pointer flex items-center gap-1">
+                  <span>{isEn ? "+ Upload File" : "+ Unggah Gambar"}</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (ev) => {
+                          const res = ev.target?.result as string;
+                          if (res) {
+                            setConfig((prev) => ({
+                              ...prev,
+                              collaboration: { ...prev.collaboration, bgImage: res },
+                            }));
+                          }
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }}
+                  />
+                </label>
+              </div>
               <input
                 type="text"
                 value={config.collaboration.bgImage}
-                onChange={(e) =>
+                onChange={(e) => {
+                  const cleaned = e.target.value.replace(/\\/g, "/");
                   setConfig((prev) => ({
                     ...prev,
-                    collaboration: { ...prev.collaboration, bgImage: e.target.value },
-                  }))
-                }
+                    collaboration: { ...prev.collaboration, bgImage: cleaned },
+                  }));
+                }}
                 placeholder="/images/collab-hsr-moondrop-bg.png"
                 className="w-full bg-[#121212] rounded-xl px-4 py-3 text-xs font-mono text-white outline-none border border-white/5 focus:border-[#BFDD25] transition-colors"
               />
+              <div className="flex flex-wrap gap-2 mt-2">
+                <span className="text-[10px] font-mono text-[#666] self-center">Preset Cepat:</span>
+                {[
+                  { label: "Moondrop x HSR Sparxie Official", url: "/images/collab-hsr-moondrop-bg.png" },
+                  { label: "Chu III Banner", url: "/images/Headphone-Zone-Moondrop-Chu-III-Homepage-Desktop-Banner-02.webp" },
+                ].map((item) => (
+                  <button
+                    type="button"
+                    key={item.url}
+                    onClick={() =>
+                      setConfig((prev) => ({
+                        ...prev,
+                        collaboration: { ...prev.collaboration, bgImage: item.url },
+                      }))
+                    }
+                    className="text-[10px] font-mono px-2.5 py-1 rounded-md bg-[#181818] hover:bg-[#222] text-[#AAA] hover:text-white transition-colors cursor-pointer border border-white/5"
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* 2 Product Images: Case & Earbuds */}
@@ -520,12 +596,13 @@ export default function LandingAndBannersCMSPage() {
                 <input
                   type="text"
                   value={config.collaboration.productImage1}
-                  onChange={(e) =>
+                  onChange={(e) => {
+                    const cleaned = e.target.value.replace(/\\/g, "/");
                     setConfig((prev) => ({
                       ...prev,
-                      collaboration: { ...prev.collaboration, productImage1: e.target.value },
-                    }))
-                  }
+                      collaboration: { ...prev.collaboration, productImage1: cleaned },
+                    }));
+                  }}
                   placeholder="/images/collab-sparxie-case.png"
                   className="w-full bg-[#121212] rounded-xl px-4 py-3 text-xs font-mono text-white outline-none border border-white/5 focus:border-[#BFDD25] transition-colors"
                 />
@@ -537,12 +614,13 @@ export default function LandingAndBannersCMSPage() {
                 <input
                   type="text"
                   value={config.collaboration.productImage2}
-                  onChange={(e) =>
+                  onChange={(e) => {
+                    const cleaned = e.target.value.replace(/\\/g, "/");
                     setConfig((prev) => ({
                       ...prev,
-                      collaboration: { ...prev.collaboration, productImage2: e.target.value },
-                    }))
-                  }
+                      collaboration: { ...prev.collaboration, productImage2: cleaned },
+                    }));
+                  }}
                   placeholder="/images/collab-sparxie-earbuds.png"
                   className="w-full bg-[#121212] rounded-xl px-4 py-3 text-xs font-mono text-white outline-none border border-white/5 focus:border-[#BFDD25] transition-colors"
                 />
