@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -12,7 +12,7 @@ import { useLanguage } from "@/context/LanguageContext";
 import { fetchProductsFromDb, fetchProductByIdFromDb, CatalogProduct, findFallbackMatch } from "@/lib/products-db";
 import { getAuthSession } from "@/app/actions/auth";
 import { KeyboardArrowRight } from "@/components/ui/keyboard-arrow";
-import { Truck, ShieldCheck } from "lucide-react";
+import { Truck, ShieldCheck, ChevronDown, ChevronUp } from "lucide-react";
 import { getStoreSlug, getProductRetailOffers } from "@/lib/store-utils";
 import { parseProductVariants } from "@/lib/variant-utils";
 import { QrisLogo, BcaLogo, MandiriLogo, BniLogo, GopayLogo, VisaLogo, MastercardLogo } from "@/components/ui/payment-logos";
@@ -561,6 +561,33 @@ export default function ProductDetailPage() {
     return unique.slice(0, 8);
   }, [product]);
 
+  const thumbnailScrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollThumbUp, setCanScrollThumbUp] = useState(false);
+  const [canScrollThumbDown, setCanScrollThumbDown] = useState(false);
+
+  const checkThumbnailScroll = () => {
+    const el = thumbnailScrollRef.current;
+    if (!el) return;
+    setCanScrollThumbUp(el.scrollTop > 10);
+    setCanScrollThumbDown(el.scrollTop + el.clientHeight < el.scrollHeight - 10);
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(checkThumbnailScroll, 100);
+    return () => clearTimeout(timer);
+  }, [galleryImages]);
+
+  const scrollThumbnails = (direction: "up" | "down") => {
+    const el = thumbnailScrollRef.current;
+    if (!el) return;
+    const scrollAmount = 200;
+    el.scrollBy({
+      top: direction === "down" ? scrollAmount : -scrollAmount,
+      behavior: "smooth",
+    });
+    setTimeout(checkThumbnailScroll, 300);
+  };
+
   const handleAddToCart = () => {
     if (!product) return;
     if (product.stock <= 0 || !product.inStock) {
@@ -733,8 +760,42 @@ export default function ProductDetailPage() {
           <div className="lg:col-span-7 flex flex-col-reverse sm:flex-row gap-4 sm:gap-5 justify-start items-start w-full">
             {/* Vertical Thumbnails Container with Scroll & Bottom Fade */}
             {galleryImages.length > 0 && (
-              <div className="relative shrink-0 self-stretch sm:self-auto">
-                <div className="flex sm:flex-col gap-3 shrink-0 overflow-x-auto sm:overflow-y-auto max-h-[506px] sm:max-h-[560px] p-1.5 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden scroll-smooth">
+              <div className="relative shrink-0 self-stretch sm:self-auto group/thumbs">
+                {/* Top Fade Gradient for Desktop (appears when scrolled down) */}
+                <div
+                  className={`hidden sm:block absolute top-0 left-0 right-0 h-12 bg-gradient-to-b from-[#030303] via-[#030303]/85 to-transparent pointer-events-none rounded-t-lg z-10 transition-opacity duration-200 ${
+                    canScrollThumbUp ? "opacity-100" : "opacity-0"
+                  }`}
+                />
+
+                {/* Top Arrow Button (interactive click to scroll up) */}
+                {canScrollThumbUp && (
+                  <button
+                    type="button"
+                    onClick={() => scrollThumbnails("up")}
+                    className="hidden sm:flex absolute top-1 left-1/2 -translate-x-1/2 z-20 w-7 h-7 rounded-full bg-black/80 hover:bg-white text-white hover:text-black border border-white/20 items-center justify-center transition-all shadow-xl cursor-pointer"
+                    title="Lihat foto atas"
+                  >
+                    <ChevronUp className="w-4 h-4" />
+                  </button>
+                )}
+
+                {/* Scrollable Container with data-lenis-prevent to bypass Lenis scroll interception */}
+                <div
+                  ref={thumbnailScrollRef}
+                  data-lenis-prevent="true"
+                  data-lenis-prevent-wheel="true"
+                  onScroll={checkThumbnailScroll}
+                  onWheel={(e) => {
+                    e.stopPropagation();
+                    const el = e.currentTarget;
+                    if (el.scrollHeight > el.clientHeight) {
+                      el.scrollTop += e.deltaY;
+                      checkThumbnailScroll();
+                    }
+                  }}
+                  className="flex sm:flex-col gap-3 shrink-0 overflow-x-auto sm:overflow-y-auto max-h-[506px] sm:max-h-[560px] p-1.5 scroll-smooth overscroll-contain [scrollbar-width:thin] [scrollbar-color:rgba(255,255,255,0.2)_transparent] sm:[&::-webkit-scrollbar]:w-1 sm:[&::-webkit-scrollbar-track]:bg-transparent sm:[&::-webkit-scrollbar-thumb]:bg-white/20 sm:[&::-webkit-scrollbar-thumb]:rounded-full hover:sm:[&::-webkit-scrollbar-thumb]:bg-white/40"
+                >
                   {galleryImages.map((imgUrl, idx) => {
                     const isSelected = selectedVariant === idx;
                     return (
@@ -758,9 +819,23 @@ export default function ProductDetailPage() {
                   })}
                 </div>
 
-                {/* Bottom Fade Gradient for Desktop (smooth black fade overlay when list extends) */}
-                {galleryImages.length > 4 && (
-                  <div className="hidden sm:block absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-[#030303] via-[#030303]/80 to-transparent pointer-events-none rounded-b-lg z-10" />
+                {/* Bottom Fade Gradient for Desktop (smooth black fade overlay) */}
+                <div
+                  className={`hidden sm:block absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-[#030303] via-[#030303]/85 to-transparent pointer-events-none rounded-b-lg z-10 transition-opacity duration-200 ${
+                    galleryImages.length > 4 || canScrollThumbDown ? "opacity-100" : "opacity-0"
+                  }`}
+                />
+
+                {/* Bottom Arrow Button (interactive click to scroll down) */}
+                {(canScrollThumbDown || (galleryImages.length > 4 && !canScrollThumbUp)) && (
+                  <button
+                    type="button"
+                    onClick={() => scrollThumbnails("down")}
+                    className="hidden sm:flex absolute bottom-1 left-1/2 -translate-x-1/2 z-20 w-7 h-7 rounded-full bg-black/80 hover:bg-white text-white hover:text-black border border-white/20 items-center justify-center transition-all shadow-xl cursor-pointer"
+                    title="Lihat foto bawah"
+                  >
+                    <ChevronDown className="w-4 h-4" />
+                  </button>
                 )}
 
                 {/* Right Fade Gradient for Mobile */}
