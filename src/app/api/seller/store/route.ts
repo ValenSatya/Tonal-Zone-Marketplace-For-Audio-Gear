@@ -11,13 +11,19 @@ async function resolveCurrentStore(request: Request) {
   const explicitEmail = searchParams.get("email");
 
   if (explicitStoreId) {
-    const store = await storeRepo.findById(explicitStoreId);
+    let store = await storeRepo.findById(explicitStoreId);
+    if (!store) store = await storeRepo.findByUserId(explicitStoreId);
+    if (!store) store = await storeRepo.findByName(explicitStoreId);
     if (store) return store;
   }
 
   if (explicitEmail) {
     const user = await userRepo.findByEmail(explicitEmail);
     if (user?.store) return user.store;
+    if (user?.id) {
+      const store = await storeRepo.findByUserId(user.id);
+      if (store) return store;
+    }
   }
 
   // Check session cookie
@@ -33,6 +39,10 @@ async function resolveCurrentStore(request: Request) {
       if (session.email) {
         const user = await userRepo.findByEmail(session.email);
         if (user?.store) return user.store;
+        if (user?.id) {
+          const store = await storeRepo.findByUserId(user.id);
+          if (store) return store;
+        }
       }
     }
   } catch (e) {}
@@ -77,6 +87,10 @@ export async function GET(request: Request) {
         address: store.address || "Jakarta",
         bankName: store.bankName || "BCA",
         bankAccount: store.bankAccount || "",
+        logo: store.logo || store.avatarUrl || null,
+        banner: store.banner || store.bannerUrl || null,
+        avatarUrl: store.avatarUrl || store.logo || null,
+        bannerUrl: store.bannerUrl || store.banner || null,
         createdAt: store.createdAt,
         storeType: store.storeType || "RETAIL_MERCHANT",
         brandName: store.brandName || null,
@@ -115,6 +129,8 @@ export async function PATCH(request: Request) {
     const body = await request.json();
     const {
       storeId: explicitStoreId,
+      userId: explicitUserId,
+      email: explicitEmail,
       storeName,
       description,
       address,
@@ -122,11 +138,57 @@ export async function PATCH(request: Request) {
       bankAccount,
       nik,
       ktpUrl,
+      logo,
+      banner,
+      avatarUrl,
+      bannerUrl,
+      storeAvatar,
+      storeBanner,
     } = body;
 
     let targetStore = explicitStoreId ? await storeRepo.findById(explicitStoreId) : null;
+    if (!targetStore && (explicitStoreId || explicitUserId)) {
+      targetStore = await storeRepo.findByUserId(explicitStoreId || explicitUserId);
+    }
+    if (!targetStore && explicitEmail) {
+      const user = await userRepo.findByEmail(explicitEmail);
+      if (user?.id) {
+        targetStore = await storeRepo.findByUserId(user.id);
+      }
+    }
+    if (!targetStore && storeName) {
+      targetStore = await storeRepo.findByName(storeName);
+    }
     if (!targetStore) {
       targetStore = await resolveCurrentStore(request);
+    }
+
+    const finalLogo = logo !== undefined ? logo : (avatarUrl !== undefined ? avatarUrl : storeAvatar);
+    const finalBanner = banner !== undefined ? banner : (bannerUrl !== undefined ? bannerUrl : storeBanner);
+
+    if (!targetStore) {
+      // If store still not found but email or userId provided, create store
+      const user = explicitEmail
+        ? await userRepo.findByEmail(explicitEmail)
+        : explicitUserId
+        ? await userRepo.findById(explicitUserId)
+        : null;
+
+      if (user) {
+        targetStore = await storeRepo.create({
+          userId: user.id,
+          storeName: (storeName || user.name || "Seller Store").trim(),
+          description: description || "",
+          address: address || "Jakarta",
+          bankName: bankName || "BCA",
+          bankAccount: bankAccount || "",
+          status: "APPROVED",
+          logo: finalLogo || null,
+          banner: finalBanner || null,
+          avatarUrl: finalLogo || null,
+          bannerUrl: finalBanner || null,
+        });
+      }
     }
 
     if (!targetStore) {
@@ -144,6 +206,14 @@ export async function PATCH(request: Request) {
     if (bankAccount !== undefined) updates.bankAccount = bankAccount;
     if (nik !== undefined) updates.nik = nik;
     if (ktpUrl !== undefined) updates.ktpUrl = ktpUrl;
+    if (finalLogo !== undefined) {
+      updates.logo = finalLogo;
+      updates.avatarUrl = finalLogo;
+    }
+    if (finalBanner !== undefined) {
+      updates.banner = finalBanner;
+      updates.bannerUrl = finalBanner;
+    }
 
     const updated = await storeRepo.update(targetStore.id, updates);
 

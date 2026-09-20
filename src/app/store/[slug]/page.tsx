@@ -7,6 +7,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ProductCard from "@/components/ProductCard";
 import { fetchProductsFromDb, CatalogProduct } from "@/lib/products-db";
+import { supabase } from "@/lib/supabase";
 import {
   getStoreSlug,
   getStoreMetadata,
@@ -45,6 +46,8 @@ export default function StoreProfilePage() {
   const [sortBy, setSortBy] = useState<"relevant" | "price_asc" | "price_desc" | "rating">("relevant");
   const [isFollowing, setIsFollowing] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
+  const [storeAvatar, setStoreAvatar] = useState<string>("");
+  const [storeBanner, setStoreBanner] = useState<string>("");
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -149,6 +152,83 @@ export default function StoreProfilePage() {
     return getStoreMetadata(resolvedStoreName, storeCity);
   }, [resolvedStoreName, storeCity]);
 
+  // Fetch verified store profile (avatar & banner) from Supabase and localStorage
+  useEffect(() => {
+    let isMounted = true;
+
+    // 1. Check local storage if current logged-in seller is the store owner
+    try {
+      const stored = localStorage.getItem("tonalzone_user");
+      if (stored) {
+        const u = JSON.parse(stored);
+        const uSlug = getStoreSlug(u.storeName || "");
+        if (
+          uSlug === decodedSlug ||
+          decodedSlug.includes(uSlug) ||
+          uSlug.includes(decodedSlug) ||
+          u.storeId === decodedSlug
+        ) {
+          if (u.storeAvatar) setStoreAvatar(u.storeAvatar);
+          if (u.storeBanner) setStoreBanner(u.storeBanner);
+        }
+      }
+    } catch (e) {}
+
+    // 2. Fetch from Supabase Store table
+    const fetchStoreProfile = async () => {
+      try {
+        const { data } = await supabase
+          .from("Store")
+          .select("id, storeName, logo, banner, avatarUrl, bannerUrl");
+
+        if (data && isMounted) {
+          const found = data.find((s: any) => {
+            const sSlug = getStoreSlug(s.storeName || "");
+            return (
+              s.id === decodedSlug ||
+              sSlug === decodedSlug ||
+              sSlug.includes(decodedSlug) ||
+              decodedSlug.includes(sSlug) ||
+              (s.storeName && s.storeName.toLowerCase() === resolvedStoreName.toLowerCase())
+            );
+          });
+
+          if (found) {
+            const logo = found.logo || found.avatarUrl;
+            const banner = found.banner || found.bannerUrl;
+            if (logo) setStoreAvatar(logo);
+            if (banner) setStoreBanner(banner);
+          }
+        }
+      } catch (err) {
+        console.warn("Could not query store profile:", err);
+      }
+    };
+
+    fetchStoreProfile();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [decodedSlug, resolvedStoreName]);
+
+  // Also sync from products if products loaded with storeLogo/storeBanner
+  useEffect(() => {
+    if (storeProducts.length > 0) {
+      const prodWithLogo = storeProducts.find((p) => p.storeLogo || p.storeAvatar);
+      if (prodWithLogo && (prodWithLogo.storeLogo || prodWithLogo.storeAvatar)) {
+        setStoreAvatar((prev) => prev || prodWithLogo.storeLogo || prodWithLogo.storeAvatar || "");
+      }
+      const prodWithBanner = storeProducts.find((p) => p.storeBanner);
+      if (prodWithBanner && prodWithBanner.storeBanner) {
+        setStoreBanner((prev) => prev || prodWithBanner.storeBanner || "");
+      }
+    }
+  }, [storeProducts]);
+
+  const resolvedBanner = storeBanner || metadata.bannerUrl;
+  const resolvedAvatar = storeAvatar || metadata.avatarUrl;
+
   // Check following state
   useEffect(() => {
     try {
@@ -250,9 +330,9 @@ export default function StoreProfilePage() {
           {/* Top Banner Image with gradient scrim */}
           <div className="relative h-44 sm:h-56 w-full bg-[#121212] overflow-hidden">
             <img
-              src={metadata.bannerUrl}
+              src={resolvedBanner}
               alt={metadata.name}
-              className="w-full h-full object-cover opacity-35 filter blur-[0.5px]"
+              className="w-full h-full object-cover opacity-50 filter blur-[0.5px]"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A] via-[#0A0A0A]/60 to-transparent" />
           </div>
@@ -262,10 +342,18 @@ export default function StoreProfilePage() {
             <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
               {/* Left: Avatar + Identity */}
               <div className="flex items-start sm:items-end gap-5">
-                <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-2xl bg-[#141414] p-1 shrink-0 shadow-2xl flex items-center justify-center">
-                  <div className="w-full h-full rounded-xl bg-gradient-to-br from-[#1C1C1C] to-[#0E0E0E] flex items-center justify-center font-heading font-black text-2xl sm:text-3xl text-white tracking-wider">
-                    {metadata.name.slice(0, 2).toUpperCase()}
-                  </div>
+                <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-2xl bg-[#141414] p-1 shrink-0 shadow-2xl flex items-center justify-center overflow-hidden">
+                  {resolvedAvatar ? (
+                    <img
+                      src={resolvedAvatar}
+                      alt={metadata.name}
+                      className="w-full h-full object-cover rounded-xl"
+                    />
+                  ) : (
+                    <div className="w-full h-full rounded-xl bg-gradient-to-br from-[#1C1C1C] to-[#0E0E0E] flex items-center justify-center font-heading font-black text-2xl sm:text-3xl text-white tracking-wider">
+                      {metadata.name.slice(0, 2).toUpperCase()}
+                    </div>
+                  )}
                   {metadata.badge === "OFFICIAL_STORE" && (
                     <div
                       className="absolute -bottom-2 -right-2 bg-white text-black w-6 h-6 rounded-full flex items-center justify-center shadow-lg"

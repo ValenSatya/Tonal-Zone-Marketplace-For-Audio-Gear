@@ -39,6 +39,10 @@ export interface DbStore {
   bankAccount?: string | null;
   nik?: string | null;
   ktpUrl?: string | null;
+  logo?: string | null;
+  banner?: string | null;
+  avatarUrl?: string | null;
+  bannerUrl?: string | null;
   createdAt?: string;
   updatedAt?: string;
   storeType?: "RETAIL_MERCHANT" | "OFFICIAL_BRAND";
@@ -60,8 +64,15 @@ export function parseStoreMetadata(store: any): DbStore {
     brandName = match ? match[1].trim() : "MOONDROP";
   }
 
+  const logo = store.logo || store.avatarUrl || null;
+  const banner = store.banner || store.bannerUrl || null;
+
   return {
     ...store,
+    logo,
+    banner,
+    avatarUrl: logo,
+    bannerUrl: banner,
     storeType: isOfficial ? "OFFICIAL_BRAND" : "RETAIL_MERCHANT",
     brandName,
   };
@@ -468,6 +479,10 @@ export const storeRepo = {
     status?: "PENDING" | "APPROVED" | "REJECTED" | "SUSPENDED";
     bankName?: string;
     bankAccount?: string;
+    logo?: string | null;
+    banner?: string | null;
+    avatarUrl?: string | null;
+    bannerUrl?: string | null;
   }): Promise<DbStore | null> {
     const payload = {
       id: `store-${Date.now()}-${Math.random().toString(36).substring(7)}`,
@@ -478,6 +493,10 @@ export const storeRepo = {
       status: store.status || "PENDING",
       bankName: store.bankName || "BCA",
       bankAccount: store.bankAccount || "",
+      logo: store.logo || store.avatarUrl || null,
+      banner: store.banner || store.bannerUrl || null,
+      avatarUrl: store.avatarUrl || store.logo || null,
+      bannerUrl: store.bannerUrl || store.banner || null,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };

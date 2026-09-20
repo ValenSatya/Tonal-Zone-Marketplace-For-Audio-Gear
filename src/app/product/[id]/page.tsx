@@ -10,6 +10,7 @@ import { useLocation } from "@/context/LocationContext";
 import { useCart } from "@/context/CartContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { fetchProductsFromDb, fetchProductByIdFromDb, CatalogProduct, findFallbackMatch } from "@/lib/products-db";
+import { supabase } from "@/lib/supabase";
 import { getAuthSession } from "@/app/actions/auth";
 import { KeyboardArrowRight } from "@/components/ui/keyboard-arrow";
 import { Truck, ShieldCheck, ChevronDown, ChevronUp } from "lucide-react";
@@ -517,6 +518,72 @@ export default function ProductDetailPage() {
   }, [product]);
 
   const currentOffer = offers.find((o) => o.id === selectedOfferId) || offers[0];
+
+  const [supplierAvatar, setSupplierAvatar] = useState<string>("");
+
+  useEffect(() => {
+    let isMounted = true;
+    const targetName = currentOffer?.sellerName || product?.storeName;
+    if (!targetName) return;
+
+    // 1. Initial fallback from product.storeLogo / product.storeAvatar if names match
+    if (product?.storeLogo && (!currentOffer || currentOffer.sellerName === product?.storeName)) {
+      setSupplierAvatar(product.storeLogo);
+    }
+
+    // 2. Check localStorage in case current user is this seller
+    try {
+      const storedUser = localStorage.getItem("tonalzone_user");
+      if (storedUser) {
+        const u = JSON.parse(storedUser);
+        if (
+          (u.storeName && u.storeName.toLowerCase() === targetName.toLowerCase()) ||
+          (u.name && u.name.toLowerCase() === targetName.toLowerCase()) ||
+          getStoreSlug(u.storeName || "") === getStoreSlug(targetName)
+        ) {
+          if (u.storeAvatar || u.avatar) {
+            setSupplierAvatar(u.storeAvatar || u.avatar);
+          }
+        }
+      }
+    } catch {}
+
+    // 3. Query Supabase Store table
+    const fetchStoreAvatar = async () => {
+      try {
+        const { data } = await supabase
+          .from("Store")
+          .select("id, storeName, logo, avatarUrl");
+
+        if (data && isMounted) {
+          const targetSlug = getStoreSlug(targetName);
+          const found = data.find((s: any) => {
+            const sSlug = getStoreSlug(s.storeName || "");
+            return (
+              s.id === targetSlug ||
+              sSlug === targetSlug ||
+              sSlug.includes(targetSlug) ||
+              targetSlug.includes(sSlug) ||
+              (s.storeName && s.storeName.toLowerCase() === targetName.toLowerCase())
+            );
+          });
+
+          if (found) {
+            const img = found.logo || found.avatarUrl;
+            if (img) setSupplierAvatar(img);
+          }
+        }
+      } catch (e) {
+        console.warn("Could not fetch supplier avatar:", e);
+      }
+    };
+
+    fetchStoreAvatar();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [currentOffer?.sellerName, product?.storeName, product?.storeLogo]);
 
   const galleryImages = useMemo(() => {
     if (!product) return [];
@@ -1253,8 +1320,16 @@ export default function ProductDetailPage() {
 
                 <div className="flex items-center gap-4">
                   {/* Supplier Avatar 64px x 64px */}
-                  <div className="w-[64px] h-[64px] rounded-full bg-[#d9d9d9] text-black font-heading font-bold text-2xl flex items-center justify-center shrink-0">
-                    {(currentOffer?.sellerName || product.storeName || "B")[0].toUpperCase()}
+                  <div className="w-[64px] h-[64px] rounded-full bg-[#d9d9d9] text-black font-heading font-bold text-2xl flex items-center justify-center shrink-0 overflow-hidden border border-white/10">
+                    {supplierAvatar ? (
+                      <img
+                        src={supplierAvatar}
+                        alt={currentOffer?.sellerName || product.storeName || "Supplier"}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      (currentOffer?.sellerName || product.storeName || "B")[0].toUpperCase()
+                    )}
                   </div>
 
                   <div>

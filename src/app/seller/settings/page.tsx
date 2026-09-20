@@ -93,7 +93,16 @@ export default function SellerSettingsPage() {
 
       // Fetch verified store profile from backend Supabase API
       try {
-        const res = await fetch("/api/seller/store");
+        let storeQuery = "";
+        if (stored) {
+          try {
+            const u = JSON.parse(stored);
+            if (u.storeId) storeQuery = `?storeId=${encodeURIComponent(u.storeId)}`;
+            else if (u.email) storeQuery = `?email=${encodeURIComponent(u.email)}`;
+          } catch (e) {}
+        }
+
+        const res = await fetch(`/api/seller/store${storeQuery}`);
         if (res.ok) {
           const json = await res.json();
           if (json.success && json.store) {
@@ -110,7 +119,15 @@ export default function SellerSettingsPage() {
               tuningTargetCurve: s.tuningTargetCurve || prev.tuningTargetCurve,
               squiglinkUrl: s.squiglinkUrl || prev.squiglinkUrl,
               authorizedResellers: s.authorizedResellers || prev.authorizedResellers,
+              storeAvatar: s.logo || s.avatarUrl || prev.storeAvatar,
+              storeBanner: s.banner || s.bannerUrl || prev.storeBanner,
             }));
+            if (s.logo || s.avatarUrl) {
+              setAvatarPreview(s.logo || s.avatarUrl);
+            }
+            if (s.banner || s.bannerUrl) {
+              setBannerPreview(s.banner || s.bannerUrl);
+            }
           }
         }
       } catch (err) {
@@ -269,30 +286,45 @@ export default function SellerSettingsPage() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const stored = localStorage.getItem("tonalzone_user");
+      const currentUser = stored ? JSON.parse(stored) : {};
+
+      const payload = {
+        storeId: currentUser.storeId || currentUser.id,
+        userId: currentUser.id,
+        email: currentUser.email,
+        storeName: storeData.storeName,
+        address: storeData.originAddress,
+        bankName: storeData.bankName,
+        bankAccount: storeData.bankAccount,
+        description: storeData.tagline,
+        logo: avatarPreview,
+        avatarUrl: avatarPreview,
+        banner: bannerPreview,
+        bannerUrl: bannerPreview,
+        storeAvatar: avatarPreview,
+        storeBanner: bannerPreview,
+      };
+
       await fetch("/api/seller/store", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          storeName: storeData.storeName,
-          address: storeData.originAddress,
-          bankName: storeData.bankName,
-          bankAccount: storeData.bankAccount,
-          description: storeData.tagline,
-        }),
+        body: JSON.stringify(payload),
       });
 
-      const stored = localStorage.getItem("tonalzone_user");
-      const currentUser = stored ? JSON.parse(stored) : {};
       const updatedUser = {
         ...currentUser,
         ...storeData,
         storeAvatar: avatarPreview,
         storeBanner: bannerPreview,
+        avatar: avatarPreview,
       };
       localStorage.setItem("tonalzone_user", JSON.stringify(updatedUser));
       localStorage.setItem("tonalzone_seller_currency", storeData.storeCurrency);
       window.dispatchEvent(new Event("storage"));
-    } catch (e) {}
+    } catch (e) {
+      console.error("Failed to save store settings:", e);
+    }
 
     setIsSaved(true);
     setTimeout(() => setIsSaved(false), 2500);

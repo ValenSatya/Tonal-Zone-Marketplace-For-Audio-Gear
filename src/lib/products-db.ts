@@ -12,6 +12,9 @@ export interface CatalogProduct {
   storeId?: string;
   storeName: string;
   storeCity: string;
+  storeLogo?: string;
+  storeAvatar?: string;
+  storeBanner?: string;
   description: string;
   images: string[];
   image: string;
@@ -2204,7 +2207,7 @@ export async function fetchProductsFromDb(): Promise<CatalogProduct[]> {
         .select(`
           *,
           brand:Brand(name),
-          store:Store(storeName, address),
+          store:Store(id, storeName, address, logo, banner, avatarUrl, bannerUrl),
           category:Category(name)
         `)
         .order("price", { ascending: false });
@@ -2218,13 +2221,14 @@ export async function fetchProductsFromDb(): Promise<CatalogProduct[]> {
             item.name.toUpperCase().includes("MOONDROP") ||
             (fallbackMatch?.brand || "").toUpperCase().includes("MOONDROP");
 
+          const storeRaw = Array.isArray(item.store) ? item.store[0] : item.store;
           const storeName = isMoondrop
             ? "MOONDROP Official Flagship Store"
-            : Array.isArray(item.store)
-            ? item.store[0]?.storeName
-            : item.store?.storeName || "TonalZone Partner";
+            : storeRaw?.storeName || "TonalZone Partner";
           const resolvedStoreId = isMoondrop ? "store-moondrop-official" : item.storeId || "store-bass-audio";
-          const storeCity = Array.isArray(item.store) ? item.store[0]?.address : item.store?.address || "Jakarta";
+          const storeCity = storeRaw?.address || "Jakarta";
+          const storeLogo = storeRaw?.logo || storeRaw?.avatarUrl || undefined;
+          const storeBanner = storeRaw?.banner || storeRaw?.bannerUrl || undefined;
           const catName = Array.isArray(item.category) ? item.category[0]?.name : item.category?.name || "IN-EAR MONITORS";
           const imgList = Array.isArray(item.images) && item.images.length >= 3
             ? item.images
@@ -2243,6 +2247,9 @@ export async function fetchProductsFromDb(): Promise<CatalogProduct[]> {
             storeId: resolvedStoreId,
             storeName,
             storeCity,
+            storeLogo,
+            storeAvatar: storeLogo,
+            storeBanner,
             description: item.description || fallbackMatch?.description || "Audiophile Reference Gear",
             images: imgList,
             image: imgList[0],
@@ -2451,7 +2458,7 @@ export async function fetchProductByIdFromDb(id: string): Promise<CatalogProduct
       .select(`
         *,
         brand:Brand(name),
-        store:Store(storeName, address),
+        store:Store(id, storeName, address, logo, banner, avatarUrl, bannerUrl),
         category:Category(name)
       `)
       .eq("id", resolvedId)
@@ -2466,13 +2473,14 @@ export async function fetchProductByIdFromDb(id: string): Promise<CatalogProduct
         item.name.toUpperCase().includes("MOONDROP") ||
         (fallbackMatch?.brand || "").toUpperCase().includes("MOONDROP");
 
+      const storeRaw = Array.isArray(item.store) ? item.store[0] : item.store;
       const storeName = isMoondrop
         ? "MOONDROP Official Flagship Store"
-        : Array.isArray(item.store)
-        ? item.store[0]?.storeName
-        : item.store?.storeName || "TonalZone Partner";
+        : storeRaw?.storeName || "TonalZone Partner";
       const resolvedStoreId = isMoondrop ? "store-moondrop-official" : item.storeId || "store-bass-audio";
-      const storeCity = Array.isArray(item.store) ? item.store[0]?.address : item.store?.address || "Jakarta";
+      const storeCity = storeRaw?.address || "Jakarta";
+      const storeLogo = storeRaw?.logo || storeRaw?.avatarUrl || undefined;
+      const storeBanner = storeRaw?.banner || storeRaw?.bannerUrl || undefined;
       const catName = Array.isArray(item.category) ? item.category[0]?.name : item.category?.name || "IN-EAR MONITORS";
       const imgList = Array.isArray(item.images) && item.images.length >= 3
         ? item.images
@@ -2491,6 +2499,9 @@ export async function fetchProductByIdFromDb(id: string): Promise<CatalogProduct
         storeId: resolvedStoreId,
         storeName,
         storeCity,
+        storeLogo,
+        storeAvatar: storeLogo,
+        storeBanner,
         description: data.description || fallbackMatch?.description || "Audiophile Reference Gear",
         images: imgList,
         image: imgList[0],
