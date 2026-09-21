@@ -59,8 +59,8 @@ export default function ProductCard({
       prefetch={false}
       className={`group cursor-pointer block flex flex-col h-full ${className}`}
     >
-      {/* 1. Image Container with 16px Rounded Corners (Zero Borders) */}
-      <div className="aspect-square rounded-2xl bg-[#141414] group-hover:bg-[#1a1a1a] relative overflow-hidden flex items-center justify-center transition-colors duration-300">
+      {/* 1. Image Container with 16px Rounded Corners (Zero Borders) - Off-white (non-pure white) */}
+      <div className="aspect-square rounded-2xl bg-[#F4F4F6] group-hover:bg-[#EAEAEA] relative overflow-hidden flex items-center justify-center transition-colors duration-300 shadow-sm">
         <img
           src={product.image}
           alt={product.name}
@@ -71,7 +71,7 @@ export default function ProductCard({
 
         {/* Top-Right Tag Badge (Rounded-Full Pill, Zero Border) */}
         {displayBadge && (
-          <div className="absolute top-2.5 right-2.5 sm:top-3 sm:right-3 bg-[#2e2e2e] px-3 py-1 text-[9px] sm:text-[10px] font-sans font-bold text-white rounded-full z-10 uppercase tracking-wider shadow-md leading-none">
+          <div className="absolute top-2.5 right-2.5 sm:top-3 sm:right-3 bg-[#181818] px-3 py-1 text-[9px] sm:text-[10px] font-sans font-bold text-white rounded-full z-10 uppercase tracking-wider shadow-md leading-none">
             {displayBadge}
           </div>
         )}
