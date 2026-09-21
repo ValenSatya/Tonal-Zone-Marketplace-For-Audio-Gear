@@ -94,6 +94,16 @@ export async function signUpUser(data: {
       userId = "usr-" + Date.now();
     }
 
+    const isSpecialOfficial =
+      email === "valenandrasatya@gmail.com" ||
+      email.endsWith("@tonalzone.id");
+
+    const initialRole = email.includes("admin")
+      ? "ADMIN"
+      : isSpecialOfficial
+      ? "SELLER"
+      : "BUYER";
+
     // 2. Safe upsert into Supabase database
     const dbUser = await userRepo.upsert({
       id: userId,
@@ -102,18 +112,20 @@ export async function signUpUser(data: {
       location: data.location || "Indonesia",
       language: data.language || "id",
       tuningPreference: data.tuningPreference || "Reference / Neutral",
-      role: email.includes("admin") ? "ADMIN" : email.includes("seller") ? "SELLER" : "BUYER",
+      role: initialRole,
       passwordHash: hashPassword(password),
     });
+
+    const isSeller = isSpecialOfficial || dbUser.role === "SELLER" || dbUser.store?.status === "APPROVED";
 
     const sessionPayload = {
       id: dbUser.id,
       name: dbUser.name || data.fullName.trim() || email.split("@")[0],
       email,
       avatar: sanitizeAvatarForCookie(dbUser.avatar),
-      role: (dbUser.role || "BUYER") as any,
-      isSeller: dbUser.role === "SELLER" || dbUser.store?.status === "APPROVED",
-      sellerStatus: dbUser.store?.status || "NONE",
+      role: (dbUser.role || initialRole) as any,
+      isSeller,
+      sellerStatus: isSpecialOfficial ? "APPROVED" : (dbUser.store?.status || "NONE"),
       tuning: dbUser.tuningPreference || data.tuningPreference,
       experienceLevel: data.experienceLevel || "Intermediate",
       location: dbUser.location || data.location,
@@ -176,6 +188,16 @@ export async function completeGoogleOnboarding(data: {
       });
     }
 
+    const isSpecialOfficial =
+      email === "valenandrasatya@gmail.com" ||
+      email.endsWith("@tonalzone.id");
+
+    const initialRole = email.includes("admin")
+      ? "ADMIN"
+      : isSpecialOfficial
+      ? "SELLER"
+      : "BUYER";
+
     // Upsert into database
     const dbUser = await userRepo.upsert({
       id: userId,
@@ -185,17 +207,19 @@ export async function completeGoogleOnboarding(data: {
       location: data.location || "Indonesia",
       language: data.language || "id",
       tuningPreference: data.tuningPreference || "Reference / Neutral",
-      role: email.includes("admin") ? "ADMIN" : email.includes("seller") ? "SELLER" : "BUYER",
+      role: initialRole,
     });
+
+    const isSeller = isSpecialOfficial || dbUser.role === "SELLER" || dbUser.store?.status === "APPROVED";
 
     const sessionPayload = {
       id: dbUser.id,
       name: dbUser.name || data.fullName.trim(),
       email,
       avatar: sanitizeAvatarForCookie(data.avatar || dbUser.avatar),
-      role: (dbUser.role || "BUYER") as any,
-      isSeller: dbUser.role === "SELLER" || dbUser.store?.status === "APPROVED",
-      sellerStatus: dbUser.store?.status || "NONE",
+      role: (dbUser.role || initialRole) as any,
+      isSeller,
+      sellerStatus: isSpecialOfficial ? "APPROVED" : (dbUser.store?.status || "NONE"),
       tuning: data.tuningPreference || dbUser.tuningPreference || "Reference / Neutral",
       experienceLevel: data.experienceLevel || "Intermediate",
       location: data.location || dbUser.location || "Indonesia",
@@ -261,6 +285,12 @@ export async function signInUser(data: { email: string; passwordRaw: string }): 
       }
     }
 
+    const detectedBrand = extractBrandFromStoreName(null, email);
+    const isSpecialOfficial =
+      email === "valenandrasatya@gmail.com" ||
+      (email.endsWith("@tonalzone.id") && Boolean(detectedBrand)) ||
+      email === "seller@soundstage.id";
+
     // 2. Fetch or Auto-Heal Profile in Supabase Database
     let dbUser = await userRepo.findByEmail(email);
     if (!dbUser && userId) {
@@ -268,18 +298,24 @@ export async function signInUser(data: { email: string; passwordRaw: string }): 
         id: userId,
         email,
         name: authUserMeta.full_name || authUserMeta.name || email.split("@")[0],
-        role: email.includes("admin") ? "ADMIN" : email.includes("tangzu") || email.includes("seller") ? "SELLER" : "BUYER",
+        role: email.includes("admin") ? "ADMIN" : isSpecialOfficial ? "SELLER" : "BUYER",
         location: authUserMeta.location || "Indonesia",
         language: authUserMeta.language || "id",
         tuningPreference: authUserMeta.tuning_preference || "Reference / Neutral",
       });
     }
 
-    const detectedBrand = extractBrandFromStoreName(dbUser?.store?.storeName, email);
     const isOfficialBrand =
       dbUser?.store?.storeType === "OFFICIAL_BRAND" ||
-      email === "valenandrasatya@gmail.com" ||
-      Boolean(detectedBrand);
+      isSpecialOfficial;
+
+    const hasApprovedStore = dbUser?.store?.status === "APPROVED";
+    const isExplicitSellerRole = dbUser?.role === "SELLER";
+
+    const isSeller = Boolean(hasApprovedStore || isExplicitSellerRole || isSpecialOfficial);
+    const role = (isSeller
+      ? (dbUser?.role === "ADMIN" ? "ADMIN" : "SELLER")
+      : (dbUser?.role || (email.includes("admin") ? "ADMIN" : "BUYER"))) as any;
 
     const resolvedBrandName = isOfficialBrand
       ? detectedBrand || dbUser?.store?.brandName || "MOONDROP"
@@ -291,9 +327,6 @@ export async function signInUser(data: { email: string; passwordRaw: string }): 
       ? "RETAIL_MERCHANT"
       : null;
 
-    const role = (dbUser?.role || (email.includes("admin") ? "ADMIN" : email.includes("seller") || isOfficialBrand ? "SELLER" : "BUYER")) as any;
-    const isSeller = role === "SELLER" || dbUser?.store?.status === "APPROVED" || isOfficialBrand;
-
     const rawAvatar = dbUser?.avatar || authUserMeta.avatar_url || authUserMeta.picture || "/placeholder.svg";
 
     const sessionPayload = {
@@ -303,9 +336,9 @@ export async function signInUser(data: { email: string; passwordRaw: string }): 
       avatar: sanitizeAvatarForCookie(rawAvatar),
       role,
       isSeller,
-      sellerStatus: dbUser?.store?.status || (isSeller ? "APPROVED" : "NONE"),
-      storeId: dbUser?.store?.id || (isOfficialBrand ? "store-moondrop-official" : null),
-      storeName: dbUser?.store?.storeName || (isOfficialBrand ? "MOONDROP Official Flagship Store" : null),
+      sellerStatus: dbUser?.store?.status || (isSpecialOfficial ? "APPROVED" : "NONE"),
+      storeId: dbUser?.store?.id || (isOfficialBrand ? (detectedBrand ? `store-${detectedBrand.toLowerCase()}-official` : "store-moondrop-official") : null),
+      storeName: dbUser?.store?.storeName || (isOfficialBrand ? `${resolvedBrandName || "MOONDROP"} Official Flagship Store` : null),
       storeType: resolvedStoreType,
       brandName: resolvedBrandName,
       tuning: dbUser?.tuningPreference || "Reference / Neutral",
@@ -380,7 +413,17 @@ export async function getAuthSession(): Promise<AuthSessionResponse> {
       const meta = u.user_metadata || {};
       const email = u.email || "";
       const dbUser = (await userRepo.findByEmail(email)) || (await userRepo.findById(u.id));
-      const finalRole = ((dbUser?.role) || (email.includes("admin") || email.includes("valenandra") ? "ADMIN" : email.includes("seller") ? "SELLER" : "BUYER")) as any;
+      const isSpecialOfficial =
+        email === "valenandrasatya@gmail.com" ||
+        email.endsWith("@tonalzone.id");
+
+      const hasApprovedStore = dbUser?.store?.status === "APPROVED";
+      const isExplicitSeller = dbUser?.role === "SELLER";
+      const isSeller = Boolean(hasApprovedStore || isExplicitSeller || isSpecialOfficial);
+
+      const finalRole = isSeller
+        ? (dbUser?.role === "ADMIN" ? "ADMIN" : "SELLER")
+        : (dbUser?.role || (email.includes("admin") || email.includes("valenandra") ? "ADMIN" : "BUYER"));
 
       const resolvedAvatar = (dbUser?.avatar && dbUser.avatar !== "/placeholder.svg")
         ? dbUser.avatar
@@ -392,8 +435,8 @@ export async function getAuthSession(): Promise<AuthSessionResponse> {
         email,
         avatar: sanitizeAvatarForCookie(resolvedAvatar),
         role: finalRole,
-        isSeller: finalRole === "ADMIN" || dbUser?.role === "SELLER" || dbUser?.store?.status === "APPROVED",
-        sellerStatus: dbUser?.store?.status || "NONE",
+        isSeller,
+        sellerStatus: dbUser?.store?.status || (isSpecialOfficial ? "APPROVED" : "NONE"),
         tuning: dbUser?.tuningPreference || meta.tuning_preference || "Reference / Neutral",
         experienceLevel: meta.experience_level || "Intermediate",
         location: dbUser?.location || meta.location || "Indonesia",

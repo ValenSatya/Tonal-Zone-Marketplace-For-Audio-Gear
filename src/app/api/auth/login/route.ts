@@ -31,10 +31,19 @@ export async function POST(request: Request) {
     }
 
     const detectedBrand = extractBrandFromStoreName(dbUser?.store?.storeName, cleanEmail);
+    const isSpecialOfficial =
+      cleanEmail === "valenandrasatya@gmail.com" ||
+      (cleanEmail.endsWith("@tonalzone.id") && Boolean(detectedBrand)) ||
+      cleanEmail === "seller@soundstage.id";
+
     const isOfficialBrand =
       dbUser?.store?.storeType === "OFFICIAL_BRAND" ||
-      cleanEmail === "valenandrasatya@gmail.com" ||
-      Boolean(detectedBrand);
+      isSpecialOfficial;
+
+    if (isSpecialOfficial) {
+      isSeller = true;
+      storeStatus = "APPROVED";
+    }
 
     const resolvedStoreType = isOfficialBrand
       ? "OFFICIAL_BRAND"
@@ -46,12 +55,16 @@ export async function POST(request: Request) {
       ? detectedBrand || dbUser?.store?.brandName || "MOONDROP"
       : null;
 
+    const finalRole = isSeller
+      ? (dbUser?.role === "ADMIN" ? "ADMIN" : "SELLER")
+      : (dbUser?.role || (cleanEmail.includes("admin") ? "ADMIN" : "BUYER"));
+
     const userSession = {
       id: dbUser?.id || "user-" + Date.now(),
       email: cleanEmail,
       name: dbUser?.name || cleanEmail.split("@")[0],
       avatar: sanitizeAvatarForCookie(dbUser?.avatar),
-      role: dbUser?.role || (isSeller ? "SELLER" : "BUYER"),
+      role: finalRole,
       isSeller,
       sellerStatus: storeStatus,
       storeId: dbUser?.store?.id || (isOfficialBrand ? "store-moondrop-official" : null),

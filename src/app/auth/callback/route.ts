@@ -33,7 +33,7 @@ export async function GET(request: Request) {
       const finalTuning = existingUser?.tuningPreference || meta.tuning_preference || "Reference / Neutral";
       const finalLocation = existingUser?.location || meta.location || "Indonesia";
       const finalLanguage = existingUser?.language || meta.language || "id";
-      const finalRole = existingUser?.role || (email.includes("admin") || email.includes("valenandra") ? "ADMIN" : email.includes("seller") ? "SELLER" : "BUYER");
+      const finalRole = existingUser?.role || (email.includes("admin") || email.includes("valenandra") ? "ADMIN" : email.endsWith("@tonalzone.id") || email === "seller@soundstage.id" ? "SELLER" : "BUYER");
 
       // Upsert into Supabase database
       const dbUser = await userRepo.upsert({
@@ -47,14 +47,16 @@ export async function GET(request: Request) {
         role: finalRole,
       });
 
+      const isSeller = dbUser.role === "SELLER" || dbUser.store?.status === "APPROVED" || email.endsWith("@tonalzone.id") || email === "valenandrasatya@gmail.com" || email === "seller@soundstage.id";
+
       const sessionPayload = {
         id: dbUser.id,
         name: dbUser.name || finalName,
         email,
         avatar: sanitizeAvatarForCookie(dbUser.avatar || finalAvatar),
         role: (dbUser.role || finalRole) as any,
-        isSeller: dbUser.role === "SELLER" || dbUser.store?.status === "APPROVED",
-        sellerStatus: dbUser.store?.status || "NONE",
+        isSeller,
+        sellerStatus: dbUser.store?.status || (isSeller ? "APPROVED" : "NONE"),
         tuning: dbUser.tuningPreference || finalTuning,
         experienceLevel: meta.experience_level || "Intermediate",
         location: dbUser.location || finalLocation,

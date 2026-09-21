@@ -50,8 +50,9 @@ export interface DbStore {
   brandName?: string | null;
 }
 
-export function extractBrandFromStoreName(name?: string, email?: string): string | null {
-  const text = `${name || ""} ${email || ""}`.toLowerCase().trim();
+export function extractBrandFromStoreName(name?: string | null, email?: string | null): string | null {
+  const isOfficialDomain = email ? (email.toLowerCase().endsWith("@tonalzone.id") || email.toLowerCase().includes("valenandra")) : false;
+  const text = `${name || ""} ${isOfficialDomain ? email : ""}`.toLowerCase().trim();
   if (text.includes("epz")) return "EPZ";
   if (text.includes("tanchjim")) return "Tanchjim";
   if (text.includes("sennheiser")) return "Sennheiser";
