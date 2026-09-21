@@ -161,6 +161,30 @@ export default function AddNewProductPage() {
     setProductImages((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const [imageUrlInput, setImageUrlInput] = useState("");
+  const [showUrlInput, setShowUrlInput] = useState(false);
+  const [urlError, setUrlError] = useState<string | null>(null);
+
+  const handleAddImageUrl = () => {
+    setUrlError(null);
+    const cleanUrl = imageUrlInput.trim();
+    if (!cleanUrl) return;
+
+    if (!cleanUrl.startsWith("http://") && !cleanUrl.startsWith("https://") && !cleanUrl.startsWith("/")) {
+      setUrlError(isEn ? "URL must start with https:// or http://" : "URL harus diawali dengan https:// atau http://");
+      return;
+    }
+
+    if (productImages.length >= 8) {
+      setUrlError(isEn ? "Maximum 8 product photos allowed." : "Maksimal 8 foto produk diperbolehkan.");
+      return;
+    }
+
+    setProductImages((prev) => [...prev, cleanUrl]);
+    setImageUrlInput("");
+    setShowUrlInput(false);
+  };
+
   const handleAddVariant = () => {
     const newV: NewProductVariant = {
       id: `var-${Date.now()}`,
@@ -905,15 +929,33 @@ export default function AddNewProductPage() {
             </div>
           </div>
 
-          {/* Section 4: Multi-Image Product Gallery Upload */}
+          {/* Section 4: Multi-Image Product Gallery Upload (Files & Browser URL) */}
           <div className="bg-[#0A0A0A] rounded-2xl p-6 sm:p-7 space-y-5">
             <div className="flex items-center justify-between pb-1">
               <h3 className="text-xs font-bold font-sans text-white uppercase tracking-wider">
                 {isEn ? "4. Photo Gallery" : "4. Galeri Foto Produk"}
               </h3>
-              <span className="text-[10px] font-mono text-[#71717A]">
-                {productImages.length} {isEn ? "Photos" : "Foto"} (Max 8)
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-mono text-[#71717A]">
+                  {productImages.length}/8 {isEn ? "Photos" : "Foto"}
+                </span>
+                {productImages.length < 8 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setUrlError(null);
+                      setShowUrlInput(!showUrlInput);
+                    }}
+                    className={`px-2.5 py-1 text-[10px] font-mono rounded-lg transition-colors cursor-pointer ${
+                      showUrlInput
+                        ? "bg-[#BFDD25] text-black font-semibold"
+                        : "bg-[#181818] hover:bg-[#222] text-[#A1A1AA] hover:text-white"
+                    }`}
+                  >
+                    {showUrlInput ? (isEn ? "Close URL" : "Tutup URL") : (isEn ? "+ Paste URL" : "+ Tempel URL")}
+                  </button>
+                )}
+              </div>
             </div>
 
             <input
@@ -928,6 +970,59 @@ export default function AddNewProductPage() {
                 }
               }}
             />
+
+            {/* URL Input Box (Paste Link from Browser) */}
+            {showUrlInput && (
+              <div className="p-4 bg-[#141414] ring-1 ring-white/10 rounded-xl space-y-3 animate-in fade-in duration-200">
+                <div className="flex items-center justify-between">
+                  <label className="block text-[11px] font-mono text-[#A1A1AA] uppercase tracking-wider">
+                    {isEn ? "Image Web Link (URL) *" : "Tautan Gambar dari Browser (URL) *"}
+                  </label>
+                  <span className="text-[10px] font-mono text-[#666]">HTTPS / WebP / JPG / PNG</span>
+                </div>
+                <div className="flex gap-2">
+                  <input
+                    type="url"
+                    placeholder="https://example.com/moondrop-iem.webp"
+                    value={imageUrlInput}
+                    onChange={(e) => {
+                      setImageUrlInput(e.target.value);
+                      setUrlError(null);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleAddImageUrl();
+                      }
+                    }}
+                    className="flex-1 bg-[#1A1A1A] ring-1 ring-white/10 focus:ring-1 focus:ring-white/40 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder:text-[#666] outline-none font-mono"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddImageUrl}
+                    className="px-4 py-2.5 bg-[#BFDD25] hover:bg-[#cbf026] text-black text-xs font-mono font-bold rounded-xl transition-all cursor-pointer whitespace-nowrap"
+                  >
+                    {isEn ? "Add Photo" : "Tambah"}
+                  </button>
+                </div>
+                {urlError && (
+                  <p className="text-[11px] text-red-400 font-mono">{urlError}</p>
+                )}
+                {imageUrlInput.trim().startsWith("http") && (
+                  <div className="pt-2 flex items-center gap-3">
+                    <span className="text-[10px] font-mono text-[#71717A]">{isEn ? "Preview:" : "Pratinjau:"}</span>
+                    <div className="w-12 h-12 rounded-lg bg-[#181818] overflow-hidden ring-1 ring-white/10 shrink-0">
+                      <img
+                        src={imageUrlInput.trim()}
+                        alt="Preview"
+                        className="w-full h-full object-cover"
+                        onError={() => setUrlError(isEn ? "Unable to load image from URL." : "Gagal memuat gambar dari URL tersebut.")}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
             {productImages.length > 0 ? (
               <div className="space-y-3">
@@ -944,7 +1039,14 @@ export default function AddNewProductPage() {
                       onClick={() => imageInputRef.current?.click()}
                       className="px-3 py-1.5 bg-[#181818] hover:bg-[#222] text-white text-[11px] font-mono rounded-full cursor-pointer transition-all"
                     >
-                      {isEn ? "Add More Photos" : "Tambah Foto Lagi"}
+                      {isEn ? "+ Upload Local" : "+ Upload Lokal"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowUrlInput(true)}
+                      className="px-3 py-1.5 bg-[#181818] hover:bg-[#222] text-white text-[11px] font-mono rounded-full cursor-pointer transition-all"
+                    >
+                      {isEn ? "+ Add via URL" : "+ Tempel URL"}
                     </button>
                     <button
                       type="button"
@@ -991,38 +1093,72 @@ export default function AddNewProductPage() {
                     </div>
                   ))}
 
-                  {/* Add More Thumbnail Box */}
+                  {/* Add More Buttons (Upload & URL) */}
                   {productImages.length < 8 && (
-                    <button
-                      type="button"
-                      onClick={() => imageInputRef.current?.click()}
-                      className="rounded-xl bg-[#121212] hover:bg-[#181818] h-16 flex flex-col items-center justify-center text-[#71717A] hover:text-white transition-all cursor-pointer"
-                    >
-                      <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                      </svg>
-                      <span className="text-[9px] font-mono mt-0.5">{isEn ? "+ Add" : "+ Foto"}</span>
-                    </button>
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => imageInputRef.current?.click()}
+                        className="rounded-xl bg-[#121212] hover:bg-[#181818] h-16 flex flex-col items-center justify-center text-[#71717A] hover:text-white transition-all cursor-pointer"
+                      >
+                        <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                        </svg>
+                        <span className="text-[9px] font-mono mt-0.5">{isEn ? "+ File" : "+ File"}</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setShowUrlInput(true)}
+                        className="rounded-xl bg-[#121212] hover:bg-[#181818] h-16 flex flex-col items-center justify-center text-[#71717A] hover:text-[#BFDD25] transition-all cursor-pointer"
+                      >
+                        <span className="text-sm font-mono font-bold">🔗</span>
+                        <span className="text-[9px] font-mono mt-0.5">+ URL</span>
+                      </button>
+                    </>
                   )}
                 </div>
               </div>
             ) : (
-              <div
-                onClick={() => imageInputRef.current?.click()}
-                className="bg-[#121212] hover:bg-[#161616] rounded-2xl p-8 text-center cursor-pointer transition-all space-y-3"
-              >
-                <div className="w-12 h-12 rounded-2xl bg-[#181818] flex items-center justify-center text-[#BFDD25] mx-auto">
-                  <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
-                  </svg>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {/* Option 1: Local File Upload */}
+                <div
+                  onClick={() => imageInputRef.current?.click()}
+                  className="bg-[#121212] hover:bg-[#161616] rounded-2xl p-6 text-center cursor-pointer transition-all space-y-2.5 flex flex-col items-center justify-center"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-[#181818] flex items-center justify-center text-white/80">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold text-white">
+                      {isEn ? "Upload from Computer" : "Pilih File dari Komputer"}
+                    </p>
+                    <p className="text-[10px] font-mono text-[#71717A] mt-0.5">
+                      PNG, JPG, WebP
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-xs font-semibold text-white">
-                    {isEn ? "Upload Multiple Product Photos" : "Upload Beberapa Foto Produk Sekaligus"}
-                  </p>
-                  <p className="text-[11px] font-mono text-[#71717A] mt-1">
-                    {isEn ? "Select multiple images (PNG, JPG, WebP)" : "Pilih beberapa file sekaligus (PNG, JPG, WebP)"}
-                  </p>
+
+                {/* Option 2: Browser Web URL Link */}
+                <div
+                  onClick={() => {
+                    setUrlError(null);
+                    setShowUrlInput(true);
+                  }}
+                  className="bg-[#121212] hover:bg-[#161616] rounded-2xl p-6 text-center cursor-pointer transition-all space-y-2.5 flex flex-col items-center justify-center"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-[#181818] flex items-center justify-center text-white/80">
+                    <span className="text-base font-mono">🔗</span>
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold text-white">
+                      {isEn ? "Paste Image Link (URL)" : "Tempel Link URL dari Web"}
+                    </p>
+                    <p className="text-[10px] font-mono text-[#71717A] mt-0.5">
+                      {isEn ? "Use link from browser" : "Gunakan link langsung dari browser"}
+                    </p>
+                  </div>
                 </div>
               </div>
             )}

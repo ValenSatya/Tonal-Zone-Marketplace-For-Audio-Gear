@@ -616,6 +616,37 @@ export default function SellerProductsPage() {
     });
   };
 
+  const [editImageUrlInput, setEditImageUrlInput] = useState("");
+  const [showEditUrlInput, setShowEditUrlInput] = useState(false);
+  const [editUrlError, setEditUrlError] = useState<string | null>(null);
+
+  const handleAddImageUrlInEdit = () => {
+    setEditUrlError(null);
+    const cleanUrl = editImageUrlInput.trim();
+    if (!cleanUrl) return;
+
+    if (!cleanUrl.startsWith("http://") && !cleanUrl.startsWith("https://") && !cleanUrl.startsWith("/")) {
+      setEditUrlError(isEn ? "URL must start with https:// or http://" : "URL harus diawali dengan https:// atau http://");
+      return;
+    }
+
+    if (!editProduct) return;
+    const currentImages = editProduct.images || (editProduct.image ? [editProduct.image] : []);
+    if (currentImages.length >= 8) {
+      setEditUrlError(isEn ? "Maximum 8 product photos allowed." : "Maksimal 8 foto produk diperbolehkan.");
+      return;
+    }
+
+    const updated = [...currentImages, cleanUrl];
+    setEditProduct({
+      ...editProduct,
+      images: updated,
+      image: updated[0],
+    });
+    setEditImageUrlInput("");
+    setShowEditUrlInput(false);
+  };
+
   // Add Variant in Quick Edit
   const handleAddVariantInEdit = () => {
     if (!editProduct) return;
@@ -1282,17 +1313,66 @@ export default function SellerProductsPage() {
                       }
                     }}
                   />
-                  <button
-                    type="button"
-                    onClick={() => editImageInputRef.current?.click()}
-                    className="px-3 py-1.5 bg-[#181818] hover:bg-[#222] text-white text-[10px] font-mono font-medium rounded-full transition-colors cursor-pointer flex items-center gap-1"
-                  >
-                    <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                    </svg>
-                    {isEn ? "+ Add Photos" : "+ Tambah Foto"}
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => editImageInputRef.current?.click()}
+                      className="px-3 py-1.5 bg-[#181818] hover:bg-[#222] text-white text-[10px] font-mono font-medium rounded-full transition-colors cursor-pointer flex items-center gap-1"
+                    >
+                      <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                      </svg>
+                      {isEn ? "+ Files" : "+ File"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditUrlError(null);
+                        setShowEditUrlInput(!showEditUrlInput);
+                      }}
+                      className={`px-3 py-1.5 text-[10px] font-mono font-medium rounded-full transition-colors cursor-pointer flex items-center gap-1 ${
+                        showEditUrlInput ? "bg-[#BFDD25] text-black" : "bg-[#181818] hover:bg-[#222] text-[#A1A1AA] hover:text-white"
+                      }`}
+                    >
+                      <span>🔗</span>
+                      <span>{showEditUrlInput ? (isEn ? "Close" : "Tutup") : (isEn ? "+ URL" : "+ URL")}</span>
+                    </button>
+                  </div>
                 </div>
+
+                {/* URL Input Box in Edit Modal */}
+                {showEditUrlInput && (
+                  <div className="p-3 bg-[#141414] ring-1 ring-white/10 rounded-xl space-y-2">
+                    <div className="flex gap-2">
+                      <input
+                        type="url"
+                        placeholder="https://example.com/foto-iem.webp"
+                        value={editImageUrlInput}
+                        onChange={(e) => {
+                          setEditImageUrlInput(e.target.value);
+                          setEditUrlError(null);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            handleAddImageUrlInEdit();
+                          }
+                        }}
+                        className="flex-1 bg-[#1A1A1A] ring-1 ring-white/10 focus:ring-1 focus:ring-white/40 rounded-xl px-3 py-2 text-xs text-white placeholder:text-[#666] outline-none font-mono"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleAddImageUrlInEdit}
+                        className="px-3.5 py-2 bg-[#BFDD25] hover:bg-[#cbf026] text-black text-xs font-mono font-bold rounded-xl transition-all cursor-pointer whitespace-nowrap"
+                      >
+                        {isEn ? "Add" : "Tambah"}
+                      </button>
+                    </div>
+                    {editUrlError && (
+                      <p className="text-[10px] text-red-400 font-mono">{editUrlError}</p>
+                    )}
+                  </div>
+                )}
 
                 {/* Gallery Grid */}
                 {editProduct.images && editProduct.images.length > 0 ? (
