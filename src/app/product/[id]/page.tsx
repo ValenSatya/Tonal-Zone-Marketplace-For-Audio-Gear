@@ -870,10 +870,10 @@ export default function ProductDetailPage() {
                         key={idx}
                         type="button"
                         onClick={() => setSelectedVariant(idx)}
-                        className={`w-[76px] h-[76px] sm:w-[94px] sm:h-[94px] rounded-[8px] bg-[#111111] overflow-hidden relative cursor-pointer transition-all duration-200 shrink-0 ${
+                        className={`w-[76px] h-[76px] sm:w-[94px] sm:h-[94px] rounded-[8px] bg-[#F4F4F6] overflow-hidden relative cursor-pointer transition-all duration-200 shrink-0 ${
                           isSelected
-                            ? "border-2 border-white shadow-[0_0_12px_rgba(255,255,255,0.3)] opacity-100"
-                            : "border border-[#262626] opacity-60 hover:opacity-100 hover:border-[#555555]"
+                            ? "border-2 border-white shadow-md opacity-100"
+                            : "border border-white/10 opacity-70 hover:opacity-100 hover:border-white/30"
                         }`}
                       >
                         <img
@@ -912,8 +912,8 @@ export default function ProductDetailPage() {
               </div>
             )}
 
-            {/* Main Image (Enlarged to fill column space and close the gap with clean 8px rounded corners) */}
-            <div className="w-full flex-1 min-w-0 aspect-[494/506] rounded-[8px] bg-[#111111] border border-[#222222] overflow-hidden isolate relative group shadow-2xl">
+            {/* Main Image (Enlarged to fill column space and close the gap with clean 8px rounded corners) - Off-white (#F4F4F6) */}
+            <div className="w-full flex-1 min-w-0 aspect-[494/506] rounded-[8px] bg-[#F4F4F6] border border-white/10 overflow-hidden isolate relative group shadow-2xl">
               <img
                 src={galleryImages[selectedVariant] || galleryImages[0] || product.image}
                 alt={product.name}
