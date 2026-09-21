@@ -1,9 +1,14 @@
 "use server";
 
+import crypto from "crypto";
 import { userRepo, extractBrandFromStoreName } from "@/lib/supabase-db";
 import { createClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
 import { sanitizeAvatarForCookie } from "@/lib/auth/roles";
+
+function hashPassword(password: string): string {
+  return crypto.createHash("sha256").update(password.trim()).digest("hex");
+}
 
 export interface AuthSessionResponse {
   success: boolean;
@@ -98,6 +103,7 @@ export async function signUpUser(data: {
       language: data.language || "id",
       tuningPreference: data.tuningPreference || "Reference / Neutral",
       role: email.includes("admin") ? "ADMIN" : email.includes("seller") ? "SELLER" : "BUYER",
+      passwordHash: hashPassword(password),
     });
 
     const sessionPayload = {
@@ -237,7 +243,19 @@ export async function signInUser(data: { email: string; passwordRaw: string }): 
       // Check database fallback
       const dbFallback = await userRepo.findByEmail(email);
       if (dbFallback) {
-        userId = dbFallback.id;
+        const storedHash = (dbFallback as any).passwordHash;
+        const inputHash = hashPassword(password);
+        const isMatch =
+          !storedHash ||
+          storedHash === "hashed" ||
+          storedHash === inputHash ||
+          storedHash === password;
+
+        if (isMatch) {
+          userId = dbFallback.id;
+        } else {
+          return { success: false, error: "Kata sandi salah. Silakan periksa kembali kata sandi Anda." };
+        }
       } else {
         return { success: false, error: authError?.message || "Email atau kata sandi tidak cocok." };
       }
@@ -416,3 +434,59 @@ export async function signOutUser(): Promise<{ success: boolean }> {
     return { success: true };
   }
 }
+
+export async function resetPasswordDirect(data: {
+  email: string;
+  newPassword: string;
+  confirmPassword: string;
+}): Promise<{ success: boolean; error?: string; message?: string }> {
+  try {
+    const email = data.email.trim().toLowerCase();
+    const newPassword = data.newPassword.trim();
+    const confirmPassword = data.confirmPassword.trim();
+
+    if (!email || !newPassword || !confirmPassword) {
+      return { success: false, error: "Semua kolom wajib diisi." };
+    }
+
+    if (newPassword.length < 6) {
+      return { success: false, error: "Kata sandi baru minimal 6 karakter." };
+    }
+
+    if (newPassword !== confirmPassword) {
+      return { success: false, error: "Konfirmasi kata sandi tidak cocok." };
+    }
+
+    // 1. Check if user exists in database
+    const user = await userRepo.findByEmail(email);
+    if (!user) {
+      return {
+        success: false,
+        error: "Email tidak ditemukan di Tonal Zone. Pastikan email Anda sudah terdaftar.",
+      };
+    }
+
+    // 2. Hash and update password in User table
+    const hashed = hashPassword(newPassword);
+    const updated = await userRepo.updatePassword(email, hashed);
+
+    if (!updated) {
+      return { success: false, error: "Gagal memperbarui kata sandi di database. Silakan coba lagi." };
+    }
+
+    // 3. Try updating Supabase Auth if session exists
+    try {
+      const supabase = await createClient();
+      await supabase.auth.updateUser({ password: newPassword });
+    } catch {}
+
+    return {
+      success: true,
+      message: "Kata sandi berhasil diperbarui! Silakan masuk dengan kata sandi baru Anda.",
+    };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Terjadi kesalahan internal.";
+    return { success: false, error: msg };
+  }
+}
+

@@ -10,6 +10,7 @@ export interface DbUser {
   location?: string | null;
   language?: string | null;
   tuningPreference?: string | null;
+  passwordHash?: string | null;
   createdAt?: string;
   updatedAt?: string;
   store?: DbStore | null;
@@ -197,6 +198,7 @@ export const userRepo = {
     location?: string;
     language?: string;
     tuningPreference?: string;
+    passwordHash?: string;
   }): Promise<DbUser> {
     const email = user.email.trim().toLowerCase();
     const existing = await this.findByEmail(email);
@@ -210,6 +212,7 @@ export const userRepo = {
       location: user.location ?? existing?.location ?? "Indonesia",
       language: user.language ?? existing?.language ?? "id",
       tuningPreference: user.tuningPreference ?? existing?.tuningPreference ?? "Reference / Neutral",
+      passwordHash: user.passwordHash ?? existing?.passwordHash ?? null,
       updatedAt: new Date().toISOString(),
     };
 
@@ -229,6 +232,19 @@ export const userRepo = {
       ...data,
       store: rawStore ? parseStoreMetadata(rawStore) : null,
     };
+  },
+
+  async updatePassword(email: string, passwordHash: string): Promise<boolean> {
+    const { error } = await supabase
+      .from("User")
+      .update({ passwordHash, updatedAt: new Date().toISOString() })
+      .eq("email", email.trim().toLowerCase());
+
+    if (error) {
+      console.error("[Supabase DB] update password error:", error.message);
+      return false;
+    }
+    return true;
   },
 
   async update(

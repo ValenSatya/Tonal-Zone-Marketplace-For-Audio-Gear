@@ -1,13 +1,13 @@
 "use client";
 
-import React, { useState, Suspense } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import { useLanguage } from "@/context/LanguageContext";
-import { signInUser } from "@/app/actions/auth";
+import { signInUser, resetPasswordDirect } from "@/app/actions/auth";
 import { createClient } from "@/lib/supabase/client";
-import { Eye, EyeOff, CornerDownRight, Sparkles } from "lucide-react";
+import { Eye, EyeOff, CornerDownRight, Sparkles, X, CheckCircle2 } from "lucide-react";
 
 function LoginContent() {
   const router = useRouter();
@@ -21,6 +21,67 @@ function LoginContent() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  // Forgot Password Modal State
+  const [showForgotModal, setShowForgotModal] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotPassword, setForgotPassword] = useState("");
+  const [forgotConfirmPassword, setForgotConfirmPassword] = useState("");
+  const [showForgotPwd, setShowForgotPwd] = useState(false);
+  const [showForgotConfirmPwd, setShowForgotConfirmPwd] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
+  const [forgotError, setForgotError] = useState<string | null>(null);
+  const [forgotSuccess, setForgotSuccess] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (searchParams?.get("reset") === "success") {
+      setSuccessMessage("Kata sandi berhasil diperbarui! Silakan masuk dengan kata sandi baru.");
+    }
+  }, [searchParams]);
+
+  const handleForgotSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setForgotError(null);
+    setForgotSuccess(null);
+
+    if (forgotPassword.length < 6) {
+      setForgotError("Kata sandi minimal 6 karakter.");
+      return;
+    }
+    if (forgotPassword !== forgotConfirmPassword) {
+      setForgotError("Konfirmasi kata sandi tidak cocok.");
+      return;
+    }
+
+    setIsResetting(true);
+    try {
+      const res = await resetPasswordDirect({
+        email: forgotEmail,
+        newPassword: forgotPassword,
+        confirmPassword: forgotConfirmPassword,
+      });
+
+      if (!res.success) {
+        setForgotError(res.error || "Gagal mereset kata sandi.");
+        setIsResetting(false);
+        return;
+      }
+
+      setForgotSuccess("Kata sandi berhasil diperbarui!");
+      setLoginEmail(forgotEmail);
+      setLoginPassword("");
+      setIsResetting(false);
+
+      setTimeout(() => {
+        setShowForgotModal(false);
+        setForgotSuccess(null);
+        setSuccessMessage("Kata sandi berhasil diperbarui! Silakan masukkan kata sandi baru untuk login.");
+      }, 1200);
+    } catch {
+      setForgotError("Terjadi kesalahan teknis saat mereset kata sandi.");
+      setIsResetting(false);
+    }
+  };
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -227,10 +288,15 @@ function LoginContent() {
             <div className="flex flex-col items-center gap-2.5 mt-5">
               <button
                 type="button"
-                onClick={() => setSuccessMessage("Tautan pemulihan kata sandi telah dikirim ke email Anda.")}
-                className="text-xs font-sans text-[#666] hover:text-[#FAF9F6] transition-colors underline cursor-pointer"
+                onClick={() => {
+                  setForgotEmail(loginEmail);
+                  setForgotError(null);
+                  setForgotSuccess(null);
+                  setShowForgotModal(true);
+                }}
+                className="text-xs font-sans text-[#888] hover:text-[#FAF9F6] transition-colors underline cursor-pointer"
               >
-                I can't remember my password
+                Lupa kata sandi?
               </button>
               <Link
                 href="/signup"
@@ -265,6 +331,125 @@ function LoginContent() {
 
         </div>
       </main>
+
+      {/* RESET PASSWORD MODAL (OPSI 1 - DIRECT RESET TANPA KIRIM EMAIL) */}
+      {showForgotModal && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-[400px] bg-[#0A0A0A] ring-1 ring-white/10 rounded-2xl p-6 sm:p-7 shadow-2xl text-left relative animate-in fade-in zoom-in-95 duration-200">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between pb-4 border-b border-white/5 mb-5">
+              <div>
+                <h3 className="text-base font-bold font-sans text-white">Reset Kata Sandi</h3>
+                <p className="text-xs text-[#888] font-sans mt-0.5">
+                  Masukkan email terdaftar dan kata sandi baru.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowForgotModal(false)}
+                className="p-1.5 rounded-lg text-[#666] hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Error / Success Feedback */}
+            {forgotError && (
+              <div className="mb-4 p-3 bg-[#120505] text-red-400 text-xs font-sans border-l-2 border-red-500 rounded-r-lg">
+                {forgotError}
+              </div>
+            )}
+            {forgotSuccess && (
+              <div className="mb-4 p-3 bg-[#0a140a] text-[#BFDD25] text-xs font-sans border-l-2 border-[#BFDD25] rounded-r-lg flex items-center gap-2">
+                <CheckCircle2 size={15} className="shrink-0 text-[#BFDD25]" />
+                <span>{forgotSuccess}</span>
+              </div>
+            )}
+
+            {/* Form */}
+            <form onSubmit={handleForgotSubmit} className="space-y-3.5">
+              <div>
+                <label className="block text-[11px] font-mono text-[#71717A] uppercase tracking-wider mb-1.5">
+                  Email Akun *
+                </label>
+                <input
+                  type="email"
+                  required
+                  placeholder="nama@email.com"
+                  value={forgotEmail}
+                  onChange={(e) => setForgotEmail(e.target.value)}
+                  className="w-full bg-[#141414] hover:bg-[#181818] focus:bg-[#1C1C1C] ring-1 ring-white/10 focus:ring-1 focus:ring-white/40 rounded-xl px-4 py-3 text-xs text-white placeholder:text-[#666] outline-none transition-all font-sans"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-mono text-[#71717A] uppercase tracking-wider mb-1.5">
+                  Kata Sandi Baru * (Min 6 Karakter)
+                </label>
+                <div className="relative w-full">
+                  <input
+                    type={showForgotPwd ? "text" : "password"}
+                    required
+                    placeholder="Minimal 6 karakter"
+                    value={forgotPassword}
+                    onChange={(e) => setForgotPassword(e.target.value)}
+                    className="w-full bg-[#141414] hover:bg-[#181818] focus:bg-[#1C1C1C] ring-1 ring-white/10 focus:ring-1 focus:ring-white/40 rounded-xl px-4 py-3 pr-10 text-xs text-white placeholder:text-[#666] outline-none transition-all font-sans"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowForgotPwd(!showForgotPwd)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#666] hover:text-white transition-colors cursor-pointer"
+                  >
+                    {showForgotPwd ? <EyeOff size={15} /> : <Eye size={15} />}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-mono text-[#71717A] uppercase tracking-wider mb-1.5">
+                  Ulangi Kata Sandi Baru *
+                </label>
+                <div className="relative w-full">
+                  <input
+                    type={showForgotConfirmPwd ? "text" : "password"}
+                    required
+                    placeholder="Ulangi kata sandi baru"
+                    value={forgotConfirmPassword}
+                    onChange={(e) => setForgotConfirmPassword(e.target.value)}
+                    className="w-full bg-[#141414] hover:bg-[#181818] focus:bg-[#1C1C1C] ring-1 ring-white/10 focus:ring-1 focus:ring-white/40 rounded-xl px-4 py-3 pr-10 text-xs text-white placeholder:text-[#666] outline-none transition-all font-sans"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowForgotConfirmPwd(!showForgotConfirmPwd)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#666] hover:text-white transition-colors cursor-pointer"
+                  >
+                    {showForgotConfirmPwd ? <EyeOff size={15} /> : <Eye size={15} />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="pt-2 flex flex-col gap-2">
+                <button
+                  type="submit"
+                  disabled={isResetting}
+                  className="w-full bg-[#BFDD25] hover:bg-[#cbf026] active:scale-[0.99] text-black font-mono font-bold text-xs uppercase tracking-wider py-3.5 transition-all duration-200 cursor-pointer disabled:opacity-50 rounded-full shadow-lg flex items-center justify-center gap-2"
+                >
+                  <CornerDownRight size={14} strokeWidth={2.5} />
+                  <span>{isResetting ? "MEMPROSES..." : "SIMPAN PASSWORD BARU"}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setShowForgotModal(false)}
+                  className="w-full text-center py-2 text-xs font-sans text-[#888] hover:text-white transition-colors cursor-pointer"
+                >
+                  Batal / Kembali
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* 3. BOTTOM FOOTER BAR */}
       <footer className="w-full px-6 sm:px-12 py-6 flex flex-col sm:flex-row items-center justify-between text-[11px] font-mono text-[#444] uppercase tracking-widest z-10 gap-3">

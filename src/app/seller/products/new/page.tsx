@@ -325,7 +325,7 @@ export default function AddNewProductPage() {
       {/* Master Catalog Shortcut Recommendation (Rounded-2xl, Zero Stroke) */}
       <div className="p-5 sm:p-6 rounded-2xl bg-[#0E0E0E] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-xl bg-[#181818] flex items-center justify-center text-[#BFDD25] shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-[#181818] flex items-center justify-center text-[#A1A1AA] shrink-0">
             <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 16.875h3.375m0 0h3.375m-3.375 0V13.5m0 3.375v3.375M6 5.625a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.875 0a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm12 0a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0z" />
             </svg>
@@ -368,8 +368,7 @@ export default function AddNewProductPage() {
         <div className="lg:col-span-2 space-y-6">
           {/* Section 1: General Product Information & Category Picker */}
           <div className="bg-[#0A0A0A] rounded-2xl p-6 sm:p-7 space-y-5">
-            <div className="flex items-center gap-2.5 pb-1">
-              <span className="w-2 h-2 rounded-full bg-[#BFDD25] shadow-[0_0_8px_rgba(191,221,37,0.6)]" />
+            <div className="pb-1">
               <h3 className="text-xs font-bold font-sans text-white uppercase tracking-wider">
                 {isEn ? "1. General Product Information" : "1. Informasi Dasar Produk"}
               </h3>
@@ -433,11 +432,8 @@ export default function AddNewProductPage() {
                     )}
                   </div>
                   {isOfficialBrand ? (
-                    <div className="w-full bg-[#121212] rounded-xl px-4 py-3 text-xs font-mono font-bold text-white flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#BFDD25] shadow-[0_0_6px_rgba(191,221,37,0.6)]" />
-                        <span>{officialBrandName || "MOONDROP"}</span>
-                      </div>
+                    <div className="w-full bg-[#161616] ring-1 ring-white/10 rounded-xl px-4 py-3 text-xs font-mono font-bold text-white flex items-center justify-between">
+                      <span>{officialBrandName || "MOONDROP"}</span>
                       <span className="text-[10px] font-normal text-[#71717A]">Official Manufacturer</span>
                     </div>
                   ) : (
@@ -534,8 +530,7 @@ export default function AddNewProductPage() {
 
           {/* Section 2: Dynamic Category-Specific Technical Specs */}
           <div className="bg-[#0A0A0A] rounded-2xl p-6 sm:p-7 space-y-5">
-            <div className="flex items-center gap-2.5 pb-1">
-              <span className="w-2 h-2 rounded-full bg-[#BFDD25] shadow-[0_0_8px_rgba(191,221,37,0.6)]" />
+            <div className="pb-1">
               <h3 className="text-xs font-bold font-sans text-white uppercase tracking-wider">
                 {isEn
                   ? `2. Technical Specifications (${category})`
@@ -755,8 +750,7 @@ export default function AddNewProductPage() {
         <div className="space-y-6">
           {/* Section 3: Pricing, Stock & Product Variants */}
           <div className="bg-[#0A0A0A] rounded-2xl p-6 sm:p-7 space-y-5">
-            <div className="flex items-center gap-2.5 pb-1">
-              <span className="w-2 h-2 rounded-full bg-[#BFDD25] shadow-[0_0_8px_rgba(191,221,37,0.6)]" />
+            <div className="pb-1">
               <h3 className="text-xs font-bold font-sans text-white uppercase tracking-wider">
                 {isEn ? "3. Pricing & Variants" : "3. Harga & Varian Produk"}
               </h3>
@@ -914,12 +908,9 @@ export default function AddNewProductPage() {
           {/* Section 4: Multi-Image Product Gallery Upload */}
           <div className="bg-[#0A0A0A] rounded-2xl p-6 sm:p-7 space-y-5">
             <div className="flex items-center justify-between pb-1">
-              <div className="flex items-center gap-2.5">
-                <span className="w-2 h-2 rounded-full bg-[#BFDD25] shadow-[0_0_8px_rgba(191,221,37,0.6)]" />
-                <h3 className="text-xs font-bold font-sans text-white uppercase tracking-wider">
-                  {isEn ? "4. Photo Gallery" : "4. Galeri Foto Produk"}
-                </h3>
-              </div>
+              <h3 className="text-xs font-bold font-sans text-white uppercase tracking-wider">
+                {isEn ? "4. Photo Gallery" : "4. Galeri Foto Produk"}
+              </h3>
               <span className="text-[10px] font-mono text-[#71717A]">
                 {productImages.length} {isEn ? "Photos" : "Foto"} (Max 8)
               </span>
