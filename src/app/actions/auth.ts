@@ -1,6 +1,6 @@
 "use server";
 
-import { userRepo } from "@/lib/supabase-db";
+import { userRepo, extractBrandFromStoreName } from "@/lib/supabase-db";
 import { createClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
 import { sanitizeAvatarForCookie } from "@/lib/auth/roles";
@@ -257,8 +257,24 @@ export async function signInUser(data: { email: string; passwordRaw: string }): 
       });
     }
 
-    const role = (dbUser?.role || (email.includes("admin") ? "ADMIN" : email.includes("seller") ? "SELLER" : "BUYER")) as any;
-    const isSeller = role === "SELLER" || dbUser?.store?.status === "APPROVED";
+    const detectedBrand = extractBrandFromStoreName(dbUser?.store?.storeName, email);
+    const isOfficialBrand =
+      dbUser?.store?.storeType === "OFFICIAL_BRAND" ||
+      email === "valenandrasatya@gmail.com" ||
+      Boolean(detectedBrand);
+
+    const resolvedBrandName = isOfficialBrand
+      ? detectedBrand || dbUser?.store?.brandName || "MOONDROP"
+      : null;
+
+    const resolvedStoreType = isOfficialBrand
+      ? "OFFICIAL_BRAND"
+      : dbUser?.store
+      ? "RETAIL_MERCHANT"
+      : null;
+
+    const role = (dbUser?.role || (email.includes("admin") ? "ADMIN" : email.includes("seller") || isOfficialBrand ? "SELLER" : "BUYER")) as any;
+    const isSeller = role === "SELLER" || dbUser?.store?.status === "APPROVED" || isOfficialBrand;
 
     const rawAvatar = dbUser?.avatar || authUserMeta.avatar_url || authUserMeta.picture || "/placeholder.svg";
 
@@ -270,6 +286,10 @@ export async function signInUser(data: { email: string; passwordRaw: string }): 
       role,
       isSeller,
       sellerStatus: dbUser?.store?.status || (isSeller ? "APPROVED" : "NONE"),
+      storeId: dbUser?.store?.id || (isOfficialBrand ? "store-moondrop-official" : null),
+      storeName: dbUser?.store?.storeName || (isOfficialBrand ? "MOONDROP Official Flagship Store" : null),
+      storeType: resolvedStoreType,
+      brandName: resolvedBrandName,
       tuning: dbUser?.tuningPreference || "Reference / Neutral",
       location: dbUser?.location || "Indonesia",
       language: dbUser?.language || "id",

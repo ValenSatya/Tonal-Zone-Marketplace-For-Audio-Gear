@@ -34,27 +34,39 @@ export default function AddNewProductPage() {
       const saved = localStorage.getItem("tonalzone_seller_currency") as "IDR" | "USD" | null;
       if (saved) {
         setCurrency(saved);
-      } else {
-        const stored = localStorage.getItem("tonalzone_user");
-        if (stored) {
-          try {
-            const u = JSON.parse(stored);
+      }
+
+      let userEmail = "";
+      let userStoreId = "";
+      const stored = localStorage.getItem("tonalzone_user");
+      if (stored) {
+        try {
+          const u = JSON.parse(stored);
+          userEmail = u.email || "";
+          userStoreId = u.storeId || "";
+
+          if (!saved) {
             if (u.storeCurrency) setCurrency(u.storeCurrency);
             else if (u.location === "Indonesia") setCurrency("IDR");
+          }
 
-            if (u.storeType === "OFFICIAL_BRAND" || u.brandName) {
-              setIsOfficialBrand(true);
-              const bName = u.brandName || "MOONDROP";
-              setOfficialBrandName(bName);
-              setFormData((prev) => ({ ...prev, brand: bName }));
-            }
-          } catch (e) {}
-        }
+          if (u.storeType === "OFFICIAL_BRAND" || u.brandName) {
+            setIsOfficialBrand(true);
+            const bName = u.brandName || "MOONDROP";
+            setOfficialBrandName(bName);
+            setFormData((prev) => ({ ...prev, brand: bName }));
+          }
+        } catch (e) {}
       }
 
       // Live check from /api/seller/store
       try {
-        const res = await fetch("/api/seller/store");
+        const query = userStoreId
+          ? `?storeId=${encodeURIComponent(userStoreId)}`
+          : userEmail
+          ? `?email=${encodeURIComponent(userEmail)}`
+          : "";
+        const res = await fetch(`/api/seller/store${query}`);
         if (res.ok) {
           const json = await res.json();
           if (json.success && json.store?.storeType === "OFFICIAL_BRAND") {
@@ -433,23 +445,38 @@ export default function AddNewProductPage() {
                       value={formData.brand}
                       onChange={(val) => setFormData({ ...formData, brand: val })}
                       options={[
-                        { label: "Moondrop", value: "Moondrop" },
-                        { label: "Sennheiser", value: "Sennheiser" },
                         { label: "64 Audio", value: "64 Audio" },
-                        { label: "Hifiman", value: "Hifiman" },
-                        { label: "FiiO", value: "FiiO" },
-                        { label: "Topping", value: "Topping" },
-                        { label: "Effect Audio", value: "Effect Audio" },
-                        { label: "Tangzu", value: "Tangzu" },
-                        { label: "Truthear", value: "Truthear" },
                         { label: "7Hz", value: "7Hz" },
-                        { label: "Sony", value: "Sony" },
-                        { label: "Final Audio", value: "Final Audio" },
-                        { label: "Campfire Audio", value: "Campfire Audio" },
                         { label: "Astell&Kern", value: "Astell&Kern" },
                         { label: "Audio-Technica", value: "Audio-Technica" },
+                        { label: "Campfire Audio", value: "Campfire Audio" },
+                        { label: "Dunu", value: "Dunu" },
+                        { label: "Earfun", value: "Earfun" },
+                        { label: "Effect Audio", value: "Effect Audio" },
+                        { label: "EPZ", value: "EPZ" },
+                        { label: "FiiO", value: "FiiO" },
+                        { label: "Final Audio", value: "Final Audio" },
                         { label: "Genelec", value: "Genelec" },
+                        { label: "Hifiman", value: "Hifiman" },
+                        { label: "KBEAR", value: "KBEAR" },
+                        { label: "Kinera Audio", value: "Kinera Audio" },
+                        { label: "Kiwi Ears", value: "Kiwi Ears" },
+                        { label: "Letshuoer", value: "Letshuoer" },
+                        { label: "Meze Audio", value: "Meze Audio" },
+                        { label: "Moondrop", value: "Moondrop" },
+                        { label: "QDC", value: "QDC" },
+                        { label: "SeeAudio", value: "SeeAudio" },
+                        { label: "Sennheiser", value: "Sennheiser" },
                         { label: "Shure", value: "Shure" },
+                        { label: "Sony", value: "Sony" },
+                        { label: "Tanchjim", value: "Tanchjim" },
+                        { label: "Tangzu", value: "Tangzu" },
+                        { label: "THIEAUDIO", value: "THIEAUDIO" },
+                        { label: "TinHiFi", value: "TinHiFi" },
+                        { label: "Topping", value: "Topping" },
+                        { label: "Truthear", value: "Truthear" },
+                        { label: "Verus Audio", value: "Verus Audio" },
+                        { label: "Xinhs", value: "Xinhs" },
                       ]}
                     />
                   )}

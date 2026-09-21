@@ -49,17 +49,53 @@ export interface DbStore {
   brandName?: string | null;
 }
 
+export function extractBrandFromStoreName(name?: string, email?: string): string | null {
+  const text = `${name || ""} ${email || ""}`.toLowerCase().trim();
+  if (text.includes("epz")) return "EPZ";
+  if (text.includes("tanchjim")) return "Tanchjim";
+  if (text.includes("sennheiser")) return "Sennheiser";
+  if (text.includes("truthear")) return "Truthear";
+  if (text.includes("xinhs")) return "Xinhs";
+  if (text.includes("moondrop") || text.includes("valenandra")) return "MOONDROP";
+  if (text.includes("tangzu")) return "Tangzu";
+  if (text.includes("7hz")) return "7Hz";
+  if (text.includes("thieaudio")) return "THIEAUDIO";
+  if (text.includes("kiwi ear")) return "Kiwi Ears";
+  if (text.includes("kinera")) return "Kinera Audio";
+  if (text.includes("earfun")) return "Earfun";
+  if (text.includes("kbear")) return "KBEAR";
+  if (text.includes("effect audio")) return "Effect Audio";
+  if (text.includes("sony")) return "Sony";
+  if (text.includes("tin hifi") || text.includes("tinhifi")) return "TinHiFi";
+  if (text.includes("verus")) return "Verus Audio";
+  if (text.includes("fiio")) return "FiiO";
+  if (text.includes("topping")) return "Topping";
+  if (text.includes("hifiman")) return "Hifiman";
+  if (text.includes("64 audio")) return "64 Audio";
+  if (text.includes("dunu")) return "Dunu";
+
+  if (text.includes("official") && name) {
+    const withoutOfficial = name.replace(/official.*$/i, "").trim();
+    if (withoutOfficial.length > 0) return withoutOfficial;
+  }
+  return null;
+}
+
 export function parseStoreMetadata(store: any): DbStore {
   if (!store) return store;
   const desc = store.description || "";
   const name = store.storeName || "";
+  const detectedBrand = extractBrandFromStoreName(name);
+
   const isOfficial =
     desc.includes("OFFICIAL_BRAND") ||
-    name.toLowerCase().includes("moondrop official") ||
-    store.id === "store-moondrop-official";
+    name.toLowerCase().includes("official") ||
+    name.toLowerCase().includes("moondrop") ||
+    store.id === "store-moondrop-official" ||
+    Boolean(detectedBrand);
 
-  let brandName = null;
-  if (isOfficial) {
+  let brandName = detectedBrand;
+  if (!brandName && isOfficial) {
     const match = desc.match(/OFFICIAL_BRAND:([A-Za-z0-9_\s-]+)/);
     brandName = match ? match[1].trim() : "MOONDROP";
   }
@@ -73,8 +109,8 @@ export function parseStoreMetadata(store: any): DbStore {
     banner,
     avatarUrl: logo,
     bannerUrl: banner,
-    storeType: isOfficial ? "OFFICIAL_BRAND" : "RETAIL_MERCHANT",
-    brandName,
+    storeType: isOfficial && brandName ? "OFFICIAL_BRAND" : (store.storeType || "RETAIL_MERCHANT"),
+    brandName: brandName || store.brandName || null,
   };
 }
 

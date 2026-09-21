@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { userRepo } from "@/lib/supabase-db";
+import { userRepo, extractBrandFromStoreName } from "@/lib/supabase-db";
 import { sanitizeAvatarForCookie } from "@/lib/auth/roles";
 
 export async function POST(request: Request) {
@@ -30,9 +30,11 @@ export async function POST(request: Request) {
       }
     }
 
+    const detectedBrand = extractBrandFromStoreName(dbUser?.store?.storeName, cleanEmail);
     const isOfficialBrand =
       dbUser?.store?.storeType === "OFFICIAL_BRAND" ||
-      cleanEmail === "valenandrasatya@gmail.com";
+      cleanEmail === "valenandrasatya@gmail.com" ||
+      Boolean(detectedBrand);
 
     const resolvedStoreType = isOfficialBrand
       ? "OFFICIAL_BRAND"
@@ -41,7 +43,7 @@ export async function POST(request: Request) {
       : null;
 
     const resolvedBrandName = isOfficialBrand
-      ? dbUser?.store?.brandName || "MOONDROP"
+      ? detectedBrand || dbUser?.store?.brandName || "MOONDROP"
       : null;
 
     const userSession = {
