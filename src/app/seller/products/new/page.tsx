@@ -206,6 +206,7 @@ export default function AddNewProductPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
     setIsSubmitting(true);
 
     let userStored: any = null;
@@ -289,7 +290,16 @@ export default function AddNewProductPage() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form
+      onSubmit={handleSubmit}
+      onKeyDown={(e) => {
+        // Prevent accidental form submission when pressing Enter in single-line inputs
+        if (e.key === "Enter" && (e.target as HTMLElement).tagName !== "TEXTAREA") {
+          e.preventDefault();
+        }
+      }}
+      className="space-y-6"
+    >
       {/* Header & Submit Bar (Zero border, clean modern elevation) */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
         <div>
@@ -992,6 +1002,7 @@ export default function AddNewProductPage() {
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
                         e.preventDefault();
+                        e.stopPropagation();
                         handleAddImageUrl();
                       }
                     }}
