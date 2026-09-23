@@ -9,7 +9,7 @@ import Footer from "@/components/Footer";
 import { useLocation } from "@/context/LocationContext";
 import { useCart } from "@/context/CartContext";
 import { useLanguage } from "@/context/LanguageContext";
-import { fetchProductsFromDb, fetchProductByIdFromDb, CatalogProduct, findFallbackMatch } from "@/lib/products-db";
+import { fetchProductsFromDb, fetchProductByIdFromDb, CatalogProduct, findFallbackMatch, computeDynamicProductBadge } from "@/lib/products-db";
 import { supabase } from "@/lib/supabase";
 import { getAuthSession } from "@/app/actions/auth";
 import { KeyboardArrowRight } from "@/components/ui/keyboard-arrow";
@@ -22,8 +22,16 @@ interface Offer {
   id: string;
   sellerName: string;
   sellerType: "OFFICIAL" | "AUTHORIZED" | "INDIVIDUAL";
+  sellerCity?: string;
+  badgeLabel?: "OFFICIAL STORE" | "VERIFIED RETAILER" | "AUTHORIZED DISTY";
   condition: string;
   price: number;
+  originalPrice?: number;
+  discountPercent?: number;
+  highlightTag?: string;
+  storeId?: string;
+  productId?: string;
+  stock?: number;
 }
 
 const ratingSentimentLabels: Record<number, string> = {
@@ -287,6 +295,14 @@ export default function ProductDetailPage() {
     return Math.round((sum / realReviewsCount) * 10) / 10;
   }, [dbReviews, realReviewsCount]);
 
+  const dynamicBadge = useMemo(() => {
+    return computeDynamicProductBadge({
+      rawBadge: product?.badge,
+      rating: realReviewsCount > 0 ? realAvgRating : (product?.rating || 0),
+      reviews: realReviewsCount,
+    });
+  }, [product?.badge, product?.rating, realReviewsCount, realAvgRating]);
+
   const customerPictures = useMemo(() => {
     const list: { url: string; reviewId: string }[] = [];
     dbReviews.forEach((rev) => {
@@ -417,39 +433,57 @@ export default function ProductDetailPage() {
     setSelectedVariant(0);
     async function loadProductData() {
       setIsLoading(true);
-      let found = await fetchProductByIdFromDb(rawId);
+      const found = await fetchProductByIdFromDb(rawId);
 
-      const all = await fetchProductsFromDb();
-      if (!found && all.length > 0) {
-        const norm = rawId.toLowerCase().replace(/[^a-z0-9]/g, "");
-        const norm3 = norm.replace(/iii/g, "3").replace(/ii/g, "2");
-        found =
-          all.find((p) => {
-            const pNorm = p.id.toLowerCase().replace(/[^a-z0-9]/g, "");
-            const pNorm3 = pNorm.replace(/iii/g, "3").replace(/ii/g, "2");
-            const pNameNorm = p.name.toLowerCase().replace(/[^a-z0-9]/g, "").replace(/iii/g, "3").replace(/ii/g, "2");
-            return (
-              p.id === rawId ||
-              pNorm === norm ||
-              pNorm3 === norm3 ||
-              pNorm3.includes(norm3) ||
-              norm3.includes(pNorm3) ||
-              pNameNorm.includes(norm3)
-            );
-          }) || null;
-      }
-
-      setProduct(found || null);
+      // Fast-path: if product is found directly from cache/database, display it immediately
       if (found) {
-        const sameCategory = all.filter((p) => p.id !== found!.id && p.category === found!.category);
-        const others = sameCategory.length >= 4
-          ? sameCategory.slice(0, 4)
-          : [...sameCategory, ...all.filter((p) => p.id !== found!.id && p.category !== found!.category)].slice(0, 4);
-        setRelatedProducts(others);
-      } else {
-        setRelatedProducts(all.slice(0, 4));
+        setProduct(found);
+        setIsLoading(false);
       }
-      setIsLoading(false);
+
+      // Background load related products without blocking the main product page
+      fetchProductsFromDb().then((all) => {
+        let finalProduct = found;
+        if (!finalProduct && all.length > 0) {
+          const norm = rawId.toLowerCase().replace(/[^a-z0-9]/g, "");
+          const norm3 = norm.replace(/iii/g, "3").replace(/ii/g, "2");
+          finalProduct =
+            all.find((p) => {
+              const pNorm = p.id.toLowerCase().replace(/[^a-z0-9]/g, "");
+              const pNorm3 = pNorm.replace(/iii/g, "3").replace(/ii/g, "2");
+              const pNameNorm = p.name.toLowerCase().replace(/[^a-z0-9]/g, "").replace(/iii/g, "3").replace(/ii/g, "2");
+              return (
+                p.id === rawId ||
+                pNorm === norm ||
+                pNorm3 === norm3 ||
+                pNorm3.includes(norm3) ||
+                norm3.includes(pNorm3) ||
+                pNameNorm.includes(norm3)
+              );
+            }) || null;
+
+          if (finalProduct) {
+            setProduct(finalProduct);
+            setIsLoading(false);
+          }
+        }
+
+        if (finalProduct) {
+          const sameCategory = all.filter((p) => p.id !== finalProduct!.id && p.category === finalProduct!.category);
+          const others = sameCategory.length >= 4
+            ? sameCategory.slice(0, 4)
+            : [...sameCategory, ...all.filter((p) => p.id !== finalProduct!.id && p.category !== finalProduct!.category)].slice(0, 4);
+          setRelatedProducts(others);
+        } else {
+          setRelatedProducts(all.slice(0, 4));
+        }
+
+        if (!finalProduct) {
+          setIsLoading(false);
+        }
+      }).catch(() => {
+        setIsLoading(false);
+      });
     }
     loadProductData();
   }, [rawId]);
@@ -487,29 +521,93 @@ export default function ProductDetailPage() {
   const offers: Offer[] = useMemo(() => {
     if (!product) return [];
 
-    const baseOffers: Offer[] = getProductRetailOffers(product);
+    let baseOffers: Offer[] = [];
+
+    // 1. Populate from authentic database seller offers if available
+    if (product.sellerOffers && product.sellerOffers.length > 0) {
+      baseOffers = product.sellerOffers.map((so) => ({
+        id: so.id,
+        sellerName: so.storeName,
+        sellerType: so.sellerType,
+        sellerCity: so.storeCity || "Jakarta",
+        badgeLabel: so.badgeLabel,
+        condition: so.condition || "Brand New Sealed",
+        price: so.price,
+        originalPrice: so.originalPrice,
+        discountPercent: so.discountPercent,
+        highlightTag: so.highlightTag,
+        storeId: so.storeId,
+        productId: so.productId,
+        stock: so.stock,
+      }));
+    } else {
+      baseOffers = getProductRetailOffers(product);
+    }
 
     if (typeof window !== "undefined") {
       try {
+        let storedUser: any = null;
+        try {
+          const rawUser = localStorage.getItem("tonalzone_user");
+          if (rawUser) storedUser = JSON.parse(rawUser);
+        } catch (e) {}
+
         const custom = localStorage.getItem("tonalzone_custom_products");
         if (custom) {
           const list = JSON.parse(custom);
-          const found = list.find((it: any) => it.name.toLowerCase() === product.name.toLowerCase() || it.id === product.id);
-          if (found) {
-            let storeName = "AudioZone";
-            const storedUser = localStorage.getItem("tonalzone_user");
-            if (storedUser) {
-              const u = JSON.parse(storedUser);
-              if (u.storeName) storeName = u.storeName;
-            }
-            baseOffers.unshift({
-              id: "off-custom-seller",
-              sellerName: storeName,
-              sellerType: "AUTHORIZED",
+          const matches = list.filter(
+            (it: any) =>
+              it.name?.toLowerCase() === product.name?.toLowerCase() ||
+              it.id === product.id ||
+              it.originalProductId === product.id ||
+              product.siblingProductIds?.includes(it.id)
+          );
+
+          matches.forEach((found: any) => {
+            const isUserOwner = storedUser?.email && found.sellerEmail === storedUser.email;
+            const sellerStoreName = isUserOwner && storedUser.storeName
+              ? storedUser.storeName
+              : (found.storeName || found.sellerName || (isUserOwner ? `${storedUser.name}'s Audio` : "Toko Audio Mitra"));
+
+            const sellerCity = isUserOwner && (storedUser.storeCity || storedUser.city || storedUser.address)
+              ? (storedUser.storeCity || storedUser.city || storedUser.address)
+              : (found.storeCity || found.city || "Jakarta");
+
+            const isOfficial = found.isOfficialBrand || (isUserOwner && storedUser.storeType === "OFFICIAL_BRAND");
+            const custPrice = found.priceUSD || found.price || product.price;
+            const custOrig = Math.round(custPrice * 1.15);
+
+            const existingIdx = baseOffers.findIndex(
+              (o) =>
+                o.sellerName.toLowerCase() === sellerStoreName.toLowerCase() ||
+                (o.storeId && found.storeId && o.storeId.toLowerCase() === found.storeId.toLowerCase())
+            );
+
+            const offerItem: Offer = {
+              id: `off-seller-${found.id || Date.now()}`,
+              sellerName: sellerStoreName,
+              sellerType: isOfficial ? "OFFICIAL" : "AUTHORIZED",
+              sellerCity: sellerCity,
+              badgeLabel: isOfficial ? "OFFICIAL STORE" : "VERIFIED RETAILER",
               condition: found.condition || "Brand New Sealed",
-              price: found.priceUSD || product.price,
-            });
-          }
+              price: custPrice,
+              originalPrice: custOrig > custPrice ? custOrig : undefined,
+              discountPercent: Math.round(((custOrig - custPrice) / custOrig) * 100),
+              highlightTag: isUserOwner ? "Toko Anda" : "Verified Retailer",
+              storeId: found.storeId || storedUser?.storeId,
+              productId: found.id,
+              stock: found.stock !== undefined ? Number(found.stock) : 10,
+            };
+
+            if (existingIdx >= 0) {
+              baseOffers[existingIdx] = {
+                ...baseOffers[existingIdx],
+                ...offerItem,
+              };
+            } else {
+              baseOffers.push(offerItem);
+            }
+          });
         }
       } catch (e) {}
     }
@@ -517,38 +615,55 @@ export default function ProductDetailPage() {
     return baseOffers;
   }, [product]);
 
+  useEffect(() => {
+    if (offers.length > 0) {
+      const match = offers.find((o) => o.productId === rawId || o.id === rawId);
+      if (match) {
+        setSelectedOfferId(match.id);
+      } else if (!offers.some((o) => o.id === selectedOfferId)) {
+        setSelectedOfferId(offers[0].id);
+      }
+    }
+  }, [offers, rawId]);
+
   const currentOffer = offers.find((o) => o.id === selectedOfferId) || offers[0];
 
   const [supplierAvatar, setSupplierAvatar] = useState<string>("");
 
   useEffect(() => {
     let isMounted = true;
-    const targetName = currentOffer?.sellerName || product?.storeName;
+    const targetName = (currentOffer?.sellerName || product?.storeName || "").trim();
     if (!targetName) return;
+
+    // Reset initially so stale avatars do not bleed across stores
+    setSupplierAvatar("");
 
     // 1. Initial fallback from product.storeLogo / product.storeAvatar if names match
     if (product?.storeLogo && (!currentOffer || currentOffer.sellerName === product?.storeName)) {
       setSupplierAvatar(product.storeLogo);
+      return;
     }
 
-    // 2. Check localStorage in case current user is this seller
+    // 2. Check localStorage ONLY if the logged-in user is a verified seller who owns THIS specific store
+    // NEVER use user's personal profile picture (u.avatar)!
     try {
       const storedUser = localStorage.getItem("tonalzone_user");
       if (storedUser) {
         const u = JSON.parse(storedUser);
-        if (
-          (u.storeName && u.storeName.toLowerCase() === targetName.toLowerCase()) ||
-          (u.name && u.name.toLowerCase() === targetName.toLowerCase()) ||
-          getStoreSlug(u.storeName || "") === getStoreSlug(targetName)
-        ) {
-          if (u.storeAvatar || u.avatar) {
-            setSupplierAvatar(u.storeAvatar || u.avatar);
-          }
+        const isOfficialThirdParty = targetName.toLowerCase().includes("official") || targetName.toLowerCase().includes("bass audio") || targetName.toLowerCase().includes("csi zone");
+        const isOwnerOfThisStore =
+          !isOfficialThirdParty &&
+          u.storeName &&
+          u.storeName.trim().toLowerCase() === targetName.toLowerCase();
+
+        if (isOwnerOfThisStore && (u.storeLogo || u.storeAvatar)) {
+          setSupplierAvatar(u.storeLogo || u.storeAvatar);
+          return;
         }
       }
     } catch {}
 
-    // 3. Query Supabase Store table
+    // 3. Query Supabase Store table for authentic store logo
     const fetchStoreAvatar = async () => {
       try {
         const { data } = await supabase
@@ -562,15 +677,15 @@ export default function ProductDetailPage() {
             return (
               s.id === targetSlug ||
               sSlug === targetSlug ||
-              sSlug.includes(targetSlug) ||
-              targetSlug.includes(sSlug) ||
               (s.storeName && s.storeName.toLowerCase() === targetName.toLowerCase())
             );
           });
 
-          if (found) {
-            const img = found.logo || found.avatarUrl;
-            if (img) setSupplierAvatar(img);
+          if (found && (found.logo || found.avatarUrl)) {
+            const rawLogo = found.logo || found.avatarUrl;
+            if (rawLogo && !rawLogo.endsWith(".svg")) {
+              setSupplierAvatar(rawLogo);
+            }
           }
         }
       } catch (e) {
@@ -657,14 +772,17 @@ export default function ProductDetailPage() {
 
   const handleAddToCart = () => {
     if (!product) return;
-    if (product.stock <= 0 || !product.inStock) {
-      showToast("Maaf, stok produk ini sedang habis!");
+    const effectiveStock = currentOffer?.stock !== undefined ? currentOffer.stock : product.stock;
+    if (effectiveStock <= 0) {
+      showToast("Maaf, stok produk dari penjual ini sedang habis!");
       return;
     }
     const chosenPrice = currentOffer ? currentOffer.price : product.price;
-    const isMoondrop = (product.brand || "").toUpperCase().includes("MOONDROP") || (product.name || "").toUpperCase().includes("MOONDROP");
-    const resolvedStoreId = isMoondrop ? "store-moondrop-official" : (product.storeId || (currentOffer ? currentOffer.id : "store-bass-audio"));
-    const resolvedStoreName = isMoondrop ? "MOONDROP Official Flagship Store" : (currentOffer ? currentOffer.sellerName : (product.storeName || "TonalZone Partner"));
+    const isOfferOfficial = currentOffer?.sellerType === "OFFICIAL" || (currentOffer?.sellerName || "").toLowerCase().includes("official");
+    const isProductMoondrop = (product.brand || "").toUpperCase().includes("MOONDROP") || (product.name || "").toUpperCase().includes("MOONDROP");
+
+    const resolvedStoreId = currentOffer?.storeId || product.storeId || (isProductMoondrop && isOfferOfficial ? "store-moondrop-official" : (currentOffer ? currentOffer.id : "store-bass-audio"));
+    const resolvedStoreName = currentOffer?.sellerName || product.storeName || (isProductMoondrop && isOfferOfficial ? "MOONDROP Official Flagship Store" : "TonalZone Partner");
     const activeVariantsParts = [selectedColor, selectedTermination].filter(Boolean);
     const variantLabel = activeVariantsParts.length > 0 ? activeVariantsParts.join(" / ") : "Standard";
     const cartItemId = `${product.id}-${resolvedStoreId}-${variantLabel.replace(/\s+/g, "_")}`;
@@ -688,14 +806,17 @@ export default function ProductDetailPage() {
 
   const handleBuyNow = () => {
     if (!product) return;
-    if (product.stock <= 0 || !product.inStock) {
-      showToast("Maaf, stok produk ini sedang habis!");
+    const effectiveStock = currentOffer?.stock !== undefined ? currentOffer.stock : product.stock;
+    if (effectiveStock <= 0) {
+      showToast("Maaf, stok produk dari penjual ini sedang habis!");
       return;
     }
     const chosenPrice = currentOffer ? currentOffer.price : product.price;
-    const isMoondrop = (product.brand || "").toUpperCase().includes("MOONDROP") || (product.name || "").toUpperCase().includes("MOONDROP");
-    const resolvedStoreId = isMoondrop ? "store-moondrop-official" : (product.storeId || (currentOffer ? currentOffer.id : "store-bass-audio"));
-    const resolvedStoreName = isMoondrop ? "MOONDROP Official Flagship Store" : (currentOffer ? currentOffer.sellerName : (product.storeName || "TonalZone Partner"));
+    const isOfferOfficial = currentOffer?.sellerType === "OFFICIAL" || (currentOffer?.sellerName || "").toLowerCase().includes("official");
+    const isProductMoondrop = (product.brand || "").toUpperCase().includes("MOONDROP") || (product.name || "").toUpperCase().includes("MOONDROP");
+
+    const resolvedStoreId = currentOffer?.storeId || product.storeId || (isProductMoondrop && isOfferOfficial ? "store-moondrop-official" : (currentOffer ? currentOffer.id : "store-bass-audio"));
+    const resolvedStoreName = currentOffer?.sellerName || product.storeName || (isProductMoondrop && isOfferOfficial ? "MOONDROP Official Flagship Store" : "TonalZone Partner");
     const activeVariantsParts = [selectedColor, selectedTermination].filter(Boolean);
     const variantLabel = activeVariantsParts.length > 0 ? activeVariantsParts.join(" / ") : "Standard";
     const cartItemId = `${product.id}-${resolvedStoreId}-${variantLabel.replace(/\s+/g, "_")}`;
@@ -924,12 +1045,14 @@ export default function ProductDetailPage() {
 
           {/* Right Column: Information, Variants, Price, Store Bar & Action Buttons */}
           <div className="lg:col-span-5 flex flex-col w-full">
-            {/* BEST SELLER Badge */}
-            <div className="self-start">
-              <span className="inline-flex items-center justify-center px-4 py-1.5 rounded-[26px] bg-[#2e2e2e] text-white font-sans font-semibold text-[12px] leading-none tracking-wide">
-                {product.badge || "BEST SELLER"}
-              </span>
-            </div>
+            {/* Dynamic Product Metric Badge (Top Rated / Best Seller / New Arrival) */}
+            {dynamicBadge && (
+              <div className="self-start">
+                <span className="inline-flex items-center justify-center px-4 py-1.5 rounded-[26px] bg-[#2e2e2e] text-white font-sans font-semibold text-[12px] leading-none tracking-wide uppercase">
+                  {dynamicBadge}
+                </span>
+              </div>
+            )}
 
             {/* Product Title (H1) */}
             <h1 className="font-heading font-bold text-white text-3xl sm:text-4xl lg:text-[44px] xl:text-[50px] leading-[1.14] tracking-tight uppercase mt-4 mb-6">
@@ -998,7 +1121,7 @@ export default function ProductDetailPage() {
                 {formatPrice(currentOffer ? currentOffer.price : product.price)}
               </span>
               <span className="font-sans font-medium text-[12px] text-[#cfc4c5] line-through tracking-[0.25em]">
-                {formatPrice(Math.round((currentOffer ? currentOffer.price : product.price) * 1.25))}
+                {formatPrice(currentOffer?.originalPrice || Math.round((currentOffer ? currentOffer.price : product.price) * 1.25))}
               </span>
             </div>
 
@@ -1013,6 +1136,11 @@ export default function ProductDetailPage() {
                   <span className="font-heading font-bold text-[12px] text-white tracking-[0.25em] truncate uppercase">
                     {(currentOffer?.sellerName || product.storeName || "TANGZU OFFICIAL SHOP").toUpperCase()}
                   </span>
+                  {offers.length > 1 && (
+                    <span className="text-[9px] font-mono text-zinc-400 bg-white/10 px-2 py-0.5 rounded-full shrink-0">
+                      {offers.length} Toko
+                    </span>
+                  )}
                   {offers.length > 1 && (
                     <svg
                       width="12"
@@ -1031,10 +1159,10 @@ export default function ProductDetailPage() {
                 </div>
 
                 <div className="font-heading font-bold text-[10px] text-white tracking-[0.13em] shrink-0">
-                  {product.stock <= 0 || !product.inStock ? (
+                  {(currentOffer?.stock !== undefined ? currentOffer.stock : product.stock) <= 0 || !product.inStock ? (
                     <span className="text-red-400">OUT OF STOCK</span>
                   ) : (
-                    `Stock : ${product.stock}`
+                    `Stock : ${currentOffer?.stock !== undefined ? currentOffer.stock : product.stock}`
                   )}
                 </div>
               </button>
@@ -1063,6 +1191,7 @@ export default function ProductDetailPage() {
                   >
                     {offers.map((offer) => {
                       const isSelected = selectedOfferId === offer.id;
+                      const isOfficial = offer.sellerType === "OFFICIAL" || (offer.sellerName || "").toLowerCase().includes("official");
                       return (
                         <button
                           key={offer.id}
@@ -1075,16 +1204,31 @@ export default function ProductDetailPage() {
                             isSelected ? "bg-[#282828] text-white" : "text-[#aaaaaa] hover:bg-[#202020] hover:text-white"
                           }`}
                         >
-                          <div>
-                            <div className="font-sans font-semibold text-xs text-white">
-                              {offer.sellerName}
+                          <div className="pr-2">
+                            <div className="flex items-center gap-1.5 font-sans font-semibold text-xs text-white">
+                              <span>{offer.sellerName}</span>
+                              <span className="text-[10px] text-[#71717A] font-mono">
+                                • {offer.sellerCity || (isOfficial ? "Jakarta" : "Lokal")}
+                              </span>
                             </div>
-                            <div className="text-[10px] text-[#777777] font-sans">
-                              {offer.condition}
+                            <div className="text-[10px] text-[#777777] font-sans truncate">
+                              {isOfficial ? "Official Store" : "Verified Retailer"} — {offer.condition}
                             </div>
+                            {offer.stock !== undefined && (
+                              <div className="text-[9px] text-[#888888] font-mono mt-0.5">
+                                Stock: {offer.stock > 0 ? offer.stock : "Habis"}
+                              </div>
+                            )}
                           </div>
-                          <div className="font-heading font-bold text-xs text-white">
-                            {formatPrice(offer.price)}
+                          <div className="text-right shrink-0">
+                            <div className="font-heading font-bold text-xs text-white">
+                              {formatPrice(offer.price)}
+                            </div>
+                            {offer.originalPrice && offer.originalPrice > offer.price && (
+                              <div className="font-sans text-[10px] text-[#777777] line-through">
+                                {formatPrice(offer.originalPrice)}
+                              </div>
+                            )}
                           </div>
                         </button>
                       );
@@ -1096,20 +1240,19 @@ export default function ProductDetailPage() {
 
             {/* Action Buttons: Buy Now & add to cart */}
             <div className="flex items-stretch gap-3 mb-7 sm:mb-8">
-
               <button
                 type="button"
                 onClick={handleBuyNow}
-                disabled={product.stock <= 0 || !product.inStock}
+                disabled={(currentOffer?.stock !== undefined ? currentOffer.stock : product.stock) <= 0 || !product.inStock}
                 className="flex-1 h-[64px] rounded-[6px] bg-[#d4ff00] hover:bg-[#c6ef00] text-black font-heading font-bold text-[17px] sm:text-[20px] transition-all flex items-center justify-center cursor-pointer shadow-[0_0_20px_rgba(212,255,0,0.25)] hover:shadow-[0_0_30px_rgba(212,255,0,0.4)] active:scale-[0.99] disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
               >
-                {product.stock <= 0 || !product.inStock ? "OUT OF STOCK" : "Buy Now"}
+                {(currentOffer?.stock !== undefined ? currentOffer.stock : product.stock) <= 0 || !product.inStock ? "OUT OF STOCK" : "Buy Now"}
               </button>
 
               <button
                 type="button"
                 onClick={handleAddToCart}
-                disabled={product.stock <= 0 || !product.inStock}
+                disabled={(currentOffer?.stock !== undefined ? currentOffer.stock : product.stock) <= 0 || !product.inStock}
                 className="flex-1 h-[64px] rounded-[6px] border border-[#c1c1c1] hover:border-white bg-transparent text-[#f0f0f0] hover:text-white font-heading font-bold text-[17px] sm:text-[20px] transition-all flex items-center justify-center cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 add to cart
@@ -1304,6 +1447,19 @@ export default function ProductDetailPage() {
                   <div>
                     <span className="text-white font-medium">Distortion Rate (THD):</span> &lt;0.5%
                   </div>
+                  {product.tuning && (
+                    <div>
+                      <span className="text-white font-medium">Target Tuning:</span> {product.tuning}
+                    </div>
+                  )}
+                  <div>
+                    <span className="text-white font-medium">Warranty:</span> {product.warrantyMonths ? `${product.warrantyMonths} Bulan Garansi Resmi` : "12 Bulan Garansi Resmi"}
+                  </div>
+                  {product.condition && (
+                    <div>
+                      <span className="text-white font-medium">Condition:</span> {product.condition}
+                    </div>
+                  )}
                   {!isWireless && !isDac && (
                     <div>
                       <span className="text-white font-medium">Plug Options:</span> Available in 3.5mm (with or without mic), Type-C, and 4.4mm variants
@@ -1378,10 +1534,10 @@ export default function ProductDetailPage() {
           {/* TAB 2: DESCRIPTION */}
           {activeTab === "description" && (
             <div className="max-w-3xl space-y-6 text-[#cccccc] font-sans text-base sm:text-lg leading-relaxed">
-              <p>
+              <div className="whitespace-pre-line leading-relaxed text-[#e5e5e5]">
                 {product.description ||
-                  "Tangzu Wan'er SG 2 merupakan IEM dynamic driver presisi tinggi yang dirancang khusus untuk para audiophile, penikmat vokal, dan musisi profesional yang menuntut reproduksi suara natural tanpa distorsi."}
-              </p>
+                  "Peralatan audio fidelitas tinggi yang dirancang khusus untuk para audiophile, penikmat vokal, dan musisi profesional yang menuntut reproduksi suara natural tanpa distorsi."}
+              </div>
               <div className="bg-[#141414] border border-[#242424] rounded-lg p-6 space-y-3">
                 <div className="font-heading font-bold text-white text-base">
                   Acoustic Architecture &amp; Sound Profile
@@ -1396,7 +1552,7 @@ export default function ProductDetailPage() {
                   <div>
                     <span className="text-[#888888]">Target Tuning:</span>{" "}
                     <span className="text-white font-medium">
-                      {product.tuning || "Tangzu Balanced Curve"}
+                      {product.tuning || "Balanced Audiophile Curve"}
                     </span>
                   </div>
                   <div>
@@ -1411,6 +1567,22 @@ export default function ProductDetailPage() {
                       {product.material || "Ergonomic Acoustic Resin"}
                     </span>
                   </div>
+                  {product.condition && (
+                    <div>
+                      <span className="text-[#888888]">Kondisi Barang:</span>{" "}
+                      <span className="text-white font-medium">
+                        {product.condition}
+                      </span>
+                    </div>
+                  )}
+                  {product.warrantyMonths && (
+                    <div>
+                      <span className="text-[#888888]">Garansi Toko/Pabrik:</span>{" "}
+                      <span className="text-white font-medium">
+                        {product.warrantyMonths} Bulan Resmi
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -1425,8 +1597,15 @@ export default function ProductDetailPage() {
                 </h4>
                 <ul className="list-disc pl-5 space-y-2 text-sm text-[#bbbbbb]">
                   <li>
-                    <strong className="text-white">Garansi Resmi 1 Tahun:</strong> Menjamin perlindungan terhadap kerusakan teknis pada driver dan komponen internal pabrikan.
+                    <strong className="text-white">
+                      Garansi Resmi {product.warrantyMonths ? `${product.warrantyMonths} Bulan` : "1 Tahun"}:
+                    </strong> Menjamin perlindungan terhadap kerusakan teknis pada driver dan komponen internal pabrikan.
                   </li>
+                  {product.condition && (
+                    <li>
+                      <strong className="text-white">Kondisi Produk:</strong> {product.condition}. Telah melalui verifikasi QC teknisi audio sebelum dikirim.
+                    </li>
+                  )}
                   <li>
                     <strong className="text-white">Kartu Seri Terverifikasi:</strong> Setiap unit dilengkapi nomor seri unik yang dapat divalidasi keasliannya melalui distributor resmi.
                   </li>

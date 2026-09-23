@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useLanguage } from "@/context/LanguageContext";
+import { useLocation } from "@/context/LocationContext";
 import Link from "next/link";
 import { fetchProductsFromDb, CatalogProduct } from "@/lib/products-db";
 import {
@@ -13,6 +14,7 @@ import {
 
 export default function LandingAndBannersCMSPage() {
   const { language } = useLanguage();
+  const { formatPrice } = useLocation();
   const isEn = language === "English";
 
   // Active Main Navigation Tab
@@ -277,7 +279,7 @@ export default function LandingAndBannersCMSPage() {
                 <option value="">-- {isEn ? "Select a product from database" : "Pilih produk dari database"} --</option>
                 {dbProducts.map((p) => (
                   <option key={p.id} value={p.id}>
-                    {p.name} ({p.brand}) - ${p.price}
+                    {p.name} ({p.brand}) - {formatPrice(p.price)}
                   </option>
                 ))}
               </select>
@@ -952,7 +954,7 @@ export default function LandingAndBannersCMSPage() {
                     Slot #{idx + 1} ({slot.layout})
                   </span>
                   <span className="text-[10px] font-mono text-[#888]">
-                    ${slot.fallbackPrice}
+                    {formatPrice(slot.fallbackPrice)}
                   </span>
                 </div>
 
@@ -976,7 +978,7 @@ export default function LandingAndBannersCMSPage() {
                   <option value={slot.id}>{slot.name}</option>
                   {dbProducts.map((p) => (
                     <option key={p.id} value={p.id}>
-                      {p.name} (${p.price})
+                      {p.name} ({formatPrice(p.price)})
                     </option>
                   ))}
                 </select>

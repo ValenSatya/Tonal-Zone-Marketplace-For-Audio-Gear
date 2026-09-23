@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useLanguage } from "@/context/LanguageContext";
 import CustomSelect from "@/components/ui/custom-select";
 import { KeyboardArrowRight } from "@/components/ui/keyboard-arrow";
+import { uploadMedia } from "@/lib/upload";
 
 export interface NewProductVariant {
   id: string;
@@ -96,13 +97,22 @@ export default function AddNewProductPage() {
     warrantyMonths: 12,
     badge: "New Release",
 
+    // Sound Profile & Tier
+    soundSignature: "Harman Target 2019",
+    experienceLevel: "INTERMEDIATE" as "BEGINNER" | "INTERMEDIATE" | "ENTHUSIAST" | "FLAGSHIP",
+    tuning: "Harman Target 2019 Balanced Curve",
+
     // IEM & Headphone Specs
     driverType: "1 Dynamic Driver + 4 Balanced Armatures",
-    soundSignature: "Harman Target 2019",
     impedance: "16 Ω",
     sensitivity: "112 dB/mW",
     frequencyRange: "10Hz - 40kHz",
     pinType: "0.78mm 2-Pin",
+    cableTermination: "3.5mm Single-Ended (0.78mm 2-Pin)",
+    material: "Medical-Grade 3D Resin Shell with CNC Metal Faceplate",
+    cableMaterial: "High-Purity Silver-Plated OFC Copper",
+
+    // Headphone Specs
     headphoneDesign: "Over-Ear (Open-Back)",
     headphoneDriverSize: "50mm Beryllium-Coated Dynamic",
     weightGrams: "380g",
@@ -121,7 +131,6 @@ export default function AddNewProductPage() {
 
     // Cable Specs
     conductorMaterial: "8-Core High-Purity Monocrystalline UP-OCC Copper",
-    cableTermination: "4.4mm Balanced (Interchangeable 3.5mm/2.5mm)",
     cableLength: "1.25m",
 
     // Speaker Specs
@@ -135,8 +144,97 @@ export default function AddNewProductPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successBanner, setSuccessBanner] = useState(false);
 
-  const handleMultipleImageUpload = (files: FileList) => {
-    Array.from(files).forEach((file) => {
+  const insertTemplate = (templateType: "iem" | "dac" | "headphone") => {
+    if (templateType === "iem") {
+      const tpl = isEn
+        ? `Acoustic Profile & Sound Impressions:
+• Bass: Tight, impactful sub-bass response with linear mid-bass transition and zero bleed into lower mids.
+• Midrange: Natural vocal timbre, transparent and articulate without forward sibilance.
+• Treble: Smooth, airy extension with high micro-detail retrieval for acoustic strings and cymbals.
+
+Package Contents & Accessories:
+• 1x Pair In-Ear Monitor Units
+• 1x Detachable High-Purity Silver-Plated OFC Audio Cable
+• 3x Pairs Ergonomic Silicone Eartips (S, M, L)
+• 1x Premium Magnetic Carrying Case
+• 1x Official Warranty Card & User Manual`
+        : `Karakteristik & Profil Suara:
+• Bass: Responsif, punchy dengan ekstensi sub-bass yang rapi tanpa menutupi frekuensi vokal.
+• Midrange / Vokal: Vokal terdengar intim, jernih, dan berkarakter alami (natural timbre).
+• Treble: Detail mikro renyah, airy, dan bebas dari rasa menusuk/tajam (fatigue-free).
+
+Kelengkapan Dalam Box:
+• 1 Pasang Earphone IEM Unit
+• 1x Kabel Audio Detachable High-Purity Silver-Plated OFC
+• 3 Pasang Silicone Eartips (Ukuran S, M, L)
+• 1x Hardcase / Pouch Kulit Penyimpanan Premium
+• 1x Kartu Garansi Resmi & Buku Panduan Pengguna`;
+      setFormData((prev) => ({
+        ...prev,
+        description: prev.description ? `${prev.description}\n\n${tpl}` : tpl,
+      }));
+    } else if (templateType === "dac") {
+      const tpl = isEn
+        ? `Architecture & Audio Performance:
+• High-resolution decoding architecture delivering near-zero noise floor and ultra-low THD+N.
+• Powerful dual-amplification circuit capable of driving sensitive IEMs up to demanding planar magnetic headphones.
+
+Package Contents:
+• 1x High-Resolution DAC/AMP Unit
+• 1x USB Type-C to Type-C Audiophile Interconnect Cable
+• 1x USB-A to USB-C Converter Adapter
+• 1x Official Warranty Card & Quick Start Guide`
+        : `Arsitektur & Performa Audio:
+• Chipset decoding audio resolusi tinggi dengan noise floor mendekati nol dan distorsi sangat rendah.
+• Amplifier bertenaga tinggi yang mampu mendrive IEM sensitif hingga headphone planar yang berat.
+
+Kelengkapan Dalam Box:
+• 1x Unit DAC/AMP Hi-Res
+• 1x Kabel Interconnect USB-C ke USB-C Audiophile
+• 1x Adaptor Konverter USB-A ke USB-C
+• 1x Kartu Garansi Resmi & Buku Petunjuk Cepat`;
+      setFormData((prev) => ({
+        ...prev,
+        description: prev.description ? `${prev.description}\n\n${tpl}` : tpl,
+      }));
+    } else {
+      const tpl = isEn
+        ? `Acoustic Performance & Engineering:
+• Open, immersive soundstage with pinpoint imaging and natural instrument separation.
+• Ergonomic memory-foam headband and earpads designed for fatigue-free extended listening sessions.
+
+Package Contents:
+• 1x Headphone Unit
+• 1x Detachable High-Purity Audio Cable (3.5mm SE with 6.35mm Gold-Plated Adapter)
+• 1x Hard-Shell Storage Travel Case
+• 1x Official Warranty Card & User Manual`
+        : `Performa Akustik & Desain:
+• Soundstage luas dan mendalam dengan imaging presisi serta separasi instrumen yang sangat alami.
+• Bantalan earpad memory foam ergonomis yang sejuk dan nyaman digunakan untuk sesi mendengarkan lama.
+
+Kelengkapan Dalam Box:
+• 1x Unit Headphone
+• 1x Kabel Audio Detachable (3.5mm SE dengan adaptor emas 6.35mm)
+• 1x Hard-Shell Travel Storage Case
+• 1x Kartu Garansi Resmi & Manual Pengguna`;
+      setFormData((prev) => ({
+        ...prev,
+        description: prev.description ? `${prev.description}\n\n${tpl}` : tpl,
+      }));
+    }
+  };
+
+  const handleMultipleImageUpload = async (files: FileList) => {
+    for (const file of Array.from(files)) {
+      try {
+        const uploadRes = await uploadMedia(file, "products");
+        if (uploadRes.success && uploadRes.url) {
+          setProductImages((prev) => [...prev, uploadRes.url!]);
+          continue;
+        }
+      } catch {}
+
+      // Fallback to data URL
       const reader = new FileReader();
       reader.onload = (e) => {
         const result = e.target?.result as string;
@@ -145,7 +243,7 @@ export default function AddNewProductPage() {
         }
       };
       reader.readAsDataURL(file);
-    });
+    }
   };
 
   const handleSetPrimaryImage = (index: number) => {
@@ -219,6 +317,46 @@ export default function AddNewProductPage() {
 
     const initialStatus = isOfficialBrand ? "APPROVED" : "PENDING";
 
+    // Map soundSignature string to canonical DB enum
+    let canonicalSignature: "NEUTRAL" | "WARM" | "V_SHAPE" | "BRIGHT" | "BASSHEAD" = "NEUTRAL";
+    const sigLower = formData.soundSignature.toLowerCase();
+    if (sigLower.includes("warm")) canonicalSignature = "WARM";
+    else if (sigLower.includes("v-shape") || sigLower.includes("v_shape")) canonicalSignature = "V_SHAPE";
+    else if (sigLower.includes("bright") || sigLower.includes("analytical")) canonicalSignature = "BRIGHT";
+    else if (sigLower.includes("bass")) canonicalSignature = "BASSHEAD";
+
+    const specsPayload = {
+      driverType: formData.driverType,
+      impedance: formData.impedance,
+      sensitivity: formData.sensitivity,
+      frequencyRange: formData.frequencyRange,
+      frequencyResponse: formData.frequencyRange,
+      pinType: formData.pinType,
+      cableTermination: formData.cableTermination || formData.pinType,
+      material: formData.material,
+      cableMaterial: formData.cableMaterial,
+      tuning: formData.tuning || formData.soundSignature,
+      condition: formData.condition,
+      warrantyMonths: Number(formData.warrantyMonths) || 12,
+      badge: formData.badge,
+      dacChipset: formData.dacChipset,
+      outputPower: formData.outputPower,
+      inputs: formData.inputs,
+      outputs: formData.outputs,
+      snrThd: formData.snrThd,
+      headphoneDesign: formData.headphoneDesign,
+      headphoneDriverSize: formData.headphoneDriverSize,
+      weightGrams: formData.weightGrams,
+      dapOS: formData.dapOS,
+      dapStorage: formData.dapStorage,
+      batteryLife: formData.batteryLife,
+      conductorMaterial: formData.conductorMaterial,
+      cableLength: formData.cableLength,
+      speakerSystem: formData.speakerSystem,
+      speakerPower: formData.speakerPower,
+      accessoryMaterial: formData.accessoryMaterial,
+    };
+
     const newProd = {
       id: `PRD-NEW-${Date.now()}`,
       name: formData.name,
@@ -226,12 +364,29 @@ export default function AddNewProductPage() {
       category: formData.category,
       specsSummary: `${formData.driverType || "Audiophile Structure"} • ${formData.impedance || "16Ω"}`,
       priceUSD: formData.priceUSD,
+      price: formData.priceUSD,
       stock: formData.stock,
       condition: formData.condition,
+      warrantyMonths: Number(formData.warrantyMonths) || 12,
+      badge: formData.badge,
       status: initialStatus as "APPROVED" | "PENDING",
       createdAt: new Date().toISOString().split("T")[0],
       images: imgList,
       image: imgList[0],
+      storeId: userStored?.storeId,
+      storeName: userStored?.storeName || (userStored?.name ? `${userStored.name}'s Audio` : "Toko Seller Mitra"),
+      storeCity: userStored?.storeCity || userStored?.city || userStored?.address || "Jakarta",
+      sellerEmail: userStored?.email,
+      description: formData.description,
+      experienceLevel: formData.experienceLevel,
+      soundSignature: canonicalSignature,
+      tuning: formData.tuning || formData.soundSignature,
+      driverType: formData.driverType,
+      impedance: formData.impedance,
+      sensitivity: formData.sensitivity,
+      frequencyResponse: formData.frequencyRange,
+      cableTermination: formData.cableTermination || formData.pinType,
+      material: formData.material,
       variants: variants.length > 0 ? variants : [
         { id: `var-1-${Date.now()}`, name: "Standard 3.5mm SE", priceUSD: formData.priceUSD, stock: Math.ceil(formData.stock / 2), sku: `${formData.sku}-35` },
         { id: `var-2-${Date.now()}`, name: "Balanced 4.4mm Pentaconn", priceUSD: formData.priceUSD, stock: Math.floor(formData.stock / 2), sku: `${formData.sku}-44` },
@@ -251,11 +406,12 @@ export default function AddNewProductPage() {
           stock: formData.stock,
           description: formData.description || `${formData.driverType || "Audiophile Driver"} • ${formData.impedance || "16Ω"}`,
           images: imgList,
-          experienceLevel: "INTERMEDIATE",
-          soundSignature: "NEUTRAL",
+          experienceLevel: formData.experienceLevel,
+          soundSignature: canonicalSignature,
           sellerEmail: userStored?.email,
           storeId: userStored?.storeId,
           status: initialStatus,
+          ...specsPayload,
         }),
       });
       const data = await res.json();
@@ -402,10 +558,13 @@ export default function AddNewProductPage() {
         <div className="lg:col-span-2 space-y-6">
           {/* Section 1: General Product Information & Category Picker */}
           <div className="bg-[#0A0A0A] rounded-2xl p-6 sm:p-7 space-y-5">
-            <div className="pb-1">
+            <div className="pb-1 flex items-center justify-between">
               <h3 className="text-xs font-bold font-sans text-white uppercase tracking-wider">
-                {isEn ? "1. General Product Information" : "1. Informasi Dasar Produk"}
+                {isEn ? "1. Basic Information & Condition" : "1. Informasi Dasar & Garansi Produk"}
               </h3>
+              <span className="text-[10px] font-mono text-[#BFDD25] bg-[#BFDD25]/10 px-2.5 py-0.5 rounded-full">
+                {isEn ? "Core Details" : "Identitas Produk"}
+              </span>
             </div>
 
             <div className="space-y-4">
@@ -477,35 +636,55 @@ export default function AddNewProductPage() {
                       options={[
                         { label: "64 Audio", value: "64 Audio" },
                         { label: "7Hz", value: "7Hz" },
+                        { label: "AFUL Acoustics", value: "AFUL Acoustics" },
+                        { label: "Artti", value: "Artti" },
                         { label: "Astell&Kern", value: "Astell&Kern" },
                         { label: "Audio-Technica", value: "Audio-Technica" },
+                        { label: "Bass Audio", value: "Bass Audio" },
+                        { label: "Beyerdynamic", value: "Beyerdynamic" },
+                        { label: "BGVP", value: "BGVP" },
                         { label: "Campfire Audio", value: "Campfire Audio" },
+                        { label: "CCA", value: "CCA" },
+                        { label: "Celest", value: "Celest" },
                         { label: "Dunu", value: "Dunu" },
                         { label: "Earfun", value: "Earfun" },
                         { label: "Effect Audio", value: "Effect Audio" },
+                        { label: "Empire Ears", value: "Empire Ears" },
                         { label: "EPZ", value: "EPZ" },
+                        { label: "FatFreq", value: "FatFreq" },
                         { label: "FiiO", value: "FiiO" },
                         { label: "Final Audio", value: "Final Audio" },
+                        { label: "Focal", value: "Focal" },
                         { label: "Genelec", value: "Genelec" },
+                        { label: "Hiby", value: "Hiby" },
                         { label: "Hifiman", value: "Hifiman" },
+                        { label: "iBasso", value: "iBasso" },
                         { label: "KBEAR", value: "KBEAR" },
+                        { label: "Kefine", value: "Kefine" },
                         { label: "Kinera Audio", value: "Kinera Audio" },
                         { label: "Kiwi Ears", value: "Kiwi Ears" },
+                        { label: "KZ (Knowledge Zenith)", value: "KZ" },
                         { label: "Letshuoer", value: "Letshuoer" },
                         { label: "Meze Audio", value: "Meze Audio" },
                         { label: "Moondrop", value: "Moondrop" },
                         { label: "QDC", value: "QDC" },
                         { label: "SeeAudio", value: "SeeAudio" },
                         { label: "Sennheiser", value: "Sennheiser" },
+                        { label: "Shanling", value: "Shanling" },
                         { label: "Shure", value: "Shure" },
+                        { label: "Simgot", value: "Simgot" },
+                        { label: "Softears", value: "Softears" },
                         { label: "Sony", value: "Sony" },
                         { label: "Tanchjim", value: "Tanchjim" },
                         { label: "Tangzu", value: "Tangzu" },
                         { label: "THIEAUDIO", value: "THIEAUDIO" },
                         { label: "TinHiFi", value: "TinHiFi" },
                         { label: "Topping", value: "Topping" },
+                        { label: "TRN", value: "TRN" },
                         { label: "Truthear", value: "Truthear" },
+                        { label: "Unique Melody", value: "Unique Melody" },
                         { label: "Verus Audio", value: "Verus Audio" },
+                        { label: "Vision Ears", value: "Vision Ears" },
                         { label: "Xinhs", value: "Xinhs" },
                       ]}
                     />
@@ -513,7 +692,7 @@ export default function AddNewProductPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-[11px] font-mono text-[#71717A] uppercase tracking-wider mb-2">
                     {isEn ? "Item Condition" : "Kondisi Barang"}
@@ -522,7 +701,7 @@ export default function AddNewProductPage() {
                     value={formData.condition}
                     onChange={(val) => setFormData({ ...formData, condition: val })}
                     options={[
-                      { label: isEn ? "Brand New (Sealed in Box)" : "Baru Segel Resmi (BNIB)", value: "Brand New Sealed" },
+                      { label: isEn ? "Brand New Sealed (BNIB)" : "Baru Segel Resmi (BNIB)", value: "Brand New Sealed" },
                       { label: isEn ? "Like New (Open Box Demo)" : "Buka Segel Demo (Like New)", value: "Like New" },
                       { label: isEn ? "Refurbished / Certified" : "Rekondisi Resmi Pabrik", value: "Refurbished" },
                     ]}
@@ -541,124 +720,222 @@ export default function AddNewProductPage() {
                     className="w-full bg-[#161616] hover:bg-[#1A1A1A] focus:bg-[#1C1C1C] ring-1 ring-white/10 hover:ring-white/20 focus:ring-1 focus:ring-[#BFDD25] shadow-inner rounded-xl px-4 py-3 text-xs font-mono text-white outline-none border-0 transition-all"
                   />
                 </div>
+
+                <div>
+                  <label className="block text-[11px] font-mono text-[#71717A] uppercase tracking-wider mb-2">
+                    {isEn ? "Promotional Badge" : "Label Promosi / Sorotan"}
+                  </label>
+                  <CustomSelect
+                    value={formData.badge}
+                    onChange={(val) => setFormData({ ...formData, badge: val })}
+                    options={[
+                      { label: isEn ? "New Release" : "New Release (Rilisan Baru)", value: "New Release" },
+                      { label: isEn ? "Best Seller" : "Best Seller (Terlaris)", value: "Best Seller" },
+                      { label: isEn ? "Staff Pick" : "Staff Pick (Pilihan Kurator)", value: "Staff Pick" },
+                      { label: isEn ? "Audiophile Choice" : "Audiophile Choice", value: "Audiophile Choice" },
+                      { label: isEn ? "Flagship Edition" : "Flagship Edition", value: "Flagship Edition" },
+                      { label: isEn ? "Standard (No Badge)" : "Standar (Tanpa Badge)", value: "" },
+                    ]}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Section 2: Sound Signature, Tuning Concept & Audiophile Tier */}
+          <div className="bg-[#0A0A0A] rounded-2xl p-6 sm:p-7 space-y-5">
+            <div className="pb-1 flex items-center justify-between">
+              <h3 className="text-xs font-bold font-sans text-white uppercase tracking-wider">
+                {isEn ? "2. Sound Profile & Audiophile Tier" : "2. Profil Suara & Audiophile Tier"}
+              </h3>
+              <span className="text-[10px] font-mono text-[#A1A1AA] bg-[#181818] px-2.5 py-0.5 rounded-full">
+                Acoustic Tuning
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-[11px] font-mono text-[#A1A1AA] uppercase tracking-wider mb-2 font-semibold">
+                  {isEn ? "Sound Signature *" : "Karakter Suara *"}
+                </label>
+                <CustomSelect
+                  value={formData.soundSignature}
+                  onChange={(val) => setFormData({ ...formData, soundSignature: val })}
+                  options={[
+                    { label: isEn ? "Harman Target 2019 (Engaging)" : "Target Harman 2019 (Seimbang)", value: "Harman Target 2019" },
+                    { label: isEn ? "Diffuse Field / Neutral Reference" : "Netral Reference (DF Studio)", value: "Neutral Reference" },
+                    { label: isEn ? "Warm & Musical (Rich Vocals)" : "Warm & Musikal (Vokal Tebal)", value: "Warm Musical" },
+                    { label: isEn ? "V-Shape Fun (Punchy Bass)" : "V-Shape Fun (Bass Nendang)", value: "V-Shape Fun" },
+                    { label: isEn ? "Bright Analytical (Micro-Detail)" : "Bright Analitikal (Detail Tinggi)", value: "Bright Analytical" },
+                    { label: isEn ? "Basshead Cannon (Deep Sub-bass)" : "Basshead Cannon (Sub-bass Kuat)", value: "Basshead Cannon" },
+                  ]}
+                />
               </div>
 
               <div>
                 <label className="block text-[11px] font-mono text-[#A1A1AA] uppercase tracking-wider mb-2 font-semibold">
-                  {isEn ? "Product Overview & Package Contents" : "Deskripsi Produk & Kelengkapan Box"}
+                  {isEn ? "Audiophile Tier *" : "Tingkat Pengalaman (Tier) *"}
                 </label>
-                <textarea
-                  rows={4}
-                  placeholder={
-                    isEn
-                      ? "Sound characteristics, technical architecture, package contents (cables, tips, cases), build quality..."
-                      : "Karakteristik audio, komponen teknis, kelengkapan aksesoris dalam box, garansi distributor..."
-                  }
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full bg-[#161616] hover:bg-[#1A1A1A] focus:bg-[#1C1C1C] ring-1 ring-white/10 hover:ring-white/20 focus:ring-1 focus:ring-[#BFDD25] shadow-inner rounded-xl p-4 text-xs font-sans text-white placeholder:text-[#666] outline-none border-0 transition-all resize-none leading-relaxed"
+                <CustomSelect
+                  value={formData.experienceLevel}
+                  onChange={(val: any) => setFormData({ ...formData, experienceLevel: val })}
+                  options={[
+                    { label: isEn ? "BEGINNER (Entry-Level Hi-Fi)" : "BEGINNER (Entry-Level Audiophile)", value: "BEGINNER" },
+                    { label: isEn ? "INTERMEDIATE (Enthusiast Gear)" : "INTERMEDIATE (Enthusiast Gear)", value: "INTERMEDIATE" },
+                    { label: isEn ? "ENTHUSIAST (High-Fidelity)" : "ENTHUSIAST (High-Fidelity Audio)", value: "ENTHUSIAST" },
+                    { label: isEn ? "FLAGSHIP (Summit-Fi / Studio Master)" : "FLAGSHIP (Summit-Fi Flagship)", value: "FLAGSHIP" },
+                  ]}
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-mono text-[#A1A1AA] uppercase tracking-wider mb-2 font-semibold">
+                  {isEn ? "Target Tuning Curve" : "Konsep Target Tuning"}
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Harman In-Ear 2019 Curve"
+                  value={formData.tuning}
+                  onChange={(e) => setFormData({ ...formData, tuning: e.target.value })}
+                  className="w-full bg-[#161616] hover:bg-[#1A1A1A] focus:bg-[#1C1C1C] ring-1 ring-white/10 hover:ring-white/20 focus:ring-1 focus:ring-[#BFDD25] shadow-inner rounded-xl px-4 py-3 text-xs font-mono text-white outline-none border-0 transition-all"
                 />
               </div>
             </div>
           </div>
 
-          {/* Section 2: Dynamic Category-Specific Technical Specs */}
+          {/* Section 3: Dynamic Category-Specific Technical Specs */}
           <div className="bg-[#0A0A0A] rounded-2xl p-6 sm:p-7 space-y-5">
-            <div className="pb-1">
+            <div className="pb-1 flex items-center justify-between">
               <h3 className="text-xs font-bold font-sans text-white uppercase tracking-wider">
                 {isEn
-                  ? `2. Technical Specifications (${category})`
-                  : `2. Spesifikasi Teknis (${category})`}
+                  ? `3. Technical & Acoustic Specifications (${category})`
+                  : `3. Spesifikasi Teknis & Akustik (${category})`}
               </h3>
+              <span className="text-[10px] font-mono text-[#71717A] bg-[#141414] px-2.5 py-0.5 rounded-full">
+                Hardware Specs
+              </span>
             </div>
 
             {/* DYNAMIC FORM PER CATEGORY */}
             {category === "IN-EAR MONITORS" && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-[11px] font-mono text-[#A1A1AA] uppercase tracking-wider mb-2 font-semibold">
-                    {isEn ? "Driver Configuration *" : "Konfigurasi Driver *"}
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. 1DD (10mm Carbon) + 4BA (Knowles)"
-                    value={formData.driverType}
-                    onChange={(e) => setFormData({ ...formData, driverType: e.target.value })}
-                    className="w-full bg-[#161616] hover:bg-[#1A1A1A] focus:bg-[#1C1C1C] ring-1 ring-white/10 hover:ring-white/20 focus:ring-1 focus:ring-[#BFDD25] shadow-inner rounded-xl px-4 py-3 text-xs font-mono text-white outline-none border-0 transition-all"
-                  />
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[11px] font-mono text-[#A1A1AA] uppercase tracking-wider mb-2 font-semibold">
+                      {isEn ? "Driver Configuration *" : "Konfigurasi Driver *"}
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. 1DD (10mm Carbon) + 4BA (Knowles)"
+                      value={formData.driverType}
+                      onChange={(e) => setFormData({ ...formData, driverType: e.target.value })}
+                      className="w-full bg-[#161616] hover:bg-[#1A1A1A] focus:bg-[#1C1C1C] ring-1 ring-white/10 hover:ring-white/20 focus:ring-1 focus:ring-[#BFDD25] shadow-inner rounded-xl px-4 py-3 text-xs font-mono text-white outline-none border-0 transition-all"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-mono text-[#A1A1AA] uppercase tracking-wider mb-2 font-semibold">
+                      {isEn ? "Frequency Range *" : "Rentang Frekuensi *"}
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 10Hz - 40,000Hz"
+                      value={formData.frequencyRange}
+                      onChange={(e) => setFormData({ ...formData, frequencyRange: e.target.value })}
+                      className="w-full bg-[#161616] hover:bg-[#1A1A1A] focus:bg-[#1C1C1C] ring-1 ring-white/10 hover:ring-white/20 focus:ring-1 focus:ring-[#BFDD25] shadow-inner rounded-xl px-4 py-3 text-xs font-mono text-white outline-none border-0 transition-all"
+                    />
+                  </div>
                 </div>
 
-                <div>
-                  <label className="block text-[11px] font-mono text-[#A1A1AA] uppercase tracking-wider mb-2 font-semibold">
-                    {isEn ? "Sound Signature *" : "Karakter Suara *"}
-                  </label>
-                  <CustomSelect
-                    value={formData.soundSignature}
-                    onChange={(val) => setFormData({ ...formData, soundSignature: val })}
-                    options={[
-                      { label: isEn ? "Harman Target 2019 (Engaging)" : "Target Harman 2019", value: "Harman Target 2019" },
-                      { label: isEn ? "Diffuse Field / Neutral Reference" : "Netral Reference (DF)", value: "Neutral Reference" },
-                      { label: isEn ? "Warm & Musical (Rich Vocals)" : "Warm & Musikal (Vokal Tebal)", value: "Warm Musical" },
-                      { label: isEn ? "V-Shape Fun (Punchy Bass)" : "V-Shape Fun (Bass Nendang)", value: "V-Shape Fun" },
-                      { label: isEn ? "Bright Analytical (Micro-Detail)" : "Bright Analitikal (Detail Tinggi)", value: "Bright Analytical" },
-                    ]}
-                  />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[11px] font-mono text-[#A1A1AA] uppercase tracking-wider mb-2 font-semibold">
+                      {isEn ? "Impedance (Ω)" : "Impedansi (Ω)"}
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 16 Ω @ 1kHz"
+                      value={formData.impedance}
+                      onChange={(e) => setFormData({ ...formData, impedance: e.target.value })}
+                      className="w-full bg-[#161616] hover:bg-[#1A1A1A] focus:bg-[#1C1C1C] ring-1 ring-white/10 hover:ring-white/20 focus:ring-1 focus:ring-[#BFDD25] shadow-inner rounded-xl px-4 py-3 text-xs font-mono text-white outline-none border-0 transition-all"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-mono text-[#A1A1AA] uppercase tracking-wider mb-2 font-semibold">
+                      {isEn ? "Sensitivity" : "Sensitivitas"}
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 112 dB/mW"
+                      value={formData.sensitivity}
+                      onChange={(e) => setFormData({ ...formData, sensitivity: e.target.value })}
+                      className="w-full bg-[#161616] hover:bg-[#1A1A1A] focus:bg-[#1C1C1C] ring-1 ring-white/10 hover:ring-white/20 focus:ring-1 focus:ring-[#BFDD25] shadow-inner rounded-xl px-4 py-3 text-xs font-mono text-white outline-none border-0 transition-all"
+                    />
+                  </div>
                 </div>
 
-                <div>
-                  <label className="block text-[11px] font-mono text-[#A1A1AA] uppercase tracking-wider mb-2 font-semibold">
-                    {isEn ? "Impedance (Ω)" : "Impedansi (Ω)"}
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. 14.8 Ω @ 1kHz"
-                    value={formData.impedance}
-                    onChange={(e) => setFormData({ ...formData, impedance: e.target.value })}
-                    className="w-full bg-[#161616] hover:bg-[#1A1A1A] focus:bg-[#1C1C1C] ring-1 ring-white/10 hover:ring-white/20 focus:ring-1 focus:ring-[#BFDD25] shadow-inner rounded-xl px-4 py-3 text-xs font-mono text-white outline-none border-0 transition-all"
-                  />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[11px] font-mono text-[#A1A1AA] uppercase tracking-wider mb-2 font-semibold">
+                      {isEn ? "Pin Connector Type" : "Tipe Pin Konektor"}
+                    </label>
+                    <CustomSelect
+                      value={formData.pinType}
+                      onChange={(val) => setFormData({ ...formData, pinType: val })}
+                      options={[
+                        { label: "0.78mm 2-Pin (Standard)", value: "0.78mm 2-Pin" },
+                        { label: "MMCX Coaxial", value: "MMCX" },
+                        { label: "Pentaconn Ear", value: "Pentaconn Ear" },
+                        { label: "QDC / TFZ Covered 2-Pin", value: "QDC 2-Pin" },
+                      ]}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-mono text-[#A1A1AA] uppercase tracking-wider mb-2 font-semibold">
+                      {isEn ? "Cable Termination / Plug" : "Terminasi Plug Kabel"}
+                    </label>
+                    <CustomSelect
+                      value={formData.cableTermination}
+                      onChange={(val) => setFormData({ ...formData, cableTermination: val })}
+                      options={[
+                        { label: "3.5mm Single-Ended (Standard)", value: "3.5mm Single-Ended" },
+                        { label: "4.4mm Balanced Pentaconn", value: "4.4mm Balanced" },
+                        { label: "Type-C DSP Digital", value: "Type-C DSP" },
+                        { label: "Modular (3.5mm SE & 4.4mm Bal)", value: "Modular 3.5mm & 4.4mm" },
+                      ]}
+                    />
+                  </div>
                 </div>
 
-                <div>
-                  <label className="block text-[11px] font-mono text-[#A1A1AA] uppercase tracking-wider mb-2 font-semibold">
-                    {isEn ? "Sensitivity" : "Sensitivitas"}
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. 120 dB/Vrms"
-                    value={formData.sensitivity}
-                    onChange={(e) => setFormData({ ...formData, sensitivity: e.target.value })}
-                    className="w-full bg-[#161616] hover:bg-[#1A1A1A] focus:bg-[#1C1C1C] ring-1 ring-white/10 hover:ring-white/20 focus:ring-1 focus:ring-[#BFDD25] shadow-inner rounded-xl px-4 py-3 text-xs font-mono text-white outline-none border-0 transition-all"
-                  />
-                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[11px] font-mono text-[#A1A1AA] uppercase tracking-wider mb-2 font-semibold">
+                      {isEn ? "Housing / Shell Material" : "Material Housing / Shell IEM"}
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Medical-Grade 3D Resin with CNC Aluminum Faceplate"
+                      value={formData.material}
+                      onChange={(e) => setFormData({ ...formData, material: e.target.value })}
+                      className="w-full bg-[#161616] hover:bg-[#1A1A1A] focus:bg-[#1C1C1C] ring-1 ring-white/10 hover:ring-white/20 focus:ring-1 focus:ring-[#BFDD25] shadow-inner rounded-xl px-4 py-3 text-xs font-mono text-white outline-none border-0 transition-all"
+                    />
+                  </div>
 
-                <div>
-                  <label className="block text-[11px] font-mono text-[#A1A1AA] uppercase tracking-wider mb-2 font-semibold">
-                    {isEn ? "Pin Connector Type" : "Tipe Pin Konektor"}
-                  </label>
-                  <CustomSelect
-                    value={formData.pinType}
-                    onChange={(val) => setFormData({ ...formData, pinType: val })}
-                    options={[
-                      { label: "0.78mm 2-Pin (Standard)", value: "0.78mm 2-Pin" },
-                      { label: "MMCX Coaxial", value: "MMCX" },
-                      { label: "Pentaconn Ear", value: "Pentaconn Ear" },
-                      { label: "QDC / TFZ Covered 2-Pin", value: "QDC 2-Pin" },
-                    ]}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-mono text-[#A1A1AA] uppercase tracking-wider mb-2 font-semibold">
-                    {isEn ? "Frequency Response Range" : "Rentang Frekuensi"}
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. 10Hz - 40,000Hz"
-                    value={formData.frequencyRange}
-                    onChange={(e) => setFormData({ ...formData, frequencyRange: e.target.value })}
-                    className="w-full bg-[#161616] hover:bg-[#1A1A1A] focus:bg-[#1C1C1C] ring-1 ring-white/10 hover:ring-white/20 focus:ring-1 focus:ring-[#BFDD25] shadow-inner rounded-xl px-4 py-3 text-xs font-mono text-white outline-none border-0 transition-all"
-                  />
+                  <div>
+                    <label className="block text-[11px] font-mono text-[#A1A1AA] uppercase tracking-wider mb-2 font-semibold">
+                      {isEn ? "Stock Cable Material" : "Material Kabel Bawaan"}
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. High-Purity Silver-Plated OFC Copper"
+                      value={formData.cableMaterial}
+                      onChange={(e) => setFormData({ ...formData, cableMaterial: e.target.value })}
+                      className="w-full bg-[#161616] hover:bg-[#1A1A1A] focus:bg-[#1C1C1C] ring-1 ring-white/10 hover:ring-white/20 focus:ring-1 focus:ring-[#BFDD25] shadow-inner rounded-xl px-4 py-3 text-xs font-mono text-white outline-none border-0 transition-all"
+                    />
+                  </div>
                 </div>
               </div>
             )}
@@ -676,6 +953,7 @@ export default function AddNewProductPage() {
                       { label: "Over-Ear (Open-Back)", value: "Over-Ear (Open-Back)" },
                       { label: "Over-Ear (Closed-Back)", value: "Over-Ear (Closed-Back)" },
                       { label: "On-Ear (Portable)", value: "On-Ear (Portable)" },
+                      { label: "Planar Magnetic Open-Back", value: "Planar Magnetic Open-Back" },
                       { label: "Wireless ANC Flagship", value: "Wireless ANC" },
                     ]}
                   />
@@ -690,7 +968,7 @@ export default function AddNewProductPage() {
                     placeholder="e.g. 50mm Beryllium Dynamic or Planar Magnetic"
                     value={formData.headphoneDriverSize}
                     onChange={(e) => setFormData({ ...formData, headphoneDriverSize: e.target.value })}
-                    className="w-full bg-[#121212] rounded-xl px-4 py-3 text-xs font-mono text-white outline-none border-0 focus:ring-1 focus:ring-white/20 transition-all"
+                    className="w-full bg-[#161616] ring-1 ring-white/10 rounded-xl px-4 py-3 text-xs font-mono text-white outline-none border-0 focus:ring-1 focus:ring-[#BFDD25] transition-all"
                   />
                 </div>
 
@@ -703,7 +981,7 @@ export default function AddNewProductPage() {
                     placeholder="e.g. 300 Ω / 104 dB"
                     value={formData.impedance}
                     onChange={(e) => setFormData({ ...formData, impedance: e.target.value })}
-                    className="w-full bg-[#121212] rounded-xl px-4 py-3 text-xs font-mono text-white outline-none border-0 focus:ring-1 focus:ring-white/20 transition-all"
+                    className="w-full bg-[#161616] ring-1 ring-white/10 rounded-xl px-4 py-3 text-xs font-mono text-white outline-none border-0 focus:ring-1 focus:ring-[#BFDD25] transition-all"
                   />
                 </div>
 
@@ -713,10 +991,36 @@ export default function AddNewProductPage() {
                   </label>
                   <input
                     type="text"
-                    placeholder="e.g. 380g (Without Cable)"
+                    placeholder="e.g. 380g (Tanpa Kabel)"
                     value={formData.weightGrams}
                     onChange={(e) => setFormData({ ...formData, weightGrams: e.target.value })}
-                    className="w-full bg-[#121212] rounded-xl px-4 py-3 text-xs font-mono text-white outline-none border-0 focus:ring-1 focus:ring-white/20 transition-all"
+                    className="w-full bg-[#161616] ring-1 ring-white/10 rounded-xl px-4 py-3 text-xs font-mono text-white outline-none border-0 focus:ring-1 focus:ring-[#BFDD25] transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-mono text-[#71717A] uppercase tracking-wider mb-2">
+                    {isEn ? "Earpad / Headband Material" : "Material Earpad & Headband"}
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Memory Foam with Breathable Velour / Protein Leather"
+                    value={formData.material}
+                    onChange={(e) => setFormData({ ...formData, material: e.target.value })}
+                    className="w-full bg-[#161616] ring-1 ring-white/10 rounded-xl px-4 py-3 text-xs font-mono text-white outline-none border-0 focus:ring-1 focus:ring-[#BFDD25] transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-mono text-[#71717A] uppercase tracking-wider mb-2">
+                    {isEn ? "Cable Termination" : "Terminasi Kabel & Plug"}
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Dual 3.5mm to 6.35mm SE / 4.4mm Pentaconn"
+                    value={formData.cableTermination}
+                    onChange={(e) => setFormData({ ...formData, cableTermination: e.target.value })}
+                    className="w-full bg-[#161616] ring-1 ring-white/10 rounded-xl px-4 py-3 text-xs font-mono text-white outline-none border-0 focus:ring-1 focus:ring-[#BFDD25] transition-all"
                   />
                 </div>
               </div>
@@ -733,7 +1037,7 @@ export default function AddNewProductPage() {
                     placeholder="e.g. Dual ESS ES9038PRO or AK4499EX / R2R Ladder"
                     value={formData.dacChipset}
                     onChange={(e) => setFormData({ ...formData, dacChipset: e.target.value })}
-                    className="w-full bg-[#121212] rounded-xl px-4 py-3 text-xs font-mono text-white outline-none border-0 focus:ring-1 focus:ring-white/20 transition-all"
+                    className="w-full bg-[#161616] ring-1 ring-white/10 rounded-xl px-4 py-3 text-xs font-mono text-white outline-none border-0 focus:ring-1 focus:ring-[#BFDD25] transition-all"
                   />
                 </div>
 
@@ -746,7 +1050,7 @@ export default function AddNewProductPage() {
                     placeholder="e.g. 2000mW @ 32Ω (4.4mm Balanced)"
                     value={formData.outputPower}
                     onChange={(e) => setFormData({ ...formData, outputPower: e.target.value })}
-                    className="w-full bg-[#121212] rounded-xl px-4 py-3 text-xs font-mono text-white outline-none border-0 focus:ring-1 focus:ring-white/20 transition-all"
+                    className="w-full bg-[#161616] ring-1 ring-white/10 rounded-xl px-4 py-3 text-xs font-mono text-white outline-none border-0 focus:ring-1 focus:ring-[#BFDD25] transition-all"
                   />
                 </div>
 
@@ -759,7 +1063,7 @@ export default function AddNewProductPage() {
                     placeholder="e.g. USB-C XMOS XU316, Optical, Coaxial, Bluetooth LDAC"
                     value={formData.inputs}
                     onChange={(e) => setFormData({ ...formData, inputs: e.target.value })}
-                    className="w-full bg-[#121212] rounded-xl px-4 py-3 text-xs font-mono text-white outline-none border-0 focus:ring-1 focus:ring-white/20 transition-all"
+                    className="w-full bg-[#161616] ring-1 ring-white/10 rounded-xl px-4 py-3 text-xs font-mono text-white outline-none border-0 focus:ring-1 focus:ring-[#BFDD25] transition-all"
                   />
                 </div>
 
@@ -772,21 +1076,238 @@ export default function AddNewProductPage() {
                     placeholder="e.g. 3.5mm SE, 4.4mm Bal, 6.35mm, XLR Pre-Out"
                     value={formData.outputs}
                     onChange={(e) => setFormData({ ...formData, outputs: e.target.value })}
-                    className="w-full bg-[#121212] rounded-xl px-4 py-3 text-xs font-mono text-white outline-none border-0 focus:ring-1 focus:ring-white/20 transition-all"
+                    className="w-full bg-[#161616] ring-1 ring-white/10 rounded-xl px-4 py-3 text-xs font-mono text-white outline-none border-0 focus:ring-1 focus:ring-[#BFDD25] transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-mono text-[#71717A] uppercase tracking-wider mb-2">
+                    {isEn ? "Signal-to-Noise & THD+N" : "SNR & Distorsi THD+N"}
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 125dB SNR / 0.0002% THD+N"
+                    value={formData.snrThd}
+                    onChange={(e) => setFormData({ ...formData, snrThd: e.target.value })}
+                    className="w-full bg-[#161616] ring-1 ring-white/10 rounded-xl px-4 py-3 text-xs font-mono text-white outline-none border-0 focus:ring-1 focus:ring-[#BFDD25] transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-mono text-[#71717A] uppercase tracking-wider mb-2">
+                    {isEn ? "Chassis Material" : "Material Bodi Casing"}
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. CNC Anodized Aluminum Alloy"
+                    value={formData.material}
+                    onChange={(e) => setFormData({ ...formData, material: e.target.value })}
+                    className="w-full bg-[#161616] ring-1 ring-white/10 rounded-xl px-4 py-3 text-xs font-mono text-white outline-none border-0 focus:ring-1 focus:ring-[#BFDD25] transition-all"
+                  />
+                </div>
+              </div>
+            )}
+
+            {category === "DIGITAL AUDIO PLAYERS" && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[11px] font-mono text-[#71717A] uppercase tracking-wider mb-2">
+                    {isEn ? "Operating System" : "Sistem Operasi DAP"}
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Android 12 (Bit-Perfect Direct Audio)"
+                    value={formData.dapOS}
+                    onChange={(e) => setFormData({ ...formData, dapOS: e.target.value })}
+                    className="w-full bg-[#161616] ring-1 ring-white/10 rounded-xl px-4 py-3 text-xs font-mono text-white outline-none border-0 focus:ring-1 focus:ring-[#BFDD25] transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-mono text-[#71717A] uppercase tracking-wider mb-2">
+                    {isEn ? "Storage & Expansion" : "Penyimpanan & Memori"}
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 64GB Internal + MicroSD up to 2TB"
+                    value={formData.dapStorage}
+                    onChange={(e) => setFormData({ ...formData, dapStorage: e.target.value })}
+                    className="w-full bg-[#161616] ring-1 ring-white/10 rounded-xl px-4 py-3 text-xs font-mono text-white outline-none border-0 focus:ring-1 focus:ring-[#BFDD25] transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-mono text-[#71717A] uppercase tracking-wider mb-2">
+                    {isEn ? "Battery Playback Time" : "Daya Tahan Baterai"}
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 14 Hours Continuous Playback"
+                    value={formData.batteryLife}
+                    onChange={(e) => setFormData({ ...formData, batteryLife: e.target.value })}
+                    className="w-full bg-[#161616] ring-1 ring-white/10 rounded-xl px-4 py-3 text-xs font-mono text-white outline-none border-0 focus:ring-1 focus:ring-[#BFDD25] transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-mono text-[#71717A] uppercase tracking-wider mb-2">
+                    {isEn ? "Headphone Outputs" : "Output Audio Port"}
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 3.5mm SE, 4.4mm Balanced, USB DAC Mode"
+                    value={formData.outputs}
+                    onChange={(e) => setFormData({ ...formData, outputs: e.target.value })}
+                    className="w-full bg-[#161616] ring-1 ring-white/10 rounded-xl px-4 py-3 text-xs font-mono text-white outline-none border-0 focus:ring-1 focus:ring-[#BFDD25] transition-all"
+                  />
+                </div>
+              </div>
+            )}
+
+            {category === "CABLES & ADAPTERS" && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[11px] font-mono text-[#71717A] uppercase tracking-wider mb-2">
+                    {isEn ? "Conductor Material" : "Material Konduktor Kawat"}
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 8-Core Monocrystalline UP-OCC Copper"
+                    value={formData.conductorMaterial}
+                    onChange={(e) => setFormData({ ...formData, conductorMaterial: e.target.value })}
+                    className="w-full bg-[#161616] ring-1 ring-white/10 rounded-xl px-4 py-3 text-xs font-mono text-white outline-none border-0 focus:ring-1 focus:ring-[#BFDD25] transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-mono text-[#71717A] uppercase tracking-wider mb-2">
+                    {isEn ? "Connector & Plug" : "Terminasi Pin & Plug"}
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 0.78mm 2-Pin to 4.4mm Balanced (Interchangeable)"
+                    value={formData.cableTermination}
+                    onChange={(e) => setFormData({ ...formData, cableTermination: e.target.value })}
+                    className="w-full bg-[#161616] ring-1 ring-white/10 rounded-xl px-4 py-3 text-xs font-mono text-white outline-none border-0 focus:ring-1 focus:ring-[#BFDD25] transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-mono text-[#71717A] uppercase tracking-wider mb-2">
+                    {isEn ? "Cable Length" : "Panjang Kabel"}
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 1.25m ± 5%"
+                    value={formData.cableLength}
+                    onChange={(e) => setFormData({ ...formData, cableLength: e.target.value })}
+                    className="w-full bg-[#161616] ring-1 ring-white/10 rounded-xl px-4 py-3 text-xs font-mono text-white outline-none border-0 focus:ring-1 focus:ring-[#BFDD25] transition-all"
                   />
                 </div>
               </div>
             )}
           </div>
+
+          {/* Section 4: Comprehensive Product Description & Box Contents */}
+          <div className="bg-[#0A0A0A] rounded-2xl p-6 sm:p-7 space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-1">
+              <div>
+                <h3 className="text-xs font-bold font-sans text-white uppercase tracking-wider">
+                  {isEn ? "4. Full Product Description & Box Contents *" : "4. Deskripsi Lengkap Produk & Kelengkapan Box *"}
+                </h3>
+                <p className="text-[11px] text-[#71717A] font-sans mt-0.5">
+                  {isEn
+                    ? "Detailed write-up displayed directly on the product's public storefront page."
+                    : "Rincian ulasan lengkap yang akan langsung tampil di tab Deskripsi halaman produk pembeli."}
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-mono text-[#A1A1AA] bg-[#161616] px-2.5 py-1 rounded-full">
+                  {formData.description.length} {isEn ? "chars" : "karakter"} • {formData.description.trim() ? formData.description.trim().split(/\s+/).length : 0} {isEn ? "words" : "kata"}
+                </span>
+              </div>
+            </div>
+
+            {/* Quick Template Helper Buttons */}
+            <div className="p-3 bg-[#121212] ring-1 ring-white/5 rounded-xl space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-mono text-[#A1A1AA] uppercase tracking-wider font-semibold">
+                  {isEn ? "Quick Audiophile Templates:" : "Template Cepat Audiophile:"}
+                </span>
+                {formData.description && (
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, description: "" })}
+                    className="text-[10px] font-mono text-rose-400 hover:text-rose-300 transition-colors cursor-pointer"
+                  >
+                    {isEn ? "Clear All" : "Kosongkan Teks"}
+                  </button>
+                )}
+              </div>
+              <div className="flex flex-wrap items-center gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => insertTemplate("iem")}
+                  className="px-3 py-1.5 bg-[#181818] hover:bg-[#222] hover:text-[#BFDD25] text-white text-[11px] font-sans font-medium rounded-lg transition-colors cursor-pointer flex items-center gap-1.5"
+                >
+                  <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 18v-6a9 9 0 0118 0v6M3 16a2 2 0 002 2h1a2 2 0 002-2v-3a2 2 0 00-2-2H4a1 1 0 00-1 1v4zm14-3a2 2 0 012-2h1a1 1 0 011 1v4a2 2 0 01-2 2h-1a2 2 0 01-2-2v-3z" />
+                  </svg>
+                  <span>{isEn ? "+ IEM Template" : "+ Template Lengkap IEM"}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => insertTemplate("dac")}
+                  className="px-3 py-1.5 bg-[#181818] hover:bg-[#222] hover:text-[#BFDD25] text-white text-[11px] font-sans font-medium rounded-lg transition-colors cursor-pointer flex items-center gap-1.5"
+                >
+                  <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                  <span>{isEn ? "+ DAC/AMP Template" : "+ Template DAC/AMP"}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => insertTemplate("headphone")}
+                  className="px-3 py-1.5 bg-[#181818] hover:bg-[#222] hover:text-[#BFDD25] text-white text-[11px] font-sans font-medium rounded-lg transition-colors cursor-pointer flex items-center gap-1.5"
+                >
+                  <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+                  </svg>
+                  <span>{isEn ? "+ Headphone Template" : "+ Template Headphone"}</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <textarea
+                rows={8}
+                required
+                placeholder={
+                  isEn
+                    ? "Explain the sound signature (bass, mids, treble), soundstage, technical drivers, build quality, and package contents..."
+                    : "Jelaskan profil suara (bass, vokal/mid, treble), staging akustik, arsitektur driver, build quality shell, dan kelengkapan box..."
+                }
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                className="w-full bg-[#161616] hover:bg-[#1A1A1A] focus:bg-[#1C1C1C] ring-1 ring-white/10 hover:ring-white/20 focus:ring-1 focus:ring-[#BFDD25] shadow-inner rounded-xl p-4 text-xs font-sans text-white placeholder:text-[#666] outline-none border-0 transition-all leading-relaxed whitespace-pre-wrap"
+              />
+              <p className="text-[10px] font-sans text-[#71717A] flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#BFDD25]" />
+                {isEn
+                  ? "Line breaks, dashes, and bullet points will be formatted cleanly on the product page."
+                  : "Mendukung enter baris baru, spasi paragraf, dan bullet points untuk memudahkan pembeli membaca rincian."}
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* Right 1 Col: Pricing, Inventory, Variants & Photos */}
         <div className="space-y-6">
-          {/* Section 3: Pricing, Stock & Product Variants */}
+          {/* Section 5: Pricing, Stock & Product Variants */}
           <div className="bg-[#0A0A0A] rounded-2xl p-6 sm:p-7 space-y-5">
             <div className="pb-1">
               <h3 className="text-xs font-bold font-sans text-white uppercase tracking-wider">
-                {isEn ? "3. Pricing & Variants" : "3. Harga & Varian Produk"}
+                {isEn ? "5. Pricing & Variants" : "5. Harga & Varian Produk"}
               </h3>
             </div>
 
@@ -939,11 +1460,11 @@ export default function AddNewProductPage() {
             </div>
           </div>
 
-          {/* Section 4: Multi-Image Product Gallery Upload (Files & Browser URL) */}
+          {/* Section 6: Multi-Image Product Gallery Upload (Files & Browser URL) */}
           <div className="bg-[#0A0A0A] rounded-2xl p-6 sm:p-7 space-y-5">
             <div className="flex items-center justify-between pb-1">
               <h3 className="text-xs font-bold font-sans text-white uppercase tracking-wider">
-                {isEn ? "4. Photo Gallery" : "4. Galeri Foto Produk"}
+                {isEn ? "6. Photo Gallery" : "6. Galeri Foto Produk"}
               </h3>
               <div className="flex items-center gap-2">
                 <span className="text-[10px] font-mono text-[#71717A]">
@@ -1122,7 +1643,9 @@ export default function AddNewProductPage() {
                         onClick={() => setShowUrlInput(true)}
                         className="rounded-xl bg-[#121212] hover:bg-[#181818] h-16 flex flex-col items-center justify-center text-[#71717A] hover:text-[#BFDD25] transition-all cursor-pointer"
                       >
-                        <span className="text-sm font-mono font-bold">🔗</span>
+                        <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-3.07a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
+                        </svg>
                         <span className="text-[9px] font-mono mt-0.5">+ URL</span>
                       </button>
                     </>
@@ -1160,7 +1683,9 @@ export default function AddNewProductPage() {
                   className="bg-[#121212] hover:bg-[#161616] rounded-2xl p-6 text-center cursor-pointer transition-all space-y-2.5 flex flex-col items-center justify-center"
                 >
                   <div className="w-10 h-10 rounded-xl bg-[#181818] flex items-center justify-center text-white/80">
-                    <span className="text-base font-mono">🔗</span>
+                    <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-3.07a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
+                    </svg>
                   </div>
                   <div>
                     <p className="text-xs font-semibold text-white">

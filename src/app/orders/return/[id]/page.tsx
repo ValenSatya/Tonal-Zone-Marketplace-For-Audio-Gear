@@ -294,7 +294,7 @@ export default function OrderReturnPage() {
         evidenceImages:
           evidenceImages.length > 0
             ? evidenceImages
-            : [order.items?.[0]?.image || "/hero-blessing-3.jpg"],
+            : [order.items?.[0]?.image || "/model-iem-untuk-hero.webp"],
         unboxingVideoUrl: unboxingVideoUrl.trim(),
         unboxingVideoType: unboxingMethod,
         requestedSolution,
@@ -370,63 +370,109 @@ export default function OrderReturnPage() {
     }
   };
 
-  const getStatusBadge = (status: ReturnData["status"]) => {
+  const [isConfirmingDelivery, setIsConfirmingDelivery] = useState(false);
+  const handleConfirmReplacementDelivery = async () => {
+    const targetOrderId = order?.id || returnReq?.orderId;
+    if (!targetOrderId) return;
+    setIsConfirmingDelivery(true);
+    setErrorMessage("");
+    try {
+      const res = await fetch(`/api/orders/${targetOrderId}/accept`, {
+        method: "POST",
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Gagal konfirmasi penerimaan unit pengganti.");
+      }
+      setSuccessMessage("Unit pengganti berhasil dikonfirmasi diterima! Transaksi tuntas.");
+      if (returnReq) {
+        setReturnReq({ ...returnReq, status: "COMPLETED" as any });
+      }
+      triggerAppNotification({
+        type: "order",
+        title: "Tukar Unit Selesai",
+        message: `Penerimaan unit pengganti pesanan #${targetOrderId} telah dikonfirmasi. Pesanan tuntas.`,
+        actionLink: `/orders?tab=COMPLETED`,
+      });
+      loadData();
+    } catch (err: any) {
+      setErrorMessage(err.message || "Gagal konfirmasi penerimaan.");
+    } finally {
+      setIsConfirmingDelivery(false);
+    }
+  };
+
+  const getStatusBadge = (status: ReturnData["status"] | "COMPLETED") => {
     switch (status) {
       case "REQUESTED":
         return {
           label: "Menunggu Persetujuan Penjual",
-          bg: "bg-[#2A2410]",
-          text: "text-[#E6B800]",
+          bg: "bg-[#181818]",
+          text: "text-white",
           icon: <Clock className="w-3.5 h-3.5" />,
         };
       case "APPROVED_WAITING_SHIPMENT":
         return {
           label: "Retur Disetujui • Mohon Kirimkan Barang",
-          bg: "bg-[#1E291C]",
-          text: "text-[#BFDD25]",
+          bg: "bg-[#181818]",
+          text: "text-white",
           icon: <Truck className="w-3.5 h-3.5" />,
         };
       case "IN_TRANSIT_TO_SELLER":
         return {
           label: "Dalam Pengiriman ke Toko",
-          bg: "bg-[#14232E]",
-          text: "text-[#38BDF8]",
+          bg: "bg-[#181818]",
+          text: "text-white",
           icon: <Package className="w-3.5 h-3.5" />,
         };
       case "RECEIVED_INSPECTING":
         return {
           label: "Diterima Toko • Pengecekan Akustik & Fisik",
-          bg: "bg-[#251A2E]",
-          text: "text-[#C084FC]",
+          bg: "bg-[#181818]",
+          text: "text-white",
           icon: <ShieldCheck className="w-3.5 h-3.5" />,
         };
       case "REFUNDED":
         return {
           label: "Retur Selesai • Dana Berhasil Dikembalikan",
-          bg: "bg-[#102A18]",
-          text: "text-[#4ADE80]",
+          bg: "bg-[#181818]",
+          text: "text-white",
           icon: <CheckCircle2 className="w-3.5 h-3.5" />,
         };
       case "REPLACED":
         return {
-          label: "Retur Selesai • Unit Pengganti Baru Dikirim",
-          bg: "bg-[#102A18]",
-          text: "text-[#4ADE80]",
+          label: "Unit Pengganti Baru Sedang Dikirim",
+          bg: "bg-[#181818]",
+          text: "text-white",
           icon: <PackageCheck className="w-3.5 h-3.5" />,
+        };
+      case "COMPLETED" as any:
+        return {
+          label: "Tukar Unit Selesai • Pesanan Tuntas",
+          bg: "bg-[#181818]",
+          text: "text-white",
+          icon: <CheckCircle2 className="w-3.5 h-3.5" />,
         };
       case "REJECTED":
         return {
           label: "Pengajuan Retur Ditolak",
-          bg: "bg-[#2A1212]",
-          text: "text-[#F87171]",
+          bg: "bg-[#1C0E0E]",
+          text: "text-red-400",
           icon: <AlertCircle className="w-3.5 h-3.5" />,
+        };
+      default:
+        return {
+          label: "Dalam Proses",
+          bg: "bg-[#181818]",
+          text: "text-white",
+          icon: <Clock className="w-3.5 h-3.5" />,
         };
     }
   };
 
   const currentItem = order?.items?.[0] || {
     productName: returnReq?.productName || "Audiophile In-Ear Monitor",
-    image: returnReq?.productImage || "/hero-blessing-3.jpg",
+    image: returnReq?.productImage || "/model-iem-untuk-hero.webp",
     price: returnReq?.productPrice || returnReq?.refundAmount || 0,
     selectedVariant: returnReq?.selectedVariant || "Default",
     quantity: returnReq?.quantity || 1,
@@ -481,7 +527,7 @@ export default function OrderReturnPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#030303] text-[#FAF9F6] font-sans selection:bg-[#BFDD25] selection:text-[#030303] flex flex-col">
+    <div className="min-h-screen bg-[#030303] text-[#FAF9F6] font-sans selection:bg-white selection:text-black flex flex-col">
       <Navbar />
 
       <main className="flex-grow pt-28 pb-20 max-w-5xl mx-auto px-5 sm:px-8 w-full">
@@ -519,9 +565,9 @@ export default function OrderReturnPage() {
               initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
-              className="mb-6 p-4 rounded-2xl bg-[#132415] text-[#86EFAC] text-xs font-sans flex items-center gap-3"
+              className="mb-6 p-4 rounded-2xl bg-[#181818] text-[#D4D4D8] text-xs font-sans flex items-center gap-3"
             >
-              <CheckCircle2 className="w-4 h-4 shrink-0 text-[#4ADE80]" />
+              <CheckCircle2 className="w-4 h-4 shrink-0 text-white" />
               <span>{successMessage}</span>
             </motion.div>
           )}
@@ -529,7 +575,7 @@ export default function OrderReturnPage() {
 
         {isLoading ? (
           <div className="py-24 flex flex-col items-center justify-center space-y-4">
-            <div className="w-10 h-10 border-2 border-[#333333] border-t-[#BFDD25] rounded-full animate-spin" />
+            <div className="w-10 h-10 border-2 border-[#333333] border-t-white rounded-full animate-spin" />
             <p className="text-xs font-mono text-[#71717A] tracking-wider uppercase">
               Memuat Data Retur & Escrow...
             </p>
@@ -543,7 +589,7 @@ export default function OrderReturnPage() {
             </p>
             <Link
               href="/orders"
-              className="px-6 py-2.5 rounded-full bg-[#BFDD25] text-black text-xs font-bold uppercase tracking-wider inline-block hover:bg-white transition-all"
+              className="px-6 py-2.5 rounded-full bg-white text-black text-xs font-bold uppercase tracking-wider inline-block hover:bg-[#E4E4E7] transition-all"
             >
               Lihat Semua Pesanan
             </Link>
@@ -558,9 +604,8 @@ export default function OrderReturnPage() {
                     <span className="text-[10px] font-mono uppercase tracking-widest text-[#71717A]">
                       Pusat Resolusi Retur & Pengembalian Dana
                     </span>
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#BFDD25]" />
-                    <span className="text-[10px] font-mono text-[#BFDD25] uppercase tracking-wider">
-                      Garansi 100% Escrow
+                    <span className="text-[10px] font-mono text-[#A1A1AA] uppercase tracking-wider">
+                      • Garansi 100% Escrow
                     </span>
                   </div>
                   <h1 className="text-2xl sm:text-3xl font-bold uppercase tracking-tight text-white font-heading">
@@ -597,7 +642,7 @@ export default function OrderReturnPage() {
               <div className="flex items-center gap-4 min-w-0">
                 <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-[#141414] overflow-hidden shrink-0">
                   <Image
-                    src={currentItem.image || "/hero-blessing-3.jpg"}
+                    src={currentItem.image || "/model-iem-untuk-hero.webp"}
                     alt={currentItem.productName}
                     fill
                     className="object-cover"
@@ -663,7 +708,7 @@ export default function OrderReturnPage() {
                                 isRejected && idx === 0
                                   ? "bg-red-500 text-white"
                                   : isCurrent
-                                  ? "bg-[#BFDD25] text-black shadow-lg shadow-[#BFDD25]/20"
+                                  ? "bg-white text-black shadow-md"
                                   : isPast
                                   ? "bg-white text-black"
                                   : "bg-[#181818] text-[#71717A]"
@@ -698,7 +743,7 @@ export default function OrderReturnPage() {
                             <div
                               className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-mono font-bold shrink-0 ${
                                 isCurrent
-                                  ? "bg-[#BFDD25] text-black"
+                                  ? "bg-white text-black shadow-sm"
                                   : isPast
                                   ? "bg-white text-black"
                                   : "bg-[#1A1A1A] text-[#71717A]"
@@ -812,8 +857,8 @@ export default function OrderReturnPage() {
                             >
                               {copiedResi ? (
                                 <>
-                                  <Check className="w-3.5 h-3.5 text-[#BFDD25]" />
-                                  <span className="text-[#BFDD25]">Tersalin</span>
+                                  <Check className="w-3.5 h-3.5 text-white" />
+                                  <span className="text-white">Tersalin</span>
                                 </>
                               ) : (
                                 <>
@@ -901,7 +946,7 @@ export default function OrderReturnPage() {
                             </div>
                             <div className="p-3 rounded-xl bg-[#181818]">
                               <span className="text-[#71717A] block font-mono uppercase text-[10px]">Status Resi</span>
-                              <span className="text-[#BFDD25] font-medium">Siap Di-scan</span>
+                              <span className="text-white font-medium">Siap Di-scan</span>
                             </div>
                             <div className="p-3 rounded-xl bg-[#181818]">
                               <span className="text-[#71717A] block font-mono uppercase text-[10px]">Batas Waktu</span>
@@ -913,7 +958,7 @@ export default function OrderReturnPage() {
                         {/* Store Return Address */}
                         <div className="p-4 sm:p-5 rounded-2xl bg-[#141414] space-y-2">
                           <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-[#A1A1AA]">
-                            <MapPin className="w-4 h-4 text-[#BFDD25]" />
+                            <MapPin className="w-4 h-4 text-[#A1A1AA]" />
                             <span>Alamat Tujuan Pengembalian Toko</span>
                           </div>
                           <p className="text-xs text-[#E4E4E7] leading-relaxed font-sans pl-6">
@@ -930,7 +975,7 @@ export default function OrderReturnPage() {
                       <div className="rounded-2xl bg-[#0E0E0E] p-6 sm:p-8 space-y-5">
                         <div className="space-y-1">
                           <div className="flex items-center gap-2 text-white text-xs font-mono uppercase tracking-wider">
-                            <Info className="w-4 h-4 text-[#BFDD25]" />
+                            <Info className="w-4 h-4 text-[#A1A1AA]" />
                             <span>Panduan Cara Pengembalian Unit</span>
                           </div>
                           <h4 className="text-base font-semibold text-white font-heading">
@@ -1009,7 +1054,7 @@ export default function OrderReturnPage() {
                             type="button"
                             onClick={() => handleConfirmDropoff(activeWaybill, activeCourier)}
                             disabled={isSubmittingWaybill}
-                            className="px-8 py-3.5 rounded-full bg-[#BFDD25] hover:bg-white text-black text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md disabled:opacity-40"
+                            className="px-8 py-3.5 rounded-full bg-white hover:bg-[#E4E4E7] text-black text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md disabled:opacity-40"
                           >
                             <CheckCircle2 className="w-4 h-4" />
                             <span>
@@ -1055,7 +1100,7 @@ export default function OrderReturnPage() {
                               <select
                                 value={selectedCourier}
                                 onChange={(e) => setSelectedCourier(e.target.value)}
-                                className="w-full px-4 py-3 rounded-2xl bg-[#181818] text-xs text-white outline-none border-0 focus:ring-1 focus:ring-[#BFDD25] cursor-pointer"
+                                className="w-full px-4 py-3 rounded-2xl bg-[#181818] text-xs text-white outline-none border-0 focus:ring-1 focus:ring-white/20 cursor-pointer"
                               >
                                 {COURIER_OPTIONS.map((c) => (
                                   <option key={c} value={c} className="bg-[#181818] text-white">
@@ -1075,12 +1120,12 @@ export default function OrderReturnPage() {
                                   value={returnWaybillInput}
                                   onChange={(e) => setReturnWaybillInput(e.target.value)}
                                   placeholder="Contoh: SOCAG0192841920"
-                                  className="flex-1 px-4 py-3 rounded-2xl bg-[#181818] text-xs font-mono uppercase text-white placeholder:text-[#52525B] outline-none border-0 focus:ring-1 focus:ring-[#BFDD25]"
+                                  className="flex-1 px-4 py-3 rounded-2xl bg-[#181818] text-xs font-mono uppercase text-white placeholder:text-[#52525B] outline-none border-0 focus:ring-1 focus:ring-white/20"
                                 />
                                 <button
                                   type="submit"
                                   disabled={isSubmittingWaybill || !returnWaybillInput.trim()}
-                                  className="px-6 py-3 rounded-2xl bg-[#BFDD25] hover:bg-white text-black text-xs font-bold uppercase tracking-wider transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shrink-0"
+                                  className="px-6 py-3 rounded-2xl bg-white hover:bg-[#E4E4E7] text-black text-xs font-bold uppercase tracking-wider transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shrink-0"
                                 >
                                   {isSubmittingWaybill ? "Menyimpan..." : "Kirim Resi"}
                                 </button>
@@ -1134,8 +1179,8 @@ export default function OrderReturnPage() {
                 )}
 
                 {returnReq.status === "REFUNDED" && (
-                  <div className="rounded-2xl bg-[#0C1A10] p-6 sm:p-8 text-center space-y-3">
-                    <div className="w-12 h-12 rounded-full bg-[#18331E] text-[#4ADE80] flex items-center justify-center mx-auto">
+                  <div className="rounded-2xl bg-[#0E0E0E] p-6 sm:p-8 text-center space-y-3">
+                    <div className="w-12 h-12 rounded-full bg-[#181818] text-white flex items-center justify-center mx-auto">
                       <CheckCircle2 className="w-6 h-6" />
                     </div>
                     <h4 className="text-lg font-bold text-white uppercase tracking-tight font-heading">
@@ -1150,8 +1195,8 @@ export default function OrderReturnPage() {
                     </p>
                     <div className="pt-3">
                       <Link
-                        href="/orders"
-                        className="px-6 py-2.5 rounded-full bg-white hover:bg-[#BFDD25] text-black text-xs font-bold uppercase tracking-wider transition-all inline-block"
+                        href="/orders?tab=CANCELLED"
+                        className="px-6 py-2.5 rounded-full bg-white hover:bg-[#E4E4E7] text-black text-xs font-bold uppercase tracking-wider transition-all inline-block shadow-md"
                       >
                         Kembali ke Halaman Pesanan
                       </Link>
@@ -1159,28 +1204,60 @@ export default function OrderReturnPage() {
                   </div>
                 )}
 
-                {returnReq.status === "REPLACED" && (
-                  <div className="rounded-2xl bg-[#0C1A10] p-6 sm:p-8 text-center space-y-3">
-                    <div className="w-12 h-12 rounded-full bg-[#18331E] text-[#4ADE80] flex items-center justify-center mx-auto">
+                {returnReq.status === "REPLACED" && (returnReq.status as string) !== "COMPLETED" && (
+                  <div className="rounded-2xl bg-[#0E0E0E] p-6 sm:p-8 text-center space-y-4">
+                    <div className="w-12 h-12 rounded-full bg-[#181818] text-white flex items-center justify-center mx-auto">
                       <PackageCheck className="w-6 h-6" />
                     </div>
-                    <h4 className="text-lg font-bold text-white uppercase tracking-tight font-heading">
-                      Unit Baru Pengganti Dikirim
-                    </h4>
-                    <p className="text-xs text-[#A1A1AA] max-w-md mx-auto">
-                      Toko telah menyetujui solusi tukar barang dan mengirimkan 1 unit IEM baru pengganti yang tersegel.
-                    </p>
-                    <div className="inline-flex flex-col sm:flex-row items-center gap-2 p-3 rounded-2xl bg-[#142B1A] text-xs font-mono text-[#4ADE80]">
+                    <div>
+                      <h4 className="text-lg font-bold text-white uppercase tracking-tight font-heading">
+                        Unit Baru Pengganti Dikirim
+                      </h4>
+                      <p className="text-xs text-[#A1A1AA] max-w-md mx-auto mt-1">
+                        Toko telah menyetujui solusi tukar barang dan mengirimkan 1 unit IEM baru pengganti yang tersegel.
+                      </p>
+                    </div>
+                    <div className="inline-flex flex-col sm:flex-row items-center gap-2 p-3 rounded-2xl bg-[#141414] text-xs font-mono text-[#D4D4D8]">
                       <span>Kurir: <strong className="text-white">{returnReq.replacementCourier || "JNE Express"}</strong></span>
                       <span className="hidden sm:inline">•</span>
                       <span>No. Resi Unit Baru: <strong className="text-white">{returnReq.replacementWaybillNumber || "JNE-REP-99281"}</strong></span>
                     </div>
+                    <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
+                      <button
+                        type="button"
+                        onClick={handleConfirmReplacementDelivery}
+                        disabled={isConfirmingDelivery}
+                        className="px-6 py-2.5 rounded-full bg-white hover:bg-[#E4E4E7] text-black text-xs font-bold uppercase tracking-wider transition-all disabled:opacity-50 cursor-pointer shadow-md"
+                      >
+                        {isConfirmingDelivery ? "Memproses..." : "Konfirmasi Terima Unit Pengganti"}
+                      </button>
+                      <Link
+                        href="/orders?tab=IN_TRANSIT"
+                        className="px-6 py-2.5 rounded-full bg-[#181818] hover:bg-[#222222] text-[#D4D4D8] hover:text-white text-xs font-bold uppercase tracking-wider transition-all inline-block"
+                      >
+                        Lacak di Tab Pengiriman
+                      </Link>
+                    </div>
+                  </div>
+                )}
+
+                {(returnReq.status as string) === "COMPLETED" && (
+                  <div className="rounded-2xl bg-[#0E0E0E] p-6 sm:p-8 text-center space-y-3">
+                    <div className="w-12 h-12 rounded-full bg-[#181818] text-white flex items-center justify-center mx-auto">
+                      <CheckCircle2 className="w-6 h-6" />
+                    </div>
+                    <h4 className="text-lg font-bold text-white uppercase tracking-tight font-heading">
+                      Tukar Unit Selesai • Pesanan Tuntas
+                    </h4>
+                    <p className="text-xs text-[#A1A1AA] max-w-md mx-auto">
+                      Unit pengganti baru telah Anda terima dan transaksi telah tuntas. Dana escrow diteruskan ke toko penjual.
+                    </p>
                     <div className="pt-3">
                       <Link
-                        href="/orders"
-                        className="px-6 py-2.5 rounded-full bg-white hover:bg-[#BFDD25] text-black text-xs font-bold uppercase tracking-wider transition-all inline-block"
+                        href="/orders?tab=COMPLETED"
+                        className="px-6 py-2.5 rounded-full bg-white hover:bg-[#E4E4E7] text-black text-xs font-bold uppercase tracking-wider transition-all inline-block shadow-md"
                       >
-                        Kembali ke Halaman Pesanan
+                        Lihat di Tab Selesai
                       </Link>
                     </div>
                   </div>
@@ -1216,7 +1293,7 @@ export default function OrderReturnPage() {
                         Dua Tahap Persetujuan Retur (Two-Step Inspection)
                       </h4>
                     </div>
-                    <span className="text-[11px] font-mono px-3 py-1 rounded-full bg-[#181818] text-[#BFDD25] font-semibold">
+                    <span className="text-[11px] font-mono px-3 py-1 rounded-full bg-[#181818] border border-white/20 text-white font-semibold">
                       {returnReq.status === "REQUESTED"
                         ? "Tahap 1: Verifikasi Awal"
                         : returnReq.status === "APPROVED_WAITING_SHIPMENT" ||
@@ -1238,11 +1315,11 @@ export default function OrderReturnPage() {
                           Tahap 1: Verifikasi Dokumen & Bukti
                         </span>
                         {returnReq.status !== "REQUESTED" ? (
-                          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#112415] text-[#4ADE80] font-bold flex items-center gap-1">
+                          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#181818] text-white font-bold flex items-center gap-1">
                             <CheckCircle2 className="w-3 h-3" /> Lolos Validasi
                           </span>
                         ) : (
-                          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#241E10] text-[#EAB308] font-bold">
+                          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#181818] text-[#A1A1AA] font-bold">
                             Dalam Review Toko
                           </span>
                         )}
@@ -1270,7 +1347,7 @@ export default function OrderReturnPage() {
                           Tahap 2: Pengujian Akustik & QC Lab
                         </span>
                         {returnReq.qcStatus === "PASSED" ? (
-                          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#112415] text-[#4ADE80] font-bold flex items-center gap-1">
+                          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#181818] text-white font-bold flex items-center gap-1">
                             <CheckCircle2 className="w-3 h-3" /> Lolos Uji Lab
                           </span>
                         ) : returnReq.qcStatus === "FAILED" ? (
@@ -1278,7 +1355,7 @@ export default function OrderReturnPage() {
                             <AlertCircle className="w-3 h-3" /> Gagal QC
                           </span>
                         ) : returnReq.status === "RECEIVED_INSPECTING" ? (
-                          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#22152E] text-[#C084FC] font-bold">
+                          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#181818] text-[#A1A1AA] font-bold">
                             Sedang Diuji Lab
                           </span>
                         ) : (
@@ -1298,7 +1375,7 @@ export default function OrderReturnPage() {
                             <div
                               className={`p-1.5 rounded-lg ${
                                 returnReq.qcAcousticReport.channelBalancePassed
-                                  ? "bg-[#112415] text-[#4ADE80]"
+                                  ? "bg-[#181818] text-white"
                                   : "bg-[#261212] text-red-400"
                               } text-center`}
                             >
@@ -1307,7 +1384,7 @@ export default function OrderReturnPage() {
                             <div
                               className={`p-1.5 rounded-lg ${
                                 returnReq.qcAcousticReport.frequencyResponsePassed
-                                  ? "bg-[#112415] text-[#4ADE80]"
+                                  ? "bg-[#181818] text-white"
                                   : "bg-[#261212] text-red-400"
                               } text-center`}
                             >
@@ -1316,7 +1393,7 @@ export default function OrderReturnPage() {
                             <div
                               className={`p-1.5 rounded-lg ${
                                 returnReq.qcAcousticReport.shellIntegrityPassed
-                                  ? "bg-[#112415] text-[#4ADE80]"
+                                  ? "bg-[#181818] text-white"
                                   : "bg-[#261212] text-red-400"
                               } text-center`}
                             >
@@ -1354,7 +1431,7 @@ export default function OrderReturnPage() {
                       <span className="text-[10px] font-mono uppercase tracking-wider text-[#71717A] block mb-1">
                         Solusi yang Diminta
                       </span>
-                      <span className="text-xs font-medium text-[#BFDD25] block">
+                      <span className="text-xs font-medium text-white block">
                         {returnReq.requestedSolution === "REPLACEMENT" ? "Tukar Unit Baru (Replacement)" : "Pengembalian Dana (Refund)"}
                       </span>
                     </div>
@@ -1386,7 +1463,7 @@ export default function OrderReturnPage() {
                   {returnReq.unboxingVideoUrl && (
                     <div className="p-5 rounded-2xl bg-[#121212] space-y-3">
                       <div className="flex items-center gap-2">
-                        <Video className="w-4 h-4 text-[#BFDD25]" />
+                        <Video className="w-4 h-4 text-[#A1A1AA]" />
                         <span className="text-[10px] font-mono uppercase tracking-wider text-white font-bold">
                           Video Bukti Unboxing (SOP Audio Protection)
                         </span>
@@ -1407,7 +1484,7 @@ export default function OrderReturnPage() {
                             href={returnReq.unboxingVideoUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="px-4 py-2 rounded-full bg-[#BFDD25] hover:bg-white text-black text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 shrink-0"
+                            className="px-4 py-2 rounded-full bg-white hover:bg-[#E4E4E7] text-black text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 shrink-0"
                           >
                             <ExternalLink className="w-3.5 h-3.5" />
                             <span>Buka Video</span>
@@ -1550,11 +1627,11 @@ export default function OrderReturnPage() {
                         <div
                           className={`w-4 h-4 rounded-full flex items-center justify-center ${
                             requestedSolution === "REFUND"
-                              ? "bg-[#4ADE80] text-black"
+                              ? "bg-white text-black"
                               : "bg-[#222222]"
                           }`}
                         >
-                          {requestedSolution === "REFUND" && <Check className="w-2.5 h-2.5" />}
+                          {requestedSolution === "REFUND" && <Check className="w-2.5 h-2.5 stroke-[3]" />}
                         </div>
                       </div>
                       <p className="text-[11px] text-[#A1A1AA] leading-relaxed">
@@ -1566,7 +1643,7 @@ export default function OrderReturnPage() {
                       onClick={() => setRequestedSolution("REPLACEMENT")}
                       className={`p-4 rounded-2xl cursor-pointer transition-all ${
                         requestedSolution === "REPLACEMENT"
-                          ? "bg-[#1E291C] ring-1 ring-[#BFDD25]"
+                          ? "bg-[#181818] ring-1 ring-white/30"
                           : "bg-[#121212] hover:bg-[#171717]"
                       }`}
                     >
@@ -1577,11 +1654,11 @@ export default function OrderReturnPage() {
                         <div
                           className={`w-4 h-4 rounded-full flex items-center justify-center ${
                             requestedSolution === "REPLACEMENT"
-                              ? "bg-[#BFDD25] text-black"
+                              ? "bg-white text-black"
                               : "bg-[#222222]"
                           }`}
                         >
-                          {requestedSolution === "REPLACEMENT" && <Check className="w-2.5 h-2.5" />}
+                          {requestedSolution === "REPLACEMENT" && <Check className="w-2.5 h-2.5 stroke-[3]" />}
                         </div>
                       </div>
                       <p className="text-[11px] text-[#A1A1AA] leading-relaxed">
@@ -1601,7 +1678,7 @@ export default function OrderReturnPage() {
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="Contoh: Unit sisi kiri tidak mengeluarkan bass / volume lebih kecil. Sudah dicoba dengan kabel lain dan DAC berbeda tetap mengalami channel imbalance."
-                    className="w-full p-4 rounded-2xl bg-[#141414] text-xs text-white placeholder:text-[#52525B] leading-relaxed outline-none border-0 focus:ring-1 focus:ring-[#BFDD25]"
+                    className="w-full p-4 rounded-2xl bg-[#141414] text-xs text-white placeholder:text-[#52525B] leading-relaxed outline-none border-0 focus:ring-1 focus:ring-white/30"
                     required
                   />
                   <span className="text-[10px] text-[#71717A] mt-1 block">
@@ -1613,12 +1690,12 @@ export default function OrderReturnPage() {
                 <div className="space-y-3 p-5 rounded-2xl bg-[#0E0E0E]">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
-                      <Video className="w-4 h-4 text-[#BFDD25]" />
+                      <Video className="w-4 h-4 text-white" />
                       <label className="text-[11px] font-mono uppercase tracking-wider text-white font-bold">
                         Video Unboxing (Wajib untuk Komplain IEM) *
                       </label>
                     </div>
-                    <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-[#BFDD25]/10 text-[#BFDD25] font-mono font-semibold">
+                    <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-white/10 text-[#D4D4D8] font-mono font-medium">
                       SOP Audio Protection
                     </span>
                   </div>
@@ -1658,14 +1735,14 @@ export default function OrderReturnPage() {
                       {unboxingVideoUrl ? (
                         <div className="rounded-2xl bg-black p-3 flex flex-col sm:flex-row items-center justify-between gap-3">
                           <div className="flex items-center gap-3 min-w-0">
-                            <div className="w-9 h-9 rounded-xl bg-[#1C1C1C] flex items-center justify-center text-[#BFDD25] shrink-0">
+                            <div className="w-9 h-9 rounded-xl bg-[#1C1C1C] flex items-center justify-center text-white shrink-0">
                               <Video className="w-4 h-4" />
                             </div>
                             <div className="min-w-0">
                               <p className="text-xs text-white font-medium truncate max-w-xs">
                                 {unboxingVideoFileName || "video_unboxing.mp4"}
                               </p>
-                              <span className="text-[10px] text-[#4ADE80] font-mono block">
+                              <span className="text-[10px] text-[#A1A1AA] font-mono block">
                                 ✓ Video unboxing terlampir
                               </span>
                             </div>
@@ -1710,7 +1787,7 @@ export default function OrderReturnPage() {
                         value={unboxingVideoUrl}
                         onChange={(e) => setUnboxingVideoUrl(e.target.value)}
                         placeholder="Contoh: https://drive.google.com/file/d/... atau https://youtu.be/..."
-                        className="w-full px-4 py-3 rounded-2xl bg-[#141414] text-xs text-white placeholder:text-[#52525B] outline-none border-0 focus:ring-1 focus:ring-[#BFDD25]"
+                        className="w-full px-4 py-3 rounded-2xl bg-[#141414] text-xs text-white placeholder:text-[#52525B] outline-none border-0 focus:ring-1 focus:ring-white/30"
                       />
                       <span className="text-[10px] text-[#71717A] mt-1 block">
                         Pastikan izin share Google Drive diset &quot;Anyone with the link can view&quot;.
@@ -1724,7 +1801,7 @@ export default function OrderReturnPage() {
                       type="checkbox"
                       checked={unboxingConfirmed}
                       onChange={(e) => setUnboxingConfirmed(e.target.checked)}
-                      className="mt-0.5 rounded text-[#BFDD25] focus:ring-[#BFDD25] bg-[#1A1A1A] border-0 cursor-pointer"
+                      className="mt-0.5 rounded accent-white text-white focus:ring-white/30 bg-[#1A1A1A] border-0 cursor-pointer"
                     />
                     <span className="text-xs text-[#A1A1AA] leading-relaxed">
                       Saya menyatakan video unboxing direkam secara utuh tanpa jeda (cut/edit), memperlihatkan resi ekspedisi dan kondisi fisik IEM saat pertama dibuka.
@@ -1804,7 +1881,7 @@ export default function OrderReturnPage() {
 
                 {/* Escrow Terms Notification (Rounded-2xl, Zero border) */}
                 <div className="rounded-2xl bg-[#121212] p-4 flex items-start gap-3 text-xs text-[#A1A1AA]">
-                  <ShieldCheck className="w-5 h-5 text-[#BFDD25] shrink-0 mt-0.5" />
+                  <ShieldCheck className="w-5 h-5 text-white shrink-0 mt-0.5" />
                   <div className="space-y-1">
                     <p className="text-white font-medium">Perlindungan Rekening Bersama Escrow TonalZone</p>
                     <p className="leading-relaxed text-[#8E8E93]">
@@ -1829,7 +1906,7 @@ export default function OrderReturnPage() {
                   <button
                     type="submit"
                     disabled={isSubmitting || !description.trim()}
-                    className="w-full sm:w-auto px-8 py-3 rounded-full bg-[#BFDD25] hover:bg-white text-black text-xs font-bold uppercase tracking-wider transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                    className="w-full sm:w-auto px-8 py-3 rounded-full bg-white hover:bg-[#E4E4E7] text-black text-xs font-bold uppercase tracking-wider transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
                   >
                     {isSubmitting ? "Mengirim Pengajuan..." : "Kirim Pengajuan Retur"}
                   </button>

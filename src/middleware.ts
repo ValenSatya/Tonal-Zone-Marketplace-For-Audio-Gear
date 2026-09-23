@@ -20,21 +20,37 @@ export async function middleware(request: NextRequest) {
   let needsCookieHeal = false;
   let healedCookieValue = "";
 
-  // Method A: Check custom JSON session cookie
+  // Method A: Check custom signed session cookie or legacy JSON cookie
   const sessionCookie = request.cookies.get("tonalzone_session")?.value;
   if (sessionCookie) {
     try {
       const decoded = decodeURIComponent(sessionCookie);
-      const isOversized = sessionCookie.length > 1500 || decoded.includes("data:image");
-      
-      const parsed = JSON.parse(decoded);
-      if (isOversized) {
-        // Strip out any bloated fields (like base64 avatars) immediately
-        parsed.avatar = sanitizeAvatarForCookie(parsed.avatar);
-        healedCookieValue = encodeURIComponent(JSON.stringify(parsed));
-        needsCookieHeal = true;
+      let parsed: UserSessionPayload | null = null;
+
+      const trimmed = decoded.trim();
+      if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+        parsed = JSON.parse(trimmed);
+      } else {
+        const lastDot = trimmed.lastIndexOf(".");
+        if (lastDot > 0) {
+          const base64Data = trimmed.slice(0, lastDot);
+          const signature = trimmed.slice(lastDot + 1);
+          if (signature.length === 64) {
+            const jsonStr = Buffer.from(base64Data, "base64url").toString("utf-8");
+            parsed = JSON.parse(jsonStr);
+          }
+        }
       }
-      user = parsed;
+
+      if (parsed) {
+        const isOversized = sessionCookie.length > 1500 || (parsed.avatar && parsed.avatar.startsWith("data:"));
+        if (isOversized) {
+          parsed.avatar = sanitizeAvatarForCookie(parsed.avatar);
+          healedCookieValue = encodeURIComponent(JSON.stringify(parsed));
+          needsCookieHeal = true;
+        }
+        user = parsed;
+      }
     } catch {
       user = null;
       needsCookieHeal = true;
@@ -97,6 +113,17 @@ export async function middleware(request: NextRequest) {
     return redirectResponse;
   }
 
+  // Purge any cookie that contains raw base64 image data or if tonalzone_session is corrupted/oversized
+  const allCookies = request.cookies.getAll();
+  const oversizedCookieNames: string[] = [];
+  for (const c of allCookies) {
+    const hasBase64 = c.value.includes("data%3Aimage") || c.value.includes("data:image");
+    const isCorruptedSession = c.name === "tonalzone_session" && c.value.length > 2048;
+    if (hasBase64 || isCorruptedSession) {
+      oversizedCookieNames.push(c.name);
+    }
+  }
+
   // 4. Inject High-Standard Security Headers
   const response = NextResponse.next();
   if (needsCookieHeal) {
@@ -109,6 +136,9 @@ export async function middleware(request: NextRequest) {
     } else {
       response.cookies.delete("tonalzone_session");
     }
+  }
+  for (const name of oversizedCookieNames) {
+    response.cookies.delete(name);
   }
   response.headers.set("X-Frame-Options", "SAMEORIGIN");
   response.headers.set("X-Content-Type-Options", "nosniff");

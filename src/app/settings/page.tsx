@@ -8,6 +8,7 @@ import Footer from "@/components/Footer";
 import { useLanguage } from "@/context/LanguageContext";
 import { updateUserProfile } from "@/app/actions/profile";
 import { getAuthSession } from "@/app/actions/auth";
+import { uploadMedia } from "@/lib/upload";
 
 // Types for Addresses
 interface AddressItem {
@@ -182,8 +183,13 @@ export default function SettingsPage() {
       return;
     }
     try {
-      const compressed = await compressImage(file, 400, 400, 0.85);
-      setAvatar(compressed);
+      const uploadRes = await uploadMedia(file, "avatars");
+      if (uploadRes.success && uploadRes.url) {
+        setAvatar(uploadRes.url);
+      } else {
+        const compressed = await compressImage(file, 400, 400, 0.85);
+        setAvatar(compressed);
+      }
       triggerSaveNotification("Foto profil dipilih. Klik Simpan Perubahan.");
     } catch {
       alert("Gagal memproses gambar foto profil.");

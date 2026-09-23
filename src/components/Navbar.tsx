@@ -918,7 +918,7 @@ export default function Navbar() {
                       )}
 
                       {/* SELLER STATE MENU ITEM */}
-                      {userSession.isSeller || userSession.sellerStatus === "APPROVED" ? (
+                      {userSession.isSeller || userSession.sellerStatus === "APPROVED" || userSession.role === "SELLER" || (userSession as any).role === "seller" ? (
                         <Link
                           href="/seller"
                           className="flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-emerald-400 hover:bg-[#1f1f1f] transition-all duration-150 group/item"
@@ -1184,7 +1184,7 @@ export default function Navbar() {
                         </Link>
                       )}
 
-                      {(userSession.isSeller || userSession.sellerStatus === "APPROVED") ? (
+                      {(userSession.isSeller || userSession.sellerStatus === "APPROVED" || userSession.role === "SELLER" || (userSession as any).role === "seller") ? (
                         <Link
                           href="/seller"
                           onClick={() => setIsMobileMenuOpen(false)}

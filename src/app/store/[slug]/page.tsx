@@ -90,7 +90,19 @@ export default function StoreProfilePage() {
           decodedSlug.includes(pSlug);
         if (directMatch || nameMatch) return true;
 
-        // 2. Retail multi-seller offer match
+        // 2. Real database multi-seller offer match
+        const hasDbOffer = p.sellerOffers?.some((so) => {
+          const soSlug = getStoreSlug(so.storeName);
+          return (
+            soSlug === decodedSlug ||
+            (so.storeId && so.storeId.toLowerCase() === decodedSlug) ||
+            so.storeName.toLowerCase().replace(/[^a-z0-9]/g, "-").includes(decodedSlug) ||
+            decodedSlug.includes(soSlug)
+          );
+        });
+        if (hasDbOffer) return true;
+
+        // 3. Retail multi-seller offer match
         const offers = getProductRetailOffers(p);
         const hasOffer = offers.some((offer) => {
           const offerSlug = getStoreSlug(offer.sellerName);
@@ -103,6 +115,28 @@ export default function StoreProfilePage() {
         return hasOffer;
       })
       .map((p) => {
+        // If this store sells via a database sellerOffer, display that seller's price and stock!
+        const matchingDbOffer = p.sellerOffers?.find((so) => {
+          const soSlug = getStoreSlug(so.storeName);
+          return (
+            soSlug === decodedSlug ||
+            (so.storeId && so.storeId.toLowerCase() === decodedSlug) ||
+            so.storeName.toLowerCase().replace(/[^a-z0-9]/g, "-").includes(decodedSlug) ||
+            decodedSlug.includes(soSlug)
+          );
+        });
+
+        if (matchingDbOffer) {
+          return {
+            ...p,
+            id: matchingDbOffer.productId || p.id,
+            price: matchingDbOffer.price,
+            stock: matchingDbOffer.stock,
+            storeName: matchingDbOffer.storeName,
+            storeId: matchingDbOffer.storeId,
+          };
+        }
+
         // If this store sells via an extra retail offer, display that offer's price!
         const offers = getProductRetailOffers(p);
         const matchingOffer = offers.find((o) => {
@@ -153,29 +187,42 @@ export default function StoreProfilePage() {
     return getStoreMetadata(resolvedStoreName, storeCity);
   }, [resolvedStoreName, storeCity]);
 
-  // Fetch verified store profile (avatar & banner) from Supabase and localStorage
+  // Fetch verified store profile (avatar & banner) from Supabase and localStorage with strict store isolation
   useEffect(() => {
     let isMounted = true;
 
-    // 1. Check local storage if current logged-in seller is the store owner
+    const isMoondropStore = decodedSlug.includes("moondrop");
+    const isBassAudioStore = decodedSlug.includes("bass");
+    const isCsiZoneStore = decodedSlug.includes("csi");
+
+    // 1. Check local storage if current logged-in seller is strictly the store owner
     try {
       const stored = localStorage.getItem("tonalzone_user");
       if (stored) {
         const u = JSON.parse(stored);
+        const uStoreName = (u.storeName || "").toLowerCase();
         const uSlug = getStoreSlug(u.storeName || "");
-        if (
-          uSlug === decodedSlug ||
-          decodedSlug.includes(uSlug) ||
-          uSlug.includes(decodedSlug) ||
-          u.storeId === decodedSlug
-        ) {
-          if (u.storeAvatar) setStoreAvatar(u.storeAvatar);
+        const uStoreId = (u.storeId || "").toLowerCase();
+
+        let isOwner = false;
+        if (isMoondropStore && (uSlug.includes("moondrop") || uStoreName.includes("moondrop") || uStoreId.includes("moondrop"))) {
+          isOwner = true;
+        } else if (isBassAudioStore && (uSlug.includes("bass") || uStoreName.includes("bass") || uStoreId.includes("bass"))) {
+          isOwner = true;
+        } else if (isCsiZoneStore && (uSlug.includes("csi") || uStoreName.includes("csi") || uStoreId.includes("csi"))) {
+          isOwner = true;
+        } else if (uSlug === decodedSlug || uStoreId === decodedSlug) {
+          isOwner = true;
+        }
+
+        if (isOwner) {
+          if (u.storeAvatar && !u.storeAvatar.endsWith(".svg")) setStoreAvatar(u.storeAvatar);
           if (u.storeBanner) setStoreBanner(u.storeBanner);
         }
       }
     } catch (e) {}
 
-    // 2. Fetch from Supabase Store table
+    // 2. Fetch from Supabase Store table with strict store isolation
     const fetchStoreProfile = async () => {
       try {
         const { data } = await supabase
@@ -185,17 +232,29 @@ export default function StoreProfilePage() {
         if (data && isMounted) {
           const found = data.find((s: any) => {
             const sSlug = getStoreSlug(s.storeName || "");
+            const sNameLower = (s.storeName || "").toLowerCase();
+            const sIdLower = (s.id || "").toLowerCase();
+
+            if (isMoondropStore) {
+              return sSlug.includes("moondrop") || sNameLower.includes("moondrop") || sIdLower.includes("moondrop");
+            }
+            if (isBassAudioStore) {
+              return sSlug.includes("bass") || sNameLower.includes("bass") || sIdLower.includes("bass");
+            }
+            if (isCsiZoneStore) {
+              return sSlug.includes("csi") || sNameLower.includes("csi") || sIdLower.includes("csi");
+            }
+
             return (
               s.id === decodedSlug ||
               sSlug === decodedSlug ||
-              sSlug.includes(decodedSlug) ||
-              decodedSlug.includes(sSlug) ||
-              (s.storeName && s.storeName.toLowerCase() === resolvedStoreName.toLowerCase())
+              sNameLower === resolvedStoreName.toLowerCase()
             );
           });
 
           if (found) {
-            const logo = found.logo || found.avatarUrl;
+            const rawLogo = found.logo || found.avatarUrl;
+            const logo = rawLogo && !rawLogo.endsWith(".svg") ? rawLogo : null;
             const banner = found.banner || found.bannerUrl;
             if (logo) setStoreAvatar(logo);
             if (banner) setStoreBanner(banner);
@@ -213,19 +272,31 @@ export default function StoreProfilePage() {
     };
   }, [decodedSlug, resolvedStoreName]);
 
-  // Also sync from products if products loaded with storeLogo/storeBanner
+  // Sync from products ONLY if the product is directly owned by THIS store
   useEffect(() => {
     if (storeProducts.length > 0) {
-      const prodWithLogo = storeProducts.find((p) => p.storeLogo || p.storeAvatar);
+      const prodWithLogo = storeProducts.find((p) => {
+        const pSlug = getStoreSlug(p.storeName || "");
+        const pStoreId = (p.storeId || "").toLowerCase();
+        const isMatch = pSlug === decodedSlug || pStoreId === decodedSlug;
+        return isMatch && (p.storeLogo || p.storeAvatar);
+      });
       if (prodWithLogo && (prodWithLogo.storeLogo || prodWithLogo.storeAvatar)) {
-        setStoreAvatar((prev) => prev || prodWithLogo.storeLogo || prodWithLogo.storeAvatar || "");
+        const pLogo = prodWithLogo.storeLogo || prodWithLogo.storeAvatar;
+        if (pLogo && !pLogo.endsWith(".svg")) {
+          setStoreAvatar((prev) => prev || pLogo || "");
+        }
       }
-      const prodWithBanner = storeProducts.find((p) => p.storeBanner);
+      const prodWithBanner = storeProducts.find((p) => {
+        const pSlug = getStoreSlug(p.storeName || "");
+        const pStoreId = (p.storeId || "").toLowerCase();
+        return (pSlug === decodedSlug || pStoreId === decodedSlug) && p.storeBanner;
+      });
       if (prodWithBanner && prodWithBanner.storeBanner) {
         setStoreBanner((prev) => prev || prodWithBanner.storeBanner || "");
       }
     }
-  }, [storeProducts]);
+  }, [storeProducts, decodedSlug]);
 
   const resolvedBanner = storeBanner || metadata.bannerUrl;
   const resolvedAvatar = storeAvatar || metadata.avatarUrl;
@@ -284,6 +355,10 @@ export default function StoreProfilePage() {
         return true;
       })
       .sort((a, b) => {
+        const aOut = Number(a.stock) <= 0 || a.inStock === false || (a as any).status === "OUT_OF_STOCK";
+        const bOut = Number(b.stock) <= 0 || b.inStock === false || (b as any).status === "OUT_OF_STOCK";
+        if (aOut !== bOut) return aOut ? 1 : -1;
+
         if (sortBy === "price_asc") return a.price - b.price;
         if (sortBy === "price_desc") return b.price - a.price;
         if (sortBy === "rating") return (b.rating || 0) - (a.rating || 0);

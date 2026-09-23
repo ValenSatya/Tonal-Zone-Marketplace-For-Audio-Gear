@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { userRepo } from "@/lib/supabase-db";
 import { cookies } from "next/headers";
+import { verifySession } from "@/lib/auth/security";
 
 async function resolveUserEmail(req: NextRequest, bodyEmail?: string): Promise<string | null> {
   if (bodyEmail && bodyEmail.trim()) {
@@ -17,7 +18,7 @@ async function resolveUserEmail(req: NextRequest, bodyEmail?: string): Promise<s
     const cookieStore = await cookies();
     const rawSession = cookieStore.get("tonalzone_session")?.value;
     if (rawSession) {
-      const session = JSON.parse(decodeURIComponent(rawSession));
+      const session = verifySession<{ email?: string }>(rawSession);
       if (session?.email) {
         return session.email.trim().toLowerCase();
       }

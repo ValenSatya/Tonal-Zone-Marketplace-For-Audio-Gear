@@ -221,11 +221,11 @@ export default function OrderReviewPage() {
     setErrorMessage("");
 
     try {
-      const productId = selectedProduct?.productId || "prod-blessing3";
-      const productName = selectedProduct?.productName || "MOONDROP BLESSING 3 Hybrid";
+      const productId = selectedProduct?.productId || "prod-default";
+      const productName = selectedProduct?.productName || "Audiophile In-Ear Monitor";
       const productImage =
         selectedProduct?.image ||
-        "https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=800";
+        "/model-iem-untuk-hero.webp";
       const variant = selectedProduct?.selectedVariant || "3.5mm Single-Ended";
 
       const res = await fetch("/api/reviews", {

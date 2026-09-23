@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from "react";
 
 export interface CartItem {
   id: string; // unique identifier (e.g. `${productId}-${offerId}-${variant}`)
@@ -39,58 +39,168 @@ interface CartContextType {
   setIsCartOpen: (open: boolean) => void;
   openCart: () => void;
   closeCart: () => void;
+  isLoaded: boolean;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
-const CART_STORAGE_KEY = "tonalzone_cart";
-const SELECTED_STORAGE_KEY = "tonalzone_cart_selected";
+const LEGACY_CART_KEY = "tonalzone_cart";
+const LEGACY_SELECTED_KEY = "tonalzone_cart_selected";
+
+/**
+ * Returns isolated storage keys per user.
+ * Guests use '_guest', logged in users use their sanitized user ID or email.
+ */
+function getCartStorageKeys(userIdOrEmail?: string | null) {
+  if (!userIdOrEmail) {
+    return {
+      cartKey: "tonalzone_cart_guest",
+      selectedKey: "tonalzone_cart_selected_guest",
+    };
+  }
+  const safeId = userIdOrEmail.replace(/[^a-zA-Z0-9_-]/g, "_").toLowerCase();
+  return {
+    cartKey: `tonalzone_cart_u_${safeId}`,
+    selectedKey: `tonalzone_cart_selected_u_${safeId}`,
+  };
+}
+
+/**
+ * Helper to get current user identifier from localStorage
+ */
+function getCurrentUserIdentifier(): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem("tonalzone_user");
+    if (raw) {
+      const u = JSON.parse(raw);
+      return u.id || u.email || null;
+    }
+  } catch {}
+  return null;
+}
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
+  const currentOwnerRef = useRef<string | null>(null);
 
-  // Load cart and selection from localStorage on mount
-  useEffect(() => {
+  // Load cart for a specific user identifier
+  const loadCartForOwner = useCallback((ownerId: string | null) => {
     try {
-      const stored = localStorage.getItem(CART_STORAGE_KEY);
+      const { cartKey, selectedKey } = getCartStorageKeys(ownerId);
+
+      // One-time migration: check if old un-scoped legacy cart exists
+      const legacyStored = localStorage.getItem(LEGACY_CART_KEY);
+      if (legacyStored && !localStorage.getItem(cartKey)) {
+        try {
+          localStorage.setItem(cartKey, legacyStored);
+          const legacySelected = localStorage.getItem(LEGACY_SELECTED_KEY);
+          if (legacySelected) {
+            localStorage.setItem(selectedKey, legacySelected);
+          }
+          localStorage.removeItem(LEGACY_CART_KEY);
+          localStorage.removeItem(LEGACY_SELECTED_KEY);
+        } catch {}
+      }
+
+      const stored = localStorage.getItem(cartKey);
       const parsedItems: CartItem[] = stored ? JSON.parse(stored) : [];
       setItems(parsedItems);
 
-      const storedSelected = localStorage.getItem(SELECTED_STORAGE_KEY);
+      const storedSelected = localStorage.getItem(selectedKey);
       if (storedSelected) {
         const parsedSelected: string[] = JSON.parse(storedSelected);
-        // Only keep selections that actually exist in items
         const validSelected = parsedSelected.filter((id) => parsedItems.some((i) => i.id === id));
         setSelectedItemIds(validSelected);
       } else {
-        // Default: select all items
         setSelectedItemIds(parsedItems.map((i) => i.id));
       }
+      currentOwnerRef.current = ownerId;
     } catch (e) {
-      console.error("Failed to load cart from storage", e);
-    } finally {
-      setIsLoaded(true);
+      console.error("Failed to load user-isolated cart", e);
     }
   }, []);
 
-  // Save cart to localStorage whenever items change
+  // Initial cart load
+  useEffect(() => {
+    const ownerId = getCurrentUserIdentifier();
+    loadCartForOwner(ownerId);
+    setIsLoaded(true);
+  }, [loadCartForOwner]);
+
+  // Handle User Login/Logout switching (Shopee / Tokopedia style cart isolation)
+  useEffect(() => {
+    const handleUserSwitch = () => {
+      const newOwnerId = getCurrentUserIdentifier();
+      const prevOwnerId = currentOwnerRef.current;
+
+      // If user owner hasn't changed, ignore
+      if (newOwnerId === prevOwnerId) return;
+
+      // Scenario: Guest -> Logged-in User (Merge guest items into user cart)
+      if (!prevOwnerId && newOwnerId) {
+        try {
+          const guestKeys = getCartStorageKeys(null);
+          const guestRaw = localStorage.getItem(guestKeys.cartKey);
+          const guestItems: CartItem[] = guestRaw ? JSON.parse(guestRaw) : [];
+
+          const userKeys = getCartStorageKeys(newOwnerId);
+          const userRaw = localStorage.getItem(userKeys.cartKey);
+          const userItems: CartItem[] = userRaw ? JSON.parse(userRaw) : [];
+
+          // Merge guest items into user items
+          if (guestItems.length > 0) {
+            const merged = [...userItems];
+            for (const gItem of guestItems) {
+              const existingIdx = merged.findIndex((i) => i.id === gItem.id);
+              if (existingIdx > -1) {
+                merged[existingIdx].quantity += gItem.quantity;
+              } else {
+                merged.push(gItem);
+              }
+            }
+            localStorage.setItem(userKeys.cartKey, JSON.stringify(merged));
+            localStorage.removeItem(guestKeys.cartKey);
+            localStorage.removeItem(guestKeys.selectedKey);
+          }
+        } catch (e) {
+          console.error("Failed to merge guest cart into user cart:", e);
+        }
+      }
+
+      // Load new user's isolated cart
+      loadCartForOwner(newOwnerId);
+    };
+
+    window.addEventListener("userLoginChange", handleUserSwitch);
+    window.addEventListener("storage", handleUserSwitch);
+
+    return () => {
+      window.removeEventListener("userLoginChange", handleUserSwitch);
+      window.removeEventListener("storage", handleUserSwitch);
+    };
+  }, [loadCartForOwner]);
+
+  // Save cart to user-isolated localStorage key whenever items change
   useEffect(() => {
     if (!isLoaded) return;
     try {
-      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
+      const { cartKey } = getCartStorageKeys(currentOwnerRef.current);
+      localStorage.setItem(cartKey, JSON.stringify(items));
     } catch (e) {
-      console.error("Failed to save cart to storage", e);
+      console.error("Failed to save user cart to storage", e);
     }
   }, [items, isLoaded]);
 
-  // Save selection to localStorage whenever selectedItemIds change
+  // Save selection to user-isolated localStorage key whenever selectedItemIds change
   useEffect(() => {
     if (!isLoaded) return;
     try {
-      localStorage.setItem(SELECTED_STORAGE_KEY, JSON.stringify(selectedItemIds));
+      const { selectedKey } = getCartStorageKeys(currentOwnerRef.current);
+      localStorage.setItem(selectedKey, JSON.stringify(selectedItemIds));
     } catch (e) {
       console.error("Failed to save selection to storage", e);
     }
@@ -110,7 +220,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         return [...prev, { ...itemData, quantity }];
       }
     });
-    // Auto-select the newly added item
     setSelectedItemIds((prev) => (prev.includes(itemData.id) ? prev : [...prev, itemData.id]));
   }, []);
 
@@ -221,6 +330,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       setIsCartOpen,
       openCart,
       closeCart,
+      isLoaded,
     }),
     [
       items,
@@ -244,6 +354,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       isCartOpen,
       openCart,
       closeCart,
+      isLoaded,
     ]
   );
 

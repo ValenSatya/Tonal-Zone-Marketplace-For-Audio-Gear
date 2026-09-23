@@ -22,6 +22,7 @@ import {
   Play,
 } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
+import { useLocation } from "@/context/LocationContext";
 import { triggerAppNotification } from "@/context/NotificationContext";
 
 export interface SellerReturnItem {
@@ -78,6 +79,7 @@ export interface SellerReturnItem {
 
 export default function SellerReturnsPage() {
   const { language } = useLanguage();
+  const { formatPrice } = useLocation();
   const isEn = language === "English";
 
   const [returns, setReturns] = useState<SellerReturnItem[]>([]);
@@ -121,7 +123,34 @@ export default function SellerReturnsPage() {
   const fetchReturns = async () => {
     setIsLoading(true);
     try {
-      const res = await fetch("/api/seller/returns");
+      let storeIdParam = "";
+      let emailParam = "";
+      if (typeof window !== "undefined") {
+        const savedMode = localStorage.getItem("tonalzone_seller_mode");
+        const stored = localStorage.getItem("tonalzone_user");
+        if (stored) {
+          try {
+            const u = JSON.parse(stored);
+            if (u.storeId) storeIdParam = u.storeId;
+            if (u.email) emailParam = u.email;
+          } catch (e) {}
+        }
+        if (!storeIdParam) {
+          if (emailParam.includes("bass") || (stored && stored.toLowerCase().includes("bass audio"))) {
+            storeIdParam = "04595ba3-8657-4aa6-95da-941f6e1717f8";
+          } else if (emailParam.includes("csi") || (stored && stored.toLowerCase().includes("csi zone"))) {
+            storeIdParam = "store-csi-zone";
+          } else if (savedMode === "OFFICIAL_BRAND" || !stored) {
+            storeIdParam = "store-moondrop-official";
+          }
+        }
+      }
+
+      const query = new URLSearchParams();
+      if (storeIdParam) query.set("storeId", storeIdParam);
+      if (emailParam) query.set("email", emailParam);
+
+      const res = await fetch(`/api/seller/returns${query.toString() ? `?${query.toString()}` : ""}`);
       if (res.ok) {
         const data = await res.json();
         if (data.success && Array.isArray(data.returns)) {
@@ -198,7 +227,84 @@ export default function SellerReturnsPage() {
         actionLink: "/seller/returns",
       });
 
-      // Reload list
+      // Optimistically update returns list and switch to appropriate tab
+      if (action === "APPROVE") {
+        setReturns((prev) =>
+          prev.map((r) =>
+            r.id === returnId
+              ? {
+                  ...r,
+                  status: "APPROVED_WAITING_SHIPMENT",
+                  storeReturnAddress: payload?.storeReturnAddress || r.storeReturnAddress,
+                  qcStage: "STAGE_2_ACOUSTIC_PHYSICAL_QC",
+                  returnWaybillNumber: data.returnRequest?.returnWaybillNumber || r.returnWaybillNumber || "RTN-JNE-Auto",
+                  returnCourier: data.returnRequest?.returnCourier || r.returnCourier || "JNE Express",
+                  updatedAt: new Date().toISOString(),
+                }
+              : r
+          )
+        );
+        setActiveTab("APPROVED_WAITING_SHIPMENT");
+      } else if (action === "REJECT") {
+        setReturns((prev) =>
+          prev.map((r) =>
+            r.id === returnId
+              ? {
+                  ...r,
+                  status: "REJECTED",
+                  sellerRejectReason: payload?.reason || r.sellerRejectReason,
+                  updatedAt: new Date().toISOString(),
+                }
+              : r
+          )
+        );
+        setActiveTab("REJECTED");
+      } else if (action === "CONFIRM_RECEIPT") {
+        setReturns((prev) =>
+          prev.map((r) =>
+            r.id === returnId
+              ? {
+                  ...r,
+                  status: "RECEIVED_INSPECTING",
+                  updatedAt: new Date().toISOString(),
+                }
+              : r
+          )
+        );
+        setActiveTab("RECEIVED_INSPECTING");
+      } else if (action === "ISSUE_REFUND") {
+        setReturns((prev) =>
+          prev.map((r) =>
+            r.id === returnId
+              ? {
+                  ...r,
+                  status: "REFUNDED",
+                  qcStage: "COMPLETED",
+                  updatedAt: new Date().toISOString(),
+                }
+              : r
+          )
+        );
+        setActiveTab("REFUNDED");
+      } else if (action === "ISSUE_REPLACEMENT") {
+        setReturns((prev) =>
+          prev.map((r) =>
+            r.id === returnId
+              ? {
+                  ...r,
+                  status: "REPLACED",
+                  qcStage: "COMPLETED",
+                  replacementWaybillNumber: payload?.replacementWaybillNumber,
+                  replacementCourier: payload?.replacementCourier,
+                  updatedAt: new Date().toISOString(),
+                }
+              : r
+          )
+        );
+        setActiveTab("ALL");
+      }
+
+      // Reload list from server
       fetchReturns();
     } catch (err: any) {
       triggerBanner("error", err.message || "Gagal memproses aksi retur.");
@@ -273,6 +379,10 @@ export default function SellerReturnsPage() {
     () => returns.filter((r) => r.status === "REQUESTED").length,
     [returns]
   );
+  const countWaitingShipment = useMemo(
+    () => returns.filter((r) => r.status === "APPROVED_WAITING_SHIPMENT").length,
+    [returns]
+  );
   const countInTransit = useMemo(
     () => returns.filter((r) => r.status === "IN_TRANSIT_TO_SELLER").length,
     [returns]
@@ -281,56 +391,64 @@ export default function SellerReturnsPage() {
     () => returns.filter((r) => r.status === "RECEIVED_INSPECTING").length,
     [returns]
   );
+  const countRefunded = useMemo(
+    () => returns.filter((r) => r.status === "REFUNDED").length,
+    [returns]
+  );
+  const countRejected = useMemo(
+    () => returns.filter((r) => r.status === "REJECTED").length,
+    [returns]
+  );
 
   const getStatusBadge = (status: SellerReturnItem["status"]) => {
     switch (status) {
       case "REQUESTED":
         return {
           label: "Perlu Tanggapan",
-          bg: "bg-[#28210C]",
-          text: "text-[#E6B800]",
+          bg: "bg-white/10",
+          text: "text-white",
           icon: <Clock className="w-3.5 h-3.5" />,
         };
       case "APPROVED_WAITING_SHIPMENT":
         return {
           label: "Menunggu Pengiriman Pembeli",
-          bg: "bg-[#1B2618]",
-          text: "text-[#BFDD25]",
+          bg: "bg-[#181818]",
+          text: "text-[#D4D4D8]",
           icon: <Package className="w-3.5 h-3.5" />,
         };
       case "IN_TRANSIT_TO_SELLER":
         return {
           label: "Sedang Dikirim Pembeli",
-          bg: "bg-[#13222C]",
-          text: "text-[#38BDF8]",
+          bg: "bg-[#202020]",
+          text: "text-white",
           icon: <Truck className="w-3.5 h-3.5" />,
         };
       case "RECEIVED_INSPECTING":
         return {
           label: "Diterima Toko (Pemeriksaan)",
-          bg: "bg-[#25182D]",
-          text: "text-[#C084FC]",
+          bg: "bg-white/10",
+          text: "text-white",
           icon: <ShieldCheck className="w-3.5 h-3.5" />,
         };
       case "REFUNDED":
         return {
           label: "Refund Selesai",
-          bg: "bg-[#102919]",
-          text: "text-[#4ADE80]",
+          bg: "bg-[#181818]",
+          text: "text-[#A1A1AA]",
           icon: <CheckCircle2 className="w-3.5 h-3.5" />,
         };
       case "REPLACED":
         return {
           label: "Tukar Unit Selesai",
-          bg: "bg-[#102919]",
-          text: "text-[#4ADE80]",
+          bg: "bg-[#181818]",
+          text: "text-[#A1A1AA]",
           icon: <CheckCircle2 className="w-3.5 h-3.5" />,
         };
       case "REJECTED":
         return {
           label: "Retur Ditolak",
-          bg: "bg-[#291313]",
-          text: "text-[#F87171]",
+          bg: "bg-[#181818]",
+          text: "text-[#71717A]",
           icon: <XCircle className="w-3.5 h-3.5" />,
         };
     }
@@ -345,16 +463,12 @@ export default function SellerReturnsPage() {
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
-            className={`p-4 rounded-2xl text-xs font-sans flex items-center gap-3 ${
-              bannerMessage.type === "success"
-                ? "bg-[#132617] text-[#86EFAC]"
-                : "bg-[#281313] text-[#FCA5A5]"
-            }`}
+            className="p-4 rounded-2xl text-xs font-sans flex items-center gap-3 bg-[#181818] text-white"
           >
             {bannerMessage.type === "success" ? (
-              <CheckCircle2 className="w-4 h-4 shrink-0 text-[#4ADE80]" />
+              <CheckCircle2 className="w-4 h-4 shrink-0 text-white" />
             ) : (
-              <AlertCircle className="w-4 h-4 shrink-0 text-[#F87171]" />
+              <AlertCircle className="w-4 h-4 shrink-0 text-[#A1A1AA]" />
             )}
             <span>{bannerMessage.text}</span>
           </motion.div>
@@ -368,8 +482,8 @@ export default function SellerReturnsPage() {
             <span className="text-[10px] font-mono uppercase tracking-widest text-[#71717A]">
               Pusat Manajemen Operasional Toko
             </span>
-            <span className="w-1 h-1 rounded-full bg-[#BFDD25]" />
-            <span className="text-[10px] font-mono text-[#BFDD25] uppercase">
+            <span className="text-[#3F3F46]">/</span>
+            <span className="text-[10px] font-mono text-[#A1A1AA] uppercase tracking-wider">
               Escrow Protection
             </span>
           </div>
@@ -431,11 +545,11 @@ export default function SellerReturnsPage() {
           {[
             { id: "ALL", label: "Semua Retur", count: returns.length },
             { id: "REQUESTED", label: "Perlu Respon", count: countRequested },
-            { id: "APPROVED_WAITING_SHIPMENT", label: "Menunggu Kirim" },
+            { id: "APPROVED_WAITING_SHIPMENT", label: "Menunggu Kirim", count: countWaitingShipment },
             { id: "IN_TRANSIT_TO_SELLER", label: "Dalam Pengiriman", count: countInTransit },
             { id: "RECEIVED_INSPECTING", label: "Pemeriksaan Toko", count: countInspecting },
-            { id: "REFUNDED", label: "Refund Selesai" },
-            { id: "REJECTED", label: "Ditolak" },
+            { id: "REFUNDED", label: "Refund Selesai", count: countRefunded },
+            { id: "REJECTED", label: "Ditolak", count: countRejected },
           ].map((tab) => {
             const isActive = activeTab === tab.id;
             return (
@@ -472,7 +586,7 @@ export default function SellerReturnsPage() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Cari ID retur, pesanan, atau pembeli..."
-            className="w-full pl-10 pr-4 py-2.5 rounded-full bg-[#0E0E0E] text-xs text-white placeholder:text-[#52525B] outline-none border-0 focus:ring-1 focus:ring-[#BFDD25]"
+            className="w-full pl-10 pr-4 py-2.5 rounded-full bg-[#0E0E0E] text-xs text-white placeholder:text-[#52525B] outline-none border-0 focus:ring-1 focus:ring-white/30"
           />
         </div>
       </div>
@@ -480,7 +594,7 @@ export default function SellerReturnsPage() {
       {/* Returns List */}
       {isLoading ? (
         <div className="py-24 text-center space-y-3">
-          <div className="w-8 h-8 border-2 border-[#333333] border-t-[#BFDD25] rounded-full animate-spin mx-auto" />
+          <div className="w-8 h-8 border-2 border-[#333333] border-t-white rounded-full animate-spin mx-auto" />
           <p className="text-xs font-mono text-[#71717A] tracking-wider uppercase">
             Memuat Daftar Retur Toko...
           </p>
@@ -525,26 +639,14 @@ export default function SellerReturnsPage() {
                   </div>
 
                   <div className="flex flex-wrap items-center gap-2">
-                    <span
-                      className={`px-2.5 py-1 rounded-full text-[10px] font-mono uppercase tracking-wider font-semibold ${
-                        item.requestedSolution === "REPLACEMENT"
-                          ? "bg-[#1E291C] text-[#BFDD25]"
-                          : "bg-[#102A18] text-[#4ADE80]"
-                      }`}
-                    >
+                    <span className="px-2.5 py-1 rounded-full text-[10px] font-mono uppercase tracking-wider font-semibold bg-[#181818] text-[#D4D4D8]">
                       {item.requestedSolution === "REPLACEMENT" ? "Solusi: Tukar Unit" : "Solusi: Refund Dana"}
                     </span>
-                    <span
-                      className={`px-2.5 py-1 rounded-full text-[10px] font-mono uppercase tracking-wider font-semibold ${
-                        item.shippingFeeBearer === "BUYER"
-                          ? "bg-[#2A1D13] text-[#FB923C]"
-                          : "bg-[#142B1A] text-[#4ADE80]"
-                      }`}
-                    >
+                    <span className="px-2.5 py-1 rounded-full text-[10px] font-mono uppercase tracking-wider font-semibold bg-[#141414] text-[#A1A1AA]">
                       {item.shippingFeeBearer === "BUYER" ? "Ongkir: Pembeli" : "Ongkir: Toko (Cashless)"}
                     </span>
                     {item.qcStatus === "PASSED" && (
-                      <span className="px-2.5 py-1 rounded-full text-[10px] font-mono uppercase tracking-wider font-semibold bg-[#112415] text-[#4ADE80] flex items-center gap-1">
+                      <span className="px-2.5 py-1 rounded-full text-[10px] font-mono uppercase tracking-wider font-semibold bg-white/10 text-white flex items-center gap-1">
                         <CheckCircle2 className="w-3 h-3" /> QC Lolos
                       </span>
                     )}
@@ -563,7 +665,7 @@ export default function SellerReturnsPage() {
                   <div className="lg:col-span-5 flex items-center gap-4">
                     <div className="relative w-16 h-16 rounded-2xl bg-[#141414] overflow-hidden shrink-0">
                       <Image
-                        src={item.productImage || "/hero-blessing-3.jpg"}
+                        src={item.productImage || "/model-iem-untuk-hero.webp"}
                         alt={item.productName}
                         fill
                         className="object-cover"
@@ -576,8 +678,8 @@ export default function SellerReturnsPage() {
                       <p className="text-xs font-mono text-[#8E8E93] mt-0.5">
                         Varian: {item.selectedVariant || "Standard"} • {item.quantity}x
                       </p>
-                      <p className="text-xs font-mono font-bold text-[#BFDD25] mt-1">
-                        Dana Ditahan: ${item.refundAmount}
+                      <p className="text-xs font-mono font-bold text-white mt-1">
+                        Dana Ditahan: {formatPrice(item.refundAmount)}
                       </p>
                     </div>
                   </div>
@@ -628,7 +730,7 @@ export default function SellerReturnsPage() {
                 <div className="p-4 sm:p-5 rounded-2xl bg-[#121212] space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-semibold text-white">
-                      Alasan: <span className="text-[#BFDD25]">{item.reason}</span>
+                      Alasan: <span className="text-white font-mono">{item.reason}</span>
                     </span>
                     {item.evidenceImages && item.evidenceImages.length > 0 && (
                       <span className="text-[11px] text-[#8E8E93] font-mono">
@@ -642,8 +744,8 @@ export default function SellerReturnsPage() {
                   </p>
 
                   {item.sellerRejectReason && (
-                    <div className="p-3 rounded-xl bg-[#201111] text-xs text-red-300">
-                      <span className="font-semibold text-red-200">Catatan Penolakan: </span>
+                    <div className="p-3 rounded-xl bg-[#1A1A1A] text-xs text-[#D4D4D8]">
+                      <span className="font-semibold text-white">Catatan Penolakan: </span>
                       {item.sellerRejectReason}
                     </div>
                   )}
@@ -652,14 +754,14 @@ export default function SellerReturnsPage() {
                   {item.unboxingVideoUrl && (
                     <div className="flex items-center justify-between p-3 rounded-xl bg-[#161616]">
                       <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="w-8 h-8 rounded-lg bg-[#222222] flex items-center justify-center text-[#BFDD25] shrink-0">
+                        <div className="w-8 h-8 rounded-lg bg-[#222222] flex items-center justify-center text-white shrink-0">
                           <Video className="w-4 h-4" />
                         </div>
                         <div className="min-w-0">
                           <span className="text-xs font-semibold text-white block truncate">
                             Video Unboxing Pembeli (Wajib SOP)
                           </span>
-                          <span className="text-[10px] text-[#4ADE80] font-mono">
+                          <span className="text-[10px] text-[#A1A1AA] font-mono">
                             ✓ Telah Divalidasi & Siap Diperiksa
                           </span>
                         </div>
@@ -667,7 +769,7 @@ export default function SellerReturnsPage() {
                       <button
                         type="button"
                         onClick={() => setViewingVideoUrl(item.unboxingVideoUrl || null)}
-                        className="px-3.5 py-1.5 rounded-full bg-[#BFDD25] hover:bg-white text-black text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 shrink-0 cursor-pointer"
+                        className="px-3.5 py-1.5 rounded-full bg-white hover:bg-[#E4E4E7] text-black text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 shrink-0 cursor-pointer"
                       >
                         <Play className="w-3 h-3 fill-current" />
                         <span>Tonton Video</span>
@@ -680,13 +782,13 @@ export default function SellerReturnsPage() {
                     <div className="p-3.5 rounded-xl bg-[#161616] space-y-2">
                       <div className="flex items-center justify-between text-xs">
                         <span className="font-semibold text-white flex items-center gap-1.5 font-mono">
-                          <ShieldCheck className="w-3.5 h-3.5 text-[#BFDD25]" />
+                          <ShieldCheck className="w-3.5 h-3.5 text-white" />
                           <span>Hasil Uji QC Lab (Stage 2)</span>
                         </span>
                         <span
                           className={`text-[10px] font-mono px-2 py-0.5 rounded-full font-bold ${
                             item.qcStatus === "PASSED"
-                              ? "bg-[#112415] text-[#4ADE80]"
+                              ? "bg-white/10 text-white"
                               : "bg-[#261212] text-red-400"
                           }`}
                         >
@@ -697,7 +799,7 @@ export default function SellerReturnsPage() {
                         <div
                           className={`p-1.5 rounded text-center ${
                             item.qcAcousticReport.channelBalancePassed
-                              ? "bg-[#102A18] text-[#4ADE80]"
+                              ? "bg-[#202020] text-white"
                               : "bg-[#281313] text-red-400"
                           }`}
                         >
@@ -706,7 +808,7 @@ export default function SellerReturnsPage() {
                         <div
                           className={`p-1.5 rounded text-center ${
                             item.qcAcousticReport.frequencyResponsePassed
-                              ? "bg-[#102A18] text-[#4ADE80]"
+                              ? "bg-[#202020] text-white"
                               : "bg-[#281313] text-red-400"
                           }`}
                         >
@@ -715,7 +817,7 @@ export default function SellerReturnsPage() {
                         <div
                           className={`p-1.5 rounded text-center ${
                             item.qcAcousticReport.shellIntegrityPassed
-                              ? "bg-[#102A18] text-[#4ADE80]"
+                              ? "bg-[#202020] text-white"
                               : "bg-[#281313] text-red-400"
                           }`}
                         >
@@ -782,7 +884,7 @@ export default function SellerReturnsPage() {
                           type="button"
                           onClick={() => setRejectModalItem(item)}
                           disabled={isProcessingAction}
-                          className="px-5 py-2 rounded-full bg-[#241313] hover:bg-[#331818] text-red-300 text-xs font-semibold transition-all cursor-pointer"
+                          className="px-5 py-2 rounded-full bg-[#181818] hover:bg-[#222222] text-[#A1A1AA] hover:text-white text-xs font-semibold transition-all cursor-pointer"
                         >
                           Tolak Retur
                         </button>
@@ -796,7 +898,7 @@ export default function SellerReturnsPage() {
                             );
                           }}
                           disabled={isProcessingAction}
-                          className="px-6 py-2 rounded-full bg-[#BFDD25] hover:bg-white text-black text-xs font-bold uppercase tracking-wider transition-all cursor-pointer shadow-md"
+                          className="px-6 py-2 rounded-full bg-white hover:bg-[#E4E4E7] text-black text-xs font-bold uppercase tracking-wider transition-all cursor-pointer shadow-md"
                         >
                           Setujui Retur
                         </button>
@@ -808,7 +910,7 @@ export default function SellerReturnsPage() {
                         type="button"
                         onClick={() => handleSellerAction(item.id, "CONFIRM_RECEIPT")}
                         disabled={isProcessingAction}
-                        className="px-6 py-2 rounded-full bg-[#38BDF8] hover:bg-white text-black text-xs font-bold uppercase tracking-wider transition-all cursor-pointer shadow-md"
+                        className="px-6 py-2 rounded-full bg-white hover:bg-[#E4E4E7] text-black text-xs font-bold uppercase tracking-wider transition-all cursor-pointer shadow-md"
                       >
                         Konfirmasi Paket Tiba di Toko
                       </button>
@@ -829,7 +931,7 @@ export default function SellerReturnsPage() {
                           disabled={isProcessingAction}
                           className="px-4 py-2 rounded-full bg-[#181818] hover:bg-[#242424] text-white text-xs font-mono font-semibold transition-all cursor-pointer flex items-center gap-1.5"
                         >
-                          <ShieldCheck className="w-3.5 h-3.5 text-[#BFDD25]" />
+                          <ShieldCheck className="w-3.5 h-3.5 text-white" />
                           <span>{item.qcStatus === "PASSED" ? "Ubah QC Lab" : "Input Uji QC Lab"}</span>
                         </button>
 
@@ -837,7 +939,7 @@ export default function SellerReturnsPage() {
                           type="button"
                           onClick={() => setRejectModalItem(item)}
                           disabled={isProcessingAction}
-                          className="px-5 py-2 rounded-full bg-[#241313] hover:bg-[#331818] text-red-300 text-xs font-semibold transition-all cursor-pointer"
+                          className="px-5 py-2 rounded-full bg-[#181818] hover:bg-[#222222] text-[#A1A1AA] hover:text-white text-xs font-semibold transition-all cursor-pointer"
                         >
                           Tolak (Cacat Fisik Pengguna)
                         </button>
@@ -849,7 +951,7 @@ export default function SellerReturnsPage() {
                             setReplacementWaybillInput(`REP-JNE-${Math.floor(1000000000 + Math.random() * 9000000000)}`);
                           }}
                           disabled={isProcessingAction}
-                          className="px-5 py-2 rounded-full bg-[#BFDD25] hover:bg-white text-black text-xs font-bold uppercase tracking-wider transition-all cursor-pointer shadow-md"
+                          className="px-5 py-2 rounded-full bg-white hover:bg-[#E4E4E7] text-black text-xs font-bold uppercase tracking-wider transition-all cursor-pointer shadow-md"
                         >
                           Kirim Unit Baru (Tukar)
                         </button>
@@ -857,7 +959,7 @@ export default function SellerReturnsPage() {
                           type="button"
                           onClick={() => handleSellerAction(item.id, "ISSUE_REFUND")}
                           disabled={isProcessingAction}
-                          className="px-6 py-2 rounded-full bg-[#4ADE80] hover:bg-white text-black text-xs font-bold uppercase tracking-wider transition-all cursor-pointer shadow-md"
+                          className="px-6 py-2 rounded-full bg-white hover:bg-[#E4E4E7] text-black text-xs font-bold uppercase tracking-wider transition-all cursor-pointer shadow-md"
                         >
                           Selesai & Refund Dana
                         </button>
@@ -876,15 +978,15 @@ export default function SellerReturnsPage() {
                     )}
 
                     {item.status === "REPLACED" && (
-                      <span className="text-xs text-[#4ADE80] font-medium py-1 flex items-center gap-1.5">
-                        <CheckCircle2 className="w-4 h-4" />
+                      <span className="text-xs text-white font-medium py-1 flex items-center gap-1.5">
+                        <CheckCircle2 className="w-4 h-4 text-white" />
                         <span>Unit pengganti dikirim • Resi: <strong className="font-mono text-white">{item.replacementWaybillNumber}</strong> ({item.replacementCourier})</span>
                       </span>
                     )}
 
                     {item.status === "REFUNDED" && (
-                      <span className="text-xs text-[#4ADE80] font-medium py-1 flex items-center gap-1.5">
-                        <CheckCircle2 className="w-4 h-4" />
+                      <span className="text-xs text-[#D4D4D8] font-medium py-1 flex items-center gap-1.5">
+                        <CheckCircle2 className="w-4 h-4 text-white" />
                         <span>Escrow telah mengembalikan dana penuh ke pembeli</span>
                       </span>
                     )}
@@ -906,8 +1008,8 @@ export default function SellerReturnsPage() {
               exit={{ scale: 0.95, opacity: 0 }}
               className="w-full max-w-lg rounded-2xl bg-[#0E0E0E] p-6 sm:p-8 space-y-5"
             >
-              <div className="flex items-center gap-2 text-[#BFDD25] text-xs font-mono uppercase tracking-wider">
-                <CheckCircle2 className="w-4 h-4" />
+              <div className="flex items-center gap-2 text-white text-xs font-mono uppercase tracking-wider">
+                <CheckCircle2 className="w-4 h-4 text-white" />
                 <span>Persetujuan Retur Produk</span>
               </div>
               <h3 className="text-lg font-bold text-white">
@@ -925,7 +1027,7 @@ export default function SellerReturnsPage() {
                   rows={3}
                   value={storeReturnAddressInput}
                   onChange={(e) => setStoreReturnAddressInput(e.target.value)}
-                  className="w-full p-4 rounded-2xl bg-[#181818] text-xs text-white placeholder:text-[#52525B] leading-relaxed outline-none border-0 focus:ring-1 focus:ring-[#BFDD25]"
+                  className="w-full p-4 rounded-2xl bg-[#181818] text-xs text-white placeholder:text-[#52525B] leading-relaxed outline-none border-0 focus:ring-1 focus:ring-white/30"
                   required
                 />
               </div>
@@ -946,7 +1048,7 @@ export default function SellerReturnsPage() {
                     })
                   }
                   disabled={isProcessingAction || !storeReturnAddressInput.trim()}
-                  className="px-6 py-2.5 rounded-full bg-[#BFDD25] hover:bg-white text-black text-xs font-bold uppercase tracking-wider transition-all disabled:opacity-50"
+                  className="px-6 py-2.5 rounded-full bg-white hover:bg-[#E4E4E7] text-black text-xs font-bold uppercase tracking-wider transition-all disabled:opacity-50"
                 >
                   {isProcessingAction ? "Memproses..." : "Setujui & Kirim Alamat"}
                 </button>
@@ -966,8 +1068,8 @@ export default function SellerReturnsPage() {
               exit={{ scale: 0.95, opacity: 0 }}
               className="w-full max-w-lg rounded-2xl bg-[#0E0E0E] p-6 sm:p-8 space-y-5"
             >
-              <div className="flex items-center gap-2 text-red-400 text-xs font-mono uppercase tracking-wider">
-                <XCircle className="w-4 h-4" />
+              <div className="flex items-center gap-2 text-[#D4D4D8] text-xs font-mono uppercase tracking-wider">
+                <XCircle className="w-4 h-4 text-[#A1A1AA]" />
                 <span>Penolakan Retur</span>
               </div>
               <h3 className="text-lg font-bold text-white">
@@ -986,7 +1088,7 @@ export default function SellerReturnsPage() {
                   value={rejectReasonInput}
                   onChange={(e) => setRejectReasonInput(e.target.value)}
                   placeholder="Contoh: Kerusakan disebabkan oleh kelalaian pemakaian (water damage / nozzle patah), bukan cacat produksi pabrik."
-                  className="w-full p-4 rounded-2xl bg-[#181818] text-xs text-white placeholder:text-[#52525B] leading-relaxed outline-none border-0 focus:ring-1 focus:ring-red-400"
+                  className="w-full p-4 rounded-2xl bg-[#181818] text-xs text-white placeholder:text-[#52525B] leading-relaxed outline-none border-0 focus:ring-1 focus:ring-white/30"
                   required
                 />
               </div>
@@ -1007,7 +1109,7 @@ export default function SellerReturnsPage() {
                     })
                   }
                   disabled={isProcessingAction || !rejectReasonInput.trim()}
-                  className="px-6 py-2.5 rounded-full bg-red-500 hover:bg-red-400 text-white text-xs font-bold uppercase tracking-wider transition-all disabled:opacity-50"
+                  className="px-6 py-2.5 rounded-full bg-[#262626] hover:bg-[#333333] text-white text-xs font-bold uppercase tracking-wider transition-all disabled:opacity-50"
                 >
                   {isProcessingAction ? "Memproses..." : "Tolak Retur"}
                 </button>
@@ -1027,8 +1129,8 @@ export default function SellerReturnsPage() {
               exit={{ scale: 0.95, opacity: 0 }}
               className="w-full max-w-lg rounded-2xl bg-[#0E0E0E] p-6 sm:p-8 space-y-5"
             >
-              <div className="flex items-center gap-2 text-[#BFDD25] text-xs font-mono uppercase tracking-wider">
-                <Truck className="w-4 h-4" />
+              <div className="flex items-center gap-2 text-white text-xs font-mono uppercase tracking-wider">
+                <Truck className="w-4 h-4 text-white" />
                 <span>Solusi Tukar Unit Baru</span>
               </div>
               <h3 className="text-lg font-bold text-white">
@@ -1046,7 +1148,7 @@ export default function SellerReturnsPage() {
                   <select
                     value={replacementCourierInput}
                     onChange={(e) => setReplacementCourierInput(e.target.value)}
-                    className="w-full px-4 py-3 rounded-2xl bg-[#181818] text-xs text-white outline-none border-0 focus:ring-1 focus:ring-[#BFDD25] cursor-pointer"
+                    className="w-full px-4 py-3 rounded-2xl bg-[#181818] text-xs text-white outline-none border-0 focus:ring-1 focus:ring-white/30 cursor-pointer"
                   >
                     {[
                       "JNE Express",
@@ -1072,7 +1174,7 @@ export default function SellerReturnsPage() {
                     value={replacementWaybillInput}
                     onChange={(e) => setReplacementWaybillInput(e.target.value)}
                     placeholder="Contoh: REP-JNE-8192083102"
-                    className="w-full px-4 py-3 rounded-2xl bg-[#181818] text-xs font-mono uppercase text-white placeholder:text-[#52525B] outline-none border-0 focus:ring-1 focus:ring-[#BFDD25]"
+                    className="w-full px-4 py-3 rounded-2xl bg-[#181818] text-xs font-mono uppercase text-white placeholder:text-[#52525B] outline-none border-0 focus:ring-1 focus:ring-white/30"
                     required
                   />
                 </div>
@@ -1095,7 +1197,7 @@ export default function SellerReturnsPage() {
                     })
                   }
                   disabled={isProcessingAction || !replacementWaybillInput.trim()}
-                  className="px-6 py-2.5 rounded-full bg-[#BFDD25] hover:bg-white text-black text-xs font-bold uppercase tracking-wider transition-all disabled:opacity-50 cursor-pointer"
+                  className="px-6 py-2.5 rounded-full bg-white hover:bg-[#E4E4E7] text-black text-xs font-bold uppercase tracking-wider transition-all disabled:opacity-50 cursor-pointer"
                 >
                   {isProcessingAction ? "Memproses..." : "Kirim Resi Unit Pengganti"}
                 </button>
@@ -1116,8 +1218,8 @@ export default function SellerReturnsPage() {
               className="w-full max-w-2xl rounded-2xl bg-[#0E0E0E] p-6 space-y-4"
             >
               <div className="flex items-center justify-between pb-1">
-                <div className="flex items-center gap-2 text-[#BFDD25]">
-                  <Video className="w-4 h-4" />
+                <div className="flex items-center gap-2 text-white">
+                  <Video className="w-4 h-4 text-white" />
                   <h3 className="text-sm font-bold text-white uppercase tracking-wider font-mono">
                     Video Bukti Unboxing Pembeli
                   </h3>
@@ -1145,7 +1247,7 @@ export default function SellerReturnsPage() {
                     href={viewingVideoUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#BFDD25] hover:bg-white text-black text-xs font-bold uppercase tracking-wider transition-all"
+                    className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-white hover:bg-[#E4E4E7] text-black text-xs font-bold uppercase tracking-wider transition-all"
                   >
                     <ExternalLink className="w-3.5 h-3.5" />
                     <span>Buka Tautan Video di Tab Baru</span>
@@ -1174,8 +1276,8 @@ export default function SellerReturnsPage() {
               exit={{ scale: 0.95, opacity: 0 }}
               className="w-full max-w-xl rounded-2xl bg-[#0E0E0E] p-6 sm:p-8 space-y-5 max-h-[90vh] overflow-y-auto"
             >
-              <div className="flex items-center gap-2 text-[#BFDD25] text-xs font-mono uppercase tracking-wider">
-                <ShieldCheck className="w-4 h-4" />
+              <div className="flex items-center gap-2 text-white text-xs font-mono uppercase tracking-wider">
+                <ShieldCheck className="w-4 h-4 text-white" />
                 <span>Pemeriksaan Lab Toko (Two-Step QC Stage 2)</span>
               </div>
               <div>
@@ -1198,7 +1300,7 @@ export default function SellerReturnsPage() {
                     type="checkbox"
                     checked={qcChannelBalance}
                     onChange={(e) => setQcChannelBalance(e.target.checked)}
-                    className="mt-1 rounded text-[#BFDD25] focus:ring-[#BFDD25] bg-[#111111] border-0"
+                    className="mt-1 rounded accent-white text-white focus:ring-white/30 bg-[#111111] border-0"
                   />
                   <div>
                     <span className="text-xs font-semibold text-white block">
@@ -1215,7 +1317,7 @@ export default function SellerReturnsPage() {
                     type="checkbox"
                     checked={qcFreqResponse}
                     onChange={(e) => setQcFreqResponse(e.target.checked)}
-                    className="mt-1 rounded text-[#BFDD25] focus:ring-[#BFDD25] bg-[#111111] border-0"
+                    className="mt-1 rounded accent-white text-white focus:ring-white/30 bg-[#111111] border-0"
                   />
                   <div>
                     <span className="text-xs font-semibold text-white block">
@@ -1232,7 +1334,7 @@ export default function SellerReturnsPage() {
                     type="checkbox"
                     checked={qcShellIntegrity}
                     onChange={(e) => setQcShellIntegrity(e.target.checked)}
-                    className="mt-1 rounded text-[#BFDD25] focus:ring-[#BFDD25] bg-[#111111] border-0"
+                    className="mt-1 rounded accent-white text-white focus:ring-white/30 bg-[#111111] border-0"
                   />
                   <div>
                     <span className="text-xs font-semibold text-white block">
@@ -1255,7 +1357,7 @@ export default function SellerReturnsPage() {
                     type="text"
                     value={qcInspectorName}
                     onChange={(e) => setQcInspectorName(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-2xl bg-[#181818] text-xs text-white outline-none border-0 focus:ring-1 focus:ring-[#BFDD25]"
+                    className="w-full px-4 py-2.5 rounded-2xl bg-[#181818] text-xs text-white outline-none border-0 focus:ring-1 focus:ring-white/30"
                   />
                 </div>
 
@@ -1268,7 +1370,7 @@ export default function SellerReturnsPage() {
                     value={qcNotesInput}
                     onChange={(e) => setQcNotesInput(e.target.value)}
                     placeholder="Contoh: Terkonfirmasi channel balance normal. Unit bersih dan lolos kriteria garansi retur toko."
-                    className="w-full p-4 rounded-2xl bg-[#181818] text-xs text-white placeholder:text-[#52525B] leading-relaxed outline-none border-0 focus:ring-1 focus:ring-[#BFDD25]"
+                    className="w-full p-4 rounded-2xl bg-[#181818] text-xs text-white placeholder:text-[#52525B] leading-relaxed outline-none border-0 focus:ring-1 focus:ring-white/30"
                   />
                 </div>
               </div>
@@ -1288,7 +1390,7 @@ export default function SellerReturnsPage() {
                     type="button"
                     onClick={() => handleSubmitQc(false)}
                     disabled={isProcessingAction}
-                    className="flex-1 sm:flex-none px-4 py-2.5 rounded-full bg-[#261212] hover:bg-[#331818] text-red-300 text-xs font-bold transition-all disabled:opacity-50 cursor-pointer"
+                    className="flex-1 sm:flex-none px-4 py-2.5 rounded-full bg-[#262626] hover:bg-[#333333] text-[#A1A1AA] hover:text-white text-xs font-bold transition-all disabled:opacity-50 cursor-pointer"
                   >
                     Gagal QC
                   </button>
@@ -1296,7 +1398,7 @@ export default function SellerReturnsPage() {
                     type="button"
                     onClick={() => handleSubmitQc(true)}
                     disabled={isProcessingAction}
-                    className="flex-1 sm:flex-none px-6 py-2.5 rounded-full bg-[#BFDD25] hover:bg-white text-black text-xs font-bold uppercase tracking-wider transition-all disabled:opacity-50 cursor-pointer shadow-md"
+                    className="flex-1 sm:flex-none px-6 py-2.5 rounded-full bg-white hover:bg-[#E4E4E7] text-black text-xs font-bold uppercase tracking-wider transition-all disabled:opacity-50 cursor-pointer shadow-md"
                   >
                     {isProcessingAction ? "Menyimpan..." : "Lolos QC Audio"}
                   </button>

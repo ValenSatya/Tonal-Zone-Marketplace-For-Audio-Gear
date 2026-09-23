@@ -5,8 +5,10 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/context/LanguageContext";
 import CustomSelect from "@/components/ui/custom-select";
-import { fetchProductsFromDb, CatalogProduct } from "@/lib/products-db";
+import { fetchProductsFromDb, invalidateCatalogCache, CatalogProduct } from "@/lib/products-db";
+import { BASS_AUDIO_PRODUCT_IDS, CSI_ZONE_PRODUCT_IDS } from "@/lib/store-utils";
 import { triggerAppNotification } from "@/context/NotificationContext";
+import { uploadMedia } from "@/lib/upload";
 
 export interface ProductVariant {
   id: string;
@@ -30,6 +32,10 @@ export interface SellerProductItem {
   image?: string;
   images?: string[];
   variants?: ProductVariant[];
+  storeId?: string;
+  storeName?: string;
+  storeCity?: string;
+  sellerEmail?: string;
 }
 
 const INITIAL_PRODUCTS: SellerProductItem[] = [
@@ -159,15 +165,27 @@ export default function SellerProductsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<"ALL" | "APPROVED" | "PENDING" | "OUT_OF_STOCK">("ALL");
   const [selectedCategory, setSelectedCategory] = useState("ALL");
+  const [selectedBrand, setSelectedBrand] = useState("ALL");
+  const [officialBrandName, setOfficialBrandName] = useState("MOONDROP");
   const [expandedVariants, setExpandedVariants] = useState<Record<string, boolean>>({});
 
   // Sync seller mode from localStorage
   useEffect(() => {
     const loadMode = () => {
-      const savedMode = localStorage.getItem("tonalzone_seller_mode") as "RETAIL_MERCHANT" | "OFFICIAL_BRAND" | null;
-      if (savedMode) {
-        setSellerMode(savedMode);
+      let savedMode = localStorage.getItem("tonalzone_seller_mode") as "RETAIL_MERCHANT" | "OFFICIAL_BRAND" | null;
+      let userStored: any = null;
+      try {
+        const raw = localStorage.getItem("tonalzone_user");
+        if (raw) userStored = JSON.parse(raw);
+      } catch (e) {}
+
+      if (userStored?.storeType === "OFFICIAL_BRAND" || userStored?.email?.endsWith("@tonalzone.id")) {
+        savedMode = "OFFICIAL_BRAND";
+      } else if (userStored?.storeType) {
+        savedMode = userStored.storeType;
       }
+      if (savedMode) setSellerMode(savedMode);
+      if (userStored?.brandName) setOfficialBrandName(userStored.brandName);
     };
     loadMode();
     window.addEventListener("storage", loadMode);
@@ -204,10 +222,26 @@ export default function SellerProductsPage() {
           if (raw) userStored = JSON.parse(raw);
         } catch (e) {}
 
+        const storeNameLower = (userStored?.storeName || "").toLowerCase();
+        const emailLower = (userStored?.email || "").toLowerCase();
+        const brandNameLower = (officialBrandName || userStored?.brandName || "").toLowerCase();
+
+        const isBassAudio =
+          storeNameLower.includes("bass audio") ||
+          emailLower.includes("bass") ||
+          brandNameLower.includes("bass audio");
+
+        const isCsiZone =
+          storeNameLower.includes("csi zone") ||
+          emailLower.includes("csi") ||
+          brandNameLower.includes("csi zone");
+
         const queryParams = new URLSearchParams();
         let targetStoreId = userStored?.storeId;
-        if (!targetStoreId && sellerMode === "OFFICIAL_BRAND") {
-          targetStoreId = "store-moondrop-official";
+        if (!targetStoreId) {
+          if (isBassAudio) targetStoreId = "04595ba3-8657-4aa6-95da-941f6e1717f8";
+          else if (isCsiZone) targetStoreId = "store-csi-zone";
+          else if (sellerMode === "OFFICIAL_BRAND") targetStoreId = "store-moondrop-official";
         }
         if (targetStoreId) queryParams.set("storeId", targetStoreId);
         if (userStored?.email) queryParams.set("sellerEmail", userStored.email);
@@ -217,59 +251,114 @@ export default function SellerProductsPage() {
           const res = await fetch(`/api/seller/products?${queryParams.toString()}`);
           const data = await res.json();
           if (data.success && Array.isArray(data.products) && data.products.length > 0) {
-            liveProducts = data.products;
+            if (isBassAudio) {
+              liveProducts = data.products.filter(
+                (p: any) =>
+                  p.storeId === "store-bass-audio" ||
+                  p.storeId === "04595ba3-8657-4aa6-95da-941f6e1717f8" ||
+                  p.storeName?.toLowerCase().includes("bass audio") ||
+                  p.store?.storeName?.toLowerCase().includes("bass audio") ||
+                  BASS_AUDIO_PRODUCT_IDS.has(p.id)
+              );
+            } else if (isCsiZone) {
+              liveProducts = data.products.filter(
+                (p: any) =>
+                  p.storeId === "store-csi-zone" ||
+                  p.storeName?.toLowerCase().includes("csi zone") ||
+                  CSI_ZONE_PRODUCT_IDS.has(p.id)
+              );
+            } else {
+              liveProducts = data.products;
+            }
           }
         } catch (err) {
           console.warn("Failed to fetch /api/seller/products, checking fallback:", err);
         }
 
-        // Merge with local storage custom products
+        // Merge with local storage custom products (Strictly scoped by storeId and sellerEmail)
         const custom = localStorage.getItem("tonalzone_custom_products");
-        let customList: SellerProductItem[] = [];
+        let customList: any[] = [];
         if (custom) {
           try {
             customList = JSON.parse(custom);
           } catch (e) {}
         }
 
+        const currentStoreId = targetStoreId || userStored?.storeId;
+        const currentEmail = userStored?.email?.toLowerCase();
+        const currentBrand = (userStored?.brandName || officialBrandName)?.toUpperCase();
+
+        const scopedCustomList: SellerProductItem[] = customList.filter((cp: any) => {
+          if (cp.storeId && currentStoreId) return cp.storeId === currentStoreId;
+          if (cp.sellerEmail && currentEmail) return cp.sellerEmail.toLowerCase() === currentEmail;
+          if (isBassAudio && cp.storeName?.toLowerCase().includes("bass audio")) return true;
+          if (isCsiZone && cp.storeName?.toLowerCase().includes("csi zone")) return true;
+          if (sellerMode === "OFFICIAL_BRAND" && !isBassAudio && !isCsiZone && currentBrand) {
+            return cp.brand?.toUpperCase() === currentBrand;
+          }
+          return false;
+        });
+
         if (liveProducts.length > 0) {
-          const missing = customList.filter(
+          const missing = scopedCustomList.filter(
             (cp) => !liveProducts.some((lp) => lp.id === cp.id || lp.name.toLowerCase() === cp.name.toLowerCase())
           );
           setProducts([...missing, ...liveProducts]);
           return;
         }
 
-        if (customList.length > 0) {
-          setProducts(customList);
-          return;
-        }
+        if (sellerMode === "OFFICIAL_BRAND" || isBassAudio || isCsiZone) {
+          let storeProductsDb: any[] = [];
+          if (isBassAudio) {
+            storeProductsDb = (dbList || []).filter(
+              (p) => p.storeName?.toLowerCase().includes("bass audio") || BASS_AUDIO_PRODUCT_IDS.has(p.id)
+            );
+          } else if (isCsiZone) {
+            storeProductsDb = (dbList || []).filter(
+              (p) => p.storeName?.toLowerCase().includes("csi zone") || CSI_ZONE_PRODUCT_IDS.has(p.id)
+            );
+          } else {
+            const bName = userStored?.brandName || officialBrandName || "MOONDROP";
+            storeProductsDb = (dbList || []).filter(
+              (p) =>
+                p.brand?.toUpperCase().includes(bName.toUpperCase()) ||
+                p.storeName?.toLowerCase().includes(bName.toLowerCase())
+            );
+          }
 
-        if (sellerMode === "OFFICIAL_BRAND") {
-          const brandName = userStored?.brandName || "MOONDROP";
-          const brandDb = (dbList || []).filter((p) => p.brand?.toUpperCase().includes(brandName.toUpperCase()));
-          const mapped: SellerProductItem[] = brandDb.map((p, idx) => ({
+          const mapped: SellerProductItem[] = storeProductsDb.map((p, idx) => ({
             id: p.id || `PRD-BRAND-${idx + 1}`,
             name: p.name,
-            brand: p.brand || brandName,
+            brand: p.brand || (isBassAudio ? "Bass Audio" : "Audiophile"),
             category: p.category || "IN-EAR MONITORS",
             specsSummary: `${p.soundSignature ? p.soundSignature.replace(/_/g, " ") : "Studio Tuning"} • ${p.experienceLevel || "Official Model"}`,
             priceUSD: p.price,
-            stock: p.stock || 20,
+            stock: p.stock !== undefined && p.stock !== null ? p.stock : 20,
             condition: "Brand New Sealed",
             status: "APPROVED",
             createdAt: "2026-08-01",
             image: p.image || (p.images && p.images[0]) || "/model-iem-untuk-hero.webp",
             images: p.images && p.images.length > 0 ? p.images : [p.image || "/model-iem-untuk-hero.webp"],
             variants: [
-              { id: `${p.id}-v1`, name: "Standard 3.5mm SE", priceUSD: p.price, stock: Math.ceil((p.stock || 20) / 2), sku: `${p.id}-35` },
-              { id: `${p.id}-v2`, name: "Balanced 4.4mm Pentaconn", priceUSD: p.price, stock: Math.floor((p.stock || 20) / 2), sku: `${p.id}-44` },
+              { id: `${p.id}-v1`, name: "Standard 3.5mm SE", priceUSD: p.price, stock: Math.ceil((p.stock !== undefined && p.stock !== null ? p.stock : 20) / 2), sku: `${p.id}-35` },
+              { id: `${p.id}-v2`, name: "Balanced 4.4mm Pentaconn", priceUSD: p.price, stock: Math.floor((p.stock !== undefined && p.stock !== null ? p.stock : 20) / 2), sku: `${p.id}-44` },
             ],
+            storeId: isBassAudio ? "04595ba3-8657-4aa6-95da-941f6e1717f8" : isCsiZone ? "store-csi-zone" : targetStoreId,
+            storeName: isBassAudio ? "Bass Audio Official Store" : isCsiZone ? "CSI Zone Surabaya" : userStored?.storeName,
           }));
-          setProducts(mapped);
-        } else {
-          setProducts([]);
+
+          const customNames = new Set(scopedCustomList.map((c) => c.name.toLowerCase()));
+          const dedupedMapped = mapped.filter((m) => !customNames.has(m.name.toLowerCase()));
+          setProducts([...scopedCustomList, ...dedupedMapped]);
+          return;
         }
+
+        if (scopedCustomList.length > 0) {
+          setProducts(scopedCustomList);
+          return;
+        }
+
+        setProducts([]);
       } catch (err) {
         console.error("Failed to load catalog:", err);
       }
@@ -279,12 +368,13 @@ export default function SellerProductsPage() {
 
   // Handle selecting a master product to claim
   const handleSelectMasterToClaim = (p: CatalogProduct) => {
+    const s = p.stock !== undefined && p.stock !== null ? p.stock : 10;
     setSelectedMasterProduct(p);
     setClaimPriceUSD(p.price);
-    setClaimStock(p.stock || 10);
+    setClaimStock(s);
     setClaimCondition("Brand New Sealed");
-    setClaimVariant1Stock(Math.ceil((p.stock || 10) / 2));
-    setClaimVariant2Stock(Math.floor((p.stock || 10) / 2));
+    setClaimVariant1Stock(Math.ceil(s / 2));
+    setClaimVariant2Stock(Math.floor(s / 2));
   };
 
   // Handle confirming claim into store
@@ -315,6 +405,10 @@ export default function SellerProductsPage() {
         { id: `var-1-${Date.now()}`, name: "Standard 3.5mm SE", priceUSD: claimPriceUSD, stock: claimVariant1Stock, sku: `${selectedMasterProduct.id}-35` },
         { id: `var-2-${Date.now()}`, name: "Balanced 4.4mm Pentaconn", priceUSD: claimPriceUSD, stock: claimVariant2Stock, sku: `${selectedMasterProduct.id}-44` },
       ],
+      storeId: userStored?.storeId,
+      storeName: userStored?.storeName || (userStored?.name ? `${userStored.name}'s Audio` : "Toko Seller Mitra"),
+      storeCity: userStored?.storeCity || userStored?.city || userStored?.address || "Jakarta",
+      sellerEmail: userStored?.email,
     };
 
     setProducts((prev) => [newClaimedItem, ...prev]);
@@ -347,6 +441,8 @@ export default function SellerProductsPage() {
       const list = existing ? JSON.parse(existing) : [];
       list.unshift(newClaimedItem);
       localStorage.setItem("tonalzone_custom_products", JSON.stringify(list));
+      invalidateCatalogCache();
+      window.dispatchEvent(new Event("productsUpdated"));
       window.dispatchEvent(new Event("storage"));
     } catch (err) {}
 
@@ -442,12 +538,51 @@ export default function SellerProductsPage() {
     setExpandedVariants((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
+  // Dynamic Brand Filter Options
+  const brandOptions = useMemo(() => {
+    const brandsSet = new Set<string>();
+    products.forEach((p) => {
+      if (p.brand) brandsSet.add(p.brand);
+    });
+    const sorted = Array.from(brandsSet).sort();
+    return [
+      { label: isEn ? "All Brands" : "Semua Brand", value: "ALL" },
+      ...sorted.map((b) => ({ label: b, value: b })),
+    ];
+  }, [products, isEn]);
+
+  // Check whether current store is a multi-brand retailer (Bass Audio, CSI Zone, or Retail Merchant)
+  const isRetailerStore = useMemo(() => {
+    const bLower = (officialBrandName || "").toLowerCase();
+    let uName = "";
+    if (typeof window !== "undefined") {
+      try {
+        const raw = localStorage.getItem("tonalzone_user");
+        if (raw) {
+          const u = JSON.parse(raw);
+          uName = (u.storeName || u.name || u.email || "").toLowerCase();
+        }
+      } catch (e) {}
+    }
+    return (
+      bLower.includes("bass audio") ||
+      bLower.includes("csi zone") ||
+      bLower.includes("retail") ||
+      uName.includes("bass audio") ||
+      uName.includes("csi zone") ||
+      uName.includes("retail") ||
+      sellerMode === "RETAIL_MERCHANT"
+    );
+  }, [officialBrandName, sellerMode]);
+
   // Filter products
   const filteredProducts = useMemo(() => {
     return products.filter((p) => {
-      // In Official Brand mode: ONLY show products from TANGZU
-      if (sellerMode === "OFFICIAL_BRAND") {
-        if (!p.brand || !p.brand.toUpperCase().includes("TANGZU")) {
+      // In Official Brand mode: ONLY filter by brand if the store is a dedicated manufacturer brand (e.g. MOONDROP, TANGZU, SENNHEISER).
+      // NEVER filter out multi-brand retailers like Bass Audio or CSI Zone where products have diverse authentic manufacturer brands!
+      if (sellerMode === "OFFICIAL_BRAND" && !isRetailerStore) {
+        const targetBrand = (officialBrandName || "").toUpperCase();
+        if (targetBrand && (!p.brand || !p.brand.toUpperCase().includes(targetBrand))) {
           return false;
         }
       }
@@ -460,18 +595,21 @@ export default function SellerProductsPage() {
       // Category filter
       if (selectedCategory !== "ALL" && p.category !== selectedCategory) return false;
 
+      // Brand filter
+      if (selectedBrand !== "ALL" && p.brand?.toUpperCase() !== selectedBrand.toUpperCase()) return false;
+
       // Search query
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
         const matchesName = p.name.toLowerCase().includes(q);
-        const matchesBrand = p.brand.toLowerCase().includes(q);
-        const matchesCategory = p.category.toLowerCase().includes(q);
+        const matchesBrand = p.brand?.toLowerCase().includes(q);
+        const matchesCategory = p.category?.toLowerCase().includes(q);
         return matchesName || matchesBrand || matchesCategory;
       }
 
       return true;
     });
-  }, [products, activeTab, selectedCategory, searchQuery, sellerMode]);
+  }, [products, activeTab, selectedCategory, selectedBrand, searchQuery, sellerMode, officialBrandName, isRetailerStore]);
 
   // Handle CSV file upload & parse
   const handleFileUpload = (file: File) => {
@@ -568,11 +706,23 @@ export default function SellerProductsPage() {
   };
 
   // Multiple image upload in Quick Edit
-  const handleEditMultipleImageUpload = (files: FileList) => {
+  const handleEditMultipleImageUpload = async (files: FileList) => {
     if (!editProduct) return;
-    const existingImages = editProduct.images || (editProduct.image ? [editProduct.image] : []);
 
-    Array.from(files).forEach((file) => {
+    for (const file of Array.from(files)) {
+      try {
+        const uploadRes = await uploadMedia(file, "products");
+        if (uploadRes.success && uploadRes.url) {
+          setEditProduct((prev) => {
+            if (!prev) return null;
+            const updated = [...(prev.images || (prev.image ? [prev.image] : [])), uploadRes.url!];
+            return { ...prev, images: updated, image: updated[0] };
+          });
+          continue;
+        }
+      } catch {}
+
+      // Fallback
       const reader = new FileReader();
       reader.onload = (e) => {
         const result = e.target?.result as string;
@@ -585,7 +735,7 @@ export default function SellerProductsPage() {
         }
       };
       reader.readAsDataURL(file);
-    });
+    }
   };
 
   // Set primary cover image in Quick Edit
@@ -712,22 +862,22 @@ export default function SellerProductsPage() {
         <div>
           <div className="flex items-center gap-2.5">
             <h1 className="text-xl font-bold font-sans tracking-tight text-white">
-              {sellerMode === "OFFICIAL_BRAND"
-                ? (isEn ? "TANGZU Audio Official Lineup" : "Katalog Resmi TANGZU Audio")
-                : (isEn ? "Store Product Catalog & Inventory" : "Katalog Produk & Inventaris Toko")}
+              {sellerMode === "OFFICIAL_BRAND" && !isRetailerStore
+                ? (isEn ? `${officialBrandName || "Official Brand"} Lineup` : `Katalog Resmi ${officialBrandName || "Official Brand"}`)
+                : (isEn ? `Product Catalog & Inventory — ${officialBrandName || "Store"}` : `Katalog Produk & Inventaris — ${officialBrandName || "Toko"}`)}
             </h1>
-            <span className="px-3 py-1 rounded-full text-xs font-mono font-medium bg-[#121212] text-[#BFDD25]">
+            <span className="px-3 py-1 rounded-full text-xs font-mono font-medium bg-[#121212] border border-white/10 text-zinc-300">
               {filteredProducts.length} {isEn ? "Products" : "Produk"}
             </span>
           </div>
           <p className="text-xs font-mono text-[#8E8E93] mt-1">
-            {sellerMode === "OFFICIAL_BRAND"
+            {sellerMode === "OFFICIAL_BRAND" && !isRetailerStore
               ? (isEn
-                  ? "Displaying verified official models from TANGZU Audio manufacturer."
-                  : "Menampilkan lini produk resmi dari pabrikan TANGZU Audio.")
+                  ? `Displaying verified official models from ${officialBrandName || "Official Brand"} manufacturer.`
+                  : `Menampilkan lini produk resmi dari pabrikan ${officialBrandName || "Official Brand"}.`)
               : (isEn
-                  ? "Universal store inventory: IEMs, Headphones, DAC/AMPs, DAPs, Custom Cables & Accessories from all brands."
-                  : "Kelola seluruh katalog audio toko: IEM, Headphone, DAC/AMP, DAP, dan Kabel dari berbagai merek.")}
+                  ? "Universal store inventory: IEMs, Headphones, DAC/AMPs, DAPs, Custom Cables & Accessories from authorized distributors."
+                  : "Kelola seluruh katalog audio toko: IEM, Headphone, DAC/AMP, DAP, dan Aksesoris resmi bergaransi.")}
           </p>
         </div>
 
@@ -808,9 +958,9 @@ export default function SellerProductsPage() {
             ))}
           </div>
 
-          {/* Search & Category Filter */}
-          <div className="flex items-center gap-2.5">
-            <div className="w-44">
+          {/* Search, Category & Brand Filters */}
+          <div className="flex flex-wrap items-center gap-2.5">
+            <div className="w-40">
               <CustomSelect
                 value={selectedCategory}
                 onChange={(val) => setSelectedCategory(val)}
@@ -823,6 +973,14 @@ export default function SellerProductsPage() {
                   { label: "DAP Players", value: "DIGITAL AUDIO PLAYERS" },
                   { label: "Cables & Accessories", value: "ACCESSORIES" },
                 ]}
+              />
+            </div>
+
+            <div className="w-40">
+              <CustomSelect
+                value={selectedBrand}
+                onChange={(val) => setSelectedBrand(val)}
+                options={brandOptions}
               />
             </div>
 

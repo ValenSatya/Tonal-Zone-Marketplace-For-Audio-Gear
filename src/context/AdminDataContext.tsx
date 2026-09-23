@@ -1297,6 +1297,17 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
   const bulkUpdateStoreStatus = useCallback((ids: string[], status: AdminStore["status"]) => {
     setStores((prev) => prev.map((s) => (ids.includes(s.id) ? { ...s, status } : s)));
     logAction("Bulk Store Approval", `${ids.length} stores set to ${status}`);
+
+    ids.forEach((id) => {
+      fetch("/api/admin/approve-seller", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          storeId: id,
+          action: status === "APPROVED" ? "APPROVE" : status === "SUSPENDED" ? "SUSPEND" : "REJECT",
+        }),
+      }).catch(() => {});
+    });
   }, []);
 
   // Brand Actions

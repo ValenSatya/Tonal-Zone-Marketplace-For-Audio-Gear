@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { returnRepo, storeRepo, userRepo } from "@/lib/supabase-db";
+import { verifySession } from "@/lib/auth/security";
 
 async function resolveSellerStore(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -8,30 +9,50 @@ async function resolveSellerStore(request: Request) {
   const explicitEmail = searchParams.get("email") || searchParams.get("sellerEmail");
 
   if (explicitStoreId) {
-    const store = await storeRepo.findById(explicitStoreId);
+    let store = await storeRepo.findById(explicitStoreId);
+    if (!store) store = await storeRepo.findByUserId(explicitStoreId);
+    if (!store) store = await storeRepo.findByName(explicitStoreId);
     if (store) return store;
   }
 
   if (explicitEmail) {
     const user = await userRepo.findByEmail(explicitEmail);
     if (user?.store) return user.store;
+    if (user?.id) {
+      const store = await storeRepo.findByUserId(user.id);
+      if (store) return store;
+    }
   }
 
+  let hasActiveSession = false;
   try {
     const cookieStore = await cookies();
     const sessionCookie = cookieStore.get("tonalzone_session");
-    if (sessionCookie) {
-      const session = JSON.parse(decodeURIComponent(sessionCookie.value));
-      if (session.storeId) {
-        const store = await storeRepo.findById(session.storeId);
-        if (store) return store;
-      }
-      if (session.email) {
-        const user = await userRepo.findByEmail(session.email);
-        if (user?.store) return user.store;
+    if (sessionCookie?.value) {
+      const session = verifySession<{ id?: string; email?: string; storeId?: string }>(sessionCookie.value);
+      if (session) {
+        hasActiveSession = true;
+        if (session.storeId) {
+          const store = await storeRepo.findById(session.storeId);
+          if (store) return store;
+        }
+        if (session.email) {
+          const user = await userRepo.findByEmail(session.email);
+          if (user?.store) return user.store;
+          if (user?.id) {
+            const store = await storeRepo.findByUserId(user.id);
+            if (store) return store;
+          }
+        }
       }
     }
-  } catch (e) {}
+  } catch (e) {
+    console.error("Error reading session in seller/returns:", e);
+  }
+
+  if (hasActiveSession) {
+    return null;
+  }
 
   const moondropStore = await storeRepo.findById("store-moondrop-official");
   if (moondropStore) return moondropStore;

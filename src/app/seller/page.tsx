@@ -34,6 +34,7 @@ export default function SellerOverviewPage() {
     const savedMode = localStorage.getItem("tonalzone_seller_mode") as "RETAIL_MERCHANT" | "OFFICIAL_BRAND" | null;
 
     if (savedCurrency) setCurrency(savedCurrency);
+    else setCurrency("IDR");
     if (savedMode) setSellerMode(savedMode);
 
     if (stored) {
@@ -67,9 +68,15 @@ export default function SellerOverviewPage() {
       } catch (e) {}
     }
 
-    const currentMode = savedMode || "RETAIL_MERCHANT";
-    if (!storeIdParam && currentMode === "OFFICIAL_BRAND") {
-      storeIdParam = "store-moondrop-official";
+    const currentMode = savedMode || sellerMode || "RETAIL_MERCHANT";
+    if (!storeIdParam) {
+      if (emailParam.includes("bass") || (stored && stored.toLowerCase().includes("bass audio"))) {
+        storeIdParam = "04595ba3-8657-4aa6-95da-941f6e1717f8";
+      } else if (emailParam.includes("csi") || (stored && stored.toLowerCase().includes("csi zone"))) {
+        storeIdParam = "store-csi-zone";
+      } else if (currentMode === "OFFICIAL_BRAND") {
+        storeIdParam = "store-moondrop-official";
+      }
     }
 
     const query = new URLSearchParams();

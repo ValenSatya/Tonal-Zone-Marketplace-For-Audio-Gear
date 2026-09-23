@@ -290,6 +290,13 @@ export default function CollectionPage() {
         return true;
       })
       .sort((a, b) => {
+        // ALWAYS push Out-of-Stock items to the absolute bottom
+        const aOut = Number(a.stock) <= 0 || a.inStock === false || (a as any).status === "OUT_OF_STOCK";
+        const bOut = Number(b.stock) <= 0 || b.inStock === false || (b as any).status === "OUT_OF_STOCK";
+        if (aOut !== bOut) {
+          return aOut ? 1 : -1;
+        }
+
         if (sortOption === "PRICE: LOW TO HIGH") return a.price - b.price;
         if (sortOption === "PRICE: HIGH TO LOW") return b.price - a.price;
         if (sortOption === "TOP RATED") return b.rating - a.rating;

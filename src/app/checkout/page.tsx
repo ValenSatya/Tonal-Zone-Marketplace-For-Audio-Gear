@@ -27,32 +27,10 @@ import {
   ChevronDown,
 } from "lucide-react";
 
+import { INDONESIA_REGIONS, DEFAULT_POSTAL_CODES, getEstimatedPostalCode } from "@/lib/indonesia-regions";
+
 const ADDRESS_DATA: Record<string, Record<string, string[]>> = {
-  Indonesia: {
-    "DKI Jakarta": [
-      "Jakarta Selatan (Kebayoran, Senopati, SCBD)",
-      "Jakarta Pusat (Menteng, Thamrin, Sudirman)",
-      "Jakarta Barat (Puri Indah, Kebon Jeruk)",
-      "Jakarta Utara (PIK, Kelapa Gading, Pluit)",
-      "Jakarta Timur (Rawamangun, Duren Sawit)",
-    ],
-    "Jawa Barat": [
-      "Bandung (Dago, Ciumbuleuit, Buahbatu)",
-      "Bekasi (Summarecon, Harapan Indah)",
-      "Depok (Margonda, Cinere)",
-      "Bogor (Sentul, Pajajaran)",
-    ],
-    "Jawa Timur": [
-      "Surabaya (Gubeng, Wonokromo, Pakuwon)",
-      "Malang (Klojen, Lowokwaru)",
-      "Sidoarjo",
-    ],
-    Bali: [
-      "Badung (Canggu, Seminyak, Kuta, Nusa Dua)",
-      "Denpasar (Renon, Sanur)",
-      "Gianyar (Ubud)",
-    ],
-  },
+  Indonesia: INDONESIA_REGIONS,
   "United States": {
     California: ["Los Angeles", "San Francisco", "San Diego"],
     "New York": ["New York City (Manhattan)", "Brooklyn"],
@@ -62,15 +40,7 @@ const ADDRESS_DATA: Record<string, Record<string, string[]>> = {
   },
 };
 
-const POSTAL_CODES: Record<string, string> = {
-  "Jakarta Selatan (Kebayoran, Senopati, SCBD)": "12190",
-  "Jakarta Pusat (Menteng, Thamrin, Sudirman)": "10310",
-  "Jakarta Barat (Puri Indah, Kebon Jeruk)": "11610",
-  "Jakarta Utara (PIK, Kelapa Gading, Pluit)": "14470",
-  "Bandung (Dago, Ciumbuleuit, Buahbatu)": "40132",
-  "Surabaya (Gubeng, Wonokromo, Pakuwon)": "60281",
-  "Badung (Canggu, Seminyak, Kuta, Nusa Dua)": "80361",
-};
+const POSTAL_CODES: Record<string, string> = DEFAULT_POSTAL_CODES;
 
 const PROMO_PRESETS = [
   { code: "TONAL10", label: "Diskon 10%", desc: "Voucher Pelanggan Baru" },
@@ -121,7 +91,7 @@ export default function CheckoutPage() {
   const router = useRouter();
   const { t } = useLanguage();
   const { formatPrice } = useLocation();
-  const { items, selectedItems, subtotal: cartSubtotal, clearCart, clearSelectedFromCart } = useCart();
+  const { items, selectedItems, subtotal: cartSubtotal, clearCart, clearSelectedFromCart, isLoaded } = useCart();
   const { couriers, systemSettings } = useAdminData();
   const escrowFeePercent = systemSettings?.escrowFeePercent ?? 1.5;
   const inspectionWindowHours = systemSettings?.inspectionWindowHours ?? 48;
@@ -196,7 +166,7 @@ export default function CheckoutPage() {
     const cities = (ADDRESS_DATA[newCountry]?.[firstProv] || []) as string[];
     const firstCity = cities[0] || "";
     setCity(firstCity);
-    setPostalCode(POSTAL_CODES[firstCity] || "10000");
+    setPostalCode(getEstimatedPostalCode(firstCity));
   };
 
   const handleProvinceChange = (newProv: string) => {
@@ -204,7 +174,7 @@ export default function CheckoutPage() {
     const cities = (ADDRESS_DATA[country]?.[newProv] || []) as string[];
     const firstCity = cities[0] || "";
     setCity(firstCity);
-    setPostalCode(POSTAL_CODES[firstCity] || "10000");
+    setPostalCode(getEstimatedPostalCode(firstCity));
   };
 
   // Logistics: Filter active couriers from Admin Data based on destination
@@ -228,25 +198,7 @@ export default function CheckoutPage() {
   const selectedCourier = availableCouriers.find((c) => c.id === selectedCourierId) || availableCouriers[0];
 
   // Pricing calculations: prioritize selectedItems from multi-select
-  const effectiveItems = selectedItems.length > 0
-    ? selectedItems
-    : items.length > 0
-    ? items
-    : [
-        {
-          id: "prod-blessing3",
-          productId: "prod-blessing3",
-          name: "MOONDROP BLESSING 3 Hybrid",
-          brand: "MOONDROP",
-          category: "IN-EAR MONITORS",
-          price: 319,
-          variant: "3.5mm SE",
-          quantity: 1,
-          image: "/hero-blessing-3.jpg",
-          sellerName: "MOONDROP Official Flagship Store",
-          sellerId: "store-moondrop-official",
-        },
-      ];
+  const effectiveItems = selectedItems.length > 0 ? selectedItems : items;
 
   const subtotal = effectiveItems.reduce((acc, it) => acc + (it.price * it.quantity), 0);
   const discountRate = isDemoRp1
@@ -281,22 +233,40 @@ export default function CheckoutPage() {
         const isMoondrop =
           (it.brand || "").toUpperCase().includes("MOONDROP") ||
           (it.name || "").toUpperCase().includes("MOONDROP");
+        const isBass =
+          (it.sellerName || "").toLowerCase().includes("bass") ||
+          (it.storeName || "").toLowerCase().includes("bass") ||
+          (it.storeId || "").toLowerCase().includes("bass") ||
+          it.storeId === "04595ba3-8657-4aa6-95da-941f6e1717f8";
+        const isCsi =
+          (it.sellerName || "").toLowerCase().includes("csi") ||
+          (it.storeName || "").toLowerCase().includes("csi") ||
+          (it.storeId || "").toLowerCase().includes("csi");
+
         const resolvedStoreId = isMoondrop
           ? "store-moondrop-official"
-          : it.sellerId || it.storeId || "store-moondrop-official";
+          : isBass
+          ? "04595ba3-8657-4aa6-95da-941f6e1717f8"
+          : isCsi
+          ? "store-csi-zone"
+          : it.sellerId || it.storeId || "store-official-partner";
         const resolvedStoreName = isMoondrop
           ? "MOONDROP Official Flagship Store"
-          : it.sellerName || it.storeName || "MOONDROP Official Flagship Store";
+          : isBass
+          ? "Bass Audio Official Store"
+          : isCsi
+          ? "CSI Zone Surabaya"
+          : it.sellerName || it.storeName || "Official Partner Store";
 
         return {
           productId: it.productId || it.id || "prod-default",
           productName: it.name,
-          brand: isMoondrop ? "MOONDROP" : it.brand || "MOONDROP",
+          brand: isMoondrop ? "MOONDROP" : it.brand || "Audiophile",
           category: it.category || "IN-EAR MONITORS",
           priceUSD: it.price,
           quantity: it.quantity || 1,
           selectedVariant: it.variant || "Standard",
-          image: it.image || "/hero-blessing-3.jpg",
+          image: it.image || "/model-iem-untuk-hero.webp",
           storeId: resolvedStoreId,
           storeName: resolvedStoreName,
           storeCity: "Jakarta Selatan",
@@ -353,7 +323,7 @@ export default function CheckoutPage() {
                 selectedVariant: it.selectedVariant || "Standard",
                 quantity: it.quantity || 1,
                 price: it.priceUSD,
-                image: it.image || "/hero-blessing-3.jpg",
+                image: it.image || "/model-iem-untuk-hero.webp",
                 storeName: it.storeName,
               })),
               totalAmount: grandTotal,
@@ -887,29 +857,48 @@ export default function CheckoutPage() {
 
               {/* Items List */}
               <div className="space-y-3.5 max-h-72 overflow-y-auto pr-1 custom-scrollbar">
-                {effectiveItems.map((item, idx) => (
-                  <div key={item.id || idx} className="flex items-center gap-3.5">
-                    <div className="relative w-14 h-14 rounded-xl bg-[#141414] overflow-hidden shrink-0 border-0">
-                      <Image
-                        src={item.image || "/hero-blessing-3.jpg"}
-                        alt={item.name}
-                        fill
-                        className="object-cover"
-                      />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <h4 className="text-xs font-semibold text-white truncate">
-                        {item.name}
-                      </h4>
-                      <p className="text-[10px] text-[#71717A] font-mono mt-0.5">
-                        {item.sellerName || "MOONDROP Official Flagship Store"}
-                      </p>
-                      <p className="text-xs font-mono font-bold text-white mt-1">
-                        {item.quantity}x {formatPrice(item.price)}
-                      </p>
-                    </div>
+                {!isLoaded ? (
+                  <div className="space-y-3">
+                    {[1, 2].map((i) => (
+                      <div key={i} className="flex items-center gap-3.5 animate-pulse">
+                        <div className="w-14 h-14 rounded-xl bg-white/5 shrink-0" />
+                        <div className="flex-1 space-y-2">
+                          <div className="h-3.5 bg-white/5 rounded w-3/4" />
+                          <div className="h-2.5 bg-white/5 rounded w-1/2" />
+                          <div className="h-3 bg-white/5 rounded w-1/4" />
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                ) : effectiveItems.length === 0 ? (
+                  <div className="py-6 text-center text-xs text-[#71717A] font-mono">
+                    Keranjang belanja kosong
+                  </div>
+                ) : (
+                  effectiveItems.map((item, idx) => (
+                    <div key={item.id || idx} className="flex items-center gap-3.5">
+                      <div className="relative w-14 h-14 rounded-xl bg-[#141414] overflow-hidden shrink-0 border-0">
+                        <Image
+                          src={item.image || "/model-iem-untuk-hero.webp"}
+                          alt={item.name}
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <h4 className="text-xs font-semibold text-white truncate">
+                          {item.name}
+                        </h4>
+                        <p className="text-[10px] text-[#71717A] font-mono mt-0.5 truncate">
+                          {item.sellerName || "Official Partner Store"}
+                        </p>
+                        <p className="text-xs font-mono font-bold text-white mt-1">
+                          {item.quantity}x {formatPrice(item.price)}
+                        </p>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
 
               {/* Fee Breakdown (Zero border) */}

@@ -38,15 +38,18 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
 
     if (savedCurrency) {
       setCurrency(savedCurrency);
+    } else {
+      setCurrency("IDR");
+      localStorage.setItem("tonalzone_seller_currency", "IDR");
     }
 
     if (stored) {
       try {
         const u = JSON.parse(stored);
-        if (!savedCurrency && u.location === "Indonesia") {
-          setCurrency("IDR");
-        } else if (!savedCurrency && u.storeCurrency) {
+        if (!savedCurrency && u.storeCurrency) {
           setCurrency(u.storeCurrency);
+        } else if (!savedCurrency) {
+          setCurrency("IDR");
         }
 
         if (u.storeType) {
@@ -66,18 +69,30 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
 
     // Fetch verified store profile from backend Supabase API
     try {
-      const res = await fetch("/api/seller/store");
+      let storeFetchUrl = "/api/seller/store";
+      if (stored) {
+        try {
+          const u = JSON.parse(stored);
+          const params = new URLSearchParams();
+          if (u.storeId) params.set("storeId", u.storeId);
+          if (u.email) params.set("email", u.email);
+          const qs = params.toString();
+          if (qs) storeFetchUrl += `?${qs}`;
+        } catch (e) {}
+      }
+      const res = await fetch(storeFetchUrl);
       if (res.ok) {
         const data = await res.json();
         if (data.success && data.store) {
           const s = data.store;
           const isBrand = s.storeType === "OFFICIAL_BRAND";
           setSellerMode(isBrand ? "OFFICIAL_BRAND" : "RETAIL_MERCHANT");
+          localStorage.setItem("tonalzone_seller_mode", isBrand ? "OFFICIAL_BRAND" : "RETAIL_MERCHANT");
           setSellerData((prev) => ({
             ...prev,
             storeName: s.storeName || prev.storeName,
             status: s.status || prev.status,
-            brandName: s.brandName || (isBrand ? "MOONDROP" : prev.brandName),
+            brandName: s.brandName || (isBrand ? "MOONDROP" : "Official Store"),
           }));
 
           if (stored) {

@@ -765,7 +765,7 @@ function SellerChatContent() {
                             <div className="mb-3 p-3 rounded-xl bg-black/40 flex items-center gap-3">
                               <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-black/60 shrink-0">
                                 <Image
-                                  src={m.productCard.image || "/hero-blessing-3.jpg"}
+                                  src={m.productCard.image || "/model-iem-untuk-hero.webp"}
                                   alt={m.productCard.name}
                                   fill
                                   unoptimized

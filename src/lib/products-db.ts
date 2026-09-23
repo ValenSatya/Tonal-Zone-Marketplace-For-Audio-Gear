@@ -1,5 +1,23 @@
 import { supabase } from "./supabase";
 
+export interface SellerOffer {
+  id: string;
+  productId: string;
+  storeId: string;
+  storeName: string;
+  storeCity?: string;
+  storeLogo?: string;
+  sellerType: "OFFICIAL" | "AUTHORIZED";
+  badgeLabel: "OFFICIAL STORE" | "VERIFIED RETAILER";
+  condition?: string;
+  price: number;
+  originalPrice?: number;
+  discountPercent?: number;
+  stock: number;
+  inStock: boolean;
+  highlightTag?: string;
+}
+
 export interface CatalogProduct {
   id: string;
   name: string;
@@ -33,6 +51,64 @@ export interface CatalogProduct {
   squiglinkUrl?: string;
   variants?: any;
   colors?: any;
+  warrantyMonths?: number;
+  condition?: string;
+  sellerOffers?: SellerOffer[];
+  totalSellers?: number;
+  siblingProductIds?: string[];
+  minPrice?: number;
+  maxPrice?: number;
+}
+
+/**
+ * Extracts embedded JSON metadata specs from product description if present.
+ * Format: <!--TZ_SPECS:{"driverType":"...","impedance":"..."}-->\n\nActual Description
+ */
+export function extractSpecsFromDescription(rawDesc?: string | null): {
+  cleanDescription: string;
+  specs: {
+    driverType?: string;
+    impedance?: string;
+    sensitivity?: string;
+    frequencyResponse?: string;
+    cableTermination?: string;
+    pinType?: string;
+    material?: string;
+    cableMaterial?: string;
+    warrantyMonths?: number;
+    tuning?: string;
+    condition?: string;
+    badge?: string;
+    dacChipset?: string;
+    outputPower?: string;
+    inputs?: string;
+    outputs?: string;
+    snrThd?: string;
+    headphoneDesign?: string;
+    headphoneDriverSize?: string;
+    weightGrams?: string;
+    dapOS?: string;
+    dapStorage?: string;
+    batteryLife?: string;
+    conductorMaterial?: string;
+    cableLength?: string;
+    speakerSystem?: string;
+    speakerPower?: string;
+    accessoryMaterial?: string;
+  };
+} {
+  if (!rawDesc) return { cleanDescription: "", specs: {} };
+  const match = rawDesc.match(/<!--TZ_SPECS:([\s\S]*?)-->/);
+  if (match) {
+    try {
+      const specs = JSON.parse(match[1]);
+      const cleanDescription = rawDesc.replace(/<!--TZ_SPECS:[\s\S]*?-->\s*/g, "").trim();
+      return { cleanDescription, specs };
+    } catch (e) {
+      return { cleanDescription: rawDesc, specs: {} };
+    }
+  }
+  return { cleanDescription: rawDesc, specs: {} };
 }
 
 export const PRODUCT_SPECS_MAP: Record<string, Partial<CatalogProduct>> = {
@@ -471,16 +547,69 @@ export function cleanProductName(name: string, id?: string): string {
 export type AllowedBadge = "New Arrival" | "Best Seller" | "Top Rated";
 
 /**
- * Strictly limits badges to only: "New Arrival", "Best Seller", "Top Rated".
- * All other tags (Legendary Classic, Flagship, etc.) are strictly stripped/deleted.
+ * Computes a truthful, metric-driven badge for a product:
+ * - "Top Rated": Strictly requires authentic reviews (reviews >= 1) AND high rating (rating >= 4.5).
+ *   A product with 0 reviews can NEVER be "Top Rated".
+ * - "Best Seller": Products with verified high sales (sales >= 10) or marked best seller.
+ * - "New Arrival": New releases, products marked as new arrival, or newly listed products with 0 reviews.
  */
-export function normalizeAllowedBadge(badge?: string | null): AllowedBadge | undefined {
-  if (!badge) return undefined;
-  const b = badge.trim().toLowerCase().replace(/[\-_]/g, " ");
-  if (b === "new arrival") return "New Arrival";
-  if (b === "best seller" || b === "bestseller") return "Best Seller";
-  if (b === "top rated" || b === "toprated") return "Top Rated";
+export function computeDynamicProductBadge(params: {
+  rawBadge?: string | null;
+  rating?: number | null;
+  reviews?: number | null;
+  salesCount?: number | null;
+  createdAt?: string | null;
+}): AllowedBadge | undefined {
+  const reviewsCount = Number(params.reviews) || 0;
+  const ratingScore = Number(params.rating) || 0;
+  const sales = Number(params.salesCount) || 0;
+  const raw = (params.rawBadge || "").trim().toLowerCase().replace(/[\-_]/g, " ");
+
+  // 1. TOP RATED: Only earned if there are real reviews and rating >= 4.5
+  if (reviewsCount > 0 && ratingScore >= 4.5) {
+    return "Top Rated";
+  }
+
+  // 2. BEST SELLER: Verified high volume or explicit best seller
+  if (sales >= 10 || raw === "best seller" || raw === "bestseller") {
+    return "Best Seller";
+  }
+
+  // 3. NEW ARRIVAL: Explicit new arrival, or fallback for new catalog items / zero-review releases
+  if (
+    raw === "new arrival" ||
+    (raw === "top rated" && reviewsCount === 0) ||
+    (raw === "toprated" && reviewsCount === 0)
+  ) {
+    return "New Arrival";
+  }
+
   return undefined;
+}
+
+/**
+ * Normalizes allowed badges dynamically based on rating and reviews
+ */
+export function normalizeAllowedBadge(
+  badge?: string | null,
+  rating?: number | null,
+  reviews?: number | null
+): AllowedBadge | undefined {
+  return computeDynamicProductBadge({
+    rawBadge: badge,
+    rating,
+    reviews,
+  });
+}
+
+/**
+ * Safely parses stock values without corrupting legitimate 0 (out of stock) values.
+ * Using `Number(val) || 10` is buggy because 0 is falsy and converts to 10.
+ */
+export function safeParseStock(val: any, fallbackVal: number = 0): number {
+  if (val === undefined || val === null || val === "") return fallbackVal;
+  const num = Number(val);
+  return isNaN(num) ? fallbackVal : Math.max(0, num);
 }
 
 // In-memory live store for recalculated ratings from authentic buyer reviews (starts at 0)
@@ -637,7 +766,7 @@ export function enhanceProductWithSpecs(product: CatalogProduct): CatalogProduct
     name: cleanedTitle,
     images: productImages,
     image: productImages[0] || product.image,
-    badge: normalizeAllowedBadge(product.badge || fallbackMatch?.badge),
+    badge: normalizeAllowedBadge(product.badge || fallbackMatch?.badge, liveRating, liveReviews),
     rating: liveRating,
     reviews: liveReviews,
     driverType: product.driverType || matchedSpecs?.driverType || defaultDriver,
@@ -765,8 +894,8 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     storeName: "CSI Zone",
     storeCity: "Surabaya",
     description: "Ultra-high-end flagship acoustic monitor named after the mythical well of wisdom. Multi-driver electrostatic hybrid architecture in an artisan resin cavity for transcendent resolution, expansive 3D stage depth, and sublime tonal neutrality.",
-    images: ["/figma/prod-mimisbrunnr.png"],
-    image: "/figma/prod-mimisbrunnr.png",
+    images: ["https://kineraaudio.com/cdn/shop/files/DSCF4788_grande.png?v=1734680879", "/figma/prod-mimisbrunnr.png"],
+    image: "https://kineraaudio.com/cdn/shop/files/DSCF4788_grande.png?v=1734680879",
     rating: 5.0,
     reviews: 34,
     badge: "New Arrival",
@@ -1049,7 +1178,7 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     soundSignature: "NEUTRAL",
     category: "IN-EAR MONITORS",
     brand: "64 AUDIO",
-    storeName: "Headphone Zone ID",
+    storeName: "Bass Audio Official",
     storeCity: "Jakarta Barat",
     description: "12 Balanced Armature drivers featuring tia tubeless technology and apex pressure-relieving modules.",
     images: ["https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800"],
@@ -1069,7 +1198,7 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     category: "IN-EAR MONITORS",
     brand: "SENNHEISER",
     storeName: "Bass Audio Official",
-    storeCity: "Jakarta Selatan",
+    storeCity: "Jakarta Barat",
     description: "Precision-milled aluminum chassis with X3R triple-resonator chamber and 7mm TrueResponse driver.",
     images: ["https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=800"],
     image: "https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=800",
@@ -1087,8 +1216,8 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     soundSignature: "WARM",
     category: "ACCESSORIES",
     brand: "EFFECT AUDIO",
-    storeName: "Linsoul Audio",
-    storeCity: "Surabaya",
+    storeName: "Effect Audio Official Store",
+    storeCity: "Jakarta Pusat",
     description: "Premium UP-OCC Pure Copper Litz wire with ConX interchangeable connector system.",
     images: ["https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800"],
     image: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800",
@@ -1107,7 +1236,7 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     category: "DAC/AMP",
     brand: "CHORD AUDIO",
     storeName: "Bass Audio Official",
-    storeCity: "Jakarta Selatan",
+    storeCity: "Jakarta Barat",
     description: "Custom FPGA-based DAC with lossless Ultra-HD DSP and dual 3.5mm headphone outputs.",
     images: ["https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=800"],
     image: "https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=800",
@@ -1125,8 +1254,8 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     soundSignature: "V_SHAPE",
     category: "IN-EAR MONITORS",
     brand: "CAMPFIRE AUDIO",
-    storeName: "Linsoul Audio",
-    storeCity: "Surabaya",
+    storeName: "Bass Audio Official",
+    storeCity: "Jakarta Barat",
     description: "Precision-machined stainless steel housing with brass accents and 3 custom dual-diaphragm balanced armatures.",
     images: ["https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800"],
     image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800",
@@ -1144,8 +1273,8 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     soundSignature: "WARM",
     category: "IN-EAR MONITORS",
     brand: "ELYSIAN",
-    storeName: "Headphone Zone ID",
-    storeCity: "Jakarta Barat",
+    storeName: "Elysian Acoustic Official",
+    storeCity: "Jakarta Pusat",
     description: "6 Balanced Armature drivers with 3-way rotary bass switch and custom acoustic chamber.",
     images: ["https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800"],
     image: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800",
@@ -1164,7 +1293,7 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     category: "IN-EAR MONITORS",
     brand: "FATFREQ",
     storeName: "Bass Audio Official",
-    storeCity: "Jakarta Selatan",
+    storeCity: "Jakarta Barat",
     description: "Patented Bass Cannon technology providing +20dB sub-bass shelf below 200Hz without muddying mid frequencies.",
     images: ["https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=800"],
     image: "https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=800",
@@ -1182,7 +1311,7 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     soundSignature: "BRIGHT",
     category: "IN-EAR MONITORS",
     brand: "KIWI EARS",
-    storeName: "Linsoul Audio",
+    storeName: "CSI Zone",
     storeCity: "Surabaya",
     description: "Quadbrid design with 1 DLC Dynamic Driver, 2 Balanced Armatures, 1 Planar Magnetic Driver, and 1 PZT conductor.",
     images: ["https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800"],
@@ -1201,8 +1330,8 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     soundSignature: "BRIGHT",
     category: "IN-EAR MONITORS",
     brand: "SIMGOT",
-    storeName: "Headphone Zone ID",
-    storeCity: "Jakarta Barat",
+    storeName: "CSI Zone",
+    storeCity: "Surabaya",
     description: "Dual-magnetic dual-cavity dynamic driver with 1PR passive radiator for acoustic resonance optimization.",
     images: ["https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800"],
     image: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800",
@@ -1221,7 +1350,7 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     soundSignature: "V_SHAPE",
     category: "IN-EAR MONITORS",
     brand: "LETSHUOER",
-    storeName: "Linsoul Audio",
+    storeName: "CSI Zone",
     storeCity: "Surabaya",
     description: "14.8mm custom planar magnetic driver with modular cable system (2.5mm / 3.5mm / 4.4mm).",
     images: ["https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=800"],
@@ -1316,7 +1445,7 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     soundSignature: "NEUTRAL",
     category: "HEADPHONE",
     brand: "HIFIMAN",
-    storeName: "ShenzhenAudio Official",
+    storeName: "HiFiMAN Official Store",
     storeCity: "Jakarta Pusat",
     description: "Acoustically invisible stealth magnets with nanometer thickness diaphragm for holographic soundstage.",
     images: ["https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800"],
@@ -1401,8 +1530,8 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     soundSignature: "NEUTRAL",
     category: "TWS / WIRELESS",
     brand: "APPLE",
-    storeName: "CSI Zone",
-    storeCity: "Surabaya",
+    storeName: "Apple Official Store",
+    storeCity: "Jakarta Pusat",
     description: "Powered by Apple H2 headphone processor with 2x Active Noise Cancellation, Adaptive Transparency, and personalized Spatial Audio.",
     images: [
       "https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/MTJV3?wid=1144&hei=1144&fmt=jpeg&qlt=90",
@@ -1425,7 +1554,7 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     category: "TWS / WIRELESS",
     brand: "TECHNICS",
     storeName: "Bass Audio Official",
-    storeCity: "Jakarta Selatan",
+    storeCity: "Jakarta Barat",
     description: "10mm free-edge aluminum diaphragm with acoustic control chamber, industry-first 3-device multipoint pairing, and LDAC wireless audio.",
     images: ["https://images.unsplash.com/photo-1590658002970-d603a11dfb25?auto=format&fit=crop&w=800&q=80"],
     image: "https://images.unsplash.com/photo-1590658002970-d603a11dfb25?auto=format&fit=crop&w=800&q=80",
@@ -1462,8 +1591,8 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     soundSignature: "NEUTRAL",
     category: "HEADPHONE",
     brand: "FOCAL",
-    storeName: "Headphone Zone ID",
-    storeCity: "Jakarta Barat",
+    storeName: "Focal Official Store",
+    storeCity: "Jakarta Pusat",
     description: "Made in France Aluminum/Magnesium M-dome speaker drivers with integrated USB-DAC mode supporting native 24-bit/192kHz high-resolution audio.",
     images: ["https://images.unsplash.com/photo-1583394838336-acd977736f90?auto=format&fit=crop&w=800&q=80"],
     image: "https://images.unsplash.com/photo-1583394838336-acd977736f90?auto=format&fit=crop&w=800&q=80",
@@ -1500,8 +1629,8 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     soundSignature: "WARM",
     category: "HEADPHONE",
     brand: "MEZE AUDIO",
-    storeName: "Linsoul Audio",
-    storeCity: "Surabaya",
+    storeName: "Bass Audio Official",
+    storeCity: "Jakarta Barat",
     description: "50mm dynamic driver with Beryllium-coated polymer dome and carbon fiber cellulose composite, housed in sustainably harvested Black Walnut earcups.",
     images: ["https://images.unsplash.com/photo-1577174881658-0f30ed549adc?auto=format&fit=crop&w=800&q=80"],
     image: "https://images.unsplash.com/photo-1577174881658-0f30ed549adc?auto=format&fit=crop&w=800&q=80",
@@ -1520,7 +1649,7 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     category: "DAC/AMP",
     brand: "FIIO",
     storeName: "Bass Audio Official",
-    storeCity: "Jakarta Selatan",
+    storeCity: "Jakarta Barat",
     description: "Dual ES9219C DACs with THX AAA-28 amplifier architecture, 3.5mm SE + 4.4mm balanced output, color IPS display, and Qi wireless charging.",
     images: ["https://images.unsplash.com/photo-1558089687-f282ffcbc126?auto=format&fit=crop&w=800&q=80"],
     image: "https://images.unsplash.com/photo-1558089687-f282ffcbc126?auto=format&fit=crop&w=800&q=80",
@@ -1538,7 +1667,7 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     soundSignature: "WARM",
     category: "DAC/AMP",
     brand: "IFI AUDIO",
-    storeName: "Headphone Zone ID",
+    storeName: "Bass Audio Official",
     storeCity: "Jakarta Barat",
     description: "Cirrus Logic 32-bit DAC with DirectDrive analog circuitry, XBass and XSpace analog sound enhancement, and 4.4mm balanced output in a matchbox size.",
     images: ["https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?auto=format&fit=crop&w=800&q=80"],
@@ -1595,8 +1724,8 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     soundSignature: "NEUTRAL",
     category: "DAC/AMP",
     brand: "TOPPING",
-    storeName: "Linsoul Audio",
-    storeCity: "Surabaya",
+    storeName: "Bass Audio Official",
+    storeCity: "Jakarta Barat",
     description: "ESS ES9038Q2M DAC chip with NFCA headphone amplification, Bluetooth 5.0 LDAC receiver, USB/Optical/Coaxial inputs, and remote control.",
     images: ["https://images.unsplash.com/photo-1516962215378-7fa2e137ae93?auto=format&fit=crop&w=800&q=80"],
     image: "https://images.unsplash.com/photo-1516962215378-7fa2e137ae93?auto=format&fit=crop&w=800&q=80",
@@ -1614,7 +1743,7 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     soundSignature: "NEUTRAL",
     category: "IN-EAR MONITORS",
     brand: "TRUTHEAR",
-    storeName: "ShenzhenAudio Official",
+    storeName: "Truthear Official Store",
     storeCity: "Jakarta Pusat",
     description: "Dual dynamic driver (10mm + 7.8mm) with polyurethane suspension composite liquid crystal dome, tuned to the Crinacle Target with optional 10Ω bass adapter.",
     images: ["https://images.unsplash.com/photo-1613040809024-b4ef7ba99bc3?auto=format&fit=crop&w=800&q=80"],
@@ -1633,7 +1762,7 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     soundSignature: "NEUTRAL",
     category: "IN-EAR MONITORS",
     brand: "7HZ",
-    storeName: "Linsoul Audio",
+    storeName: "CSI Zone",
     storeCity: "Surabaya",
     description: "10mm dynamic driver with metal composite diaphragm, precision acoustic cavity, and detachable 0.78mm 2-pin silver-plated OFC cable.",
     images: ["/images/transparent/7hz-zero-transparent.png"],
@@ -1652,7 +1781,7 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     soundSignature: "WARM",
     category: "IN-EAR MONITORS",
     brand: "KIWI EARS",
-    storeName: "Linsoul Audio",
+    storeName: "CSI Zone",
     storeCity: "Surabaya",
     description: "Acclaimed 10mm beryllium-coated dynamic driver housed in an artisan medical-grade 3D printed resin shell, celebrated for punchy bass authority and natural musical timbre.",
     images: ["/images/transparent/cadenza-transparent.png", "/images/kiwi-ears-cadenza-gallery.webp"],
@@ -1742,7 +1871,7 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     image: "/images/tanchjim-nora-showcase.webp",
     rating: 4.9,
     reviews: 94,
-    badge: "Top Rated",
+    badge: "New Arrival",
     inStock: true,
     preOrder: false,
     driverType: "DMT5-Architecture Dual-Magnetic Dual-Cavity Dynamic Driver with DLC Dome",
@@ -1997,6 +2126,8 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
   },
 ];
 
+export const PRODUCTS_DB = FALLBACK_CATALOG;
+
 export const ID_ALIASES: Record<string, string> = {
   "waner-redlion": "prod-waner-redlion",
   "tangzu-waner-redlion": "prod-waner-redlion",
@@ -2176,23 +2307,256 @@ export function findFallbackMatch(id?: string, name?: string): CatalogProduct | 
 // In-memory catalog cache with request deduplication
 let cachedCatalog: CatalogProduct[] | null = null;
 let cacheTimestamp = 0;
-const CACHE_TTL_MS = 60 * 1000; // 60s memory cache
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5m memory cache with background revalidation
+const CACHE_STORAGE_KEY = "tonalzone_cached_catalog_v4";
 let pendingCatalogPromise: Promise<CatalogProduct[]> | null = null;
 
 export function invalidateCatalogCache(): void {
   cachedCatalog = null;
   cacheTimestamp = 0;
   pendingCatalogPromise = null;
+  if (typeof window !== "undefined") {
+    try {
+      sessionStorage.removeItem(CACHE_STORAGE_KEY);
+      localStorage.removeItem(CACHE_STORAGE_KEY);
+      sessionStorage.removeItem("tonalzone_cached_catalog");
+      localStorage.removeItem("tonalzone_cached_catalog");
+    } catch {}
+  }
 }
 
 if (typeof window !== "undefined") {
   window.addEventListener("productsUpdated", () => invalidateCatalogCache());
+  window.addEventListener("storage", (e) => {
+    if (e.key === "tonalzone_custom_products" || e.key === "tonalzone_admin_products") {
+      invalidateCatalogCache();
+    }
+  });
+}
+
+/**
+ * Normalizes product name and brand into a canonical model key
+ * to deduplicate identical models across multiple sellers.
+ */
+export function normalizeProductModelKey(name: string, brand?: string): string {
+  if (!name) return "";
+  let norm = name.toLowerCase().trim();
+
+  // Normalize Roman numerals: "iii" -> "3", "ii" -> "2", "iv" -> "4"
+  norm = norm
+    .replace(/\biii\b/g, "3")
+    .replace(/\bii\b/g, "2")
+    .replace(/\biv\b/g, "4");
+
+  // Remove common generic suffix words
+  norm = norm
+    .replace(/\bgaming\s+iem\b/g, "")
+    .replace(/\bin-?ear\s+monitors?\b/g, "")
+    .replace(/\biems?\b/g, "")
+    .replace(/\bearphones?\b/g, "")
+    .replace(/\bearbuds?\b/g, "")
+    .replace(/\baudiophile\b/g, "")
+    .replace(/\bheadphones?\b/g, "");
+
+  // Remove non-alphanumeric characters
+  norm = norm.replace(/[^a-z0-9]/g, "");
+
+  // If brand is provided and not already at start of norm, prepend brand
+  if (brand) {
+    const brandClean = brand.toLowerCase().replace(/[^a-z0-9]/g, "");
+    if (brandClean && !norm.startsWith(brandClean)) {
+      norm = `${brandClean}${norm}`;
+    }
+  }
+
+  return norm;
+}
+
+/**
+ * Deduplicates and groups identical models across multiple sellers into a single master product.
+ * Each master product attaches `sellerOffers` array containing all participating sellers.
+ */
+export function groupProductsByModel(products: CatalogProduct[]): CatalogProduct[] {
+  if (!Array.isArray(products) || products.length === 0) return [];
+
+  const groups = new Map<string, CatalogProduct[]>();
+
+  for (const p of products) {
+    const key = normalizeProductModelKey(p.name, p.brand) || p.id.toLowerCase().replace(/[^a-z0-9]/g, "");
+    const list = groups.get(key) || [];
+    list.push(p);
+    groups.set(key, list);
+  }
+
+  const result: CatalogProduct[] = [];
+
+  for (const group of groups.values()) {
+    if (group.length === 1) {
+      const p = group[0];
+      const isOfficial = (p.storeName || "").toLowerCase().includes("official") || p.storeId === "store-moondrop-official";
+      const origPrice = Math.round(p.price * 1.15);
+      const discount = Math.round(((origPrice - p.price) / origPrice) * 100);
+
+      const singleOffer: SellerOffer = {
+        id: `off-${p.id}`,
+        productId: p.id,
+        storeId: p.storeId || "",
+        storeName: p.storeName || "TonalZone Partner",
+        storeCity: p.storeCity || "Jakarta",
+        storeLogo: p.storeLogo || p.storeAvatar,
+        sellerType: isOfficial ? "OFFICIAL" : "AUTHORIZED",
+        badgeLabel: isOfficial ? "OFFICIAL STORE" : "VERIFIED RETAILER",
+        condition: p.condition || "Brand New Sealed",
+        price: p.price,
+        originalPrice: origPrice,
+        discountPercent: discount > 0 ? discount : undefined,
+        stock: p.stock,
+        inStock: p.stock > 0,
+        highlightTag: isOfficial ? "Official Store" : "Verified Retailer",
+      };
+
+      result.push({
+        ...p,
+        sellerOffers: [singleOffer],
+        totalSellers: 1,
+        siblingProductIds: [p.id],
+      });
+      continue;
+    }
+
+    // Deduplicate group by storeId or storeName so a store only appears once per model
+    const uniqueStoreMap = new Map<string, CatalogProduct>();
+    for (const item of group) {
+      const storeKey = (item.storeId || item.storeName || "").toLowerCase();
+      if (!uniqueStoreMap.has(storeKey)) {
+        uniqueStoreMap.set(storeKey, item);
+      } else {
+        const existing = uniqueStoreMap.get(storeKey)!;
+        if (Number(item.stock) > Number(existing.stock)) {
+          uniqueStoreMap.set(storeKey, item);
+        }
+      }
+    }
+    const deduplicatedGroup = Array.from(uniqueStoreMap.values());
+
+    // Determine primary master product
+    // 1. Official store listing
+    // 2. Lowest price
+    // 3. First item
+    let primary = deduplicatedGroup.find((p) => {
+      const sName = (p.storeName || "").toLowerCase();
+      return sName.includes("official") || p.storeId === "store-moondrop-official";
+    });
+
+    if (!primary) {
+      primary = [...deduplicatedGroup].sort((a, b) => a.price - b.price)[0];
+    }
+
+    // Build sellerOffers sorted: Official store first, then lowest price
+    const offers: SellerOffer[] = deduplicatedGroup
+      .map((item) => {
+        const isOfficial = (item.storeName || "").toLowerCase().includes("official") || item.storeId === "store-moondrop-official";
+        const origPrice = Math.round(item.price * 1.15);
+        const discount = Math.round(((origPrice - item.price) / origPrice) * 100);
+
+        return {
+          id: `off-${item.id}`,
+          productId: item.id,
+          storeId: item.storeId || "",
+          storeName: item.storeName || "TonalZone Partner",
+          storeCity: item.storeCity || "Jakarta",
+          storeLogo: item.storeLogo || item.storeAvatar,
+          sellerType: (isOfficial ? "OFFICIAL" : "AUTHORIZED") as "OFFICIAL" | "AUTHORIZED",
+          badgeLabel: (isOfficial ? "OFFICIAL STORE" : "VERIFIED RETAILER") as "OFFICIAL STORE" | "VERIFIED RETAILER",
+          condition: item.condition || "Brand New Sealed",
+          price: item.price,
+          originalPrice: origPrice,
+          discountPercent: discount > 0 ? discount : undefined,
+          stock: item.stock,
+          inStock: item.stock > 0,
+          highlightTag: isOfficial ? "Official Store" : "Verified Retailer",
+        };
+      })
+      .sort((a, b) => {
+        if (a.sellerType === "OFFICIAL" && b.sellerType !== "OFFICIAL") return -1;
+        if (b.sellerType === "OFFICIAL" && a.sellerType !== "OFFICIAL") return 1;
+        return a.price - b.price;
+      });
+
+    const prices = offers.map((o) => o.price);
+    const totalStock = deduplicatedGroup.reduce((sum, item) => sum + Math.max(0, Number(item.stock) || 0), 0);
+
+    // Merge all unique product images from the group
+    const allImages: string[] = [];
+    deduplicatedGroup.forEach((item) => {
+      if (Array.isArray(item.images)) {
+        item.images.forEach((img) => {
+          if (img && !allImages.includes(img)) allImages.push(img);
+        });
+      } else if (item.image && !allImages.includes(item.image)) {
+        allImages.push(item.image);
+      }
+    });
+
+    const masterProduct: CatalogProduct = {
+      ...primary,
+      images: allImages.length >= 3 ? allImages : primary.images,
+      image: primary.image || allImages[0],
+      stock: primary.stock > 0 ? primary.stock : totalStock,
+      inStock: totalStock > 0,
+      sellerOffers: offers,
+      totalSellers: offers.length,
+      siblingProductIds: group.map((g) => g.id),
+      minPrice: Math.min(...prices),
+      maxPrice: Math.max(...prices),
+    };
+
+    result.push(masterProduct);
+  }
+
+  return result;
+}
+
+let deterministicFallbackCatalog: CatalogProduct[] | null = null;
+
+export function getInstantCatalog(): CatalogProduct[] {
+  if (!deterministicFallbackCatalog) {
+    const raw = FALLBACK_CATALOG.map((p) => {
+      const isMoondrop = (p.brand || "").toUpperCase().includes("MOONDROP") || (p.name || "").toUpperCase().includes("MOONDROP");
+      return enhanceProductWithSpecs({
+        ...p,
+        storeId: isMoondrop ? "store-moondrop-official" : p.storeId || "store-bass-audio",
+        storeName: isMoondrop ? "MOONDROP Official Flagship Store" : p.storeName,
+      });
+    });
+    deterministicFallbackCatalog = groupProductsByModel(raw);
+  }
+  return deterministicFallbackCatalog;
 }
 
 export async function fetchProductsFromDb(): Promise<CatalogProduct[]> {
   const now = Date.now();
   if (cachedCatalog && now - cacheTimestamp < CACHE_TTL_MS) {
     return mergeWithAdminAndCustomProducts(cachedCatalog);
+  }
+
+  // Fast-path: immediately return from localStorage/sessionStorage and revalidate in background
+  if (!cachedCatalog && typeof window !== "undefined") {
+    try {
+      // Clean legacy cache keys if present
+      localStorage.removeItem("tonalzone_cached_catalog");
+      sessionStorage.removeItem("tonalzone_cached_catalog");
+
+      const stored = sessionStorage.getItem(CACHE_STORAGE_KEY) || localStorage.getItem(CACHE_STORAGE_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0 && parsed[0]?.sellerOffers) {
+          cachedCatalog = parsed;
+          cacheTimestamp = Date.now();
+          return mergeWithAdminAndCustomProducts(parsed);
+        }
+      }
+    } catch {}
   }
 
   if (pendingCatalogPromise) {
@@ -2205,9 +2569,19 @@ export async function fetchProductsFromDb(): Promise<CatalogProduct[]> {
       const { data, error } = await supabase
         .from("Product")
         .select(`
-          *,
+          id,
+          name,
+          price,
+          stock,
+          description,
+          images,
+          experienceLevel,
+          soundSignature,
+          brandId,
+          storeId,
+          categoryId,
           brand:Brand(name),
-          store:Store(id, storeName, address, logo, banner, avatarUrl, bannerUrl),
+          store:Store(id, storeName, address, logo, avatarUrl),
           category:Category(name)
         `)
         .order("price", { ascending: false });
@@ -2216,17 +2590,17 @@ export async function fetchProductsFromDb(): Promise<CatalogProduct[]> {
         const dbProducts = data.map((item: any, index: number) => {
           const brandName = Array.isArray(item.brand) ? item.brand[0]?.name : item.brand?.name || "Audiophile";
           const fallbackMatch = findFallbackMatch(item.id, item.name);
-          const isMoondrop =
+          const storeRaw = Array.isArray(item.store) ? item.store[0] : item.store;
+          const actualStoreName = storeRaw?.storeName || item.storeName;
+          const isMoondrop = !actualStoreName && (
             brandName.toUpperCase().includes("MOONDROP") ||
             item.name.toUpperCase().includes("MOONDROP") ||
-            (fallbackMatch?.brand || "").toUpperCase().includes("MOONDROP");
+            (fallbackMatch?.brand || "").toUpperCase().includes("MOONDROP")
+          );
 
-          const storeRaw = Array.isArray(item.store) ? item.store[0] : item.store;
-          const storeName = isMoondrop
-            ? "MOONDROP Official Flagship Store"
-            : storeRaw?.storeName || "TonalZone Partner";
-          const resolvedStoreId = isMoondrop ? "store-moondrop-official" : item.storeId || "store-bass-audio";
-          const storeCity = storeRaw?.address || "Jakarta";
+          const storeName = actualStoreName || (isMoondrop ? "MOONDROP Official Flagship Store" : "TonalZone Partner");
+          const resolvedStoreId = item.storeId || storeRaw?.id || (isMoondrop ? "store-moondrop-official" : "store-bass-audio");
+          const storeCity = storeRaw?.address || item.storeCity || "Jakarta";
           const storeLogo = storeRaw?.logo || storeRaw?.avatarUrl || undefined;
           const storeBanner = storeRaw?.banner || storeRaw?.bannerUrl || undefined;
           const catName = Array.isArray(item.category) ? item.category[0]?.name : item.category?.name || "IN-EAR MONITORS";
@@ -2234,12 +2608,14 @@ export async function fetchProductsFromDb(): Promise<CatalogProduct[]> {
             ? item.images
             : (fallbackMatch?.images && fallbackMatch.images.length >= 3 ? fallbackMatch.images : Array.isArray(item.images) && item.images.length > 0 ? item.images : ["/images/chu3-preview-1.webp"]);
 
+          const { cleanDescription, specs } = extractSpecsFromDescription(item.description);
+          const parsedStock = safeParseStock(item.stock, fallbackMatch?.stock ?? 10);
           const rawProduct: CatalogProduct = {
             ...item,
             id: item.id,
             name: item.name,
             price: Number(item.price) || fallbackMatch?.price || 99,
-            stock: Number(item.stock) || fallbackMatch?.stock || 10,
+            stock: parsedStock,
             experienceLevel: item.experienceLevel || fallbackMatch?.experienceLevel || "INTERMEDIATE",
             soundSignature: item.soundSignature || fallbackMatch?.soundSignature || "NEUTRAL",
             category: catName,
@@ -2250,14 +2626,23 @@ export async function fetchProductsFromDb(): Promise<CatalogProduct[]> {
             storeLogo,
             storeAvatar: storeLogo,
             storeBanner,
-            description: item.description || fallbackMatch?.description || "Audiophile Reference Gear",
+            description: cleanDescription || fallbackMatch?.description || "Audiophile Reference Gear",
             images: imgList,
             image: imgList[0],
             rating: fallbackMatch?.rating ?? (4.7 + (index % 4) * 0.1),
             reviews: fallbackMatch?.reviews ?? (24 + (index * 7) % 180),
             badge: fallbackMatch?.badge ?? (index < 6 ? "Best Seller" : index % 5 === 0 ? "New Arrival" : undefined),
-            inStock: (Number(item.stock) || 10) > 0,
-            preOrder: (Number(item.stock) || 10) <= 2,
+            inStock: parsedStock > 0,
+            preOrder: parsedStock > 0 && parsedStock <= 2,
+            driverType: specs.driverType || item.driverType,
+            impedance: specs.impedance || item.impedance,
+            sensitivity: specs.sensitivity || item.sensitivity,
+            frequencyResponse: specs.frequencyResponse || item.frequencyResponse,
+            cableTermination: specs.cableTermination || item.cableTermination,
+            material: specs.material || item.material,
+            tuning: specs.tuning || item.tuning,
+            warrantyMonths: specs.warrantyMonths || item.warrantyMonths,
+            condition: specs.condition || item.condition,
             variants: item.variants || item.variantOptions || item.variant_options,
             colors: item.colors || item.colorOptions || item.color_options,
           };
@@ -2265,9 +2650,16 @@ export async function fetchProductsFromDb(): Promise<CatalogProduct[]> {
           return enhanceProductWithSpecs(rawProduct);
         });
 
-        cachedCatalog = dbProducts;
+        const grouped = groupProductsByModel(dbProducts);
+        cachedCatalog = grouped;
         cacheTimestamp = Date.now();
-        return dbProducts;
+        if (typeof window !== "undefined") {
+          try {
+            sessionStorage.setItem(CACHE_STORAGE_KEY, JSON.stringify(grouped));
+            localStorage.setItem(CACHE_STORAGE_KEY, JSON.stringify(grouped));
+          } catch {}
+        }
+        return grouped;
       }
 
       const fallback = FALLBACK_CATALOG.map((p) => {
@@ -2278,9 +2670,10 @@ export async function fetchProductsFromDb(): Promise<CatalogProduct[]> {
           storeName: isMoondrop ? "MOONDROP Official Flagship Store" : p.storeName,
         });
       });
-      cachedCatalog = fallback;
+      const groupedFallback = groupProductsByModel(fallback);
+      cachedCatalog = groupedFallback;
       cacheTimestamp = Date.now();
-      return fallback;
+      return groupedFallback;
     } catch (err) {
       console.error("[Products DB] Exception while fetching:", err);
       const fallback = FALLBACK_CATALOG.map((p) => {
@@ -2291,7 +2684,8 @@ export async function fetchProductsFromDb(): Promise<CatalogProduct[]> {
           storeName: isMoondrop ? "MOONDROP Official Flagship Store" : p.storeName,
         });
       });
-      return fallback;
+      const groupedFallback = groupProductsByModel(fallback);
+      return groupedFallback;
     } finally {
       pendingCatalogPromise = null;
     }
@@ -2326,11 +2720,13 @@ export function mergeWithAdminAndCustomProducts(baseList: CatalogProduct[]): Cat
       // If APPROVED by admin or official brand, inject or ensure in storefront
       if (effectiveStatus === "APPROVED") {
         const existingIdx = result.findIndex((r) => r.id === cp.id);
+        const { cleanDescription, specs } = extractSpecsFromDescription(cp.description);
+        const cpStock = safeParseStock(adminOverride?.stock ?? cp.stock, 0);
         const mappedProd: CatalogProduct = {
           id: cp.id,
           name: adminOverride?.name || cp.name,
           price: Number(adminOverride?.price ?? cp.priceUSD ?? cp.price) || 99,
-          stock: Number(adminOverride?.stock ?? cp.stock) || 10,
+          stock: cpStock,
           experienceLevel: cp.experienceLevel || "INTERMEDIATE",
           soundSignature: ((cp.soundSignature || "NEUTRAL") as string).toUpperCase().replace("-", "_") as any,
           category: adminOverride?.category || cp.category || "IN-EAR MONITORS",
@@ -2338,20 +2734,33 @@ export function mergeWithAdminAndCustomProducts(baseList: CatalogProduct[]): Cat
           storeId: cp.storeId || "store-seller",
           storeName: cp.storeName || "Seller Store",
           storeCity: cp.storeCity || "Jakarta",
-          description: cp.description || cp.specsSummary || "Audiophile Reference Gear",
+          description: cleanDescription || cp.description || cp.specsSummary || "Audiophile Reference Gear",
           images: cp.images && cp.images.length > 0 ? cp.images : [cp.image || "/model-iem-untuk-hero.webp"],
           image: cp.image || cp.images?.[0] || "/model-iem-untuk-hero.webp",
           rating: 5.0,
           reviews: 1,
-          inStock: (Number(adminOverride?.stock ?? cp.stock) || 10) > 0,
+          inStock: cpStock > 0,
           preOrder: false,
+          driverType: cp.driverType || specs.driverType,
+          impedance: cp.impedance || specs.impedance,
+          sensitivity: cp.sensitivity || specs.sensitivity,
+          frequencyResponse: cp.frequencyResponse || specs.frequencyResponse,
+          cableTermination: cp.cableTermination || specs.cableTermination,
+          material: cp.material || specs.material,
+          tuning: cp.tuning || specs.tuning,
+          warrantyMonths: cp.warrantyMonths || specs.warrantyMonths,
+          condition: cp.condition || specs.condition,
           variants: cp.variants,
         };
 
         if (existingIdx >= 0) {
           result[existingIdx] = enhanceProductWithSpecs({ ...result[existingIdx], ...mappedProd });
         } else {
-          result.unshift(enhanceProductWithSpecs(mappedProd));
+          if (cpStock > 0) {
+            result.unshift(enhanceProductWithSpecs(mappedProd));
+          } else {
+            result.push(enhanceProductWithSpecs(mappedProd));
+          }
         }
       } else {
         // If explicitly REJECTED by admin, ensure it is NOT visible in storefront
@@ -2368,22 +2777,31 @@ export function mergeWithAdminAndCustomProducts(baseList: CatalogProduct[]): Cat
         if (ap.status === "REJECTED" || ap.status === "PENDING") {
           result.splice(idx, 1);
         } else {
+          const apStock = safeParseStock(ap.stock, result[idx].stock);
           result[idx] = {
             ...result[idx],
             name: ap.name || result[idx].name,
             price: Number(ap.price) || result[idx].price,
-            stock: Number(ap.stock) || result[idx].stock,
+            stock: apStock,
             category: ap.category || result[idx].category,
-            inStock: (Number(ap.stock) || result[idx].stock) > 0,
+            inStock: apStock > 0,
           };
         }
       }
+    });
+
+    // Always sort out of stock items to the absolute bottom of the merged catalog
+    result.sort((a, b) => {
+      const aOut = Number(a.stock) <= 0 || a.inStock === false || (a as any).status === "OUT_OF_STOCK";
+      const bOut = Number(b.stock) <= 0 || b.inStock === false || (b as any).status === "OUT_OF_STOCK";
+      if (aOut !== bOut) return aOut ? 1 : -1;
+      return 0;
     });
   } catch (e) {
     console.warn("Error merging admin/custom products:", e);
   }
 
-  return result;
+  return groupProductsByModel(result);
 }
 
 export async function fetchProductByIdFromDb(id: string): Promise<CatalogProduct | null> {
@@ -2405,11 +2823,13 @@ export async function fetchProductByIdFromDb(id: string): Promise<CatalogProduct
         const adminOverride = adminList.find((a) => a.id === customMatch.id);
         const effectiveStatus = adminOverride?.status || customMatch.status || "PENDING";
         if (effectiveStatus === "APPROVED") {
-          return enhanceProductWithSpecs({
+          const { cleanDescription, specs } = extractSpecsFromDescription(customMatch.description);
+          const matchedStock = safeParseStock(adminOverride?.stock ?? customMatch.stock, 0);
+          const customProd = enhanceProductWithSpecs({
             id: customMatch.id,
             name: adminOverride?.name || customMatch.name,
             price: Number(adminOverride?.price ?? customMatch.priceUSD ?? customMatch.price) || 99,
-            stock: Number(adminOverride?.stock ?? customMatch.stock) || 10,
+            stock: matchedStock,
             experienceLevel: customMatch.experienceLevel || "INTERMEDIATE",
             soundSignature: ((customMatch.soundSignature || "NEUTRAL") as string).toUpperCase().replace("-", "_") as any,
             category: adminOverride?.category || customMatch.category || "IN-EAR MONITORS",
@@ -2417,15 +2837,34 @@ export async function fetchProductByIdFromDb(id: string): Promise<CatalogProduct
             storeId: customMatch.storeId || "store-seller",
             storeName: customMatch.storeName || "Seller Store",
             storeCity: customMatch.storeCity || "Jakarta",
-            description: customMatch.description || customMatch.specsSummary || "Audiophile Reference Gear",
+            description: cleanDescription || customMatch.description || customMatch.specsSummary || "Audiophile Reference Gear",
             images: customMatch.images && customMatch.images.length > 0 ? customMatch.images : [customMatch.image || "/model-iem-untuk-hero.webp"],
             image: customMatch.image || customMatch.images?.[0] || "/model-iem-untuk-hero.webp",
             rating: 5.0,
             reviews: 1,
-            inStock: (Number(adminOverride?.stock ?? customMatch.stock) || 10) > 0,
+            inStock: matchedStock > 0,
             preOrder: false,
+            driverType: customMatch.driverType || specs.driverType,
+            impedance: customMatch.impedance || specs.impedance,
+            sensitivity: customMatch.sensitivity || specs.sensitivity,
+            frequencyResponse: customMatch.frequencyResponse || specs.frequencyResponse,
+            cableTermination: customMatch.cableTermination || specs.cableTermination,
+            material: customMatch.material || specs.material,
+            tuning: customMatch.tuning || specs.tuning,
+            warrantyMonths: customMatch.warrantyMonths || specs.warrantyMonths,
+            condition: customMatch.condition || specs.condition,
             variants: customMatch.variants,
           });
+
+          // Check if there is a parent grouped product with all sibling offers
+          const allDb = await fetchProductsFromDb();
+          const groupedParent = allDb.find((p) =>
+            p.id === customProd.id ||
+            p.siblingProductIds?.includes(customProd.id) ||
+            p.sellerOffers?.some((o) => o.productId === customProd.id) ||
+            normalizeProductModelKey(p.name, p.brand) === normalizeProductModelKey(customProd.name, customProd.brand)
+          );
+          return groupedParent ? enhanceProductWithSpecs(groupedParent) : customProd;
         }
       }
     } catch (e) {}
@@ -2433,16 +2872,19 @@ export async function fetchProductByIdFromDb(id: string): Promise<CatalogProduct
 
   // Fast-path: Check in-memory cache before hitting Supabase network roundtrip
   if (cachedCatalog && cachedCatalog.length > 0) {
-    const cachedItem = cachedCatalog.find((p) => {
+    const catalogToCheck = cachedCatalog || getInstantCatalog();
+    const cachedItem = catalogToCheck.find((p) => {
       const pNorm = p.id.toLowerCase().replace(/[^a-z0-9]/g, "");
       const pNorm3 = pNorm.replace(/iii/g, "3").replace(/ii/g, "2");
       const pNameNorm = p.name.toLowerCase().replace(/[^a-z0-9]/g, "").replace(/iii/g, "3").replace(/ii/g, "2");
       const isSubMatch = norm3.length >= 3 && (pNorm3.includes(norm3) || norm3.includes(pNorm3) || pNameNorm.includes(norm3));
+      const isSiblingMatch = p.siblingProductIds?.includes(resolvedId) || p.sellerOffers?.some((o) => o.productId === resolvedId || o.id === resolvedId);
       return (
         p.id === resolvedId ||
         p.id === cleanId ||
         pNorm === norm ||
         pNorm3 === norm3 ||
+        isSiblingMatch ||
         isSubMatch
       );
     });
@@ -2452,13 +2894,23 @@ export async function fetchProductByIdFromDb(id: string): Promise<CatalogProduct
   }
 
   try {
-    // 1. Direct match by ID in Supabase
+    // 1. Direct match by ID in Supabase with lean projection
     const { data, error } = await supabase
       .from("Product")
       .select(`
-        *,
+        id,
+        name,
+        price,
+        stock,
+        description,
+        images,
+        experienceLevel,
+        soundSignature,
+        brandId,
+        storeId,
+        categoryId,
         brand:Brand(name),
-        store:Store(id, storeName, address, logo, banner, avatarUrl, bannerUrl),
+        store:Store(id, storeName, address, logo, avatarUrl),
         category:Category(name)
       `)
       .eq("id", resolvedId)
@@ -2467,18 +2919,32 @@ export async function fetchProductByIdFromDb(id: string): Promise<CatalogProduct
     if (!error && data) {
       const item: any = data;
       const brandName = Array.isArray(item.brand) ? item.brand[0]?.name : item.brand?.name || "Audiophile";
+
+      // Consolidate with full model-grouped catalog so all sibling store offers are attached
+      const allDb = await fetchProductsFromDb();
+      const parentGrouped = allDb.find((p) =>
+        p.id === data.id ||
+        p.siblingProductIds?.includes(data.id) ||
+        p.sellerOffers?.some((o) => o.productId === data.id) ||
+        normalizeProductModelKey(p.name, p.brand) === normalizeProductModelKey(data.name, brandName)
+      );
+
+      if (parentGrouped) {
+        return enhanceProductWithSpecs(parentGrouped);
+      }
+
       const fallbackMatch = findFallbackMatch(data.id, data.name);
-      const isMoondrop =
+      const storeRaw = Array.isArray(item.store) ? item.store[0] : item.store;
+      const actualStoreName = storeRaw?.storeName || item.storeName;
+      const isMoondrop = !actualStoreName && (
         brandName.toUpperCase().includes("MOONDROP") ||
         item.name.toUpperCase().includes("MOONDROP") ||
-        (fallbackMatch?.brand || "").toUpperCase().includes("MOONDROP");
+        (fallbackMatch?.brand || "").toUpperCase().includes("MOONDROP")
+      );
 
-      const storeRaw = Array.isArray(item.store) ? item.store[0] : item.store;
-      const storeName = isMoondrop
-        ? "MOONDROP Official Flagship Store"
-        : storeRaw?.storeName || "TonalZone Partner";
-      const resolvedStoreId = isMoondrop ? "store-moondrop-official" : item.storeId || "store-bass-audio";
-      const storeCity = storeRaw?.address || "Jakarta";
+      const storeName = actualStoreName || (isMoondrop ? "MOONDROP Official Flagship Store" : "TonalZone Partner");
+      const resolvedStoreId = item.storeId || storeRaw?.id || (isMoondrop ? "store-moondrop-official" : "store-bass-audio");
+      const storeCity = storeRaw?.address || item.storeCity || "Jakarta";
       const storeLogo = storeRaw?.logo || storeRaw?.avatarUrl || undefined;
       const storeBanner = storeRaw?.banner || storeRaw?.bannerUrl || undefined;
       const catName = Array.isArray(item.category) ? item.category[0]?.name : item.category?.name || "IN-EAR MONITORS";
@@ -2486,12 +2952,14 @@ export async function fetchProductByIdFromDb(id: string): Promise<CatalogProduct
         ? item.images
         : (fallbackMatch?.images && fallbackMatch.images.length >= 3 ? fallbackMatch.images : Array.isArray(item.images) && item.images.length > 0 ? item.images : ["/images/chu3-preview-1.webp"]);
 
+      const { cleanDescription, specs } = extractSpecsFromDescription(data.description);
+      const dbStock = safeParseStock(data.stock, fallbackMatch?.stock ?? 10);
       const foundProduct: CatalogProduct = {
         ...data,
         id: data.id,
         name: data.name,
         price: Number(data.price) || fallbackMatch?.price || 99,
-        stock: Number(data.stock) || fallbackMatch?.stock || 10,
+        stock: dbStock,
         experienceLevel: data.experienceLevel || fallbackMatch?.experienceLevel || "INTERMEDIATE",
         soundSignature: data.soundSignature || fallbackMatch?.soundSignature || "NEUTRAL",
         category: catName,
@@ -2502,14 +2970,23 @@ export async function fetchProductByIdFromDb(id: string): Promise<CatalogProduct
         storeLogo,
         storeAvatar: storeLogo,
         storeBanner,
-        description: data.description || fallbackMatch?.description || "Audiophile Reference Gear",
+        description: cleanDescription || fallbackMatch?.description || "Audiophile Reference Gear",
         images: imgList,
         image: imgList[0],
         rating: fallbackMatch?.rating ?? 4.9,
         reviews: fallbackMatch?.reviews ?? 48,
         badge: fallbackMatch?.badge,
-        inStock: (Number(data.stock) || 10) > 0,
+        inStock: dbStock > 0,
         preOrder: false,
+        driverType: specs.driverType || (data as any).driverType,
+        impedance: specs.impedance || (data as any).impedance,
+        sensitivity: specs.sensitivity || (data as any).sensitivity,
+        frequencyResponse: specs.frequencyResponse || (data as any).frequencyResponse,
+        cableTermination: specs.cableTermination || (data as any).cableTermination,
+        material: specs.material || (data as any).material,
+        tuning: specs.tuning || (data as any).tuning,
+        warrantyMonths: specs.warrantyMonths || (data as any).warrantyMonths,
+        condition: specs.condition || (data as any).condition,
         variants: (data as any).variants || (data as any).variantOptions || (data as any).variant_options,
         colors: (data as any).colors || (data as any).colorOptions || (data as any).color_options,
       };
@@ -2524,10 +3001,12 @@ export async function fetchProductByIdFromDb(id: string): Promise<CatalogProduct
       const pNorm3 = pNorm.replace(/iii/g, "3").replace(/ii/g, "2");
       const pNameNorm = p.name.toLowerCase().replace(/[^a-z0-9]/g, "").replace(/iii/g, "3").replace(/ii/g, "2");
       const isSubMatch = norm3.length >= 3 && (pNorm3.includes(norm3) || norm3.includes(pNorm3) || pNameNorm.includes(norm3));
+      const isSiblingMatch = p.siblingProductIds?.includes(resolvedId) || p.sellerOffers?.some((o) => o.productId === resolvedId || o.id === resolvedId);
       return (
         p.id === resolvedId ||
         pNorm === norm ||
         pNorm3 === norm3 ||
+        isSiblingMatch ||
         isSubMatch
       );
     });

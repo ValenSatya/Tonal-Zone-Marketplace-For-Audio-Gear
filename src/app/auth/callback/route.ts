@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { userRepo } from "@/lib/supabase-db";
 import { cookies } from "next/headers";
 import { sanitizeAvatarForCookie } from "@/lib/auth/roles";
+import { signSession } from "@/lib/auth/security";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
@@ -63,8 +64,9 @@ export async function GET(request: Request) {
         language: dbUser.language || finalLanguage,
       };
 
+      const signedToken = signSession(sessionPayload);
       const cookieStore = await cookies();
-      cookieStore.set("tonalzone_session", encodeURIComponent(JSON.stringify(sessionPayload)), {
+      cookieStore.set("tonalzone_session", encodeURIComponent(signedToken), {
         path: "/",
         maxAge: 60 * 60 * 24 * 7,
         sameSite: "lax",

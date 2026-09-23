@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "node --max-http-header-size=131072 ./node_modules/next/dist/bin/next dev",
-    "build": "node --max-http-header-size=131072 ./node_modules/next/dist/bin/next build",
-    "start": "node --max-http-header-size=131072 ./node_modules/next/dist/bin/next start",
+    "dev": "node --max-http-header-size=1048576 ./node_modules/next/dist/bin/next dev",
+    "build": "node --max-http-header-size=1048576 ./node_modules/next/dist/bin/next build",
+    "start": "node --max-http-header-size=1048576 ./node_modules/next/dist/bin/next start",
     "lint": "eslint",
     "db:import": "npx tsx import-csv-to-db.ts"
   },

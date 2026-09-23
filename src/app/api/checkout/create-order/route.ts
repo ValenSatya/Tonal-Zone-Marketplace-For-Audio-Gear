@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { splitOrderForCheckout, createMidtransSnapTransaction, CartItemCheckoutInput, PaymentMethod } from "@/lib/escrow";
-import { orderRepo, productRepo } from "@/lib/supabase-db";
+import { orderRepo, productRepo, voucherRepo } from "@/lib/supabase-db";
 
 export async function POST(request: Request) {
   try {
@@ -92,6 +92,10 @@ export async function POST(request: Request) {
         sub.grossAmountIDR = 1;
         sub.grossAmountUSD = 0.0000625;
       }
+    }
+
+    if (body.promoCode) {
+      voucherRepo.incrementUsage(String(body.promoCode)).catch(() => {});
     }
 
     // 2. Persist each subOrder in orderRepo

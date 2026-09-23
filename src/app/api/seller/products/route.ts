@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { productRepo, storeRepo, brandRepo, categoryRepo, userRepo, supabase } from "@/lib/supabase-db";
+import { extractSpecsFromDescription, FALLBACK_CATALOG } from "@/lib/products-db";
+import { BASS_AUDIO_PRODUCT_IDS, CSI_ZONE_PRODUCT_IDS } from "@/lib/store-utils";
+import { verifySession } from "@/lib/auth/security";
 
 /**
  * GET /api/seller/products
@@ -15,19 +18,23 @@ export async function GET(request: Request) {
     const categoryFilter = searchParams.get("category");
     const statusFilter = searchParams.get("status");
 
+    let hasActiveSession = false;
     // Attempt to extract seller store from cookie if storeId is not explicitly provided
     if (!storeId) {
       try {
         const cookieStore = await cookies();
         const sessionCookie = cookieStore.get("tonalzone_session");
-        if (sessionCookie) {
-          const session = JSON.parse(decodeURIComponent(sessionCookie.value));
-          if (session.storeId) {
-            storeId = session.storeId;
-          } else if (session.email) {
-            const user = await userRepo.findByEmail(session.email);
-            if (user?.store?.id) {
-              storeId = user.store.id;
+        if (sessionCookie?.value) {
+          const session = verifySession<{ id?: string; email?: string; storeId?: string }>(sessionCookie.value);
+          if (session) {
+            hasActiveSession = true;
+            if (session.storeId) {
+              storeId = session.storeId;
+            } else if (session.email) {
+              const user = await userRepo.findByEmail(session.email);
+              if (user?.store?.id) {
+                storeId = user.store.id;
+              }
             }
           }
         }
@@ -44,16 +51,44 @@ export async function GET(request: Request) {
 
     // Scoped products by storeId (100% multi-tenant isolation)
     let rawProducts: any[] = [];
+    const isBassQuery = (storeId || "").toLowerCase().includes("bass") || (sellerEmail || "").toLowerCase().includes("bass");
+    const isCsiQuery = (storeId || "").toLowerCase().includes("csi") || (sellerEmail || "").toLowerCase().includes("csi");
+
     if (storeId) {
       rawProducts = await productRepo.findByStoreId(storeId);
-    } else {
-      // If no storeId from query or session, fall back to official Moondrop store
-      const moondropStore = await storeRepo.findById("store-moondrop-official");
-      if (moondropStore) {
-        storeId = moondropStore.id;
-        rawProducts = await productRepo.findByStoreId(storeId);
-      } else {
-        rawProducts = [];
+    }
+
+    // Fallback to static catalog if Supabase table has no rows for this store yet
+    if (rawProducts.length === 0) {
+      if (isBassQuery) {
+        storeId = storeId || "store-bass-audio";
+        rawProducts = FALLBACK_CATALOG.filter(
+          (p: any) => p.storeName?.toLowerCase().includes("bass audio") || BASS_AUDIO_PRODUCT_IDS.has(p.id)
+        ).map((p: any) => ({
+          ...p,
+          storeId: "store-bass-audio",
+          brand: { id: `brand-${(p.brand || "generic").toLowerCase()}`, name: p.brand },
+          category: { id: `cat-${(p.category || "iem").toLowerCase()}`, name: p.category },
+          status: "APPROVED",
+        }));
+      } else if (isCsiQuery) {
+        storeId = storeId || "store-csi-zone";
+        rawProducts = FALLBACK_CATALOG.filter(
+          (p: any) => p.storeName?.toLowerCase().includes("csi zone") || CSI_ZONE_PRODUCT_IDS.has(p.id)
+        ).map((p: any) => ({
+          ...p,
+          storeId: "store-csi-zone",
+          brand: { id: `brand-${(p.brand || "generic").toLowerCase()}`, name: p.brand },
+          category: { id: `cat-${(p.category || "iem").toLowerCase()}`, name: p.category },
+          status: "APPROVED",
+        }));
+      } else if (!storeId && !hasActiveSession) {
+        // Fall back to official Moondrop store ONLY if no store specified and no user session
+        const moondropStore = await storeRepo.findById("store-moondrop-official");
+        if (moondropStore) {
+          storeId = moondropStore.id;
+          rawProducts = await productRepo.findByStoreId(storeId);
+        }
       }
     }
 
@@ -85,20 +120,25 @@ export async function GET(request: Request) {
       const brandName = p.brand?.name || "Audiophile";
       const catName = p.category?.name || "IN-EAR MONITORS";
       const imgs = Array.isArray(p.images) && p.images.length > 0 ? p.images : ["/model-iem-untuk-hero.webp"];
+      const { cleanDescription, specs } = extractSpecsFromDescription(p.description);
 
       return {
         id: p.id,
         name: p.name,
         brand: brandName,
         category: catName,
-        specsSummary: `${p.soundSignature ? p.soundSignature.replace(/_/g, " ") : "Studio Tuning"} • ${p.experienceLevel || "Audiophile Gear"}`,
+        specsSummary: specs.driverType
+          ? `${specs.driverType} • ${specs.impedance || p.soundSignature || "Reference"}`
+          : `${p.soundSignature ? p.soundSignature.replace(/_/g, " ") : "Studio Tuning"} • ${p.experienceLevel || "Audiophile Gear"}`,
         priceUSD: Number(p.price) || 0,
         stock: Number(p.stock) || 0,
-        condition: "Brand New Sealed",
+        condition: specs.condition || "Brand New Sealed",
         status: (p.status || "APPROVED") as "APPROVED" | "PENDING" | "REJECTED",
         createdAt: p.createdAt ? p.createdAt.split("T")[0] : new Date().toISOString().split("T")[0],
         images: imgs,
         image: imgs[0],
+        description: cleanDescription,
+        ...specs,
         variants: [
           {
             id: `${p.id}-v1`,
@@ -155,6 +195,37 @@ export async function POST(request: Request) {
       image,
       sellerEmail,
       storeId: explicitStoreId,
+
+      // Specifications & Audio Architecture
+      driverType,
+      impedance,
+      sensitivity,
+      frequencyResponse,
+      frequencyRange,
+      pinType,
+      cableTermination,
+      material,
+      cableMaterial,
+      tuning,
+      condition,
+      warrantyMonths,
+      badge,
+      dacChipset,
+      outputPower,
+      inputs,
+      outputs,
+      snrThd,
+      headphoneDesign,
+      headphoneDriverSize,
+      weightGrams,
+      dapOS,
+      dapStorage,
+      batteryLife,
+      conductorMaterial,
+      cableLength,
+      speakerSystem,
+      speakerPower,
+      accessoryMaterial,
     } = body;
 
     if (!name || name.trim().length === 0) {
@@ -182,26 +253,30 @@ export async function POST(request: Request) {
       }
     }
 
+    let hasActivePostSession = false;
     if (!targetStoreId) {
       try {
         const cookieStore = await cookies();
         const sessionCookie = cookieStore.get("tonalzone_session");
-        if (sessionCookie) {
-          const session = JSON.parse(decodeURIComponent(sessionCookie.value));
-          if (session.storeId) {
-            targetStoreId = session.storeId;
-          } else if (session.email) {
-            const user = await userRepo.findByEmail(session.email);
-            if (user?.store?.id) {
-              targetStoreId = user.store.id;
+        if (sessionCookie?.value) {
+          const session = verifySession<{ id?: string; email?: string; storeId?: string }>(sessionCookie.value);
+          if (session) {
+            hasActivePostSession = true;
+            if (session.storeId) {
+              targetStoreId = session.storeId;
+            } else if (session.email) {
+              const user = await userRepo.findByEmail(session.email);
+              if (user?.store?.id) {
+                targetStoreId = user.store.id;
+              }
             }
           }
         }
       } catch (e) {}
     }
 
-    // Fallback to official Moondrop store if none is resolved
-    if (!targetStoreId) {
+    // Fallback to official Moondrop store ONLY if none is resolved and user is not an authenticated seller without store
+    if (!targetStoreId && !hasActivePostSession) {
       const moondropStore = await storeRepo.findById("store-moondrop-official");
       if (moondropStore) {
         targetStoreId = moondropStore.id;
@@ -231,7 +306,43 @@ export async function POST(request: Request) {
       imageList = ["/model-iem-untuk-hero.webp"];
     }
 
-    // 4. Create Product in Supabase (Official Brand products instantly APPROVED)
+    // 4. Build Structured Metadata Specs
+    const specsMetadata: Record<string, any> = {};
+    if (driverType) specsMetadata.driverType = driverType;
+    if (impedance) specsMetadata.impedance = impedance;
+    if (sensitivity) specsMetadata.sensitivity = sensitivity;
+    if (frequencyResponse || frequencyRange) specsMetadata.frequencyResponse = frequencyResponse || frequencyRange;
+    if (pinType) specsMetadata.pinType = pinType;
+    if (cableTermination || pinType) specsMetadata.cableTermination = cableTermination || pinType;
+    if (material) specsMetadata.material = material;
+    if (cableMaterial) specsMetadata.cableMaterial = cableMaterial;
+    if (tuning) specsMetadata.tuning = tuning;
+    if (condition) specsMetadata.condition = condition;
+    if (warrantyMonths) specsMetadata.warrantyMonths = Number(warrantyMonths);
+    if (badge) specsMetadata.badge = badge;
+    if (dacChipset) specsMetadata.dacChipset = dacChipset;
+    if (outputPower) specsMetadata.outputPower = outputPower;
+    if (inputs) specsMetadata.inputs = inputs;
+    if (outputs) specsMetadata.outputs = outputs;
+    if (snrThd) specsMetadata.snrThd = snrThd;
+    if (headphoneDesign) specsMetadata.headphoneDesign = headphoneDesign;
+    if (headphoneDriverSize) specsMetadata.headphoneDriverSize = headphoneDriverSize;
+    if (weightGrams) specsMetadata.weightGrams = weightGrams;
+    if (dapOS) specsMetadata.dapOS = dapOS;
+    if (dapStorage) specsMetadata.dapStorage = dapStorage;
+    if (batteryLife) specsMetadata.batteryLife = batteryLife;
+    if (conductorMaterial) specsMetadata.conductorMaterial = conductorMaterial;
+    if (cableLength) specsMetadata.cableLength = cableLength;
+    if (speakerSystem) specsMetadata.speakerSystem = speakerSystem;
+    if (speakerPower) specsMetadata.speakerPower = speakerPower;
+    if (accessoryMaterial) specsMetadata.accessoryMaterial = accessoryMaterial;
+
+    const cleanDesc = (description || "").replace(/<!--TZ_SPECS:[\s\S]*?-->\s*/g, "").trim();
+    const encodedDescription = Object.keys(specsMetadata).length > 0
+      ? `<!--TZ_SPECS:${JSON.stringify(specsMetadata)}-->\n\n${cleanDesc || "Audiophile Acoustic Equipment"}`
+      : cleanDesc || "Audiophile Acoustic Equipment";
+
+    // 5. Create Product in Supabase (Official Brand products instantly APPROVED)
     const prodId = id || `prod-${Date.now()}-${Math.random().toString(36).substring(7)}`;
     const created = await productRepo.create({
       id: prodId,
@@ -239,9 +350,9 @@ export async function POST(request: Request) {
       storeId: targetStoreId,
       brandId: brandRecord.id,
       categoryId: catRecord.id,
-      description: description || "Audiophile Acoustic Equipment",
+      description: encodedDescription,
       price: finalPrice,
-      stock: Number(stock) || 10,
+      stock: stock !== undefined && stock !== null && !isNaN(Number(stock)) ? Math.max(0, Number(stock)) : 10,
       experienceLevel,
       soundSignature,
       images: imageList,
@@ -259,14 +370,18 @@ export async function POST(request: Request) {
       name: created.name,
       brand: brandRecord.name,
       category: catRecord.name,
-      specsSummary: `${created.soundSignature || "Neutral"} • ${created.experienceLevel || "Intermediate"}`,
+      specsSummary: specsMetadata.driverType
+        ? `${specsMetadata.driverType} • ${specsMetadata.impedance || created.soundSignature || "16Ω"}`
+        : `${created.soundSignature || "Neutral"} • ${created.experienceLevel || "Intermediate"}`,
       priceUSD: Number(created.price),
       stock: Number(created.stock),
-      condition: "Brand New Sealed",
+      condition: specsMetadata.condition || "Brand New Sealed",
       status: created.status || "APPROVED",
       createdAt: created.createdAt ? created.createdAt.split("T")[0] : new Date().toISOString().split("T")[0],
       images: created.images || imageList,
       image: (created.images && created.images[0]) || imageList[0],
+      description: cleanDesc,
+      ...specsMetadata,
       variants: [
         {
           id: `${created.id}-v1`,

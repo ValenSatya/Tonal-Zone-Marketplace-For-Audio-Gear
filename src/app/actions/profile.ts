@@ -3,6 +3,7 @@
 import { userRepo } from "@/lib/supabase-db";
 import { cookies } from "next/headers";
 import { sanitizeAvatarForCookie } from "@/lib/auth/roles";
+import { verifySession, signSession } from "@/lib/auth/security";
 
 export interface UpdateProfileInput {
   email?: string;
@@ -21,11 +22,7 @@ export async function updateUserProfile(data: UpdateProfileInput) {
 
     const rawSession = cookieStore.get("tonalzone_session")?.value;
     if (rawSession) {
-      try {
-        currentSession = JSON.parse(decodeURIComponent(rawSession));
-      } catch {
-        currentSession = null;
-      }
+      currentSession = verifySession(rawSession);
     }
 
     const email = (data.email || currentSession?.email || "").trim().toLowerCase();
@@ -70,14 +67,19 @@ export async function updateUserProfile(data: UpdateProfileInput) {
       role: dbUser?.role || (isUserSeller ? "SELLER" : "BUYER"),
       isSeller: isUserSeller,
       sellerStatus: dbUser?.store?.status || (isUserSeller ? "APPROVED" : "NONE"),
+      storeId: dbUser?.store?.id || currentSession?.storeId || null,
+      storeName: dbUser?.store?.storeName || currentSession?.storeName || null,
+      storeType: dbUser?.store?.storeType || currentSession?.storeType || null,
+      brandName: dbUser?.store?.brandName || currentSession?.brandName || null,
       tuning: data.tuningPreference ?? dbUser?.tuningPreference ?? currentSession?.tuning ?? "Reference / Neutral",
       gear: data.gear ?? currentSession?.gear ?? "Dedicated DAC/AMP",
       location: data.location ?? dbUser?.location ?? currentSession?.location ?? "Indonesia",
       language: data.language ?? dbUser?.language ?? currentSession?.language ?? "id",
     };
 
-    // 3. Persist to server cookies for SSR and middleware (compact, safe from HTTP 431)
-    cookieStore.set("tonalzone_session", encodeURIComponent(JSON.stringify(updatedSession)), {
+    // 3. Persist to server cookies for SSR and middleware (compact, signed with HMAC)
+    const signedToken = signSession(updatedSession);
+    cookieStore.set("tonalzone_session", encodeURIComponent(signedToken), {
       path: "/",
       maxAge: 60 * 60 * 24 * 7,
       sameSite: "lax",

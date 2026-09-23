@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { fetchProductsFromDb, CatalogProduct } from "@/lib/products-db";
+import { fetchProductsFromDb, getInstantCatalog, CatalogProduct } from "@/lib/products-db";
 import { useLocation } from "@/context/LocationContext";
 import { useLanguage } from "@/context/LanguageContext";
 
@@ -12,8 +12,8 @@ const CATEGORIES = ["EAR PHONES", "TWS", "CABLE", "HEADPHONES"] as const;
 export default function FigmaNewArrival() {
   const { t } = useLanguage();
   const [activeCategory, setActiveCategory] = useState<typeof CATEGORIES[number]>("EAR PHONES");
-  const [allProducts, setAllProducts] = useState<CatalogProduct[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [allProducts, setAllProducts] = useState<CatalogProduct[]>(() => getInstantCatalog());
+  const [isLoading, setIsLoading] = useState(false);
   const { formatPrice } = useLocation();
 
   const getCategoryLabel = (cat: typeof CATEGORIES[number]) => {

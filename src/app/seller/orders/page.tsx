@@ -65,9 +65,27 @@ export default function SellerOrdersPage() {
   const isEn = language === "English";
 
   const [orders, setOrders] = useState<SellerOrder[]>([]);
+  const [currency, setCurrency] = useState<"IDR" | "USD">("IDR");
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"ALL" | "TO_SHIP" | "IN_TRANSIT" | "COMPLETED" | "DISPUTED" | "CANCELLED">("ALL");
   const [searchQuery, setSearchQuery] = useState("");
+
+  useEffect(() => {
+    const loadCurrency = () => {
+      const saved = localStorage.getItem("tonalzone_seller_currency") as "IDR" | "USD" | null;
+      setCurrency(saved || "IDR");
+    };
+    loadCurrency();
+    window.addEventListener("storage", loadCurrency);
+    return () => window.removeEventListener("storage", loadCurrency);
+  }, []);
+
+  const formatPrice = (usd: number) => {
+    if (currency === "IDR") {
+      return `Rp ${Math.round(usd * 15500).toLocaleString("id-ID")}`;
+    }
+    return `$${usd.toLocaleString()}`;
+  };
 
   // Waybill Dispatch Modal State
   const [dispatchOrder, setDispatchOrder] = useState<SellerOrder | null>(null);
@@ -102,8 +120,14 @@ export default function SellerOrdersPage() {
           if (u.email) emailParam = u.email;
         } catch (e) {}
       }
-      if (!storeIdParam && (savedMode === "OFFICIAL_BRAND" || !stored)) {
-        storeIdParam = "store-moondrop-official";
+      if (!storeIdParam) {
+        if (emailParam.includes("bass") || (stored && stored.toLowerCase().includes("bass audio"))) {
+          storeIdParam = "04595ba3-8657-4aa6-95da-941f6e1717f8";
+        } else if (emailParam.includes("csi") || (stored && stored.toLowerCase().includes("csi zone"))) {
+          storeIdParam = "store-csi-zone";
+        } else if (savedMode === "OFFICIAL_BRAND" || !stored) {
+          storeIdParam = "store-moondrop-official";
+        }
       }
 
       const query = new URLSearchParams();
@@ -570,18 +594,18 @@ export default function SellerOrdersPage() {
                       <div className="flex flex-wrap items-center gap-5 text-[#A1A1AA]">
                         <div>
                           <span className="text-[10px] text-[#71717A] uppercase block">Nilai Transaksi</span>
-                          <span className="text-white font-medium">${ord.totalPriceUSD.toLocaleString()}</span>
+                          <span className="text-white font-medium">{formatPrice(ord.totalPriceUSD)}</span>
                         </div>
                         <div>
                           <span className="text-[10px] text-[#71717A] uppercase block">Komisi Platform (3.0%)</span>
                           <span className="text-amber-400 font-medium">
-                            -${commVal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            -{formatPrice(commVal)}
                           </span>
                         </div>
                         <div>
                           <span className="text-[10px] text-[#71717A] uppercase block">Pendapatan Bersih Toko</span>
                           <span className="text-emerald-400 font-bold">
-                            ${netVal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            {formatPrice(netVal)}
                           </span>
                         </div>
                       </div>
@@ -834,7 +858,7 @@ export default function SellerOrdersPage() {
                   </span>
                   <p className="font-semibold text-xs">{slipOrder.productName}</p>
                   <p className="text-[11px] text-gray-500 font-mono">
-                    Qty: {slipOrder.productQty}x • Total: ${slipOrder.totalPriceUSD}
+                    Qty: {slipOrder.productQty}x • Total: {formatPrice(slipOrder.totalPriceUSD)}
                   </p>
                 </div>
 
@@ -901,7 +925,7 @@ export default function SellerOrdersPage() {
               <div className="p-3.5 bg-[#141414] rounded-xl text-xs font-mono text-zinc-300 space-y-1 border-0">
                 <div className="font-semibold text-white">{sellerCancelOrder.productName}</div>
                 <div className="text-[11px] text-zinc-400">
-                  Pembeli: {sellerCancelOrder.buyerName} ({sellerCancelOrder.buyerCity}) • Total: ${sellerCancelOrder.totalPriceUSD}
+                  Pembeli: {sellerCancelOrder.buyerName} ({sellerCancelOrder.buyerCity}) • Total: {formatPrice(sellerCancelOrder.totalPriceUSD)}
                 </div>
               </div>
 

@@ -14,6 +14,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import Link from "next/link";
+import { uploadMedia } from "@/lib/upload";
 
 const formatBankAccount = (val: string) => {
   const digits = (val || "").replace(/\D/g, "").slice(0, 18);
@@ -30,22 +31,22 @@ export default function SellerSettingsPage() {
 
   // Store profile data
   const [storeData, setStoreData] = useState({
-    storeName: "MOONDROP Official Flagship Store",
-    storeType: "OFFICIAL_BRAND" as "RETAIL_MERCHANT" | "OFFICIAL_BRAND",
-    brandName: "MOONDROP",
+    storeName: "Toko Saya",
+    storeType: "RETAIL_MERCHANT" as "RETAIL_MERCHANT" | "OFFICIAL_BRAND",
+    brandName: "",
     storeCurrency: "IDR" as "IDR" | "USD",
-    tagline: "Official Flagship Store for MOONDROP Technology Co., Ltd. - Reference Acoustic Laboratory",
-    email: "valenandrasatya@gmail.com",
+    tagline: "Katalog Audiophile & Perlengkapan Audio Profesional",
+    email: "",
     phone: "+62 812-8899-7711",
-    originAddress: "Chengdu High-Tech Zone / Jakarta Distribution Center, Indonesia",
+    originAddress: "Jakarta, Indonesia",
     bankName: "BCA (Bank Central Asia)",
     bankAccount: "8830192841",
-    accountHolder: "Valen Satya",
+    accountHolder: "Pemilik Toko",
     storeAvatar: "",
     storeBanner: "",
     brandAcousticPhilosophy:
-      "Moondrop Acoustic Laboratory adheres to scientific electroacoustic design based on the VDSF (Virtual Diffuse Sound Field) Target Curve, combining high-resolution beryllium, planar, and balanced armature driver topologies with studio-grade tonal neutrality.",
-    tuningTargetCurve: "Moondrop VDSF Target 2024 / Harman Neutral IE",
+      "Acoustic Laboratory adheres to scientific electroacoustic design, combining high-resolution planar and balanced armature driver topologies with studio-grade tonal neutrality.",
+    tuningTargetCurve: "Harman Target Neutral IE",
     squiglinkUrl: "https://crinacle.com/graphs/iems/graphtool/",
     authorizedResellers: [
       { name: "Bass Audio Official Store", city: "Jakarta Pusat", verified: true },
@@ -268,24 +269,64 @@ export default function SellerSettingsPage() {
     }
   };
 
-  const handleAvatarChange = (file: File) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const result = e.target?.result as string;
-      setAvatarPreview(result);
-      setStoreData((prev) => ({ ...prev, storeAvatar: result }));
-    };
-    reader.readAsDataURL(file);
+  const handleAvatarChange = async (file: File) => {
+    // Show instant preview
+    const tempUrl = URL.createObjectURL(file);
+    setAvatarPreview(tempUrl);
+
+    try {
+      const uploadRes = await uploadMedia(file, "stores");
+      if (uploadRes.success && uploadRes.url) {
+        setAvatarPreview(uploadRes.url);
+        setStoreData((prev) => ({ ...prev, storeAvatar: uploadRes.url! }));
+      } else {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const result = e.target?.result as string;
+          setAvatarPreview(result);
+          setStoreData((prev) => ({ ...prev, storeAvatar: result }));
+        };
+        reader.readAsDataURL(file);
+      }
+    } catch {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result as string;
+        setAvatarPreview(result);
+        setStoreData((prev) => ({ ...prev, storeAvatar: result }));
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
-  const handleBannerChange = (file: File) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const result = e.target?.result as string;
-      setBannerPreview(result);
-      setStoreData((prev) => ({ ...prev, storeBanner: result }));
-    };
-    reader.readAsDataURL(file);
+  const handleBannerChange = async (file: File) => {
+    // Show instant preview
+    const tempUrl = URL.createObjectURL(file);
+    setBannerPreview(tempUrl);
+
+    try {
+      const uploadRes = await uploadMedia(file, "stores");
+      if (uploadRes.success && uploadRes.url) {
+        setBannerPreview(uploadRes.url);
+        setStoreData((prev) => ({ ...prev, storeBanner: uploadRes.url! }));
+      } else {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const result = e.target?.result as string;
+          setBannerPreview(result);
+          setStoreData((prev) => ({ ...prev, storeBanner: result }));
+        };
+        reader.readAsDataURL(file);
+      }
+    } catch {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result as string;
+        setBannerPreview(result);
+        setStoreData((prev) => ({ ...prev, storeBanner: result }));
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleSave = async (e: React.FormEvent) => {

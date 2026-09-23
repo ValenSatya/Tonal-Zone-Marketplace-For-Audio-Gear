@@ -3,45 +3,23 @@
 import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { fetchProductsFromDb, CatalogProduct } from "@/lib/products-db";
+import { fetchProductsFromDb, getInstantCatalog, CatalogProduct } from "@/lib/products-db";
 import { useLocation } from "@/context/LocationContext";
 import { useLanguage } from "@/context/LanguageContext";
 
-// Preferred beginner items to match Bento Grid (Frame 125)
 // Preferred beginner items strictly priced under Rp 600.000 (< $37.50) with transparent cutouts
 const BEGINNER_JOURNEY_CONFIG = [
   {
     id: "prod-chu3",
-    name: "Moondrop CHU III",
-    fallbackPrice: 24.99,
-    image: "/images/transparent/chu3-transparent.png",
-    layout: "landscape" as const,
-  },
-  {
-    id: "prod-kiwi-cadenza",
-    name: "Kiwi Ears Cadenza",
-    fallbackPrice: 35.0,
-    image: "/images/transparent/cadenza-transparent.png",
-    layout: "landscape" as const,
-  },
-  {
-    id: "prod-waner-redlion",
-    name: "Tangzu Wan'er SG 2 Red Lion",
-    fallbackPrice: 23.0,
-    image: "/images/transparent/waner-redlion-transparent.png",
-    layout: "square" as const,
-  },
-  {
-    id: "prod-7hz-zero",
-    name: "7Hz Salnotes Zero",
-    fallbackPrice: 20.0,
-    image: "/images/transparent/7hz-zero-transparent.png",
-    layout: "square" as const,
-  },
-  {
-    id: "prod-waner",
-    name: "Tangzu Wan'er S.G",
+    name: "Moondrop Chu II DSP",
     fallbackPrice: 22.0,
+    image: "/images/transparent/chu-2-transparent.png",
+    layout: "landscape" as const,
+  },
+  {
+    id: "prod-waner-sg2",
+    name: "Tangzu Wan'er S.G",
+    fallbackPrice: 19.9,
     image: "/images/transparent/waner-sg-transparent.png",
     layout: "square" as const,
   },
@@ -58,9 +36,9 @@ type BentoProductItem = CatalogProduct & { layout: "landscape" | "square" | "tal
 
 export default function FigmaStartJourney() {
   const { t } = useLanguage();
-  const [allProducts, setAllProducts] = useState<CatalogProduct[]>([]);
+  const [allProducts, setAllProducts] = useState<CatalogProduct[]>(() => getInstantCatalog());
   const [customJourney, setCustomJourney] = useState<typeof BEGINNER_JOURNEY_CONFIG | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const { formatPrice } = useLocation();
 
   useEffect(() => {

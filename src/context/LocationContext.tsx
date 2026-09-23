@@ -25,20 +25,27 @@ interface LocationContextType {
 const LocationContext = createContext<LocationContextType | undefined>(undefined);
 
 export function LocationProvider({ children }: { children: ReactNode }) {
-  const [location, setLocationState] = useState<string>("United States");
-  const [currency, setCurrencyState] = useState<CurrencyCode>("USD");
+  const [location, setLocationState] = useState<string>("Indonesia");
+  const [currency, setCurrencyState] = useState<CurrencyCode>("IDR");
 
   useEffect(() => {
     // Read from localStorage on mount and when event fires
     const loadLocation = () => {
+      const explicitCurrency = (localStorage.getItem("tonalzone_currency") || localStorage.getItem("tonalzone_seller_currency")) as CurrencyCode | null;
+      if (explicitCurrency) {
+        setCurrencyState(explicitCurrency);
+      }
+
       const stored = localStorage.getItem("tonalzone_user");
       if (stored) {
         try {
           const user = JSON.parse(stored);
           if (user.location) {
             setLocationState(user.location);
-            const mappedCurrency = COUNTRY_CURRENCY_MAP[user.location] || "USD";
-            setCurrencyState(mappedCurrency);
+            if (!explicitCurrency) {
+              const mappedCurrency = COUNTRY_CURRENCY_MAP[user.location] || "IDR";
+              setCurrencyState(mappedCurrency);
+            }
           }
         } catch (e) {
           console.error("Failed to parse user location", e);
@@ -48,19 +55,27 @@ export function LocationProvider({ children }: { children: ReactNode }) {
 
     loadLocation();
 
-    // Listen for login/signup changes
+    // Listen for login/signup changes and storage events
     window.addEventListener("userLoginChange", loadLocation);
-    return () => window.removeEventListener("userLoginChange", loadLocation);
+    window.addEventListener("storage", loadLocation);
+    return () => {
+      window.removeEventListener("userLoginChange", loadLocation);
+      window.removeEventListener("storage", loadLocation);
+    };
   }, []);
 
   const setLocation = (loc: string) => {
     setLocationState(loc);
-    const mapped = COUNTRY_CURRENCY_MAP[loc] || "USD";
+    const mapped = COUNTRY_CURRENCY_MAP[loc] || "IDR";
     setCurrencyState(mapped);
+    localStorage.setItem("tonalzone_currency", mapped);
   };
 
   const setCurrency = (curr: CurrencyCode) => {
     setCurrencyState(curr);
+    localStorage.setItem("tonalzone_currency", curr);
+    localStorage.setItem("tonalzone_seller_currency", curr);
+    window.dispatchEvent(new Event("storage"));
   };
 
   const formatPrice = (priceInUSD: number, options?: PriceFormatOptions) => {

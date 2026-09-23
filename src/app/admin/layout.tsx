@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { ReactNode, useState, useEffect } from "react";
 import { useAdminData } from "@/context/AdminDataContext";
 import { useLanguage } from "@/context/LanguageContext";
+import { useLocation } from "@/context/LocationContext";
 import { motion, AnimatePresence } from "framer-motion";
 import AdminCommandPalette from "@/components/admin/AdminCommandPalette";
 
@@ -12,6 +13,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const { stores, brands, products } = useAdminData();
   const { language, setLanguage } = useLanguage();
+  const { currency, setCurrency } = useLocation();
   const [mounted, setMounted] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
@@ -49,6 +51,8 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       if (parts[2] === "products") breadcrumbs.push({ label: isEn ? "Product Approvals" : "Persetujuan Produk", path: "/admin/approvals/products" });
     } else if (parts[1] === "banners") {
       breadcrumbs.push({ label: isEn ? "Hero Banners" : "Banner Promo", path: "/admin/banners" });
+    } else if (parts[1] === "vouchers") {
+      breadcrumbs.push({ label: isEn ? "Redeem Codes & Vouchers" : "Kode Redeem & Voucher", path: "/admin/vouchers" });
     } else if (parts[1] === "logistics") {
       breadcrumbs.push({ label: isEn ? "Shipments" : "Pengiriman", path: "/admin/logistics/tracking" });
       if (parts[2] === "tracking") breadcrumbs.push({ label: isEn ? "Shipment Tracking" : "Lacak Pengiriman", path: "/admin/logistics/tracking" });
@@ -189,6 +193,14 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
                 </svg>
                 {isEn ? "Hero Banners & Promos" : "Banner & Promo"}
+              </span>
+            </Link>
+            <Link href="/admin/vouchers" onClick={() => setMobileMenuOpen(false)} className={getLinkClass("/admin/vouchers")}>
+              <span className="flex items-center gap-2.5">
+                <svg className={getIconClass("/admin/vouchers")} fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 6v.75m0 3v.75m0 3v.75m0 3V18m-9-5.25h5.25M7.5 15h3M3.375 5.25c-.621 0-1.125.504-1.125 1.125v3.026a2.999 2.999 0 010 5.198v3.026c0 .621.504 1.125 1.125 1.125h17.25c.621 0 1.125-.504 1.125-1.125v-3.026a2.999 2.999 0 010-5.198V6.375c0-.621-.504-1.125-1.125-1.125H3.375z" />
+                </svg>
+                {isEn ? "Redeem Codes & Vouchers" : "Kode Redeem & Voucher"}
               </span>
             </Link>
           </div>
@@ -380,6 +392,34 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
           {/* Right System Health, Language & Exit */}
           <div className="flex items-center gap-3 ml-auto">
+             {/* Currency Switcher Pill (Standard Rupiah IDR) */}
+             <div className="flex items-center bg-[#0E0E0E] rounded-full p-0.5 text-xs font-mono font-medium shadow-sm">
+                <button
+                  type="button"
+                  onClick={() => setCurrency("IDR")}
+                  className={`px-2.5 py-1 rounded-full font-bold transition-all cursor-pointer ${
+                    currency === "IDR"
+                      ? "bg-[#1E1E1E] text-[#BFDD25] shadow-sm"
+                      : "text-[#888] hover:text-[#FAF9F6]"
+                  }`}
+                  title="Standar Rupiah (Rp)"
+                >
+                  IDR
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCurrency("USD")}
+                  className={`px-2.5 py-1 rounded-full font-bold transition-all cursor-pointer ${
+                    currency === "USD"
+                      ? "bg-[#1E1E1E] text-white shadow-sm"
+                      : "text-[#8E8E93] hover:text-[#FAF9F6]"
+                  }`}
+                  title="US Dollar ($)"
+                >
+                  USD
+                </button>
+             </div>
+
              {/* Language Switcher Pill */}
              <div className="flex items-center bg-[#0E0E0E] rounded-full p-0.5 text-xs font-mono font-medium shadow-sm">
                 <button

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Check, ChevronRight, Upload, FileText, Info } from "lucide-react";
 import CustomSelect from "@/components/ui/custom-select";
+import { INDONESIA_PROVINCES, getCitiesByProvince } from "@/lib/indonesia-regions";
 
 export default function SellPage() {
   const router = useRouter();
@@ -113,6 +114,8 @@ export default function SellPage() {
             parsed.sellerStatus = "PENDING";
             parsed.storeName = storeName.trim();
             parsed.storeId = generatedStoreId;
+            parsed.storeCity = city || province || "Jakarta";
+            parsed.storeType = tier === "BRAND_OWNER" ? "OFFICIAL_BRAND" : "RETAILER";
             localStorage.setItem("tonalzone_user", JSON.stringify(parsed));
           }
 
@@ -353,29 +356,46 @@ export default function SellPage() {
                       </label>
                       <CustomSelect
                         value={province}
-                        onChange={(val) => setProvince(val)}
+                        onChange={(val) => {
+                          setProvince(val);
+                          if (region === "LOCAL") {
+                            const availableCities = getCitiesByProvince(val);
+                            setCity(availableCities[0] || "");
+                          }
+                        }}
                         placeholder={`Select ${region === "LOCAL" ? "Province" : "Country"}`}
                         buttonClassName="w-full bg-[#161616] hover:bg-[#1A1A1A] focus:bg-[#1C1C1C] ring-1 ring-white/10 hover:ring-white/20 focus:ring-1 focus:ring-[#BFDD25] shadow-inner rounded-xl px-4 py-3.5 text-sm text-white flex items-center justify-between transition-all cursor-pointer"
                         options={
                           region === "LOCAL"
-                            ? ["DKI Jakarta", "Jawa Barat", "Jawa Tengah", "Jawa Timur", "Banten", "Bali"]
+                            ? INDONESIA_PROVINCES
                             : ["United States", "China", "Japan", "Singapore", "Other"]
                         }
                       />
                     </div>
                     <div className="space-y-2">
                       <label className="block text-xs font-mono uppercase tracking-widest text-[#A1A1AA] font-semibold">
-                        {region === "LOCAL" ? "City" : "State / City"}
+                        {region === "LOCAL" ? "City / Regency" : "State / City"}
                       </label>
                       <div className="relative">
-                        <input
-                          required
-                          type="text"
-                          placeholder={region === "LOCAL" ? "e.g., Jakarta Selatan" : "e.g., Shenzhen"}
-                          value={city}
-                          onChange={(e) => setCity(e.target.value)}
-                          className="w-full bg-[#161616] hover:bg-[#1A1A1A] focus:bg-[#1C1C1C] ring-1 ring-white/10 hover:ring-white/20 focus:ring-1 focus:ring-[#BFDD25] shadow-inner rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-[#666] outline-none transition-all"
-                        />
+                        {region === "LOCAL" ? (
+                          <CustomSelect
+                            value={city}
+                            onChange={(val) => setCity(val)}
+                            placeholder={province ? "Select City / Regency" : "Select Province first"}
+                            buttonClassName="w-full bg-[#161616] hover:bg-[#1A1A1A] focus:bg-[#1C1C1C] ring-1 ring-white/10 hover:ring-white/20 focus:ring-1 focus:ring-[#BFDD25] shadow-inner rounded-xl px-4 py-3.5 text-sm text-white flex items-center justify-between transition-all cursor-pointer"
+                            options={province ? getCitiesByProvince(province) : []}
+                            disabled={!province}
+                          />
+                        ) : (
+                          <input
+                            required
+                            type="text"
+                            placeholder="e.g., Shenzhen"
+                            value={city}
+                            onChange={(e) => setCity(e.target.value)}
+                            className="w-full bg-[#161616] hover:bg-[#1A1A1A] focus:bg-[#1C1C1C] ring-1 ring-white/10 hover:ring-white/20 focus:ring-1 focus:ring-[#BFDD25] shadow-inner rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-[#666] outline-none transition-all"
+                          />
+                        )}
                       </div>
                     </div>
                   </div>

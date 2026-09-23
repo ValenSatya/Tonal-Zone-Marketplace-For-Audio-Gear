@@ -8,7 +8,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useLanguage } from "@/context/LanguageContext";
 import { useLocation } from "@/context/LocationContext";
-import { MapPin, Truck, MessageSquare, FileText, ChevronRight, CheckCircle2, Package, ShieldCheck } from "lucide-react";
+import { MapPin, Truck, MessageSquare, FileText, ChevronRight, CheckCircle2, Package, ShieldCheck, Check } from "lucide-react";
 import { triggerAppNotification } from "@/context/NotificationContext";
 import { getStoreSlug } from "@/lib/store-utils";
 
@@ -490,7 +490,7 @@ export default function OrdersPage() {
         {/* Header */}
         <div className="mb-8">
           <div className="mb-2">
-            <span className="text-[11px] font-mono text-[#BFDD25] uppercase tracking-widest font-semibold">
+            <span className="text-[11px] font-mono text-[#A1A1AA] uppercase tracking-widest font-semibold">
               TonalZone Escrow Protected
             </span>
           </div>
@@ -518,27 +518,27 @@ export default function OrdersPage() {
             {
               id: "IN_TRANSIT",
               label: "Sedang Dikirim",
-              count: orders.filter((o) => o.status === "IN_TRANSIT").length,
+              count: orders.filter((o) => o.status === "IN_TRANSIT" && !o.cancelReason).length,
             },
             {
               id: "DELIVERED",
               label: "Sudah Sampai",
-              count: orders.filter((o) => o.status === "DELIVERED" && !o.returnId).length,
+              count: orders.filter((o) => o.status === "DELIVERED" && (!o.returnId || o.returnStatus === "REPLACED") && !o.cancelReason).length,
             },
             {
               id: "COMPLETED",
               label: "Selesai",
-              count: orders.filter((o) => o.status === "FUNDS_RELEASED_TO_SELLER" && !o.returnId).length,
+              count: orders.filter((o) => (o.status === "FUNDS_RELEASED_TO_SELLER" || o.returnStatus === "COMPLETED") && !o.cancelReason && o.returnStatus !== "REQUESTED" && o.returnStatus !== "APPROVED_WAITING_SHIPMENT" && o.returnStatus !== "IN_TRANSIT_TO_SELLER" && o.returnStatus !== "RECEIVED_INSPECTING").length,
             },
             {
               id: "RETURNS",
               label: "Retur & Komplain",
-              count: orders.filter((o) => o.status === "DISPUTED" || Boolean(o.returnId)).length,
+              count: orders.filter((o) => (o.status === "DISPUTED" || Boolean(o.returnId)) && !o.cancelReason && o.returnStatus !== "COMPLETED" && o.returnStatus !== "REFUNDED" && o.returnStatus !== "REPLACED").length,
             },
             {
               id: "CANCELLED",
               label: "Dibatalkan",
-              count: orders.filter((o) => o.status === "REFUNDED" && Boolean(o.cancelReason)).length,
+              count: orders.filter((o) => (o.status === "REFUNDED" || o.returnStatus === "REFUNDED") && (Boolean(o.cancelReason) || o.returnStatus === "REFUNDED")).length,
             },
             {
               id: "reviews",
@@ -582,7 +582,7 @@ export default function OrdersPage() {
               exit={{ opacity: 0, y: 10 }}
               className="fixed bottom-8 right-8 z-50 bg-[#141414] text-white px-5 py-4 shadow-2xl flex items-center gap-3 text-xs font-mono font-medium max-w-md rounded-2xl"
             >
-              <span className="text-[#BFDD25] font-bold">✓</span>
+              <span className="text-white font-bold">✓</span>
               <span>{saveMessage}</span>
             </motion.div>
           )}
@@ -603,13 +603,13 @@ export default function OrdersPage() {
                 : activeTab === "IN_TRANSIT"
                 ? orders.filter(o => o.status === "IN_TRANSIT" && !o.cancelReason)
                 : activeTab === "DELIVERED"
-                ? orders.filter(o => o.status === "DELIVERED" && !o.returnId && !o.cancelReason)
+                ? orders.filter(o => o.status === "DELIVERED" && (!o.returnId || o.returnStatus === "REPLACED") && !o.cancelReason)
                 : activeTab === "COMPLETED"
-                ? orders.filter(o => o.status === "FUNDS_RELEASED_TO_SELLER" && !o.returnId && !o.cancelReason)
+                ? orders.filter(o => (o.status === "FUNDS_RELEASED_TO_SELLER" || o.returnStatus === "COMPLETED") && !o.cancelReason && o.returnStatus !== "REQUESTED" && o.returnStatus !== "APPROVED_WAITING_SHIPMENT" && o.returnStatus !== "IN_TRANSIT_TO_SELLER" && o.returnStatus !== "RECEIVED_INSPECTING")
                 : activeTab === "RETURNS"
-                ? orders.filter(o => (o.status === "DISPUTED" || Boolean(o.returnId)) && !o.cancelReason)
+                ? orders.filter(o => (o.status === "DISPUTED" || Boolean(o.returnId)) && !o.cancelReason && o.returnStatus !== "COMPLETED" && o.returnStatus !== "REFUNDED" && o.returnStatus !== "REPLACED")
                 : activeTab === "CANCELLED"
-                ? orders.filter(o => o.status === "REFUNDED" && Boolean(o.cancelReason))
+                ? orders.filter(o => (o.status === "REFUNDED" || o.returnStatus === "REFUNDED") && (Boolean(o.cancelReason) || o.returnStatus === "REFUNDED"))
                 : [];
 
               if (filtered.length === 0) {
@@ -674,7 +674,7 @@ export default function OrdersPage() {
                           <div className="min-w-0 flex-1">
                             <Link
                               href={`/store/${getStoreSlug(order.storeName)}`}
-                              className="text-[10px] font-mono uppercase tracking-wider text-[#71717A] hover:text-[#BFDD25] transition-colors block mb-1"
+                              className="text-[10px] font-mono uppercase tracking-wider text-[#71717A] hover:text-white transition-colors block mb-1"
                             >
                               {order.storeName}
                             </Link>
@@ -700,7 +700,7 @@ export default function OrdersPage() {
                       {/* Logistics Info Bar */}
                       <div className="flex flex-wrap items-center justify-between gap-2 text-xs p-4 rounded-xl bg-[#121212]">
                         <span className="text-white font-medium flex items-center gap-2 text-xs sm:text-sm">
-                          <Truck className="w-4 h-4 text-emerald-400" />
+                          <Truck className="w-4 h-4 text-white" />
                           <span>Status: Dalam Pengiriman Express (~3 detik tiba)</span>
                         </span>
                         <span className="text-xs font-mono text-[#8E8E93]">
@@ -740,7 +740,7 @@ export default function OrdersPage() {
                               <div key={step.id || idx} className="relative">
                                 <div
                                   className={`absolute -left-8 top-0.5 w-5 h-5 flex items-center justify-center bg-[#0A0A0A] ${
-                                    isLatest ? "text-emerald-400" : "text-[#71717A]"
+                                    isLatest ? "text-white" : "text-[#71717A]"
                                   }`}
                                 >
                                   <MapPin className="w-4 h-4" />
@@ -756,7 +756,7 @@ export default function OrdersPage() {
                                   </span>
                                   <span
                                     className={`text-xs font-mono ${
-                                      isLatest ? "text-emerald-400 font-bold" : "text-[#71717A]"
+                                      isLatest ? "text-white font-bold" : "text-[#71717A]"
                                     }`}
                                   >
                                     {step.timeFormatted || "18.20"}
@@ -845,46 +845,56 @@ export default function OrdersPage() {
 
                       <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                         {order.isInsured && (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 font-mono text-[10px] font-semibold">
-                            <ShieldCheck className="w-3 h-3 text-emerald-400" />
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#181818] text-[#D4D4D8] font-mono text-[10px] font-semibold">
+                            <ShieldCheck className="w-3 h-3 text-[#A1A1AA]" />
                             <span>Asuransi Terproteksi</span>
                           </span>
                         )}
                         <Link
                           href={`/store/${getStoreSlug(order.storeName)}`}
-                          className="text-xs font-mono text-[#8E8E93] hover:text-[#BFDD25] transition-colors"
+                          className="text-xs font-mono text-[#8E8E93] hover:text-white transition-colors"
                         >
                           {order.storeName}
                         </Link>
                         <span className="text-[#3F3F46]">•</span>
                         
-                        <span className="inline-flex items-center gap-2 text-xs font-mono px-3.5 py-1.5 rounded-full bg-[#141414] text-white">
-                          <span className={`w-1.5 h-1.5 rounded-full ${
-                            order.cancelReason
-                              ? "bg-red-500"
-                              : order.status === "PAYMENT_PENDING"
-                              ? "bg-amber-400 shadow-[0_0_6px_rgba(251,191,36,0.6)]"
-                              : order.status === "REFUNDED" || order.status === "DELIVERED"
-                              ? "bg-[#BFDD25] shadow-[0_0_6px_rgba(191,221,37,0.6)]"
-                              : order.status === "FUNDS_RELEASED_TO_SELLER"
-                              ? "bg-white"
-                              : order.status === "DISPUTED" || Boolean(order.returnId)
-                              ? "bg-red-400"
-                              : "bg-[#71717A]"
-                          }`} />
-                          {order.cancelReason
-                            ? `Dibatalkan (${order.cancelledBy === "SELLER" ? "Penjual" : "Pembeli"})`
-                            : order.status === "PAYMENT_PENDING"
-                            ? "Menunggu Pembayaran"
-                            : order.status === "REFUNDED"
-                            ? "Dana Dikembalikan"
-                            : order.status === "DISPUTED" || Boolean(order.returnId)
-                            ? "Dalam Retur"
-                            : order.status === "FUNDS_RELEASED_TO_SELLER"
-                            ? "Selesai"
-                            : order.status === "DELIVERED"
-                            ? "Sudah Sampai"
-                            : "Sedang Diproses"}
+                        <span className="inline-flex items-center gap-2 text-xs font-mono px-3.5 py-1.5 rounded-full bg-[#141414] text-[#D4D4D8]">
+                          {(() => {
+                            if (order.cancelReason) {
+                              return `Dibatalkan (${order.cancelledBy === "SELLER" ? "Penjual" : "Pembeli"})`;
+                            }
+                            if (order.returnStatus === "REFUNDED" || (order.status === "REFUNDED" && order.returnId)) {
+                              return "Dana Dikembalikan (Retur)";
+                            }
+                            if (order.status === "REFUNDED") {
+                              return "Dana Dikembalikan";
+                            }
+                            if (order.returnStatus === "COMPLETED" || (order.status === "FUNDS_RELEASED_TO_SELLER" && order.returnStatus === "REPLACED")) {
+                              return "Selesai";
+                            }
+                            if (order.status === "FUNDS_RELEASED_TO_SELLER") {
+                              return "Selesai";
+                            }
+                            if (order.returnStatus === "REPLACED" && order.status === "DELIVERED") {
+                              return "Unit Pengganti Tiba";
+                            }
+                            if (order.returnStatus === "REPLACED") {
+                              return "Unit Pengganti Dikirim";
+                            }
+                            if (order.status === "DISPUTED" || Boolean(order.returnId)) {
+                              return "Dalam Retur";
+                            }
+                            if (order.status === "PAYMENT_PENDING") {
+                              return "Menunggu Pembayaran";
+                            }
+                            if (order.status === "DELIVERED") {
+                              return "Sudah Sampai";
+                            }
+                            if ((order.status as string) === "IN_TRANSIT") {
+                              return "Sedang Dikirim";
+                            }
+                            return "Sedang Diproses";
+                          })()}
                         </span>
                       </div>
                     </div>
@@ -955,25 +965,27 @@ export default function OrdersPage() {
                           </Link>
                         )}
 
-                        {order.status === "DELIVERED" && !order.returnId && (
+                        {order.status === "DELIVERED" && (!order.returnId || order.returnStatus === "REPLACED") && (
                           <>
                             <button
                               type="button"
                               onClick={() => handleConfirmDelivery(order.id)}
                               className="px-6 py-2.5 bg-white hover:bg-[#E4E4E7] text-black font-mono text-xs font-bold uppercase tracking-wider transition-all cursor-pointer rounded-full shadow-md border-0"
                             >
-                              Konfirmasi Terima Barang
+                              {order.returnStatus === "REPLACED" ? "Konfirmasi Terima Unit Pengganti" : "Konfirmasi Terima Barang"}
                             </button>
-                            <Link
-                              href={`/orders/return/${order.id}`}
-                              className="px-5 py-2.5 bg-[#141414] hover:bg-[#1E1E1E] text-[#D4D4D8] hover:text-white font-mono text-xs font-bold uppercase tracking-wider transition-all cursor-pointer rounded-full inline-flex items-center gap-1.5 border-0"
-                            >
-                              <span>Ajukan Retur</span>
-                            </Link>
+                            {!order.returnId && (
+                              <Link
+                                href={`/orders/return/${order.id}`}
+                                className="px-5 py-2.5 bg-[#141414] hover:bg-[#1E1E1E] text-[#D4D4D8] hover:text-white font-mono text-xs font-bold uppercase tracking-wider transition-all cursor-pointer rounded-full inline-flex items-center gap-1.5 border-0"
+                              >
+                                <span>Ajukan Retur</span>
+                              </Link>
+                            )}
                           </>
                         )}
 
-                        {order.status === "FUNDS_RELEASED_TO_SELLER" && !order.returnId && (
+                        {(order.status === "FUNDS_RELEASED_TO_SELLER" || order.returnStatus === "COMPLETED") && (
                           <Link
                             href={`/orders/${order.id}/review`}
                             className={`px-5 py-2.5 font-mono text-xs font-bold uppercase tracking-wider transition-all cursor-pointer rounded-full inline-flex items-center gap-1.5 border-0 ${
@@ -982,7 +994,7 @@ export default function OrdersPage() {
                                 : "bg-white hover:bg-[#E4E4E7] text-black shadow-md"
                             }`}
                           >
-                            <span>{order.hasReviewed ? "★ Sudah Dinilai" : "★ Beri Penilaian"}</span>
+                            <span>{order.hasReviewed ? "Sudah Dinilai" : "Beri Penilaian"}</span>
                           </Link>
                         )}
 
@@ -1005,16 +1017,15 @@ export default function OrdersPage() {
                     </div>
 
                     {/* Auto-Confirm 48-Hour Inspection Timer Banner */}
-                    {order.status === "DELIVERED" && !order.returnId && (
+                    {order.status === "DELIVERED" && (!order.returnId || order.returnStatus === "REPLACED") && (
                       <div className="mt-4 p-4 rounded-xl bg-[#141414] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-0">
                         <div className="flex items-start sm:items-center gap-3">
-                          <span className="w-2 h-2 rounded-full bg-[#BFDD25] animate-ping shrink-0 mt-1.5 sm:mt-0" />
                           <div>
                             <div className="flex flex-wrap items-center gap-2">
                               <span className="text-xs font-bold text-white font-mono uppercase tracking-wide">
                                 Batas Waktu Konfirmasi Otomatis (48 Jam)
                               </span>
-                              <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-[#BFDD25]/10 text-[#BFDD25] font-mono font-bold">
+                              <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-[#222222] text-[#E4E4E7] font-mono font-bold">
                                 {(() => {
                                   const exp = order.inspectionExpiresAt
                                     ? new Date(order.inspectionExpiresAt).getTime()
@@ -1038,14 +1049,14 @@ export default function OrdersPage() {
                           title="Simulasi waktu 48 jam habis untuk demo penilaian PJBL"
                           className="px-3.5 py-1.5 rounded-full bg-[#1F1F1F] hover:bg-white text-zinc-300 hover:text-black font-mono text-[10px] font-bold uppercase tracking-wider shrink-0 transition-all cursor-pointer flex items-center gap-1.5 border-0 shadow-sm"
                         >
-                          <span>⚡ Fast-Forward 48j (Demo)</span>
+                          <span>Fast-Forward 48j (Demo)</span>
                         </button>
                       </div>
                     )}
 
                     {order.status === "FUNDS_RELEASED_TO_SELLER" && order.autoSettled && (
                       <div className="mt-3 text-[11px] font-mono text-[#A1A1AA] flex items-center gap-2 bg-[#121212] px-3.5 py-2 rounded-xl border-0">
-                        <span className="text-[#BFDD25]">✓</span>
+                        <span className="text-white">✓</span>
                         <span>Pesanan diselesaikan otomatis oleh sistem setelah batas waktu inspeksi 48 jam berakhir.</span>
                       </div>
                     )}
@@ -1071,7 +1082,7 @@ export default function OrdersPage() {
                     </div>
                     <span className="text-xs font-mono text-[#71717A]">{rev.date}</span>
                   </div>
-                  <div className="flex gap-1 text-[#BFDD25] text-xs">
+                  <div className="flex gap-1 text-[#E4E4E7] text-xs">
                     {"★".repeat(rev.rating)}
                   </div>
                   <p className="text-xs font-sans text-[#D4D4D8] bg-[#121212] p-4 rounded-xl leading-relaxed">
@@ -1108,7 +1119,7 @@ export default function OrdersPage() {
             >
               <div className="flex justify-between items-start pb-4">
                 <div>
-                  <span className="text-xs font-mono text-[#BFDD25] font-bold tracking-[0.2em] uppercase block mb-1">
+                  <span className="text-xs font-mono text-[#A1A1AA] font-bold tracking-[0.2em] uppercase block mb-1">
                     TONAL ZONE LABS
                   </span>
                   <h2 className="font-heading text-2xl font-bold uppercase tracking-tight text-white print:text-black">
@@ -1166,13 +1177,12 @@ export default function OrdersPage() {
 
               {/* Unpaid Order Alert & Action Banner */}
               {selectedOrderDetails.status === "PAYMENT_PENDING" && !selectedOrderDetails.cancelReason && (
-                <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 font-mono text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="p-4 rounded-xl bg-[#141414] text-[#D4D4D8] font-mono text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div>
-                    <div className="font-bold uppercase tracking-wider flex items-center gap-2 text-amber-400">
-                      <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+                    <div className="font-bold uppercase tracking-wider text-white">
                       Menunggu Pembayaran
                     </div>
-                    <p className="text-[11px] text-amber-200/70 mt-0.5">
+                    <p className="text-[11px] text-[#A1A1AA] mt-0.5">
                       Pesanan belum dibayar. Selesaikan pembayaran agar pesanan segera diproses penjual.
                     </p>
                   </div>
@@ -1212,9 +1222,9 @@ export default function OrdersPage() {
                   <span className="text-white font-medium">{formatPrice(selectedOrderDetails.shippingFee || 0)}</span>
                 </div>
                 {selectedOrderDetails.isInsured && (
-                  <div className="flex justify-between text-emerald-400">
+                  <div className="flex justify-between text-[#D4D4D8]">
                     <span className="flex items-center gap-1.5">
-                      <ShieldCheck className="w-3.5 h-3.5" />
+                      <ShieldCheck className="w-3.5 h-3.5 text-[#A1A1AA]" />
                       Asuransi Audio Bernilai Tinggi
                     </span>
                     <span className="font-medium">+{formatPrice(selectedOrderDetails.insuranceFee || 0)}</span>
@@ -1227,7 +1237,7 @@ export default function OrdersPage() {
                 <div className="pt-3 border-t border-white/5 flex justify-between items-center text-xs">
                   <div>
                     <span className="text-[10px] text-[#71717A] uppercase block">PROTEKSI ESCROW</span>
-                    <span className="text-[#BFDD25] font-bold">
+                    <span className="text-white font-bold">
                       {selectedOrderDetails.cancelReason
                         ? "DIBATALKAN (REFUNDED)"
                         : selectedOrderDetails.status === "PAYMENT_PENDING"
@@ -1290,7 +1300,7 @@ export default function OrdersPage() {
             >
               <div className="flex justify-between items-start pb-2">
                 <div>
-                  <span className="text-[10px] font-mono text-[#BFDD25] uppercase tracking-widest block font-bold">
+                  <span className="text-[10px] font-mono text-[#A1A1AA] uppercase tracking-widest block font-bold">
                     ULASAN AUDIOPHILE
                   </span>
                   <h3 className="font-heading text-xl font-bold uppercase text-white mt-1">
@@ -1311,7 +1321,7 @@ export default function OrdersPage() {
                   <label className="block text-[#71717A] uppercase tracking-wider mb-2">
                     Rating Bintang:
                   </label>
-                  <div className="flex gap-2 text-2xl text-[#BFDD25] cursor-pointer">
+                  <div className="flex gap-2 text-2xl text-white cursor-pointer">
                     {[1, 2, 3, 4, 5].map((star) => (
                       <span
                         key={star}
@@ -1391,7 +1401,6 @@ export default function OrdersPage() {
 
               <div className="p-3.5 bg-[#141414] rounded-xl text-xs font-mono text-zinc-300 space-y-1 border-0">
                 <div className="flex items-center gap-2 text-white font-semibold">
-                  <span className="w-1.5 h-1.5 rounded-full bg-red-400" />
                   Pengembalian Dana Penuh 100%
                 </div>
                 <p className="text-[11px] text-zinc-400">
@@ -1416,11 +1425,11 @@ export default function OrdersPage() {
                     >
                       <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 transition-colors ${
                         cancelReasonSelected === r
-                          ? "border-white bg-transparent"
+                          ? "border-white bg-white text-black"
                           : "border-zinc-600 bg-transparent"
                       }`}>
                         {cancelReasonSelected === r && (
-                          <div className="w-2 h-2 rounded-full bg-white" />
+                          <Check className="w-2.5 h-2.5 stroke-[3]" />
                         )}
                       </div>
                       <span className="leading-snug">{r}</span>

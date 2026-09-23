@@ -92,22 +92,22 @@ const STORE_PRESETS: Record<string, Partial<StoreMetadata>> = {
     operationalHours: "Senin – Sabtu (10.00 – 19.00 WIB)",
     bannerUrl: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=1600&q=80",
   },
-  "headphone-zone-id": {
-    badge: "STAR_SELLER",
-    city: "Tangerang",
-    joinYear: "2023",
-    rating: 4.9,
-    totalReviews: 890,
-    followersCount: 4200,
-    responseTime: "±8 menit",
-    responseRate: "99%",
-    description: "Toko spesialis audiophile gear import dan aksesoris IEM. Setiap unit diuji sebelum dikirim dan dilindungi sistem TonalZone Escrow.",
-    operationalHours: "Setiap Hari (09.00 – 21.00 WIB)",
-    bannerUrl: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=1600&q=80",
-  },
   "csi-zone": {
     badge: "STAR_SELLER",
     city: "Surabaya",
+    joinYear: "2024",
+    rating: 4.8,
+    totalReviews: 540,
+    followersCount: 2800,
+    responseTime: "±10 menit",
+    responseRate: "98%",
+    description: "CSI Zone Official Surabaya. Toko retail audiophile terpercaya penyedia earphone IEM, DAC/Amp, dan aksesoris audio hi-res terlengkap di Jawa Timur.",
+    operationalHours: "Senin – Sabtu (09.30 – 18.30 WIB)",
+    bannerUrl: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=1600&q=80",
+  },
+  "csi-zone-surabaya": {
+    badge: "STAR_SELLER",
+    city: "Kota Surabaya",
     joinYear: "2024",
     rating: 4.8,
     totalReviews: 540,
@@ -170,73 +170,155 @@ export interface RetailOffer {
   id: string;
   sellerName: string;
   sellerType: "OFFICIAL" | "AUTHORIZED" | "INDIVIDUAL";
+  sellerCity?: string;
+  badgeLabel?: "OFFICIAL STORE" | "VERIFIED RETAILER" | "AUTHORIZED DISTY";
   condition: string;
   price: number;
+  originalPrice?: number;
+  discountPercent?: number;
+  highlightTag?: string;
 }
 
 export const RETAIL_SELLERS = [
   {
     name: "Bass Audio Official",
     type: "AUTHORIZED" as const,
+    city: "Jakarta Barat",
+    badgeLabel: "VERIFIED RETAILER" as const,
+    highlightTag: "Sameday Ready",
     conditions: [
-      { condition: "Brand New Sealed — Local Disty", multiplier: 1.03 },
-      { condition: "Like New / Mint — 99% Complete Box", multiplier: 0.91 },
-    ],
-  },
-  {
-    name: "CSI Zone",
-    type: "AUTHORIZED" as const,
-    conditions: [
-      { condition: "Brand New Sealed — Garansi Resmi CSI", multiplier: 1.0 },
+      { condition: "Brand New Sealed — Local Disty", multiplier: 1.0 },
       { condition: "Like New / Mint — 99% Complete Box", multiplier: 0.88 },
     ],
   },
   {
-    name: "Linsoul Audio",
+    name: "CSI Zone Surabaya",
     type: "AUTHORIZED" as const,
+    city: "Kota Surabaya",
+    badgeLabel: "VERIFIED RETAILER" as const,
+    highlightTag: "Toko Terdekat (Jatim)",
     conditions: [
-      { condition: "Brand New — Factory Sealed Import", multiplier: 0.98 },
-      { condition: "Open Box Grade A — Tested Mulus", multiplier: 0.89 },
-    ],
-  },
-  {
-    name: "Headphone Zone ID",
-    type: "AUTHORIZED" as const,
-    conditions: [
-      { condition: "Brand New Sealed — Local Disty Stock", multiplier: 1.02 },
-      { condition: "Ex-Audition Demo Unit — Like New", multiplier: 0.86 },
-    ],
-  },
-  {
-    name: "ShenzhenAudio Official",
-    type: "AUTHORIZED" as const,
-    conditions: [
-      { condition: "Brand New — Global Stock Sealed", multiplier: 0.99 },
-      { condition: "Like New — Open Box Mint", multiplier: 0.92 },
+      { condition: "Brand New Sealed — Garansi Resmi Toko", multiplier: 0.98 },
+      { condition: "Like New / Mint — Unit Demo Toko", multiplier: 0.85 },
     ],
   },
 ];
+
+// Daftar katalog spesifik yang dijual oleh Bass Audio Official (Retailer Jakarta Barat)
+// Bass Audio mengkhususkan diri pada lini Portable DAC/Amps, High-End Flagship, Sennheiser, FatFreq, Chord, FiiO, Meze, dan Moondrop pilihan
+export const BASS_AUDIO_PRODUCT_IDS = new Set([
+  "prod-maestro-mini",   // FatFreq Maestro Mini
+  "prod-mojo2",          // Chord Mojo 2
+  "prod-fiio-btr7",      // FiiO BTR7
+  "prod-ifi-goblu",      // iFi Audio GO blu
+  "prod-dx3-pro-plus",   // Topping DX3 Pro+
+  "prod-ie900",          // Sennheiser IE 900
+  "prod-ie600",          // Sennheiser IE 600
+  "prod-hd600",          // Sennheiser HD 600
+  "prod-eah-az80",       // Technics EAH-AZ80
+  "prod-meze-109pro",    // Meze 109 PRO
+  "prod-solaris",        // Campfire Audio Solaris
+  "prod-u12t",           // 64 Audio U12t
+  "prod-blessing3",      // Moondrop Blessing 3
+  "prod-aria2",          // Moondrop Aria 2
+  "prod-chu3",           // Moondrop CHU III
+]);
+
+// Daftar katalog spesifik yang dijual oleh CSI Zone Surabaya (Retailer Kuping Manja Surabaya)
+// CSI Zone mengkhususkan diri pada Chi-Fi IEMs, budget beasts, Tangzu, Truthear, Simgot, Letshuoer, EPZ, Qudelix, Kiwi Ears
+export const CSI_ZONE_PRODUCT_IDS = new Set([
+  "prod-waner",          // Tangzu Nezha / Wan'er
+  "prod-zetian-wu",      // Tangzu Zetian Wu
+  "prod-shimin-li",      // Tangzu Shimin Li
+  "prod-wukong",         // Tangzu WuKong
+  "prod-zero-red",       // Truthear Crinacle ZERO:RED
+  "prod-s12pro",         // Letshuoer S12 Pro
+  "prod-ea1000",         // Simgot EA1000 Fermat
+  "prod-epz-g30",        // EPZ G30
+  "prod-mimisbrunnr",    // Mimisbrunnr Flagship
+  "prod-nanna-2",        // Kinera Imperial Nanna
+  "prod-7hz-zero",       // 7Hz Salnotes Zero
+  "prod-kiwi-cadenza",   // Kiwi Ears Cadenza
+  "prod-quintet",        // Kiwi Ears Quintet
+  "prod-qudelix-5k",     // Qudelix-5K DAC
+  "prod-m50x-bt2",       // Audio-Technica M50xBT2
+  "prod-dawn-pro",       // Moondrop Dawn Pro
+  "prod-space-travel",   // Moondrop Space Travel
+  "prod-chu3",           // Moondrop CHU III
+]);
+
+/**
+ * Memeriksa apakah toko ritel tertentu (Bass Audio atau CSI Zone) menjual produk bersangkutan.
+ * Toko tidak menjual semua produk: masing-masing hanya menjual kurasi lini produk mereka sendiri.
+ */
+export function isProductSoldByRetailer(
+  retailerName: string,
+  product: { id?: string; name?: string; brand?: string; storeName?: string }
+): boolean {
+  if (!product) return false;
+  const prodId = (product.id || "").toLowerCase();
+  const prodBrand = (product.brand || "").toUpperCase();
+  const primaryStore = (product.storeName || "").toLowerCase();
+
+  const isBass = retailerName.toLowerCase().includes("bass audio");
+  const isCSI = retailerName.toLowerCase().includes("csi zone");
+
+  if (isBass) {
+    if (primaryStore.includes("bass audio")) return true;
+    if (BASS_AUDIO_PRODUCT_IDS.has(prodId)) return true;
+    if (["FATFREQ", "CHORD AUDIO", "FIIO", "IFI AUDIO", "MEZE AUDIO"].includes(prodBrand)) {
+      return true;
+    }
+    return false;
+  }
+
+  if (isCSI) {
+    if (primaryStore.includes("csi zone")) return true;
+    if (CSI_ZONE_PRODUCT_IDS.has(prodId)) return true;
+    if (["TANGZU", "TRUTHEAR", "SIMGOT", "LETSHUOER", "EPZ", "MIMISBRUNNR", "QUDELIX"].includes(prodBrand)) {
+      return true;
+    }
+    return false;
+  }
+
+  return false;
+}
 
 export function getProductRetailOffers(product: {
   id: string;
   name: string;
   price: number;
   storeName?: string;
+  brand?: string;
 }): RetailOffer[] {
   if (!product) return [];
 
   const isPrimaryOfficial = (product.storeName || "").toLowerCase().includes("official");
   const primarySellerName = product.storeName || "TonalZone Partner";
+  const primaryOriginalPrice = Math.round(product.price * 1.15);
+  const primaryDiscount = Math.round(((primaryOriginalPrice - product.price) / primaryOriginalPrice) * 100);
+
+  const isCsiPrimary = (product.storeName || "").toLowerCase().includes("csi zone");
+  const defaultCity = isPrimaryOfficial
+    ? "Jakarta Pusat"
+    : isCsiPrimary
+    ? "Kota Surabaya"
+    : "Jakarta Barat";
 
   const baseOffers: RetailOffer[] = [
     {
       id: "off-1",
       sellerName: primarySellerName,
       sellerType: isPrimaryOfficial ? "OFFICIAL" : "AUTHORIZED",
+      sellerCity: defaultCity,
+      badgeLabel: isPrimaryOfficial ? "OFFICIAL STORE" : "VERIFIED RETAILER",
       condition: isPrimaryOfficial
         ? "Brand New — 1 Year Official Disty Warranty"
         : "Brand New Sealed — Garansi Resmi Toko",
       price: product.price,
+      originalPrice: primaryOriginalPrice,
+      discountPercent: primaryDiscount > 0 ? primaryDiscount : undefined,
+      highlightTag: isPrimaryOfficial ? "Garansi Resmi Prinsipal" : "Toko Rekomendasi",
     },
   ];
 
@@ -248,45 +330,37 @@ export function getProductRetailOffers(product: {
   }
   const seed = Math.abs(hash);
 
-  const availableRetailers = RETAIL_SELLERS.filter(
-    (r) => r.name.toLowerCase() !== primarySellerName.toLowerCase()
-  );
+  // Filter toko retail: jangan masukkan jika sudah menjadi penjual utama,
+  // dan HANYA masukkan jika toko retail ini memang menjual lini produk tersebut!
+  const availableRetailers = RETAIL_SELLERS.filter((r) => {
+    const rSlug = getStoreSlug(r.name);
+    const pSlug = getStoreSlug(primarySellerName);
+    if (r.name.toLowerCase() === primarySellerName.toLowerCase() || rSlug === pSlug) {
+      return false;
+    }
+    return isProductSoldByRetailer(r.name, product);
+  });
 
-  const dice = seed % 10;
-  let extraCount = 0;
-  if (dice >= 3 && dice <= 6) extraCount = 1;
-  else if (dice > 6) extraCount = 2;
-
-  if (extraCount > 0 && availableRetailers.length > 0) {
-    const firstIdx = seed % availableRetailers.length;
-    const firstRetailer = availableRetailers[firstIdx];
-    const condIdx1 = (seed >> 2) % firstRetailer.conditions.length;
-    const selectedCond1 = firstRetailer.conditions[condIdx1];
+  availableRetailers.forEach((ret, idx) => {
+    const condIdx = (seed + idx) % ret.conditions.length;
+    const cond = ret.conditions[condIdx];
+    const offerPrice = Math.round(product.price * cond.multiplier);
+    const offerOrig = Math.round(product.price * 1.15);
+    const offerDiscount = Math.round(((offerOrig - offerPrice) / offerOrig) * 100);
 
     baseOffers.push({
-      id: "off-2",
-      sellerName: firstRetailer.name,
-      sellerType: firstRetailer.type,
-      condition: selectedCond1.condition,
-      price: Math.round(product.price * selectedCond1.multiplier),
+      id: `off-${idx + 2}`,
+      sellerName: ret.name,
+      sellerType: ret.type,
+      sellerCity: ret.city,
+      badgeLabel: ret.badgeLabel,
+      condition: cond.condition,
+      price: offerPrice,
+      originalPrice: offerOrig > offerPrice ? offerOrig : undefined,
+      discountPercent: offerDiscount > 0 ? offerDiscount : undefined,
+      highlightTag: ret.highlightTag,
     });
-
-    if (extraCount === 2 && availableRetailers.length > 1) {
-      const remainingRetailers = availableRetailers.filter((_, idx) => idx !== firstIdx);
-      const secondIdx = (seed + 3) % remainingRetailers.length;
-      const secondRetailer = remainingRetailers[secondIdx];
-      const condIdx2 = (seed >> 4) % secondRetailer.conditions.length;
-      const selectedCond2 = secondRetailer.conditions[condIdx2];
-
-      baseOffers.push({
-        id: "off-3",
-        sellerName: secondRetailer.name,
-        sellerType: secondRetailer.type,
-        condition: selectedCond2.condition,
-        price: Math.round(product.price * selectedCond2.multiplier),
-      });
-    }
-  }
+  });
 
   return baseOffers;
 }

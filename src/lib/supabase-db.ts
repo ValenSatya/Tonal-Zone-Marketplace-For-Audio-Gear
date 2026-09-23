@@ -53,6 +53,19 @@ export interface DbStore {
 export function extractBrandFromStoreName(name?: string | null, email?: string | null): string | null {
   const isOfficialDomain = email ? (email.toLowerCase().endsWith("@tonalzone.id") || email.toLowerCase().includes("valenandra")) : false;
   const text = `${name || ""} ${isOfficialDomain ? email : ""}`.toLowerCase().trim();
+
+  // Multi-brand retailers must never be classified as single-brand manufacturer flagships
+  if (
+    text.includes("bass audio") ||
+    text.includes("bassaudio") ||
+    text.includes("csi zone") ||
+    text.includes("csizone") ||
+    text.includes("kuping sensi") ||
+    text.includes("soundstage")
+  ) {
+    return null;
+  }
+
   if (text.includes("epz")) return "EPZ";
   if (text.includes("tanchjim")) return "Tanchjim";
   if (text.includes("sennheiser")) return "Sennheiser";
@@ -87,14 +100,25 @@ export function parseStoreMetadata(store: any): DbStore {
   if (!store) return store;
   const desc = store.description || "";
   const name = store.storeName || "";
-  const detectedBrand = extractBrandFromStoreName(name);
+  const nameLower = name.toLowerCase();
+
+  const isRetailer =
+    nameLower.includes("bass audio") ||
+    nameLower.includes("csi zone") ||
+    nameLower.includes("kuping sensi") ||
+    nameLower.includes("soundstage") ||
+    store.id === "store-bass-audio" ||
+    store.id === "04595ba3-8657-4aa6-95da-941f6e1717f8" ||
+    store.id === "store-csi-zone";
+
+  const detectedBrand = isRetailer ? null : extractBrandFromStoreName(name);
 
   const isOfficial =
-    desc.includes("OFFICIAL_BRAND") ||
-    name.toLowerCase().includes("official") ||
-    name.toLowerCase().includes("moondrop") ||
-    store.id === "store-moondrop-official" ||
-    Boolean(detectedBrand);
+    !isRetailer &&
+    (desc.includes("OFFICIAL_BRAND") ||
+      nameLower.includes("moondrop") ||
+      store.id === "store-moondrop-official" ||
+      Boolean(detectedBrand));
 
   let brandName = detectedBrand;
   if (!brandName && isOfficial) {
@@ -111,8 +135,8 @@ export function parseStoreMetadata(store: any): DbStore {
     banner,
     avatarUrl: logo,
     bannerUrl: banner,
-    storeType: isOfficial && brandName ? "OFFICIAL_BRAND" : (store.storeType || "RETAIL_MERCHANT"),
-    brandName: brandName || store.brandName || null,
+    storeType: isRetailer ? "RETAIL_MERCHANT" : isOfficial && brandName ? "OFFICIAL_BRAND" : (store.storeType || "RETAIL_MERCHANT"),
+    brandName: isRetailer ? null : (brandName || store.brandName || null),
   };
 }
 
@@ -433,6 +457,16 @@ export const storeRepo = {
 
     if (!error && data) return parseStoreMetadata(data);
 
+    if (id === "store-bass-audio" || id.toLowerCase().includes("bassaudio") || id.toLowerCase().includes("bass-audio")) {
+      const { data: bStore } = await supabase.from("Store").select("*").ilike("storeName", "%bass audio%").maybeSingle();
+      if (bStore) return parseStoreMetadata(bStore);
+    }
+
+    if (id === "store-csi-zone" || id.toLowerCase().includes("csizone") || id.toLowerCase().includes("csi-zone")) {
+      const { data: cStore } = await supabase.from("Store").select("*").ilike("storeName", "%csi zone%").maybeSingle();
+      if (cStore) return parseStoreMetadata(cStore);
+    }
+
     if (id === "store-moondrop-official" || id.toLowerCase().includes("moondrop")) {
       return {
         id: "store-moondrop-official",
@@ -654,7 +688,7 @@ export const productRepo = {
       experienceLevel: product.experienceLevel || "INTERMEDIATE",
       soundSignature: product.soundSignature || "NEUTRAL",
       status: "APPROVED",
-      images: product.images || ["/hero-blessing-3.jpg"],
+      images: product.images || ["/model-iem-untuk-hero.webp"],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -692,7 +726,7 @@ export const productRepo = {
       experienceLevel: product.experienceLevel || "INTERMEDIATE",
       soundSignature: product.soundSignature || "NEUTRAL",
       status: "APPROVED",
-      images: product.images || ["/hero-blessing-3.jpg"],
+      images: product.images || ["/model-iem-untuk-hero.webp"],
       updatedAt: new Date().toISOString(),
     };
 
@@ -728,6 +762,15 @@ export const productRepo = {
   async findByStoreId(storeId?: string | null): Promise<any[]> {
     if (!storeId) return [];
 
+    let cleanStoreId = storeId;
+    if (storeId === "store-bass-audio" || (storeId.toLowerCase().includes("bass") && !storeId.includes("-"))) {
+      const { data: bStore } = await supabase.from("Store").select("id").ilike("storeName", "%bass audio%").maybeSingle();
+      if (bStore?.id) cleanStoreId = bStore.id;
+    } else if (storeId === "store-csi-zone" || (storeId.toLowerCase().includes("csi") && !storeId.includes("-"))) {
+      const { data: cStore } = await supabase.from("Store").select("id").ilike("storeName", "%csi zone%").maybeSingle();
+      if (cStore?.id) cleanStoreId = cStore.id;
+    }
+
     const { data, error } = await supabase
       .from("Product")
       .select(`
@@ -736,7 +779,7 @@ export const productRepo = {
         category:Category(id, name),
         store:Store(id, storeName, address)
       `)
-      .eq("storeId", storeId)
+      .eq("storeId", cleanStoreId)
       .order("createdAt", { ascending: false });
 
     if (error || !data) {
@@ -944,7 +987,8 @@ export type ReturnStatusCode =
   | "RECEIVED_INSPECTING"
   | "REFUNDED"
   | "REPLACED"
-  | "REJECTED";
+  | "REJECTED"
+  | "COMPLETED";
 
 export interface DbReturnRequest {
   id: string;
@@ -1173,12 +1217,12 @@ export const orderRepo = {
                   orderId: dbOrder.id,
                   productId: it.productId,
                   productName: it.product?.name || meta.items?.find((ci: any) => ci.productId === it.productId)?.productName || cached?.items?.find((ci: any) => ci.productId === it.productId)?.productName || "Audiophile Product",
-                  brand: it.product?.name?.toUpperCase().includes("MOONDROP") ? "MOONDROP" : "Audiophile",
+                  brand: it.product?.brand?.name || (it.product?.name?.toUpperCase().includes("MOONDROP") ? "MOONDROP" : "Audiophile"),
                   category: it.product?.categoryId || "IN-EAR MONITORS",
                   price: Number(it.price) || 0,
                   quantity: Number(it.quantity) || 1,
                   selectedVariant: meta.items?.find((ci: any) => ci.productId === it.productId)?.selectedVariant || cached?.items?.find((ci: any) => ci.productId === it.productId)?.selectedVariant || "Standard",
-                  image: it.product?.images?.[0] || meta.items?.find((ci: any) => ci.productId === it.productId)?.image || cached?.items?.find((ci: any) => ci.productId === it.productId)?.image || "/hero-blessing-3.jpg",
+                  image: it.product?.images?.[0] || meta.items?.find((ci: any) => ci.productId === it.productId)?.image || cached?.items?.find((ci: any) => ci.productId === it.productId)?.image || "/model-iem-untuk-hero.webp",
                   itemTotal: (Number(it.price) || 0) * (Number(it.quantity) || 1),
                 }))
               : (meta.items || cached?.items || []),
@@ -1422,10 +1466,19 @@ export const orderRepo = {
   async findByStoreId(storeId: string): Promise<DbOrder[]> {
     const all = await this.getAll();
     const cleanStoreId = (storeId || "").trim().toLowerCase();
+    const isBassAudio = cleanStoreId === "04595ba3-8657-4aa6-95da-941f6e1717f8" || cleanStoreId === "store-bass-audio" || cleanStoreId.includes("bass");
+    const isCsiZone = cleanStoreId === "store-csi-zone" || cleanStoreId.includes("csi");
+
     return all.filter((o) => {
       const orderStore = (o.storeId || "").trim().toLowerCase();
       if (!cleanStoreId) return true;
       if (orderStore === cleanStoreId) return true;
+      if (isBassAudio && (orderStore === "04595ba3-8657-4aa6-95da-941f6e1717f8" || orderStore === "store-bass-audio" || (o.storeName && o.storeName.toLowerCase().includes("bass")))) {
+        return true;
+      }
+      if (isCsiZone && (orderStore === "store-csi-zone" || (o.storeName && o.storeName.toLowerCase().includes("csi")))) {
+        return true;
+      }
       if (cleanStoreId === "store-moondrop-official") {
         const hasMoondropItem = o.items?.some((it) =>
           (it.brand || "").toUpperCase().includes("MOONDROP") ||
@@ -1988,6 +2041,42 @@ export const orderRepo = {
     }
 
     order.escrowStatus = "FUNDS_RELEASED_TO_SELLER";
+    if (order.returnStatus === "REPLACED") {
+      order.returnStatus = "COMPLETED";
+      if (order.returnId) {
+        const ret = globalReturnsCache.get(order.returnId);
+        if (ret) {
+          ret.status = "COMPLETED";
+          ret.updatedAt = nowIso;
+          globalReturnsCache.set(ret.id, ret);
+          try {
+            supabase
+              .from("ReturnRequest")
+              .update({ status: "COMPLETED", updatedAt: nowIso })
+              .eq("id", ret.id)
+              .then(() => {});
+          } catch (e) {
+            console.error("[confirmDeliveryAndReleaseFunds] ReturnRequest update error:", e);
+          }
+
+          notificationRepo.create({
+            recipientEmail: "seller@tonalzone.id",
+            storeId: ret.storeId,
+            recipientRole: "seller",
+            type: "order",
+            title: "Tukar Unit Selesai - Dana Diteruskan",
+            message: `Pembeli telah mengonfirmasi penerimaan unit pengganti pesanan #${order.id}. Transaksi retur selesai dan dana telah diteruskan ke saldo toko Anda.`,
+            actionLink: "/seller/returns",
+            unread: true,
+            meta: {
+              orderId: order.id,
+              productName: ret.productName,
+              storeName: ret.storeName,
+            },
+          }).catch(() => {});
+        }
+      }
+    }
     order.updatedAt = nowIso;
     globalOrdersCache.set(order.id, order);
 
@@ -1995,6 +2084,7 @@ export const orderRepo = {
     metaStore[order.id] = {
       ...(metaStore[order.id] || {}),
       escrowStatus: "FUNDS_RELEASED_TO_SELLER",
+      returnStatus: order.returnStatus,
       trackingHistory: order.trackingHistory,
       waybillNumber: order.waybillNumber,
       hasReviewed: true,
@@ -2285,6 +2375,20 @@ const globalWithdrawalsCache: Map<string, DbWithdrawal> = new Map([
 
 export const payoutRepo = {
   async getWithdrawals(storeId: string): Promise<DbWithdrawal[]> {
+    try {
+      const { data, error } = await supabase
+        .from("Withdrawal")
+        .select("*")
+        .eq("storeId", storeId)
+        .order("createdAt", { ascending: false });
+
+      if (!error && data && data.length > 0) {
+        return data as DbWithdrawal[];
+      }
+    } catch (e) {
+      console.warn("[payoutRepo] Error fetching from Supabase, using cache fallback:", e);
+    }
+
     return Array.from(globalWithdrawalsCache.values())
       .filter((w) => w.storeId === storeId)
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
@@ -2311,6 +2415,26 @@ export const payoutRepo = {
       status: "PROCESSING",
       createdAt: now,
     };
+
+    try {
+      const { error } = await supabase.from("Withdrawal").insert({
+        id: entry.id,
+        storeId: entry.storeId,
+        amountUSD: entry.amountUSD,
+        amountIDR: entry.amountIDR,
+        bankName: entry.bankName,
+        bankAccount: entry.bankAccount,
+        accountHolder: entry.accountHolder,
+        status: entry.status,
+        createdAt: entry.createdAt,
+      });
+      if (error) {
+        console.warn("[payoutRepo] Supabase insert error:", error);
+      }
+    } catch (e) {
+      console.warn("[payoutRepo] Error inserting to Supabase:", e);
+    }
+
     globalWithdrawalsCache.set(id, entry);
     return entry;
   },
@@ -3096,23 +3220,66 @@ if (initialOrder9935) {
 
 export const returnRepo = {
   async getAll(): Promise<DbReturnRequest[]> {
+    try {
+      const { data, error } = await supabase
+        .from("ReturnRequest")
+        .select("*")
+        .order("createdAt", { ascending: false });
+
+      if (!error && data && data.length > 0) {
+        return data as DbReturnRequest[];
+      }
+    } catch (e) {
+      console.warn("[returnRepo] Error fetching from Supabase:", e);
+    }
+
     return Array.from(globalReturnsCache.values()).sort(
       (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
   },
 
   async findById(id: string): Promise<DbReturnRequest | null> {
-    const cleanId = id.trim().toLowerCase();
+    const cleanId = id.trim();
+    try {
+      const { data, error } = await supabase
+        .from("ReturnRequest")
+        .select("*")
+        .eq("id", cleanId)
+        .maybeSingle();
+
+      if (!error && data) {
+        return data as DbReturnRequest;
+      }
+    } catch (e) {
+      console.warn("[returnRepo] Error fetching by id from Supabase:", e);
+    }
+
+    const cleanLower = cleanId.toLowerCase();
     for (const [key, item] of globalReturnsCache.entries()) {
-      if (key.toLowerCase() === cleanId) return item;
+      if (key.toLowerCase() === cleanLower) return item;
     }
     return null;
   },
 
   async findByOrderId(orderId: string): Promise<DbReturnRequest | null> {
-    const cleanOrderId = orderId.trim().toLowerCase();
+    const cleanOrderId = orderId.trim();
+    try {
+      const { data, error } = await supabase
+        .from("ReturnRequest")
+        .select("*")
+        .eq("orderId", cleanOrderId)
+        .maybeSingle();
+
+      if (!error && data) {
+        return data as DbReturnRequest;
+      }
+    } catch (e) {
+      console.warn("[returnRepo] Error fetching by orderId from Supabase:", e);
+    }
+
+    const cleanLower = cleanOrderId.toLowerCase();
     for (const item of globalReturnsCache.values()) {
-      if (item.orderId.toLowerCase() === cleanOrderId) return item;
+      if (item.orderId.toLowerCase() === cleanLower) return item;
     }
     return null;
   },
@@ -3120,6 +3287,21 @@ export const returnRepo = {
   async findByBuyerEmail(email: string): Promise<DbReturnRequest[]> {
     if (!email) return [];
     const cleanEmail = email.trim().toLowerCase();
+
+    try {
+      const { data, error } = await supabase
+        .from("ReturnRequest")
+        .select("*")
+        .ilike("buyerEmail", cleanEmail)
+        .order("createdAt", { ascending: false });
+
+      if (!error && data && data.length > 0) {
+        return data as DbReturnRequest[];
+      }
+    } catch (e) {
+      console.warn("[returnRepo] Error fetching by buyerEmail from Supabase:", e);
+    }
+
     const all = await this.getAll();
     return all.filter((r) => r.buyerEmail.toLowerCase() === cleanEmail);
   },
@@ -3127,6 +3309,21 @@ export const returnRepo = {
   async findByStoreId(storeId: string): Promise<DbReturnRequest[]> {
     if (!storeId) return [];
     const cleanStoreId = storeId.trim();
+
+    try {
+      const query = supabase.from("ReturnRequest").select("*");
+      if (cleanStoreId !== "store-moondrop-official") {
+        query.eq("storeId", cleanStoreId);
+      }
+      const { data, error } = await query.order("createdAt", { ascending: false });
+
+      if (!error && data && data.length > 0) {
+        return data as DbReturnRequest[];
+      }
+    } catch (e) {
+      console.warn("[returnRepo] Error fetching by storeId from Supabase:", e);
+    }
+
     const all = await this.getAll();
     return all.filter((r) => r.storeId === cleanStoreId || cleanStoreId === "store-moondrop-official");
   },
@@ -3150,6 +3347,52 @@ export const returnRepo = {
       createdAt: now,
       updatedAt: now,
     };
+
+    try {
+      const { error } = await supabase.from("ReturnRequest").insert({
+        id: newReturn.id,
+        orderId: newReturn.orderId,
+        buyerId: newReturn.buyerId,
+        buyerName: newReturn.buyerName,
+        buyerEmail: newReturn.buyerEmail,
+        buyerPhone: newReturn.buyerPhone || null,
+        storeId: newReturn.storeId,
+        storeName: newReturn.storeName,
+        productId: newReturn.productId,
+        productName: newReturn.productName,
+        productImage: newReturn.productImage || null,
+        productPrice: newReturn.productPrice,
+        quantity: newReturn.quantity,
+        selectedVariant: newReturn.selectedVariant || null,
+        reason: newReturn.reason,
+        description: newReturn.description,
+        evidenceImages: newReturn.evidenceImages || [],
+        unboxingVideoUrl: newReturn.unboxingVideoUrl || null,
+        unboxingVideoType: newReturn.unboxingVideoType || null,
+        requestedSolution: newReturn.requestedSolution || null,
+        resolutionType: newReturn.resolutionType || null,
+        replacementWaybillNumber: newReturn.replacementWaybillNumber || null,
+        replacementCourier: newReturn.replacementCourier || null,
+        shippingFeeBearer: newReturn.shippingFeeBearer || null,
+        returnShippingCost: newReturn.returnShippingCost || 0,
+        qcStage: newReturn.qcStage || null,
+        qcStatus: newReturn.qcStatus || null,
+        qcNotes: newReturn.qcNotes || null,
+        status: newReturn.status,
+        storeReturnAddress: newReturn.storeReturnAddress || null,
+        returnWaybillNumber: newReturn.returnWaybillNumber || null,
+        returnCourier: newReturn.returnCourier || null,
+        sellerRejectReason: newReturn.sellerRejectReason || null,
+        refundAmount: newReturn.refundAmount || 0,
+        createdAt: newReturn.createdAt,
+        updatedAt: newReturn.updatedAt,
+      });
+      if (error) {
+        console.warn("[returnRepo] Supabase insert error:", error);
+      }
+    } catch (e) {
+      console.warn("[returnRepo] Error inserting to Supabase:", e);
+    }
 
     globalReturnsCache.set(id, newReturn);
 
@@ -3227,7 +3470,43 @@ export const returnRepo = {
       order.returnStatus = "APPROVED_WAITING_SHIPMENT";
       order.updatedAt = now;
       globalOrdersCache.set(order.id, order);
+
+      const metaStore = loadPersistentOrdersMeta();
+      metaStore[order.id] = {
+        ...(metaStore[order.id] || {}),
+        returnStatus: "APPROVED_WAITING_SHIPMENT",
+      };
+      savePersistentOrdersMeta(metaStore);
     }
+
+    try {
+      const { error: sbErr } = await supabase
+        .from("ReturnRequest")
+        .update({
+          status: ret.status,
+          storeReturnAddress: ret.storeReturnAddress,
+          qcStage: ret.qcStage,
+          returnWaybillNumber: ret.returnWaybillNumber,
+          returnCourier: ret.returnCourier,
+          updatedAt: now,
+        })
+        .eq("id", ret.id);
+      if (sbErr) {
+        console.error("[returnRepo.approveBySeller] Supabase update error:", sbErr);
+      }
+    } catch (err) {
+      console.error("[returnRepo.approveBySeller] ReturnRequest update exception:", err);
+    }
+
+    try {
+      await supabase
+        .from("Order")
+        .update({
+          returnStatus: "APPROVED_WAITING_SHIPMENT",
+          updatedAt: now,
+        })
+        .eq("id", ret.orderId);
+    } catch (err) {}
 
     // Send notification to buyer
     await notificationRepo.create({
@@ -3264,7 +3543,40 @@ export const returnRepo = {
       order.returnStatus = "REJECTED";
       order.updatedAt = now;
       globalOrdersCache.set(order.id, order);
+
+      const metaStore = loadPersistentOrdersMeta();
+      metaStore[order.id] = {
+        ...(metaStore[order.id] || {}),
+        returnStatus: "REJECTED",
+      };
+      savePersistentOrdersMeta(metaStore);
     }
+
+    try {
+      const { error: sbErr } = await supabase
+        .from("ReturnRequest")
+        .update({
+          status: "REJECTED",
+          sellerRejectReason: ret.sellerRejectReason,
+          updatedAt: now,
+        })
+        .eq("id", ret.id);
+      if (sbErr) {
+        console.error("[returnRepo.rejectBySeller] Supabase update error:", sbErr);
+      }
+    } catch (err) {
+      console.error("[returnRepo.rejectBySeller] ReturnRequest update exception:", err);
+    }
+
+    try {
+      await supabase
+        .from("Order")
+        .update({
+          returnStatus: "REJECTED",
+          updatedAt: now,
+        })
+        .eq("id", ret.orderId);
+    } catch (err) {}
 
     // Send notification to buyer
     await notificationRepo.create({
@@ -3306,7 +3618,41 @@ export const returnRepo = {
       order.returnStatus = "IN_TRANSIT_TO_SELLER";
       order.updatedAt = now;
       globalOrdersCache.set(order.id, order);
+
+      const metaStore = loadPersistentOrdersMeta();
+      metaStore[order.id] = {
+        ...(metaStore[order.id] || {}),
+        returnStatus: "IN_TRANSIT_TO_SELLER",
+      };
+      savePersistentOrdersMeta(metaStore);
     }
+
+    try {
+      const { error: sbErr } = await supabase
+        .from("ReturnRequest")
+        .update({
+          status: "IN_TRANSIT_TO_SELLER",
+          returnWaybillNumber: ret.returnWaybillNumber,
+          returnCourier: ret.returnCourier,
+          updatedAt: now,
+        })
+        .eq("id", ret.id);
+      if (sbErr) {
+        console.error("[returnRepo.submitReturnShipment] Supabase update error:", sbErr);
+      }
+    } catch (err) {
+      console.error("[returnRepo.submitReturnShipment] ReturnRequest update exception:", err);
+    }
+
+    try {
+      await supabase
+        .from("Order")
+        .update({
+          returnStatus: "IN_TRANSIT_TO_SELLER",
+          updatedAt: now,
+        })
+        .eq("id", ret.orderId);
+    } catch (err) {}
 
     // Send notification to seller
     await notificationRepo.create({
@@ -3343,16 +3689,66 @@ export const returnRepo = {
       order.returnStatus = "RECEIVED_INSPECTING";
       order.updatedAt = now;
       globalOrdersCache.set(order.id, order);
+
+      const metaStore = loadPersistentOrdersMeta();
+      metaStore[order.id] = {
+        ...(metaStore[order.id] || {}),
+        returnStatus: "RECEIVED_INSPECTING",
+      };
+      savePersistentOrdersMeta(metaStore);
     }
+
+    try {
+      const { error: sbErr } = await supabase
+        .from("ReturnRequest")
+        .update({
+          status: "RECEIVED_INSPECTING",
+          updatedAt: now,
+        })
+        .eq("id", ret.id);
+      if (sbErr) {
+        console.error("[returnRepo.confirmReceipt] Supabase update error:", sbErr);
+      }
+    } catch (err) {
+      console.error("[returnRepo.confirmReceipt] ReturnRequest update exception:", err);
+    }
+
+    try {
+      await supabase
+        .from("Order")
+        .update({
+          returnStatus: "RECEIVED_INSPECTING",
+          updatedAt: now,
+        })
+        .eq("id", ret.orderId);
+    } catch (err) {}
 
     // Send notification to buyer
     await notificationRepo.create({
       recipientEmail: ret.buyerEmail,
       recipientRole: "buyer",
       type: "order",
-      title: "Paket Retur Diterima Penjual",
-      message: `Unit retur #${ret.orderId} telah sampai di toko ${ret.storeName} dan sedang dalam proses inspeksi teknis & pengujian audio.`,
+      title: "Paket Retur Telah Tiba di Toko",
+      message: `Unit retur #${ret.orderId} (${ret.productName}) telah sampai di bengkel ${ret.storeName} dan sedang dalam proses inspeksi teknis & pengujian audio.`,
       actionLink: `/orders/return/${ret.orderId}`,
+      unread: true,
+      meta: {
+        orderId: ret.orderId,
+        productName: ret.productName,
+        storeName: ret.storeName,
+        image: ret.productImage,
+      },
+    });
+
+    // Send notification to seller
+    await notificationRepo.create({
+      recipientEmail: "seller@tonalzone.id",
+      storeId: ret.storeId,
+      recipientRole: "seller",
+      type: "order",
+      title: "Paket Retur Tiba di Toko",
+      message: `Unit retur pesanan #${ret.orderId} (${ret.productName}) telah diterima di toko Anda. Silakan lanjutkan ke pengujian Two-Step QC.`,
+      actionLink: "/seller/returns",
       unread: true,
       meta: {
         orderId: ret.orderId,
@@ -3379,8 +3775,45 @@ export const returnRepo = {
     if (order) {
       order.returnStatus = "REFUNDED";
       order.escrowStatus = "REFUNDED";
+      order.cancelReason = order.cancelReason || `Retur Disetujui: Pengembalian dana ($${ret.refundAmount || order.totalAmount})`;
       order.updatedAt = now;
       globalOrdersCache.set(order.id, order);
+
+      const metaStore = loadPersistentOrdersMeta();
+      metaStore[order.id] = {
+        ...(metaStore[order.id] || {}),
+        escrowStatus: "REFUNDED",
+        returnStatus: "REFUNDED",
+        cancelReason: order.cancelReason,
+      };
+      savePersistentOrdersMeta(metaStore);
+
+      try {
+        supabase
+          .from("Order")
+          .update({
+            status: "REFUNDED",
+            updatedAt: now,
+          })
+          .eq("id", order.id)
+          .then(() => {});
+      } catch (err) {
+        console.error("[returnRepo.issueRefund] Order update error:", err);
+      }
+    }
+
+    try {
+      supabase
+        .from("ReturnRequest")
+        .update({
+          status: "REFUNDED",
+          qcStage: "COMPLETED",
+          updatedAt: now,
+        })
+        .eq("id", ret.id)
+        .then(() => {});
+    } catch (err) {
+      console.error("[returnRepo.issueRefund] ReturnRequest update error:", err);
     }
 
     // Send notification to buyer
@@ -3435,10 +3868,34 @@ export const returnRepo = {
         order.returnStatus = "REJECTED";
         order.updatedAt = now;
         globalOrdersCache.set(order.id, order);
+
+        const metaStore = loadPersistentOrdersMeta();
+        metaStore[order.id] = {
+          ...(metaStore[order.id] || {}),
+          returnStatus: "REJECTED",
+        };
+        savePersistentOrdersMeta(metaStore);
       }
     }
 
     globalReturnsCache.set(ret.id, ret);
+
+    try {
+      supabase
+        .from("ReturnRequest")
+        .update({
+          qcStatus: ret.qcStatus,
+          qcNotes: ret.qcNotes,
+          status: ret.status,
+          qcStage: ret.qcStage || null,
+          sellerRejectReason: ret.sellerRejectReason || null,
+          updatedAt: now,
+        })
+        .eq("id", ret.id)
+        .then(() => {});
+    } catch (err) {
+      console.error("[returnRepo.submitQcInspection] ReturnRequest update error:", err);
+    }
 
     await notificationRepo.create({
       recipientEmail: ret.buyerEmail,
@@ -3475,9 +3932,104 @@ export const returnRepo = {
     const order = globalOrdersCache.get(ret.orderId);
     if (order) {
       order.returnStatus = "REPLACED";
-      order.escrowStatus = "FUNDS_RELEASED_TO_SELLER";
+      order.escrowStatus = "IN_TRANSIT";
+      order.waybillNumber = replacementWaybillNumber;
+      order.courierCode = replacementCourier;
+
+      if (!order.trackingHistory) order.trackingHistory = [];
+      order.trackingHistory.push({
+        id: `chk-${Date.now()}-replacement`,
+        orderId: order.id,
+        status: "IN_TRANSIT",
+        title: "Unit Pengganti Dikirim oleh Toko",
+        description: `Toko telah mengirimkan 1 unit baru pengganti tersegel via ${replacementCourier} dengan resi ${replacementWaybillNumber}.`,
+        location: "Pusat Distribusi Toko",
+        timestamp: now,
+        timeFormatted: formatCheckpointTime(new Date()),
+        isCompleted: true,
+      });
+
       order.updatedAt = now;
       globalOrdersCache.set(order.id, order);
+
+      const metaStore = loadPersistentOrdersMeta();
+      metaStore[order.id] = {
+        ...(metaStore[order.id] || {}),
+        escrowStatus: "IN_TRANSIT",
+        returnStatus: "REPLACED",
+        waybillNumber: replacementWaybillNumber,
+        courierCode: replacementCourier,
+        trackingHistory: order.trackingHistory,
+      };
+      savePersistentOrdersMeta(metaStore);
+
+      try {
+        await supabase
+          .from("Order")
+          .update({
+            status: "IN_TRANSIT",
+            updatedAt: now,
+          })
+          .eq("id", order.id);
+      } catch (err: any) {
+        console.error("[returnRepo.issueReplacement] Order update error:", err);
+      }
+
+      // Automatically simulate delivery after 3 seconds for seamless demo
+      setTimeout(async () => {
+        try {
+          await orderRepo.advanceTracking(order.id, "DELIVERED");
+          await notificationRepo.create({
+            recipientEmail: ret.buyerEmail,
+            recipientRole: "buyer",
+            type: "order",
+            title: "Unit Pengganti Telah Tiba",
+            message: `Paket unit baru pengganti pesanan #${order.id} (${ret.productName}) telah tiba di alamat Anda. Silakan periksa dan konfirmasi penerimaan barang.`,
+            actionLink: `/orders?tab=DELIVERED`,
+            unread: true,
+            meta: {
+              orderId: order.id,
+              productName: ret.productName,
+              storeName: ret.storeName,
+              image: ret.productImage,
+            },
+          });
+          await notificationRepo.create({
+            recipientEmail: "seller@tonalzone.id",
+            storeId: ret.storeId,
+            recipientRole: "seller",
+            type: "order",
+            title: "Unit Pengganti Sampai di Pembeli",
+            message: `Paket unit pengganti pesanan #${order.id} telah tiba di alamat pembeli. Menunggu konfirmasi akhir pembeli.`,
+            actionLink: "/seller/returns",
+            unread: true,
+            meta: {
+              orderId: order.id,
+              productName: ret.productName,
+              storeName: ret.storeName,
+              image: ret.productImage,
+            },
+          });
+        } catch (err) {
+          console.error("[issueReplacement 3s auto-deliver] Error:", err);
+        }
+      }, 3000);
+    }
+
+    try {
+      await supabase
+        .from("ReturnRequest")
+        .update({
+          status: "REPLACED",
+          resolutionType: "REPLACEMENT",
+          replacementWaybillNumber: ret.replacementWaybillNumber,
+          replacementCourier: ret.replacementCourier,
+          qcStage: "COMPLETED",
+          updatedAt: now,
+        })
+        .eq("id", ret.id);
+    } catch (err: any) {
+      console.error("[returnRepo.issueReplacement] ReturnRequest update error:", err);
     }
 
     await notificationRepo.create({
@@ -3499,5 +4051,396 @@ export const returnRepo = {
     return ret;
   },
 };
+
+// =========================================================================
+// VOUCHER / REDEEM CODE REPOSITORY
+// =========================================================================
+
+export type VoucherDiscountType = "PERCENTAGE" | "FIXED_AMOUNT" | "SPECIAL_RP1";
+
+export interface DbVoucher {
+  id: string;
+  code: string;
+  title: string;
+  description?: string;
+  discountType: VoucherDiscountType;
+  discountValue: number; // e.g. 10 for 10%, or fixed USD value, or 1 for Rp1
+  minSpend: number; // in USD (0 = no min)
+  maxDiscount?: number; // in USD cap
+  quota: number; // max usage
+  usedCount: number;
+  startDate?: string;
+  expiryDate?: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+declare global {
+  var __tonalzone_vouchers_cache: Map<string, DbVoucher> | undefined;
+}
+
+const globalVouchersCache: Map<string, DbVoucher> =
+  globalThis.__tonalzone_vouchers_cache || new Map();
+globalThis.__tonalzone_vouchers_cache = globalVouchersCache;
+
+const INITIAL_VOUCHERS: DbVoucher[] = [
+  {
+    id: "vouch-tonal10",
+    code: "TONAL10",
+    title: "Diskon 10% Spesial Member",
+    description: "Potongan harga 10% untuk semua koleksi In-Ear Monitor.",
+    discountType: "PERCENTAGE",
+    discountValue: 10,
+    minSpend: 0,
+    maxDiscount: 50,
+    quota: 500,
+    usedCount: 24,
+    isActive: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: "vouch-audiophile",
+    code: "AUDIOPHILE",
+    title: "Voucher Audiophile 15%",
+    description: "Diskon 15% khusus pecinta audio resolusi tinggi dengan minimal belanja $50.",
+    discountType: "PERCENTAGE",
+    discountValue: 15,
+    minSpend: 50,
+    maxDiscount: 100,
+    quota: 250,
+    usedCount: 42,
+    isActive: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: "vouch-tonal50",
+    code: "TONAL50",
+    title: "Diskon 50% Flash Sale",
+    description: "Promo potongan harga 50% kuota terbatas.",
+    discountType: "PERCENTAGE",
+    discountValue: 50,
+    minSpend: 100,
+    maxDiscount: 150,
+    quota: 50,
+    usedCount: 18,
+    isActive: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: "vouch-potongan50rb",
+    code: "POTONGAN50RB",
+    title: "Potongan Rp 50.000",
+    description: "Potongan langsung Rp 50.000 (sekitar $3.12) untuk pesanan minimal $20.",
+    discountType: "FIXED_AMOUNT",
+    discountValue: 3.125,
+    minSpend: 20,
+    quota: 200,
+    usedCount: 15,
+    isActive: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: "vouch-demo1rp",
+    code: "DEMO1RP",
+    title: "Voucher Demo Rp 1",
+    description: "Kode redeem simulasi transaksi pembayaran instan Rp 1.",
+    discountType: "SPECIAL_RP1",
+    discountValue: 1,
+    minSpend: 0,
+    quota: 99999,
+    usedCount: 135,
+    isActive: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+];
+
+function loadPersistentVouchers(): DbVoucher[] {
+  const node = getNodeFs();
+  if (!node) {
+    if (globalVouchersCache.size === 0) {
+      INITIAL_VOUCHERS.forEach((v) => globalVouchersCache.set(v.id, v));
+    }
+    return Array.from(globalVouchersCache.values());
+  }
+
+  try {
+    const vouchersFile = node.path.join(process.cwd(), "data", "vouchers.json");
+    if (node.fs.existsSync(vouchersFile)) {
+      const content = node.fs.readFileSync(vouchersFile, "utf-8");
+      const list: DbVoucher[] = JSON.parse(content);
+      if (Array.isArray(list) && list.length > 0) {
+        globalVouchersCache.clear();
+        list.forEach((v) => globalVouchersCache.set(v.id, v));
+        return list;
+      }
+    }
+  } catch (e) {
+    console.warn("[Vouchers Storage] Failed to read vouchers.json:", e);
+  }
+
+  // Fallback to initial vouchers
+  globalVouchersCache.clear();
+  INITIAL_VOUCHERS.forEach((v) => globalVouchersCache.set(v.id, v));
+  savePersistentVouchers(INITIAL_VOUCHERS);
+  return INITIAL_VOUCHERS;
+}
+
+function savePersistentVouchers(list: DbVoucher[]) {
+  const node = getNodeFs();
+  if (!node) return;
+  try {
+    const vouchersFile = node.path.join(process.cwd(), "data", "vouchers.json");
+    const dir = node.path.dirname(vouchersFile);
+    if (!node.fs.existsSync(dir)) {
+      node.fs.mkdirSync(dir, { recursive: true });
+    }
+    node.fs.writeFileSync(vouchersFile, JSON.stringify(list, null, 2), "utf-8");
+  } catch (e) {
+    console.warn("[Vouchers Storage] Failed to save vouchers.json:", e);
+  }
+}
+
+export const voucherRepo = {
+  async getAll(): Promise<DbVoucher[]> {
+    const list = loadPersistentVouchers();
+    return [...list].sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+  },
+
+  async getById(id: string): Promise<DbVoucher | null> {
+    loadPersistentVouchers();
+    return globalVouchersCache.get(id) || null;
+  },
+
+  async getByCode(code: string): Promise<DbVoucher | null> {
+    const list = loadPersistentVouchers();
+    const clean = code.trim().toUpperCase();
+    return list.find((v) => v.code.toUpperCase() === clean) || null;
+  },
+
+  async create(
+    data: Omit<DbVoucher, "id" | "usedCount" | "createdAt" | "updatedAt">
+  ): Promise<DbVoucher> {
+    loadPersistentVouchers();
+    const cleanCode = data.code.trim().toUpperCase();
+    const existing = Array.from(globalVouchersCache.values()).find(
+      (v) => v.code.toUpperCase() === cleanCode
+    );
+    if (existing) {
+      throw new Error(`Kode voucher "${cleanCode}" sudah digunakan.`);
+    }
+
+    const now = new Date().toISOString();
+    const newVoucher: DbVoucher = {
+      id: `vouch-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      ...data,
+      code: cleanCode,
+      usedCount: 0,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    globalVouchersCache.set(newVoucher.id, newVoucher);
+    savePersistentVouchers(Array.from(globalVouchersCache.values()));
+
+    try {
+      supabase
+        .from("Vouchers")
+        .insert({
+          id: newVoucher.id,
+          code: newVoucher.code,
+          title: newVoucher.title,
+          description: newVoucher.description,
+          discount_type: newVoucher.discountType,
+          discount_value: newVoucher.discountValue,
+          min_spend: newVoucher.minSpend,
+          max_discount: newVoucher.maxDiscount,
+          quota: newVoucher.quota,
+          used_count: newVoucher.usedCount,
+          start_date: newVoucher.startDate,
+          expiry_date: newVoucher.expiryDate,
+          is_active: newVoucher.isActive,
+          created_at: now,
+          updated_at: now,
+        })
+        .then(() => {});
+    } catch {}
+
+    return newVoucher;
+  },
+
+  async update(id: string, data: Partial<DbVoucher>): Promise<DbVoucher | null> {
+    loadPersistentVouchers();
+    const existing = globalVouchersCache.get(id);
+    if (!existing) return null;
+
+    if (data.code) {
+      const cleanCode = data.code.trim().toUpperCase();
+      const duplicate = Array.from(globalVouchersCache.values()).find(
+        (v) => v.id !== id && v.code.toUpperCase() === cleanCode
+      );
+      if (duplicate) {
+        throw new Error(`Kode voucher "${cleanCode}" sudah digunakan oleh voucher lain.`);
+      }
+      data.code = cleanCode;
+    }
+
+    const now = new Date().toISOString();
+    const updated: DbVoucher = {
+      ...existing,
+      ...data,
+      updatedAt: now,
+    };
+
+    globalVouchersCache.set(id, updated);
+    savePersistentVouchers(Array.from(globalVouchersCache.values()));
+
+    try {
+      supabase
+        .from("Vouchers")
+        .update({
+          code: updated.code,
+          title: updated.title,
+          description: updated.description,
+          discount_type: updated.discountType,
+          discount_value: updated.discountValue,
+          min_spend: updated.minSpend,
+          max_discount: updated.maxDiscount,
+          quota: updated.quota,
+          used_count: updated.usedCount,
+          start_date: updated.startDate,
+          expiry_date: updated.expiryDate,
+          is_active: updated.isActive,
+          updated_at: now,
+        })
+        .eq("id", id)
+        .then(() => {});
+    } catch {}
+
+    return updated;
+  },
+
+  async delete(id: string): Promise<boolean> {
+    loadPersistentVouchers();
+    const deleted = globalVouchersCache.delete(id);
+    if (deleted) {
+      savePersistentVouchers(Array.from(globalVouchersCache.values()));
+      try {
+        supabase.from("Vouchers").delete().eq("id", id).then(() => {});
+      } catch {}
+    }
+    return deleted;
+  },
+
+  async incrementUsage(code: string): Promise<boolean> {
+    loadPersistentVouchers();
+    const v = await this.getByCode(code);
+    if (!v) return false;
+    v.usedCount = (v.usedCount || 0) + 1;
+    v.updatedAt = new Date().toISOString();
+    globalVouchersCache.set(v.id, v);
+    savePersistentVouchers(Array.from(globalVouchersCache.values()));
+    return true;
+  },
+
+  async validate(
+    code: string,
+    currentSubtotalUSD: number
+  ): Promise<{
+    valid: boolean;
+    message: string;
+    discountUSD: number;
+    discountType?: VoucherDiscountType;
+    isDemoRp1?: boolean;
+    voucher?: DbVoucher;
+  }> {
+    const cleanCode = code.trim().toUpperCase();
+    if (!cleanCode) {
+      return { valid: false, message: "Silakan masukkan kode voucher.", discountUSD: 0 };
+    }
+
+    // Special hardcoded aliases for demo 1 rupiah
+    if (["RP1", "DEMO", "TONAL1RP"].includes(cleanCode)) {
+      return {
+        valid: true,
+        message: "Voucher Demo Aktif: Total Pembayaran Menjadi Rp 1!",
+        discountUSD: Math.max(0, currentSubtotalUSD - 0.0000625),
+        discountType: "SPECIAL_RP1",
+        isDemoRp1: true,
+      };
+    }
+
+    const v = await this.getByCode(cleanCode);
+    if (!v) {
+      return { valid: false, message: "Kode voucher tidak ditemukan.", discountUSD: 0 };
+    }
+
+    if (!v.isActive) {
+      return { valid: false, message: "Kode voucher sedang dinonaktifkan.", discountUSD: 0 };
+    }
+
+    if (v.expiryDate && new Date(v.expiryDate).getTime() < Date.now()) {
+      return { valid: false, message: "Kode voucher telah kedaluwarsa.", discountUSD: 0 };
+    }
+
+    if (v.quota > 0 && v.usedCount >= v.quota) {
+      return { valid: false, message: "Kuota pemakaian voucher telah habis.", discountUSD: 0 };
+    }
+
+    if (v.minSpend > 0 && currentSubtotalUSD < v.minSpend) {
+      return {
+        valid: false,
+        message: `Minimal belanja untuk menggunakan kode ini adalah $${v.minSpend}.`,
+        discountUSD: 0,
+      };
+    }
+
+    if (v.discountType === "SPECIAL_RP1") {
+      return {
+        valid: true,
+        message: "Voucher Demo Aktif: Total Pembayaran Menjadi Rp 1!",
+        discountUSD: Math.max(0, currentSubtotalUSD - 0.0000625),
+        discountType: "SPECIAL_RP1",
+        isDemoRp1: true,
+        voucher: v,
+      };
+    }
+
+    if (v.discountType === "PERCENTAGE") {
+      let rawDiscount = currentSubtotalUSD * (v.discountValue / 100);
+      if (v.maxDiscount && rawDiscount > v.maxDiscount) {
+        rawDiscount = v.maxDiscount;
+      }
+      return {
+        valid: true,
+        message: `Kode Promo Diterapkan: Diskon ${v.discountValue}%`,
+        discountUSD: Math.round(rawDiscount * 100) / 100,
+        discountType: "PERCENTAGE",
+        voucher: v,
+      };
+    }
+
+    if (v.discountType === "FIXED_AMOUNT") {
+      const rawDiscount = Math.min(currentSubtotalUSD, v.discountValue);
+      return {
+        valid: true,
+        message: `Kode Promo Diterapkan: Potongan $${v.discountValue.toFixed(2)}`,
+        discountUSD: Math.round(rawDiscount * 100) / 100,
+        discountType: "FIXED_AMOUNT",
+        voucher: v,
+      };
+    }
+
+    return { valid: false, message: "Tipe diskon tidak didukung.", discountUSD: 0 };
+  },
+};
+
 
 

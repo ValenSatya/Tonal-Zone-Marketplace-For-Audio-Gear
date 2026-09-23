@@ -7,6 +7,7 @@ import Footer from "@/components/Footer";
 import { useLanguage } from "@/context/LanguageContext";
 import { updateUserProfile } from "@/app/actions/profile";
 import { getAuthSession } from "@/app/actions/auth";
+import { uploadMedia } from "@/lib/upload";
 import { motion, AnimatePresence } from "framer-motion";
 import { KeyboardArrowRight } from "@/components/ui/keyboard-arrow";
 
@@ -153,9 +154,14 @@ export default function ProfilePage() {
     setIsUploading(true);
     setStatusMessage(null);
     try {
-      // Compress to lightweight 400x400 JPEG (approx ~30KB) to ensure lightning-fast upload & safe server-action payload
-      const compressedBase64 = await compressImage(file, 400, 400, 0.85);
-      await handleAvatarSelect(compressedBase64);
+      const uploadRes = await uploadMedia(file, "avatars");
+      if (uploadRes.success && uploadRes.url) {
+        await handleAvatarSelect(uploadRes.url);
+      } else {
+        // Fallback to compressed base64 if server upload fails
+        const compressedBase64 = await compressImage(file, 400, 400, 0.85);
+        await handleAvatarSelect(compressedBase64);
+      }
     } catch (err: any) {
       setStatusMessage({ type: "error", text: "Gagal memproses gambar foto profil." });
       setIsUploading(false);

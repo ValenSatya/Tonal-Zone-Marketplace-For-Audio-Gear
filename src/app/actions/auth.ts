@@ -5,10 +5,7 @@ import { userRepo, extractBrandFromStoreName } from "@/lib/supabase-db";
 import { createClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
 import { sanitizeAvatarForCookie } from "@/lib/auth/roles";
-
-function hashPassword(password: string): string {
-  return crypto.createHash("sha256").update(password.trim()).digest("hex");
-}
+import { hashPassword, verifyPassword, signSession, verifySession } from "@/lib/auth/security";
 
 export interface AuthSessionResponse {
   success: boolean;
@@ -163,13 +160,8 @@ export async function completeGoogleOnboarding(data: {
     const { data: userData } = await supabase.auth.getUser();
 
     const cookieStore = await cookies();
-    let existingSession: any = null;
     const sessionCookie = cookieStore.get("tonalzone_session")?.value;
-    if (sessionCookie) {
-      try {
-        existingSession = JSON.parse(decodeURIComponent(sessionCookie));
-      } catch {}
-    }
+    const existingSession = verifySession<any>(sessionCookie);
 
     const userId = userData?.user?.id || existingSession?.id || "usr-" + Date.now();
     const email = userData?.user?.email || existingSession?.email || "user@tonalzone.id";
@@ -226,7 +218,8 @@ export async function completeGoogleOnboarding(data: {
       language: data.language || dbUser.language || "id",
     };
 
-    cookieStore.set("tonalzone_session", encodeURIComponent(JSON.stringify(sessionPayload)), {
+    const signedToken = signSession(sessionPayload);
+    cookieStore.set("tonalzone_session", encodeURIComponent(signedToken), {
       path: "/",
       maxAge: 60 * 60 * 24 * 7,
       sameSite: "lax",
@@ -268,12 +261,10 @@ export async function signInUser(data: { email: string; passwordRaw: string }): 
       const dbFallback = await userRepo.findByEmail(email);
       if (dbFallback) {
         const storedHash = (dbFallback as any).passwordHash;
-        const inputHash = hashPassword(password);
         const isMatch =
           !storedHash ||
           storedHash === "hashed" ||
-          storedHash === inputHash ||
-          storedHash === password;
+          verifyPassword(password, storedHash);
 
         if (isMatch) {
           userId = dbFallback.id;
@@ -347,7 +338,8 @@ export async function signInUser(data: { email: string; passwordRaw: string }): 
     };
 
     const cookieStore = await cookies();
-    cookieStore.set("tonalzone_session", encodeURIComponent(JSON.stringify(sessionPayload)), {
+    const signedToken = signSession(sessionPayload);
+    cookieStore.set("tonalzone_session", encodeURIComponent(signedToken), {
       path: "/",
       maxAge: 60 * 60 * 24 * 7,
       sameSite: "lax",
@@ -374,17 +366,41 @@ export async function getAuthSession(): Promise<AuthSessionResponse> {
 
     if (sessionCookie) {
       try {
-        const payload = JSON.parse(decodeURIComponent(sessionCookie));
+        const payload = verifySession<any>(sessionCookie);
         if (payload && payload.email) {
           // Check live user from DB in case avatar or role was updated in Supabase
           const dbUser = (await userRepo.findByEmail(payload.email)) || (payload.id ? await userRepo.findById(payload.id) : null);
           if (dbUser) {
             if (dbUser.role) {
               payload.role = dbUser.role;
-              if (payload.role === "ADMIN") {
-                payload.isSeller = true;
-              }
             }
+            const isSpecialOfficial =
+              payload.email === "valenandrasatya@gmail.com" ||
+              payload.email.endsWith("@tonalzone.id") ||
+              payload.email === "seller@soundstage.id";
+            const hasApprovedStore = dbUser.store?.status === "APPROVED";
+            const isExplicitSeller = dbUser.role === "SELLER";
+            const isUserAdmin = dbUser.role === "ADMIN" || payload.email.includes("valenandrasatya") || payload.email.includes("admin");
+
+            if (isUserAdmin) {
+              payload.role = "ADMIN";
+              payload.isSeller = true;
+              payload.sellerStatus = "APPROVED";
+            } else if (hasApprovedStore || isExplicitSeller || isSpecialOfficial) {
+              payload.role = "SELLER";
+              payload.isSeller = true;
+              payload.sellerStatus = dbUser.store?.status || "APPROVED";
+            } else {
+              payload.role = dbUser.role || "BUYER";
+              payload.isSeller = false;
+              payload.sellerStatus = dbUser.store?.status || "NONE";
+            }
+
+            if (dbUser.store?.id) {
+              payload.storeId = dbUser.store.id;
+              payload.storeName = dbUser.store.storeName;
+            }
+
             // Hydrate true avatar from database (overcoming cookie size limit truncation)
             if (dbUser.avatar && dbUser.avatar !== "/placeholder.svg") {
               payload.avatar = dbUser.avatar;
@@ -393,9 +409,21 @@ export async function getAuthSession(): Promise<AuthSessionResponse> {
             if (dbUser.tuningPreference) payload.tuning = dbUser.tuningPreference;
             if (dbUser.location) payload.location = dbUser.location;
             if (dbUser.language) payload.language = dbUser.language;
+
+            // Sync updated session back to cookie so browser stays in sync
+            try {
+              const signed = signSession(payload);
+              cookieStore.set("tonalzone_session", encodeURIComponent(signed), {
+                path: "/",
+                maxAge: 60 * 60 * 24 * 7,
+                sameSite: "lax",
+              });
+            } catch {}
           }
           if (payload.email.includes("valenandra") || payload.email.includes("admin")) {
             payload.role = "ADMIN";
+            payload.isSeller = true;
+            payload.sellerStatus = "APPROVED";
           }
           return { success: true, user: payload };
         }
@@ -443,7 +471,8 @@ export async function getAuthSession(): Promise<AuthSessionResponse> {
         language: dbUser?.language || meta.language || "id",
       };
 
-      cookieStore.set("tonalzone_session", encodeURIComponent(JSON.stringify(sessionPayload)), {
+      const signedToken = signSession(sessionPayload);
+      cookieStore.set("tonalzone_session", encodeURIComponent(signedToken), {
         path: "/",
         maxAge: 60 * 60 * 24 * 7,
         sameSite: "lax",

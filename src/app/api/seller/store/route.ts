@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { storeRepo, userRepo, supabase } from "@/lib/supabase-db";
+import { verifySession } from "@/lib/auth/security";
 
 /**
  * Helper to resolve store from cookies or explicit params
@@ -27,27 +28,38 @@ async function resolveCurrentStore(request: Request) {
   }
 
   // Check session cookie
+  let hasActiveSession = false;
   try {
     const cookieStore = await cookies();
     const sessionCookie = cookieStore.get("tonalzone_session");
-    if (sessionCookie) {
-      const session = JSON.parse(decodeURIComponent(sessionCookie.value));
-      if (session.storeId) {
-        const store = await storeRepo.findById(session.storeId);
-        if (store) return store;
-      }
-      if (session.email) {
-        const user = await userRepo.findByEmail(session.email);
-        if (user?.store) return user.store;
-        if (user?.id) {
-          const store = await storeRepo.findByUserId(user.id);
+    if (sessionCookie?.value) {
+      const session = verifySession<{ id?: string; email?: string; storeId?: string; storeName?: string }>(sessionCookie.value);
+      if (session) {
+        hasActiveSession = true;
+        if (session.storeId) {
+          const store = await storeRepo.findById(session.storeId);
           if (store) return store;
+        }
+        if (session.email) {
+          const user = await userRepo.findByEmail(session.email);
+          if (user?.store) return user.store;
+          if (user?.id) {
+            const store = await storeRepo.findByUserId(user.id);
+            if (store) return store;
+          }
         }
       }
     }
-  } catch (e) {}
+  } catch (e) {
+    console.error("Error reading session cookie in seller/store:", e);
+  }
 
-  // Fallback: Check default Moondrop official store or first store
+  // If user is authenticated but has no store, do not leak another merchant's store
+  if (hasActiveSession) {
+    return null;
+  }
+
+  // Fallback ONLY for unauthenticated public browsing: Check default Moondrop official store or first store
   const moondropStore = await storeRepo.findById("store-moondrop-official");
   if (moondropStore) return moondropStore;
 

@@ -133,6 +133,14 @@ function SearchPageContent() {
       });
     }
 
+    // Always push out of stock items to the absolute bottom in search results
+    res = [...res].sort((a, b) => {
+      const aOut = Number(a.stock) <= 0 || a.inStock === false || (a as any).status === "OUT_OF_STOCK";
+      const bOut = Number(b.stock) <= 0 || b.inStock === false || (b as any).status === "OUT_OF_STOCK";
+      if (aOut !== bOut) return aOut ? 1 : -1;
+      return 0;
+    });
+
     return res;
   }, [products, initialQuery, activeCategory, activeSignature, sortOption]);
 

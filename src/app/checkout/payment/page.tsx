@@ -232,7 +232,7 @@ function PaymentContent() {
               category: it.category || "IN-EAR MONITORS",
               price: it.price || 100,
               variant: it.selectedVariant || "Standard",
-              image: it.image || "/hero-blessing-3.jpg",
+              image: it.image || "/model-iem-untuk-hero.webp",
               sellerId: orderDetails.storeId,
               sellerName: orderDetails.storeName,
             },
@@ -747,7 +747,7 @@ function PaymentContent() {
                     <div key={idx} className="flex items-center gap-3.5">
                       <div className="relative w-12 h-12 rounded-xl bg-[#141414] overflow-hidden shrink-0 border border-[#222222]">
                         <Image
-                          src={item.image || "/hero-blessing-3.jpg"}
+                          src={item.image || "/model-iem-untuk-hero.webp"}
                           alt={item.productName || item.name || "Product"}
                           fill
                           className="object-cover"

@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { fetchProductsFromDb, CatalogProduct } from "@/lib/products-db";
+import { fetchProductsFromDb, getInstantCatalog, CatalogProduct } from "@/lib/products-db";
 import { useLocation } from "@/context/LocationContext";
 
 interface SignatureInfo {
@@ -46,8 +46,8 @@ const SIGNATURES: SignatureInfo[] = [
 
 export default function FigmaSignatureJourney() {
   const [selectedTab, setSelectedTab] = useState(0);
-  const [allProducts, setAllProducts] = useState<CatalogProduct[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [allProducts, setAllProducts] = useState<CatalogProduct[]>(() => getInstantCatalog());
+  const [isLoading, setIsLoading] = useState(false);
   const { formatPrice } = useLocation();
 
   useEffect(() => {
@@ -143,7 +143,7 @@ export default function FigmaSignatureJourney() {
                       className="object-cover object-center group-hover:scale-105 transition-transform duration-700"
                     />
                     {prod.badge && (
-                      <div className="absolute top-3 left-3 bg-black/80 backdrop-blur-sm border border-white/20 px-2 py-0.5 text-[9px] font-mono tracking-widest text-[#BFDD25] uppercase">
+                      <div className="absolute top-3 left-3 bg-black/80 backdrop-blur-sm border border-white/20 px-2 py-0.5 text-[9px] font-mono tracking-widest text-white uppercase">
                         {prod.badge}
                       </div>
                     )}

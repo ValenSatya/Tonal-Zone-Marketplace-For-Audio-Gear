@@ -32,6 +32,7 @@ export default function CartPage() {
   
   const [promoCode, setPromoCode] = useState("");
   const [discount, setDiscount] = useState(0);
+  const [fixedDiscountUSD, setFixedDiscountUSD] = useState(0);
   const [isDemoRp1, setIsDemoRp1] = useState(false);
   const [promoMessage, setPromoMessage] = useState<string | null>(null);
 
@@ -41,47 +42,112 @@ export default function CartPage() {
       const savedPromo = localStorage.getItem("tonalzone_applied_promo");
       if (savedPromo) {
         setPromoCode(savedPromo);
-        if (["DEMO1RP", "RP1", "DEMO", "TONAL1RP"].includes(savedPromo.toUpperCase())) {
+        const clean = savedPromo.toUpperCase();
+        if (["DEMO1RP", "RP1", "DEMO", "TONAL1RP"].includes(clean)) {
           setIsDemoRp1(true);
           setDiscount(0);
+          setFixedDiscountUSD(0);
           setPromoMessage("[BERHASIL] VOUCHER DEMO AKTIF: TOTAL PEMBAYARAN MENJADI RP 1!");
-        } else if (["TONAL10", "AUDIOPHILE"].includes(savedPromo.toUpperCase())) {
-          setDiscount(0.1);
-          setPromoMessage("[BERHASIL] KODE PROMO DITERAPKAN: DISKON 10%");
+        } else {
+          fetch("/api/vouchers/validate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ code: clean, subtotal: selectedSubtotal || 100 }),
+          })
+            .then((r) => r.json())
+            .then((data) => {
+              if (data.valid) {
+                if (data.isDemoRp1) {
+                  setIsDemoRp1(true);
+                  setDiscount(0);
+                  setFixedDiscountUSD(0);
+                } else if (data.discountType === "PERCENTAGE" && data.voucher) {
+                  setIsDemoRp1(false);
+                  setDiscount(data.voucher.discountValue / 100);
+                  setFixedDiscountUSD(0);
+                } else if (data.discountType === "FIXED_AMOUNT") {
+                  setIsDemoRp1(false);
+                  setDiscount(0);
+                  setFixedDiscountUSD(data.discountUSD || 0);
+                }
+                setPromoMessage(`[BERHASIL] ${data.message.toUpperCase()}`);
+              }
+            })
+            .catch(() => {});
         }
       }
     } catch (e) {}
-  }, []);
+  }, [selectedSubtotal]);
 
   // Handle Apply Promo
-  const handleApplyPromo = (e: React.FormEvent) => {
+  const handleApplyPromo = async (e: React.FormEvent) => {
     e.preventDefault();
     const cleanCode = promoCode.trim().toUpperCase();
-    if (["DEMO1RP", "RP1", "DEMO", "TONAL1RP"].includes(cleanCode)) {
-      setIsDemoRp1(true);
-      setDiscount(0);
-      setPromoMessage("[BERHASIL] VOUCHER DEMO AKTIF: TOTAL PEMBAYARAN MENJADI RP 1!");
-      try { localStorage.setItem("tonalzone_applied_promo", cleanCode); } catch (e) {}
-    } else if (cleanCode === "TONAL10" || cleanCode === "AUDIOPHILE") {
-      setIsDemoRp1(false);
-      setDiscount(0.1); // 10% off
-      setPromoMessage("[BERHASIL] KODE PROMO DITERAPKAN: DISKON 10%");
-      try { localStorage.setItem("tonalzone_applied_promo", cleanCode); } catch (e) {}
-    } else if (cleanCode === "TONAL50") {
-      setIsDemoRp1(false);
-      setDiscount(0.5); // 50% off
-      setPromoMessage("[BERHASIL] KODE PROMO DITERAPKAN: DISKON 50%");
-      try { localStorage.setItem("tonalzone_applied_promo", cleanCode); } catch (e) {}
-    } else if (cleanCode !== "") {
-      setIsDemoRp1(false);
-      setDiscount(0.05); // 5% off courtesy
-      setPromoMessage("[BERHASIL] BONUS MEMBER: DISKON 5%");
-      try { localStorage.setItem("tonalzone_applied_promo", cleanCode); } catch (e) {}
-    } else {
+    if (!cleanCode) {
       setIsDemoRp1(false);
       setDiscount(0);
-      setPromoMessage("[GAGAL] SILAKAN MASUKKAN KODE YANG VALID");
+      setFixedDiscountUSD(0);
+      setPromoMessage("[GAGAL] SILAKAN MASUKKAN KODE VOUCHER");
       try { localStorage.removeItem("tonalzone_applied_promo"); } catch (e) {}
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/vouchers/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: cleanCode, subtotal: selectedSubtotal }),
+      });
+      const data = await res.json();
+
+      if (data.valid) {
+        if (data.isDemoRp1) {
+          setIsDemoRp1(true);
+          setDiscount(0);
+          setFixedDiscountUSD(0);
+        } else if (data.discountType === "PERCENTAGE" && data.voucher) {
+          setIsDemoRp1(false);
+          setDiscount(data.voucher.discountValue / 100);
+          setFixedDiscountUSD(0);
+        } else if (data.discountType === "FIXED_AMOUNT") {
+          setIsDemoRp1(false);
+          setDiscount(0);
+          setFixedDiscountUSD(data.discountUSD || 0);
+        } else {
+          setIsDemoRp1(false);
+          setDiscount(0);
+          setFixedDiscountUSD(data.discountUSD || 0);
+        }
+        setPromoMessage(`[BERHASIL] ${data.message.toUpperCase()}`);
+        try { localStorage.setItem("tonalzone_applied_promo", cleanCode); } catch (e) {}
+      } else {
+        setIsDemoRp1(false);
+        setDiscount(0);
+        setFixedDiscountUSD(0);
+        setPromoMessage(`[GAGAL] ${data.message.toUpperCase()}`);
+        try { localStorage.removeItem("tonalzone_applied_promo"); } catch (e) {}
+      }
+    } catch {
+      // Offline fallback
+      if (["DEMO1RP", "RP1", "DEMO", "TONAL1RP"].includes(cleanCode)) {
+        setIsDemoRp1(true);
+        setDiscount(0);
+        setFixedDiscountUSD(0);
+        setPromoMessage("[BERHASIL] VOUCHER DEMO AKTIF: TOTAL PEMBAYARAN MENJADI RP 1!");
+        try { localStorage.setItem("tonalzone_applied_promo", cleanCode); } catch (e) {}
+      } else if (cleanCode === "TONAL10") {
+        setIsDemoRp1(false);
+        setDiscount(0.1);
+        setFixedDiscountUSD(0);
+        setPromoMessage("[BERHASIL] KODE PROMO DITERAPKAN: DISKON 10%");
+        try { localStorage.setItem("tonalzone_applied_promo", cleanCode); } catch (e) {}
+      } else {
+        setIsDemoRp1(false);
+        setDiscount(0);
+        setFixedDiscountUSD(0);
+        setPromoMessage("[GAGAL] SILAKAN MASUKKAN KODE YANG VALID");
+        try { localStorage.removeItem("tonalzone_applied_promo"); } catch (e) {}
+      }
     }
   };
 
@@ -90,8 +156,9 @@ export default function CartPage() {
 
   const discountAmount = useMemo(() => {
     if (isDemoRp1) return subtotal - 0.0000625; // Leaving 1 IDR equivalent
+    if (fixedDiscountUSD > 0) return Math.min(subtotal, fixedDiscountUSD);
     return subtotal * discount;
-  }, [subtotal, discount, isDemoRp1]);
+  }, [subtotal, discount, fixedDiscountUSD, isDemoRp1]);
 
   const shipping = 0; // Free Insured Delivery
   const total = useMemo(() => {
@@ -344,7 +411,7 @@ export default function CartPage() {
                         value={promoCode}
                         onChange={(e) => setPromoCode(e.target.value)}
                         placeholder="Contoh: TONAL10"
-                        className="bg-[#161616] hover:bg-[#1A1A1A] focus:bg-[#1C1C1C] ring-1 ring-white/10 hover:ring-white/20 focus:ring-1 focus:ring-[#BFDD25] shadow-inner rounded-full text-xs font-mono text-white placeholder:text-[#666] uppercase px-4 py-2.5 flex-1 outline-none transition-all"
+                        className="bg-[#161616] hover:bg-[#1A1A1A] focus:bg-[#1C1C1C] ring-1 ring-white/10 hover:ring-white/20 focus:ring-1 focus:ring-white/30 shadow-inner rounded-full text-xs font-mono text-white placeholder:text-[#666] uppercase px-4 py-2.5 flex-1 outline-none transition-all"
                       />
                       <button
                         type="submit"
@@ -354,7 +421,7 @@ export default function CartPage() {
                       </button>
                     </div>
                     {promoMessage && (
-                      <p className={`text-[10px] font-mono ${promoMessage.includes("BERHASIL") ? "text-[#BFDD25]" : "text-red-400"}`}>
+                      <p className={`text-[10px] font-mono ${promoMessage.includes("BERHASIL") ? "text-white" : "text-red-400"}`}>
                         {promoMessage}
                       </p>
                     )}
@@ -368,20 +435,25 @@ export default function CartPage() {
                     </div>
 
                     {isDemoRp1 ? (
-                      <div className="flex justify-between text-emerald-400">
+                      <div className="flex justify-between text-white">
                         <span>Voucher Demo Khusus</span>
                         <span className="font-bold">Potongan Sisa Jadi Rp 1</span>
                       </div>
                     ) : discount > 0 ? (
-                      <div className="flex justify-between text-emerald-400">
+                      <div className="flex justify-between text-white">
                         <span>Diskon ({discount * 100}%)</span>
+                        <span className="font-bold">-{formatPrice(discountAmount)}</span>
+                      </div>
+                    ) : fixedDiscountUSD > 0 ? (
+                      <div className="flex justify-between text-white">
+                        <span>Potongan Voucher</span>
                         <span className="font-bold">-{formatPrice(discountAmount)}</span>
                       </div>
                     ) : null}
 
                     <div className="flex justify-between text-[#888888]">
                       <span>{t("cart.shipping")}</span>
-                      <span className="text-[#BFDD25] font-bold">GRATIS</span>
+                      <span className="text-white font-bold">GRATIS</span>
                     </div>
 
                     <div className="flex justify-between items-center pt-4 text-sm font-sans">
