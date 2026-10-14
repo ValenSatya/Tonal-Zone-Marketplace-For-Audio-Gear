@@ -12,6 +12,8 @@ import { useLocation } from "@/context/LocationContext";
 import { useCart } from "@/context/CartContext";
 import { useAdminData } from "@/context/AdminDataContext";
 import { triggerAppNotification } from "@/context/NotificationContext";
+import { broadcastRealtime } from "@/lib/realtime-bus";
+import { resolveOfflineImage } from "@/lib/products-db";
 import type { DbUserAddress } from "@/lib/supabase-db";
 import {
   ShieldCheck,
@@ -112,6 +114,13 @@ export default function CheckoutPage() {
   const [promoCodeInput, setPromoCodeInput] = useState("");
   const [appliedPromo, setAppliedPromo] = useState("TONAL10");
   const [promoMessage, setPromoMessage] = useState<string | null>("VOUCHER AKTIF: DISKON 10%");
+  const [appliedVoucherData, setAppliedVoucherData] = useState<{
+    discountType: string;
+    discountValue: number;
+    maxDiscount?: number;
+    discountUSD?: number;
+  } | null>({ discountType: "PERCENTAGE", discountValue: 10 });
+  const [availableVouchers, setAvailableVouchers] = useState<Array<{ code: string; label: string; desc: string }>>(PROMO_PRESETS);
 
   // Session & UI
   const [userSession, setUserSession] = useState<{ name: string; email: string } | null>(null);
@@ -128,33 +137,95 @@ export default function CheckoutPage() {
         if (parsed.phone) setRecipientPhone(parsed.phone);
       }
     } catch (e) {}
+
+    // Fetch live active vouchers created by Admin in /admin/vouchers
+    fetch("/api/admin/vouchers")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success && Array.isArray(data.vouchers) && data.vouchers.length > 0) {
+          const activeList = data.vouchers.filter((v: any) => v.isActive);
+          if (activeList.length > 0) {
+            const mapped = activeList.map((v: any) => ({
+              code: v.code,
+              label: v.discountType === "PERCENTAGE"
+                ? `Diskon ${v.discountValue}%`
+                : v.discountType === "SPECIAL_RP1"
+                ? "Bayar Rp 1"
+                : `Hemat $${v.discountValue}`,
+              desc: v.title || v.description || "Promo Eksklusif",
+            }));
+            setAvailableVouchers(mapped);
+          }
+        }
+      })
+      .catch(() => {});
   }, []);
 
-  const isDemoRp1 = ["DEMO1RP", "RP1", "DEMO", "TONAL1RP"].includes(appliedPromo.toUpperCase());
+  const isDemoRp1 = ["DEMO1RP", "RP1", "DEMO", "TONAL1RP"].includes(appliedPromo.toUpperCase()) || appliedVoucherData?.discountType === "SPECIAL_RP1";
 
-  const handleApplyPromo = (codeToApply?: string) => {
+  const handleApplyPromo = async (codeToApply?: string) => {
     const cleanCode = (codeToApply || promoCodeInput).trim().toUpperCase();
     if (!cleanCode) {
       setAppliedPromo("");
       setPromoMessage(null);
+      setAppliedVoucherData(null);
       return;
     }
 
     if (["DEMO1RP", "RP1", "DEMO", "TONAL1RP"].includes(cleanCode)) {
       setAppliedPromo(cleanCode);
       setPromoMessage("VOUCHER DEMO AKTIF: TOTAL JADI RP 1!");
-    } else if (cleanCode === "TONAL10") {
+      setAppliedVoucherData({ discountType: "SPECIAL_RP1", discountValue: 0 });
+      return;
+    }
+
+    // Dynamic validation with database voucher engine
+    try {
+      const res = await fetch("/api/vouchers/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: cleanCode, subtotal }),
+      });
+      const data = await res.json();
+      if (data.valid && data.voucher) {
+        setAppliedPromo(cleanCode);
+        setAppliedVoucherData({
+          discountType: data.voucher.discountType,
+          discountValue: data.voucher.discountValue,
+          maxDiscount: data.voucher.maxDiscount,
+          discountUSD: data.discountUSD,
+        });
+        const discDesc = data.voucher.discountType === "PERCENTAGE"
+          ? `${data.voucher.discountValue}%`
+          : `$${data.voucher.discountValue}`;
+        setPromoMessage(`VOUCHER AKTIF: ${data.voucher.title || cleanCode} (HEMAT ${discDesc})`);
+        return;
+      } else if (!data.valid && data.message) {
+        setAppliedPromo("");
+        setAppliedVoucherData(null);
+        setPromoMessage(`GAGAL: ${data.message}`);
+        return;
+      }
+    } catch (e) {
+      // Fallback to presets on network anomaly
+    }
+
+    if (cleanCode === "TONAL10") {
       setAppliedPromo(cleanCode);
       setPromoMessage("PROMO DITERAPKAN: DISKON 10%");
+      setAppliedVoucherData({ discountType: "PERCENTAGE", discountValue: 10 });
     } else if (cleanCode === "AUDIOPHILE") {
       setAppliedPromo(cleanCode);
       setPromoMessage("PROMO AUDIOPHILE: DISKON 15%");
+      setAppliedVoucherData({ discountType: "PERCENTAGE", discountValue: 15 });
     } else if (cleanCode === "TONAL50") {
       setAppliedPromo(cleanCode);
       setPromoMessage("PROMO CLEARANCE: DISKON 50%");
+      setAppliedVoucherData({ discountType: "PERCENTAGE", discountValue: 50 });
     } else {
-      setAppliedPromo(cleanCode);
-      setPromoMessage(`KODE ${cleanCode} AKTIF: DISKON 5%`);
+      setAppliedPromo("");
+      setAppliedVoucherData(null);
+      setPromoMessage(`Kode voucher "${cleanCode}" tidak valid atau telah habis.`);
     }
   };
 
@@ -201,20 +272,31 @@ export default function CheckoutPage() {
   const effectiveItems = selectedItems.length > 0 ? selectedItems : items;
 
   const subtotal = effectiveItems.reduce((acc, it) => acc + (it.price * it.quantity), 0);
-  const discountRate = isDemoRp1
-    ? 0
-    : appliedPromo === "TONAL50"
-    ? 0.5
-    : appliedPromo === "AUDIOPHILE"
-    ? 0.15
-    : appliedPromo === "TONAL10"
-    ? 0.1
-    : appliedPromo
-    ? 0.05
-    : 0;
-
-  const discountAmount = isDemoRp1 ? subtotal - 0.0000625 : subtotal * discountRate;
-  const shippingFee = isDemoRp1 ? 0 : (selectedCourier?.baseRateUSD ?? 3);
+  let discountAmount = 0;
+  if (isDemoRp1) {
+    discountAmount = Math.max(0, subtotal - 0.0000625);
+  } else if (appliedVoucherData) {
+    if (appliedVoucherData.discountUSD !== undefined && appliedVoucherData.discountUSD > 0) {
+      discountAmount = appliedVoucherData.discountUSD;
+    } else if (appliedVoucherData.discountType === "PERCENTAGE") {
+      let calc = subtotal * (appliedVoucherData.discountValue / 100);
+      if (appliedVoucherData.maxDiscount && calc > appliedVoucherData.maxDiscount) {
+        calc = appliedVoucherData.maxDiscount;
+      }
+      discountAmount = calc;
+    } else if (appliedVoucherData.discountType === "FIXED_AMOUNT") {
+      discountAmount = Math.min(subtotal, appliedVoucherData.discountValue);
+    }
+  } else if (appliedPromo === "TONAL50") {
+    discountAmount = subtotal * 0.5;
+  } else if (appliedPromo === "AUDIOPHILE") {
+    discountAmount = subtotal * 0.15;
+  } else if (appliedPromo === "TONAL10") {
+    discountAmount = subtotal * 0.1;
+  } else if (appliedPromo) {
+    discountAmount = subtotal * 0.05;
+  }
+  const shippingFee = isDemoRp1 ? 0 : (selectedCourier?.baseRateUSD ?? 0.625);
   // 0.2% of declared value + $0.35 policy fee
   const calculatedInsuranceFee = Math.round((subtotal * 0.002 + 0.35) * 100) / 100;
   const insuranceFee = (!isDemoRp1 && isInsuranceSelected) ? calculatedInsuranceFee : 0;
@@ -304,6 +386,11 @@ export default function CheckoutPage() {
       }
 
       const finalOrderId = data.orderId || data.subOrderId || `ORD-${Date.now().toString().slice(-5)}`;
+
+      // Broadcast instant cross-tab sync to seller, admin, and notification bell
+      broadcastRealtime("ORDERS", { orderId: finalOrderId });
+      broadcastRealtime("CART");
+      broadcastRealtime("NOTIFICATIONS");
 
       // Store backup order data for resilient payment page hydration
       try {
@@ -821,7 +908,7 @@ export default function CheckoutPage() {
                   Voucher Rekomendasi Hari Ini
                 </span>
                 <div className="flex flex-wrap gap-2">
-                  {PROMO_PRESETS.map((p) => {
+                  {availableVouchers.map((p) => {
                     const isCurrent = appliedPromo.toUpperCase() === p.code;
                     return (
                       <button
@@ -879,7 +966,7 @@ export default function CheckoutPage() {
                     <div key={item.id || idx} className="flex items-center gap-3.5">
                       <div className="relative w-14 h-14 rounded-xl bg-[#141414] overflow-hidden shrink-0 border-0">
                         <Image
-                          src={item.image || "/model-iem-untuk-hero.webp"}
+                          src={resolveOfflineImage(item.image, undefined, item.name, item.id)}
                           alt={item.name}
                           fill
                           className="object-cover"

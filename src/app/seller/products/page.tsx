@@ -5,7 +5,7 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/context/LanguageContext";
 import CustomSelect from "@/components/ui/custom-select";
-import { fetchProductsFromDb, invalidateCatalogCache, CatalogProduct } from "@/lib/products-db";
+import { fetchProductsFromDb, invalidateCatalogCache, notifyCatalogUpdated, CatalogProduct } from "@/lib/products-db";
 import { BASS_AUDIO_PRODUCT_IDS, CSI_ZONE_PRODUCT_IDS } from "@/lib/store-utils";
 import { triggerAppNotification } from "@/context/NotificationContext";
 import { uploadMedia } from "@/lib/upload";
@@ -441,9 +441,7 @@ export default function SellerProductsPage() {
       const list = existing ? JSON.parse(existing) : [];
       list.unshift(newClaimedItem);
       localStorage.setItem("tonalzone_custom_products", JSON.stringify(list));
-      invalidateCatalogCache();
-      window.dispatchEvent(new Event("productsUpdated"));
-      window.dispatchEvent(new Event("storage"));
+      notifyCatalogUpdated({ type: "PRODUCT_CLAIMED", product: newClaimedItem });
     } catch (err) {}
 
     setClaimToast(isEn ? `Successfully activated ${selectedMasterProduct.name} in your store!` : `Berhasil mengaktifkan ${selectedMasterProduct.name} di toko Anda!`);
@@ -808,27 +806,39 @@ export default function SellerProductsPage() {
       stock: 5,
       sku: `${editProduct.id}-V${currentVariants.length + 1}`,
     };
+    const updatedVariants = [...currentVariants, newVariant];
+    const totalVarStock = updatedVariants.reduce((sum, v) => sum + (Number(v.stock) || 0), 0);
     setEditProduct({
       ...editProduct,
-      variants: [...currentVariants, newVariant],
+      variants: updatedVariants,
+      stock: totalVarStock,
     });
   };
 
   // Remove Variant in Quick Edit
   const handleRemoveVariantInEdit = (varId: string) => {
     if (!editProduct || !editProduct.variants) return;
+    const nextVars = editProduct.variants.filter((v) => v.id !== varId);
+    const totalVarStock = nextVars.reduce((sum, v) => sum + (Number(v.stock) || 0), 0);
     setEditProduct({
       ...editProduct,
-      variants: editProduct.variants.filter((v) => v.id !== varId),
+      variants: nextVars,
+      stock: totalVarStock,
     });
   };
 
   // Update Variant field in Quick Edit
   const handleUpdateVariantInEdit = (varId: string, field: keyof ProductVariant, value: any) => {
     if (!editProduct || !editProduct.variants) return;
+    const nextVars = editProduct.variants.map((v) => (v.id === varId ? { ...v, [field]: value } : v));
+    let nextStock = editProduct.stock;
+    if (field === "stock") {
+      nextStock = nextVars.reduce((sum, v) => sum + (Number(v.stock) || 0), 0);
+    }
     setEditProduct({
       ...editProduct,
-      variants: editProduct.variants.map((v) => (v.id === varId ? { ...v, [field]: value } : v)),
+      variants: nextVars,
+      stock: nextStock,
     });
   };
 
@@ -1621,7 +1631,13 @@ export default function SellerProductsPage() {
                   <div className="flex items-center bg-[#121212] rounded-xl overflow-hidden">
                     <button
                       type="button"
-                      onClick={() => setEditProduct({ ...editProduct, stock: Math.max(0, editProduct.stock - 1) })}
+                      onClick={() => {
+                        const nextStock = Math.max(0, editProduct.stock - 1);
+                        const nextVars = editProduct.variants
+                          ? editProduct.variants.map((v) => ({ ...v, stock: nextStock === 0 ? 0 : v.stock }))
+                          : undefined;
+                        setEditProduct({ ...editProduct, stock: nextStock, variants: nextVars });
+                      }}
                       className="px-3.5 py-2.5 text-[#888] hover:text-white hover:bg-[#181818] transition-colors font-mono"
                     >
                       -
@@ -1629,12 +1645,28 @@ export default function SellerProductsPage() {
                     <input
                       type="number"
                       value={editProduct.stock}
-                      onChange={(e) => setEditProduct({ ...editProduct, stock: parseInt(e.target.value, 10) || 0 })}
+                      onChange={(e) => {
+                        const nextStock = Math.max(0, parseInt(e.target.value, 10) || 0);
+                        const nextVars = editProduct.variants
+                          ? editProduct.variants.map((v) => ({ ...v, stock: nextStock === 0 ? 0 : v.stock }))
+                          : undefined;
+                        setEditProduct({ ...editProduct, stock: nextStock, variants: nextVars });
+                      }}
                       className="w-full bg-transparent text-xs font-mono text-white outline-none text-center"
                     />
                     <button
                       type="button"
-                      onClick={() => setEditProduct({ ...editProduct, stock: editProduct.stock + 1 })}
+                      onClick={() => {
+                        const nextStock = editProduct.stock + 1;
+                        let nextVars = editProduct.variants ? [...editProduct.variants] : undefined;
+                        if (nextVars && nextVars.length > 0) {
+                          const currentVarSum = nextVars.reduce((sum, v) => sum + (Number(v.stock) || 0), 0);
+                          if (currentVarSum === 0) {
+                            nextVars[0] = { ...nextVars[0], stock: nextStock };
+                          }
+                        }
+                        setEditProduct({ ...editProduct, stock: nextStock, variants: nextVars });
+                      }}
                       className="px-3.5 py-2.5 text-[#888] hover:text-white hover:bg-[#181818] transition-colors font-mono"
                     >
                       +
@@ -1750,7 +1782,28 @@ export default function SellerProductsPage() {
                   onClick={async () => {
                     if (!editProduct) return;
                     const targetId = editProduct.id;
-                    const updatedItem = { ...editProduct };
+
+                    let finalStock = Math.max(0, Number(editProduct.stock) || 0);
+                    let finalVariants = editProduct.variants ? [...editProduct.variants] : undefined;
+
+                    if (finalVariants && finalVariants.length > 0) {
+                      if (finalStock === 0) {
+                        finalVariants = finalVariants.map((v) => ({ ...v, stock: 0 }));
+                      } else {
+                        const variantSum = finalVariants.reduce((sum, v) => sum + (Number(v.stock) || 0), 0);
+                        if (variantSum > 0) {
+                          finalStock = variantSum;
+                        } else {
+                          finalVariants[0] = { ...finalVariants[0], stock: finalStock };
+                        }
+                      }
+                    }
+
+                    const updatedItem = {
+                      ...editProduct,
+                      stock: finalStock,
+                      variants: finalVariants,
+                    };
 
                     // Optimistic update
                     setProducts((prev) => prev.map((p) => (p.id === targetId ? updatedItem : p)));
@@ -1762,7 +1815,8 @@ export default function SellerProductsPage() {
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({
                           priceUSD: updatedItem.priceUSD,
-                          stock: updatedItem.stock,
+                          stock: finalStock,
+                          variants: finalVariants,
                           images: updatedItem.images,
                           status: updatedItem.status,
                         }),
@@ -1780,17 +1834,40 @@ export default function SellerProductsPage() {
                       console.warn("Failed to patch product in Supabase:", e);
                     }
 
-                    // Keep local storage in sync
+                    // Keep local storage & caches in sync
                     try {
                       const raw = localStorage.getItem("tonalzone_custom_products");
-                      if (raw) {
-                        const list = JSON.parse(raw);
-                        const idx = list.findIndex((p: any) => p.id === targetId);
-                        if (idx !== -1) {
-                          list[idx] = updatedItem;
-                          localStorage.setItem("tonalzone_custom_products", JSON.stringify(list));
+                      let list = raw ? JSON.parse(raw) : [];
+                      const idx = list.findIndex((p: any) => p.id === targetId);
+                      if (idx !== -1) {
+                        list[idx] = updatedItem;
+                      } else {
+                        list.unshift(updatedItem);
+                      }
+                      localStorage.setItem("tonalzone_custom_products", JSON.stringify(list));
+
+                      // Also sync tonalzone_admin_products if present
+                      const adminRaw = localStorage.getItem("tonalzone_admin_products");
+                      if (adminRaw) {
+                        let adminList = JSON.parse(adminRaw);
+                        const aIdx = adminList.findIndex((p: any) => p.id === targetId);
+                        if (aIdx !== -1) {
+                          adminList[aIdx] = {
+                            ...adminList[aIdx],
+                            stock: finalStock,
+                            price: updatedItem.priceUSD,
+                            name: updatedItem.name,
+                          };
+                          localStorage.setItem("tonalzone_admin_products", JSON.stringify(adminList));
                         }
                       }
+
+                      notifyCatalogUpdated({
+                        type: "PRODUCT_STOCK_UPDATED",
+                        productId: targetId,
+                        stock: finalStock,
+                        variants: finalVariants,
+                      });
                     } catch (e) {}
                   }}
                   className="px-6 py-2.5 bg-white text-black hover:bg-neutral-200 text-xs font-bold font-sans rounded-full transition-colors cursor-pointer"
@@ -1883,6 +1960,7 @@ export default function SellerProductsPage() {
                         const updated = list.filter((p: any) => p.id !== targetId);
                         localStorage.setItem("tonalzone_custom_products", JSON.stringify(updated));
                       }
+                      notifyCatalogUpdated({ type: "PRODUCT_DELETED", productId: targetId });
                     } catch (e) {}
                   }}
                   className="px-5 py-2.5 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs font-sans rounded-full transition-colors cursor-pointer shadow-sm"

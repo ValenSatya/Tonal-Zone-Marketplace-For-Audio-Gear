@@ -52,10 +52,8 @@ export default function FigmaSignatureJourney() {
 
   useEffect(() => {
     async function loadProducts() {
-      setIsLoading(true);
       const data = await fetchProductsFromDb();
       setAllProducts(data);
-      setIsLoading(false);
     }
     loadProducts();
   }, []);

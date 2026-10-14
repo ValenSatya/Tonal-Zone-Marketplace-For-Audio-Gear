@@ -5,7 +5,6 @@ import Link from "next/link";
 import { AreaChart } from "@/components/charts/area-chart";
 import { Area } from "@/components/charts/area";
 import { useLanguage } from "@/context/LanguageContext";
-import { useAdminData } from "@/context/AdminDataContext";
 import { KeyboardArrowRight } from "@/components/ui/keyboard-arrow";
 
 export default function SellerOverviewPage() {

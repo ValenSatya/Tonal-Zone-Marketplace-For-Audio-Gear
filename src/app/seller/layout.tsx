@@ -2,12 +2,15 @@
 
 import React, { useState, useEffect, ReactNode } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/context/LanguageContext";
+import { signOutUser } from "@/app/actions/auth";
+import { broadcastRealtime, subscribeRealtime } from "@/lib/realtime-bus";
 
 export default function SellerLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const { language, setLanguage } = useLanguage();
   const isEn = language === "English";
 
@@ -15,6 +18,8 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [currency, setCurrency] = useState<"IDR" | "USD">("IDR");
   const [sellerMode, setSellerMode] = useState<"RETAIL_MERCHANT" | "OFFICIAL_BRAND">("RETAIL_MERCHANT");
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const [sellerData, setSellerData] = useState<{
     storeName: string;
@@ -116,9 +121,53 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
     setMounted(true);
     loadUserData();
 
+    // 1. Cross-tab logout listener via Universal Realtime Bus (< 1ms delivery)
+    const unsubAuth = subscribeRealtime("AUTH", (data) => {
+      if (data?.action === "LOGOUT") {
+        router.replace(`/login?redirect=${encodeURIComponent(pathname)}`);
+      }
+    });
+
+    // 2. Cross-tab logout listener via native storage event
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === "tonalzone_user" && !e.newValue) {
+        router.replace(`/login?redirect=${encodeURIComponent(pathname)}`);
+      }
+      if (e.key === "tonalzone_logout_timestamp") {
+        router.replace(`/login?redirect=${encodeURIComponent(pathname)}`);
+      }
+    };
+
     window.addEventListener("storage", loadUserData);
-    return () => window.removeEventListener("storage", loadUserData);
-  }, []);
+    window.addEventListener("storage", handleStorage);
+    window.addEventListener("userLoginChange", loadUserData);
+
+    return () => {
+      unsubAuth();
+      window.removeEventListener("storage", loadUserData);
+      window.removeEventListener("storage", handleStorage);
+      window.removeEventListener("userLoginChange", loadUserData);
+    };
+  }, [pathname, router]);
+
+  const handleConfirmLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      await signOutUser();
+    } catch (err) {
+      console.error("Sign out error:", err);
+    }
+    localStorage.removeItem("tonalzone_user");
+    localStorage.setItem("tonalzone_logout_timestamp", Date.now().toString());
+
+    // Broadcast instant logout across all other open tabs
+    broadcastRealtime("AUTH", { action: "LOGOUT", role: "seller", timestamp: Date.now() });
+
+    window.dispatchEvent(new Event("userLoginChange"));
+    setIsLoggingOut(false);
+    setIsLogoutModalOpen(false);
+    router.replace("/login");
+  };
 
   const handleCurrencyChange = (newCurr: "IDR" | "USD") => {
     setCurrency(newCurr);
@@ -326,35 +375,47 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
         </div>
 
         {/* Store Profile Card Footer */}
-        <div className="p-3 bg-[#060606] shrink-0">
-          <Link
-            href="/seller/settings"
-            className="flex items-center gap-3 px-3 py-2 rounded-2xl bg-[#0A0A0A] hover:bg-[#121212] transition-colors"
-          >
-            <div className="w-8 h-8 rounded-xl bg-[#161616] overflow-hidden flex items-center justify-center font-mono font-bold text-xs text-white shrink-0">
-              {sellerData.storeAvatar ? (
-                <img src={sellerData.storeAvatar} alt="Avatar" className="w-full h-full object-cover" />
-              ) : (
-                sellerData.storeName.slice(0, 2).toUpperCase()
-              )}
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-1.5">
-                <p className="text-xs font-sans font-bold text-white truncate">
-                  {sellerData.storeName}
-                </p>
-                <span
-                  className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-                    sellerMode === "OFFICIAL_BRAND" ? "bg-white" : "bg-[#BFDD25]"
-                  }`}
-                  title={sellerMode === "OFFICIAL_BRAND" ? "Official Brand" : "Verified Merchant"}
-                />
+        <div className="p-3 bg-[#060606] border-t border-[#141414] shrink-0">
+          <div className="flex items-center justify-between p-2 rounded-xl bg-[#0A0A0A] hover:bg-[#121212] transition-colors">
+            <Link
+              href="/seller/settings"
+              className="flex items-center gap-2.5 min-w-0 flex-1 group"
+            >
+              <div className="w-8 h-8 rounded-xl bg-[#161616] overflow-hidden flex items-center justify-center font-mono font-bold text-xs text-white shrink-0 border border-[#222]">
+                {sellerData.storeAvatar ? (
+                  <img src={sellerData.storeAvatar} alt="Avatar" className="w-full h-full object-cover" />
+                ) : (
+                  sellerData.storeName.slice(0, 2).toUpperCase()
+                )}
               </div>
-              <p className="text-[10px] font-mono text-[#8E8E93] truncate">
-                {sellerData.email}
-              </p>
-            </div>
-          </Link>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1.5">
+                  <p className="text-xs font-sans font-bold text-white truncate group-hover:text-[#BFDD25] transition-colors">
+                    {sellerData.storeName}
+                  </p>
+                  <span
+                    className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                      sellerMode === "OFFICIAL_BRAND" ? "bg-white" : "bg-[#BFDD25]"
+                    }`}
+                    title={sellerMode === "OFFICIAL_BRAND" ? "Official Brand" : "Verified Merchant"}
+                  />
+                </div>
+                <p className="text-[10px] font-mono text-[#8E8E93] truncate">
+                  {sellerData.email}
+                </p>
+              </div>
+            </Link>
+            <button
+              type="button"
+              onClick={() => setIsLogoutModalOpen(true)}
+              className="p-1.5 rounded-lg text-[#71717A] hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer shrink-0 ml-1.5"
+              title={isEn ? "Log Out of Seller Hub" : "Keluar dari Seller Hub"}
+            >
+              <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+              </svg>
+            </button>
+          </div>
         </div>
       </aside>
 
@@ -468,6 +529,19 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
               </svg>
               <span>{isEn ? "Live Store" : "Lihat Toko"}</span>
             </Link>
+
+            {/* Logout Button (Quick access in seller header) */}
+            <button
+              type="button"
+              onClick={() => setIsLogoutModalOpen(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#121212] hover:bg-rose-500/10 border border-transparent hover:border-rose-500/20 text-xs font-mono text-[#8E8E93] hover:text-rose-400 transition-all cursor-pointer"
+              title={isEn ? "Log Out of Seller Hub" : "Keluar dari Seller Hub"}
+            >
+              <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+              </svg>
+              <span>{isEn ? "Log Out" : "Keluar"}</span>
+            </button>
           </div>
         </header>
 
@@ -560,28 +634,112 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
               </div>
 
               {/* Mobile Drawer Footer */}
-              <div className="p-3 bg-[#060606] shrink-0">
-                <Link
-                  href="/seller/settings"
-                  onClick={() => setIsMobileSidebarOpen(false)}
-                  className="flex items-center gap-3 px-3 py-2 rounded-2xl bg-[#0A0A0A] hover:bg-[#121212] transition-colors"
+              <div className="p-3 bg-[#060606] border-t border-[#141414] shrink-0">
+                <div className="flex items-center justify-between p-2 rounded-xl bg-[#0A0A0A] hover:bg-[#121212] transition-colors">
+                  <Link
+                    href="/seller/settings"
+                    onClick={() => setIsMobileSidebarOpen(false)}
+                    className="flex items-center gap-2.5 min-w-0 flex-1"
+                  >
+                    <div className="w-8 h-8 rounded-xl bg-[#161616] overflow-hidden flex items-center justify-center font-mono font-bold text-xs text-white shrink-0 border border-[#222]">
+                      {sellerData.storeAvatar ? (
+                        <img src={sellerData.storeAvatar} alt="Avatar" className="w-full h-full object-cover" />
+                      ) : (
+                        sellerData.storeName.slice(0, 2).toUpperCase()
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-bold text-white truncate">
+                        {sellerData.storeName}
+                      </p>
+                      <p className="text-[10px] font-mono text-[#8E8E93] truncate">
+                        {sellerData.email}
+                      </p>
+                    </div>
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsMobileSidebarOpen(false);
+                      setIsLogoutModalOpen(true);
+                    }}
+                    className="p-1.5 rounded-lg text-[#71717A] hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer shrink-0 ml-1.5"
+                    title={isEn ? "Log Out of Seller Hub" : "Keluar dari Seller Hub"}
+                  >
+                    <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Logout Confirmation Modal */}
+      <AnimatePresence>
+        {isLogoutModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => !isLoggingOut && setIsLogoutModalOpen(false)}
+              className="fixed inset-0 bg-black/85 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              className="relative w-full max-w-sm rounded-2xl bg-[#0A0A0A] border border-[#222222] p-6 shadow-2xl z-10"
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 shrink-0">
+                  <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+                  </svg>
+                </div>
+                <div className="min-w-0">
+                  <h3 className="text-sm font-bold text-white font-sans truncate">
+                    {isEn ? "Log Out from Seller Hub?" : "Keluar dari Seller Hub?"}
+                  </h3>
+                  <p className="text-[11px] font-mono text-[#8E8E93] truncate mt-0.5">
+                    {sellerData.storeName} ({sellerData.email})
+                  </p>
+                </div>
+              </div>
+
+              <p className="text-xs text-[#A1A1AA] leading-relaxed mb-6 font-sans">
+                {isEn
+                  ? "You will be signed out from your seller account. Any other open tabs in this browser will also synchronize and log out automatically."
+                  : "Sesi toko penjual Anda akan diakhiri. Seluruh tab lain yang sedang membuka halaman penjual di browser ini akan otomatis keluar secara bersamaan."}
+              </p>
+
+              <div className="flex items-center justify-end gap-2.5">
+                <button
+                  type="button"
+                  disabled={isLoggingOut}
+                  onClick={() => setIsLogoutModalOpen(false)}
+                  className="px-4 py-2 rounded-xl text-xs font-mono font-medium text-[#A1A1AA] hover:text-white bg-[#141414] hover:bg-[#1E1E1E] transition-colors cursor-pointer disabled:opacity-50"
                 >
-                  <div className="w-8 h-8 rounded-xl bg-[#161616] overflow-hidden flex items-center justify-center font-mono font-bold text-xs text-white shrink-0">
-                    {sellerData.storeAvatar ? (
-                      <img src={sellerData.storeAvatar} alt="Avatar" className="w-full h-full object-cover" />
-                    ) : (
-                      sellerData.storeName.slice(0, 2).toUpperCase()
-                    )}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs font-bold text-white truncate">
-                      {sellerData.storeName}
-                    </p>
-                    <p className="text-[10px] font-mono text-[#8E8E93] truncate">
-                      {sellerData.email}
-                    </p>
-                  </div>
-                </Link>
+                  {isEn ? "Cancel" : "Batal"}
+                </button>
+                <button
+                  type="button"
+                  disabled={isLoggingOut}
+                  onClick={handleConfirmLogout}
+                  className="px-4 py-2 rounded-xl text-xs font-mono font-semibold text-white bg-rose-600 hover:bg-rose-500 transition-colors shadow-sm cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
+                >
+                  {isLoggingOut ? (
+                    <>
+                      <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span>{isEn ? "Logging out..." : "Mengeluarkan..."}</span>
+                    </>
+                  ) : (
+                    <span>{isEn ? "Yes, Log Out" : "Ya, Keluar"}</span>
+                  )}
+                </button>
               </div>
             </motion.div>
           </div>

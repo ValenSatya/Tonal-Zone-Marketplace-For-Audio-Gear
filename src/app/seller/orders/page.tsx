@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/context/LanguageContext";
 import { triggerAppNotification } from "@/context/NotificationContext";
+import { broadcastRealtime, subscribeRealtime } from "@/lib/realtime-bus";
 import {
   Package,
   Truck,
@@ -154,6 +155,10 @@ export default function SellerOrdersPage() {
 
   useEffect(() => {
     loadSellerOrders();
+    const unsubscribe = subscribeRealtime("ORDERS", () => {
+      loadSellerOrders();
+    });
+    return unsubscribe;
   }, []);
 
   const triggerToast = (msg: string) => {
@@ -231,9 +236,14 @@ export default function SellerOrdersPage() {
       setWaybillInput("");
       await loadSellerOrders();
 
+      broadcastRealtime("ORDERS", { orderId: orderIdToShip, status: "IN_TRANSIT" });
+      broadcastRealtime("NOTIFICATIONS");
+
       // Otomatis refresh kembali setelah 3.5 detik saat paket tiba di tujuan
       setTimeout(() => {
         loadSellerOrders();
+        broadcastRealtime("ORDERS", { orderId: orderIdToShip, status: "DELIVERED" });
+        broadcastRealtime("NOTIFICATIONS");
       }, 3500);
     } catch (err: any) {
       triggerToast(err.message || "Gagal menyimpan nomor resi.");
@@ -274,6 +284,9 @@ export default function SellerOrdersPage() {
         message: `Pesanan #${orderIdToCancel} (${prodName}) telah dibatalkan oleh pihak toko. Alasan: ${finalReason}`,
         actionLink: "/orders",
       });
+
+      broadcastRealtime("ORDERS", { orderId: orderIdToCancel, status: "CANCELLED" });
+      broadcastRealtime("NOTIFICATIONS");
 
       setSellerCancelOrder(null);
       setSellerCancelNotes("");

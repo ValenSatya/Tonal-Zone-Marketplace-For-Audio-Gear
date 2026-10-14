@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { useLocation } from "@/context/LocationContext";
-import { CatalogProduct, computeDynamicProductBadge } from "@/lib/products-db";
+import { CatalogProduct, computeDynamicProductBadge, resolveOfflineImage } from "@/lib/products-db";
 
 interface ProductCardProps {
   product: CatalogProduct;
@@ -55,6 +55,7 @@ export default function ProductCard({
     (product as any).status === "OUT_OF_STOCK";
 
   const formattedTitle = formatProductTitle(product.name);
+  const displayImage = resolveOfflineImage(product.image, product.category, product.name, product.id);
 
   return (
     <Link
@@ -69,10 +70,16 @@ export default function ProductCard({
         isOutOfStock ? "bg-[#181818] grayscale-[60%]" : "bg-[#F4F4F6] group-hover:bg-[#EAEAEA]"
       }`}>
         <img
-          src={product.image}
+          src={displayImage}
           alt={product.name}
           loading="lazy"
           decoding="async"
+          onError={(e) => {
+            const target = e.currentTarget;
+            if (!target.src.includes("fallback-product.svg")) {
+              target.src = "/images/fallback-product.svg";
+            }
+          }}
           className={`w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105 ${
             isOutOfStock ? "opacity-50" : ""
           }`}

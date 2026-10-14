@@ -70,7 +70,7 @@ export const DEFAULT_LANDING_CONFIG: LandingConfig = {
     title: "Moondrop X HSR Sparxie TWS",
     description:
       "Kolaborasi resmi HoYoverse Honkai: Star Rail bersama Moondrop menghadirkan TWS audiophile edisi karakter Sparkle. Ditenagai RT-Adaptive ANC, driver wood-dome 10mm, dan suara pemandu eksklusif Sparkle.",
-    bgImage: "/images/collab-hsr-moondrop-bg.png",
+    bgImage: "/images/collab-hsr-moondrop-bg.webp",
     productImage1: "/images/collab-sparxie-case.png",
     productImage2: "/images/collab-sparxie-earbuds.png",
     features: ["RT-Adaptive ANC", "Wood Dome 10mm", "VDSF Target DSP"],
@@ -141,7 +141,7 @@ export const DEFAULT_LANDING_CONFIG: LandingConfig = {
       id: "prod-waner-redlion",
       name: "Tangzu Wan'er SG 2 Red Lion",
       fallbackPrice: 23.0,
-      image: "/images/transparent/waner-redlion-transparent.png",
+      image: "/images/transparent/waner-redlion-transparent.webp",
       layout: "square",
     },
     {
@@ -168,7 +168,27 @@ export const DEFAULT_LANDING_CONFIG: LandingConfig = {
   ],
 };
 
-export async function fetchLandingConfigFromDb(): Promise<LandingConfig> {
+let cachedLandingConfig: LandingConfig | null = null;
+const LANDING_CONFIG_KEY = "tonalzone_landing_config_cache";
+
+export function getInstantLandingConfig(): LandingConfig {
+  if (cachedLandingConfig) return cachedLandingConfig;
+  if (typeof window !== "undefined") {
+    try {
+      const stored = sessionStorage.getItem(LANDING_CONFIG_KEY) || localStorage.getItem(LANDING_CONFIG_KEY);
+      if (stored) {
+        cachedLandingConfig = JSON.parse(stored);
+        return cachedLandingConfig!;
+      }
+    } catch {}
+  }
+  return DEFAULT_LANDING_CONFIG;
+}
+
+export async function fetchLandingConfigFromDb(forceFresh: boolean = false): Promise<LandingConfig> {
+  if (!forceFresh && cachedLandingConfig) {
+    return cachedLandingConfig;
+  }
   try {
     const { data, error } = await supabase
       .from("LandingConfig")
@@ -177,10 +197,10 @@ export async function fetchLandingConfigFromDb(): Promise<LandingConfig> {
       .maybeSingle();
 
     if (error || !data) {
-      return DEFAULT_LANDING_CONFIG;
+      return cachedLandingConfig || DEFAULT_LANDING_CONFIG;
     }
 
-    return {
+    const config: LandingConfig = {
       hero: data.hero || DEFAULT_LANDING_CONFIG.hero,
       collaboration: data.collaboration || DEFAULT_LANDING_CONFIG.collaboration,
       new_arrivals: data.new_arrivals || DEFAULT_LANDING_CONFIG.new_arrivals,
@@ -188,8 +208,17 @@ export async function fetchLandingConfigFromDb(): Promise<LandingConfig> {
       start_journey: data.start_journey || DEFAULT_LANDING_CONFIG.start_journey,
       updated_at: data.updated_at,
     };
+
+    cachedLandingConfig = config;
+    if (typeof window !== "undefined") {
+      try {
+        sessionStorage.setItem(LANDING_CONFIG_KEY, JSON.stringify(config));
+      } catch {}
+    }
+
+    return config;
   } catch (err) {
-    return DEFAULT_LANDING_CONFIG;
+    return cachedLandingConfig || DEFAULT_LANDING_CONFIG;
   }
 }
 
@@ -245,13 +274,27 @@ export async function saveLandingConfigToDb(config: Partial<LandingConfig>): Pro
       updated_at: new Date().toISOString(),
     };
 
-    const { error } = await supabase
-      .from("LandingConfig")
-      .upsert(payload, { onConflict: "id" });
+    // 1. Immediately persist to instant in-memory and browser cache
+    cachedLandingConfig = payload as LandingConfig;
+    if (typeof window !== "undefined") {
+      try {
+        sessionStorage.setItem(LANDING_CONFIG_KEY, JSON.stringify(payload));
+        localStorage.setItem(LANDING_CONFIG_KEY, JSON.stringify(payload));
+        window.dispatchEvent(new Event("tonalzone_landing_updated"));
+      } catch {}
+    }
 
-    if (error) {
-      console.error("[LandingConfig] Upsert error:", error);
-      return { success: false, error: error.message };
+    // 2. Sync to Supabase in the background if available
+    try {
+      const { error } = await supabase
+        .from("LandingConfig")
+        .upsert(payload, { onConflict: "id" });
+
+      if (error) {
+        console.warn("[LandingConfig] Supabase sync note:", error.message);
+      }
+    } catch (e: any) {
+      console.warn("[LandingConfig] Supabase unavailable, saved locally:", e?.message);
     }
 
     return { success: true };

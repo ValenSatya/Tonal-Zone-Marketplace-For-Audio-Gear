@@ -7,6 +7,8 @@ import { useLanguage } from "@/context/LanguageContext";
 import CustomSelect from "@/components/ui/custom-select";
 import { KeyboardArrowRight } from "@/components/ui/keyboard-arrow";
 import { uploadMedia } from "@/lib/upload";
+import { notifyCatalogUpdated } from "@/lib/products-db";
+import { broadcastRealtime } from "@/lib/realtime-bus";
 
 export interface NewProductVariant {
   id: string;
@@ -143,6 +145,7 @@ export default function AddNewProductPage() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successBanner, setSuccessBanner] = useState(false);
+  const [policyError, setPolicyError] = useState<string | null>(null);
 
   const insertTemplate = (templateType: "iem" | "dac" | "headphone") => {
     if (templateType === "iem") {
@@ -305,6 +308,43 @@ Kelengkapan Dalam Box:
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSubmitting) return;
+    setPolicyError(null);
+
+    // Anti-Counterfeit Content Policy Validation
+    let prohibitedKeywordsList = ["fake", "replica", "clone", "1:1", "bootleg", "kw super", "kw", "oem", "replika", "tiruan"];
+    try {
+      const savedPolicy = localStorage.getItem("tonalzone_content_policy");
+      if (savedPolicy) {
+        const parsed = JSON.parse(savedPolicy);
+        if (parsed.prohibitedKeywords && typeof parsed.prohibitedKeywords === "string") {
+          prohibitedKeywordsList = parsed.prohibitedKeywords
+            .split(",")
+            .map((k: string) => k.trim().toLowerCase())
+            .filter(Boolean);
+        }
+      }
+    } catch (e) {}
+
+    const textToCheck = `${formData.name} ${formData.description || ""}`.toLowerCase();
+    const violation = prohibitedKeywordsList.find((keyword) => {
+      if (!keyword) return false;
+      const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const regex = new RegExp(`(^|[^a-z0-9])${escaped}([^a-z0-9]|$)`, "i");
+      return regex.test(textToCheck);
+    });
+
+    if (violation) {
+      setPolicyError(
+        isEn
+          ? `Listing rejected by TonalZone Anti-Counterfeit Policy: Prohibited keyword detected ("${violation}"). Only authentic audiophile gear is permitted.`
+          : `Listing ditolak oleh Kebijakan Anti-Barang Tiruan TonalZone: Mengandung kata terlarang ("${violation}"). Hanya produk audiophile original yang diizinkan.`
+      );
+      if (typeof window !== "undefined") {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+      return;
+    }
+
     setIsSubmitting(true);
 
     let userStored: any = null;
@@ -415,6 +455,14 @@ Kelengkapan Dalam Box:
         }),
       });
       const data = await res.json();
+      if (!res.ok || data.success === false) {
+        setPolicyError(data.error || "Gagal menyimpan produk karena pelanggaran kebijakan.");
+        setIsSubmitting(false);
+        if (typeof window !== "undefined") {
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+        return;
+      }
       if (data.product?.id) {
         newProd.id = data.product.id;
         newProd.status = data.product.status || initialStatus;
@@ -423,7 +471,7 @@ Kelengkapan Dalam Box:
       console.warn("Failed to persist new product via /api/seller/products:", err);
     }
 
-    // 2. Keep local storage fallback in sync
+    // 2. Keep local storage fallback in sync & broadcast across tabs
     try {
       const existing = localStorage.getItem("tonalzone_custom_products");
       const list = existing ? JSON.parse(existing) : [];
@@ -431,6 +479,8 @@ Kelengkapan Dalam Box:
       localStorage.setItem("tonalzone_custom_products", JSON.stringify(list));
       window.dispatchEvent(new Event("productsUpdated"));
       window.dispatchEvent(new Event("storage"));
+      notifyCatalogUpdated({ type: "PRODUCT_CREATED", product: newProd });
+      broadcastRealtime("CATALOG", { type: "PRODUCT_CREATED", product: newProd });
     } catch (err) {}
 
     setIsSubmitting(false);
@@ -511,6 +561,23 @@ Kelengkapan Dalam Box:
           </button>
         </div>
       </div>
+
+      {/* Anti-Counterfeit Policy Error Alert */}
+      {policyError && (
+        <div className="p-4 sm:p-5 rounded-2xl bg-[#1A0A0A] border border-rose-500/30 text-rose-200 text-xs font-mono flex items-start gap-3 shadow-lg animate-in fade-in slide-in-from-top-2">
+          <div className="w-8 h-8 rounded-lg bg-rose-500/10 flex items-center justify-center shrink-0 mt-0.5 text-rose-400">
+            <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+            </svg>
+          </div>
+          <div className="space-y-1">
+            <p className="font-bold text-rose-300 font-sans text-sm">
+              {isEn ? "Listing Rejected: Anti-Counterfeit Policy Violation" : "Listing Ditolak: Pelanggaran Kebijakan Anti-Barang Tiruan"}
+            </p>
+            <p className="text-[#AAAAAA] leading-relaxed font-sans">{policyError}</p>
+          </div>
+        </div>
+      )}
 
       {/* Master Catalog Shortcut Recommendation (Rounded-2xl, Zero Stroke) */}
       <div className="p-5 sm:p-6 rounded-2xl bg-[#0E0E0E] flex flex-col sm:flex-row sm:items-center justify-between gap-4">

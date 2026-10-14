@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/context/LanguageContext";
 import CustomSelect from "@/components/ui/custom-select";
 import { KeyboardArrowRight } from "@/components/ui/keyboard-arrow";
+import { broadcastRealtime, subscribeRealtime } from "@/lib/realtime-bus";
 
 export interface PayoutTransaction {
   id: string;
@@ -212,7 +213,19 @@ export default function SellerPayoutsPage() {
 
     loadState();
     window.addEventListener("storage", loadState);
-    return () => window.removeEventListener("storage", loadState);
+
+    const unsubWallet = subscribeRealtime("WALLET", () => {
+      loadState();
+    });
+    const unsubOrders = subscribeRealtime("ORDERS", () => {
+      loadState();
+    });
+
+    return () => {
+      window.removeEventListener("storage", loadState);
+      unsubWallet();
+      unsubOrders();
+    };
   }, []);
 
   const formatAmount = (usd: number) => {
@@ -310,6 +323,8 @@ export default function SellerPayoutsPage() {
           totalRevenue: updatedAvail + updatedLifetime,
         })
       );
+
+      broadcastRealtime("WALLET", { action: "WITHDRAWAL", amountUSD: actualUSD });
 
       setWithdrawSuccess(true);
       setTimeout(() => {

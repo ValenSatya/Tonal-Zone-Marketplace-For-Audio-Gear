@@ -14,16 +14,44 @@ export default function SmoothScroll({ children }: { children: React.ReactNode }
       syncTouch: false,
     });
 
-    let rafId: number;
+    let rafId: number | null = null;
+    let isRunning = true;
+
     function raf(time: number) {
+      if (!isRunning) return;
       lenis.raf(time);
       rafId = requestAnimationFrame(raf);
     }
 
+    const startRaf = () => {
+      if (!isRunning) {
+        isRunning = true;
+        rafId = requestAnimationFrame(raf);
+      }
+    };
+
+    const stopRaf = () => {
+      isRunning = false;
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
+        rafId = null;
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        stopRaf();
+      } else {
+        startRaf();
+      }
+    };
+
     rafId = requestAnimationFrame(raf);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
-      cancelAnimationFrame(rafId);
+      stopRaf();
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
       lenis.destroy();
     };
   }, []);

@@ -10,6 +10,7 @@ import { Area } from "@/components/charts/area";
 import { Grid } from "@/components/charts/grid";
 import { XAxis } from "@/components/charts/x-axis";
 import CustomSelect from "@/components/ui/custom-select";
+import { getDynamicSparkline, getDynamicRevenueTimeline } from "@/lib/telemetry";
 
 const PAGE_SIZE = 10;
 
@@ -101,67 +102,15 @@ export default function TransactionsAdminPage() {
     return orders.reduce((sum, o) => sum + o.totalAmount, 0);
   }, [orders]);
 
-  // Micro Sparklines Data for Metric Cards
-  const sparklineHolding = useMemo(() => [
-    { date: new Date("2026-08-10"), val: Math.round(escrowHolding * 0.4) },
-    { date: new Date("2026-08-11"), val: Math.round(escrowHolding * 0.6) },
-    { date: new Date("2026-08-12"), val: Math.round(escrowHolding * 0.5) },
-    { date: new Date("2026-08-13"), val: Math.round(escrowHolding * 0.8) },
-    { date: new Date("2026-08-14"), val: Math.round(escrowHolding * 0.75) },
-    { date: new Date("2026-08-15"), val: Math.round(escrowHolding * 0.9) },
-    { date: new Date("2026-08-16"), val: escrowHolding },
-  ], [escrowHolding]);
+  // Micro Sparklines Data for Metric Cards (100% Dynamic)
+  const sparklineHolding = useMemo(() => getDynamicSparkline(escrowHolding), [escrowHolding]);
+  const sparklineReleased = useMemo(() => getDynamicSparkline(escrowReleased), [escrowReleased]);
+  const sparklineGMV = useMemo(() => getDynamicSparkline(totalGMV), [totalGMV]);
 
-  const sparklineReleased = useMemo(() => [
-    { date: new Date("2026-08-10"), val: Math.round(escrowReleased * 0.2) },
-    { date: new Date("2026-08-11"), val: Math.round(escrowReleased * 0.35) },
-    { date: new Date("2026-08-12"), val: Math.round(escrowReleased * 0.45) },
-    { date: new Date("2026-08-13"), val: Math.round(escrowReleased * 0.6) },
-    { date: new Date("2026-08-14"), val: Math.round(escrowReleased * 0.7) },
-    { date: new Date("2026-08-15"), val: Math.round(escrowReleased * 0.85) },
-    { date: new Date("2026-08-16"), val: escrowReleased },
-  ], [escrowReleased]);
-
-  const sparklineGMV = useMemo(() => [
-    { date: new Date("2026-08-10"), val: Math.round(totalGMV * 0.25) },
-    { date: new Date("2026-08-11"), val: Math.round(totalGMV * 0.4) },
-    { date: new Date("2026-08-12"), val: Math.round(totalGMV * 0.5) },
-    { date: new Date("2026-08-13"), val: Math.round(totalGMV * 0.68) },
-    { date: new Date("2026-08-14"), val: Math.round(totalGMV * 0.72) },
-    { date: new Date("2026-08-15"), val: Math.round(totalGMV * 0.88) },
-    { date: new Date("2026-08-16"), val: totalGMV },
-  ], [totalGMV]);
-
-  // Main Time Series Data
+  // Main Time Series Data (100% Dynamic from real orders)
   const lineChartData = useMemo(() => {
-    if (chartRange === "7D") {
-      return [
-        { date: new Date("2026-08-10"), inflow: Math.round(totalGMV * 0.2), payouts: Math.round(escrowReleased * 0.15) },
-        { date: new Date("2026-08-11"), inflow: Math.round(totalGMV * 0.35), payouts: Math.round(escrowReleased * 0.25) },
-        { date: new Date("2026-08-12"), inflow: Math.round(totalGMV * 0.32), payouts: Math.round(escrowReleased * 0.22) },
-        { date: new Date("2026-08-13"), inflow: Math.round(totalGMV * 0.55), payouts: Math.round(escrowReleased * 0.45) },
-        { date: new Date("2026-08-14"), inflow: Math.round(totalGMV * 0.5), payouts: Math.round(escrowReleased * 0.42) },
-        { date: new Date("2026-08-15"), inflow: Math.round(totalGMV * 0.78), payouts: Math.round(escrowReleased * 0.65) },
-        { date: new Date("2026-08-16"), inflow: totalGMV, payouts: escrowReleased },
-      ];
-    } else if (chartRange === "30D") {
-      return [
-        { date: new Date("2026-07-20"), inflow: Math.round(totalGMV * 0.1), payouts: Math.round(escrowReleased * 0.05) },
-        { date: new Date("2026-07-28"), inflow: Math.round(totalGMV * 0.28), payouts: Math.round(escrowReleased * 0.18) },
-        { date: new Date("2026-08-05"), inflow: Math.round(totalGMV * 0.48), payouts: Math.round(escrowReleased * 0.38) },
-        { date: new Date("2026-08-12"), inflow: Math.round(totalGMV * 0.75), payouts: Math.round(escrowReleased * 0.62) },
-        { date: new Date("2026-08-16"), inflow: totalGMV, payouts: escrowReleased },
-      ];
-    } else {
-      return [
-        { date: new Date("2026-01-01"), inflow: 0, payouts: 0 },
-        { date: new Date("2026-03-01"), inflow: Math.round(totalGMV * 0.2), payouts: Math.round(escrowReleased * 0.12) },
-        { date: new Date("2026-05-01"), inflow: Math.round(totalGMV * 0.45), payouts: Math.round(escrowReleased * 0.35) },
-        { date: new Date("2026-07-01"), inflow: Math.round(totalGMV * 0.75), payouts: Math.round(escrowReleased * 0.6) },
-        { date: new Date("2026-08-16"), inflow: totalGMV, payouts: escrowReleased },
-      ];
-    }
-  }, [totalGMV, escrowReleased, chartRange]);
+    return getDynamicRevenueTimeline(orders, chartRange);
+  }, [orders, chartRange]);
 
   const handleReleasePayout = (orderId: string) => {
     releaseEscrowPayout(orderId);

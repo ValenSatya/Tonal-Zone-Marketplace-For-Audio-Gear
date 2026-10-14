@@ -4,7 +4,8 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 
-import { fetchProductsFromDb, cleanProductName, CatalogProduct } from "@/lib/products-db";
+import { fetchProductsFromDb, getInstantCatalog, cleanProductName, CatalogProduct } from "@/lib/products-db";
+import { getInstantLandingConfig, fetchLandingConfigFromDb } from "@/lib/landing-config";
 import { useLanguage } from "@/context/LanguageContext";
 
 interface BestSellerProduct {
@@ -60,9 +61,36 @@ const PROGRESS_INTERVAL = 50; // 50ms interval
 
 export default function FigmaBestSellers() {
   const { t } = useLanguage();
-  const [products, setProducts] = useState<BestSellerProduct[]>(DEFAULT_PRODUCTS);
+  const [products, setProducts] = useState<BestSellerProduct[]>(() => {
+    const config = getInstantLandingConfig();
+    if (config?.best_sellers && config.best_sellers.length > 0) {
+      return config.best_sellers;
+    }
+    const dbAll = getInstantCatalog();
+    if (dbAll && dbAll.length > 0) {
+      const targetIds = ["prod-waner-sg2", "prod-chu3", "prod-tanchjim-nora", "prod-kiwi-cadenza"];
+      const loaded: BestSellerProduct[] = [];
+      for (const tid of targetIds) {
+        const found = dbAll.find((p) => p.id === tid);
+        const fallbackItem = DEFAULT_PRODUCTS.find((p) => p.id === tid);
+        if (found && fallbackItem) {
+          loaded.push({
+            id: found.id,
+            brand: found.brand.toUpperCase(),
+            title: cleanProductName(found.name, found.id).toUpperCase(),
+            description: found.description || fallbackItem.description,
+            image: fallbackItem.image || found.image,
+            href: `/product/${found.id}`,
+          });
+        } else if (fallbackItem) {
+          loaded.push(fallbackItem);
+        }
+      }
+      if (loaded.length > 0) return loaded;
+    }
+    return DEFAULT_PRODUCTS;
+  });
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [progress, setProgress] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
   const [isClicking, setIsClicking] = useState(false);
   const [cursorDirection, setCursorDirection] = useState<"left" | "right">("right");
@@ -75,7 +103,6 @@ export default function FigmaBestSellers() {
     let isMounted = true;
     async function loadBestSellers() {
       try {
-        const { fetchLandingConfigFromDb } = await import("@/lib/landing-config");
         const config = await fetchLandingConfigFromDb();
         if (config?.best_sellers && config.best_sellers.length > 0 && isMounted) {
           setProducts(config.best_sellers);
@@ -146,26 +173,14 @@ export default function FigmaBestSellers() {
     setCurrentSlide((prev) => (prev + 1) % products.length);
   }, [products.length]);
 
-  // Slide Timer & Circular Progress Bar
+  // Slide Timer: Clean auto-advance every 5 seconds without burning CPU in high-frequency state update loops
   useEffect(() => {
-    setProgress(0);
     const timer = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 100) {
-          return 100;
-        }
-        return prev + (PROGRESS_INTERVAL / AUTO_SLIDE_DURATION) * 100;
-      });
-    }, PROGRESS_INTERVAL);
+      nextSlide();
+    }, AUTO_SLIDE_DURATION);
 
     return () => clearInterval(timer);
-  }, [currentSlide]);
-
-  useEffect(() => {
-    if (progress >= 100) {
-      nextSlide();
-    }
-  }, [progress, nextSlide]);
+  }, [nextSlide]);
 
   // Track Mouse Movements & Determine Arrow Direction (Optimized via ref to eliminate re-renders)
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -230,7 +245,6 @@ export default function FigmaBestSellers() {
   // SVG Progress Ring calculations (radius = 26px)
   const ringRadius = 26;
   const circumference = 2 * Math.PI * ringRadius;
-  const strokeDashoffset = circumference * (1 - progress / 100);
 
   return (
     <section className="w-full bg-[#030303] py-32 lg:py-40 overflow-hidden select-none">
@@ -265,8 +279,9 @@ export default function FigmaBestSellers() {
                 stroke="rgba(255, 255, 255, 0.25)"
                 strokeWidth="1.5"
               />
-              {/* Dynamic Progress indicator */}
+              {/* Dynamic Progress indicator (Hardware-accelerated CSS keyframe, 0 React re-renders) */}
               <circle
+                key={currentSlide}
                 cx="30"
                 cy="30"
                 r={ringRadius}
@@ -274,9 +289,11 @@ export default function FigmaBestSellers() {
                 stroke="#ffffff"
                 strokeWidth="2"
                 strokeDasharray={circumference}
-                strokeDashoffset={strokeDashoffset}
+                strokeDashoffset={circumference}
                 strokeLinecap="round"
-                className="transition-[stroke-dashoffset] duration-75 ease-linear"
+                style={{
+                  animation: `progressRing ${AUTO_SLIDE_DURATION}ms linear forwards`,
+                }}
               />
             </svg>
 
@@ -401,6 +418,7 @@ export default function FigmaBestSellers() {
                   {/* Button: "SHOP NOW" */}
                   <Link
                     href={prod.href}
+                    prefetch={false}
                     onClick={(e) => e.stopPropagation()}
                     className="relative inline-flex items-center h-[46px] group/btn cursor-pointer select-none"
                   >
@@ -469,7 +487,6 @@ export default function FigmaBestSellers() {
             key={p.id}
             onClick={() => {
               setCurrentSlide(pIdx);
-              setProgress(0);
             }}
             className={`transition-all duration-300 rounded-full cursor-pointer ${
               currentSlide === pIdx

@@ -212,6 +212,24 @@ export const COMPARATOR_IEMS: IEMCurveData[] = [
       [8000, 82.0], [10000, 76.5], [14000, 73.0], [18000, 67.2], [20000, 62.5]
     ],
   },
+  {
+    id: "prod-dusk",
+    name: "Moondrop x Crinacle Dusk",
+    brand: "MOONDROP",
+    category: "TRIBRID IN-EAR (IEM)",
+    driverType: "2DD (HODDDUS) + 2BA + 2 Planar Micro-tweeters",
+    signature: "NEUTRAL",
+    priceUSD: 359.00,
+    color: "#22D3EE",
+    image: "/images/chu3-preview-1.webp",
+    description: "Benchmark tribrid kolaborasi Crinacle dengan 2DD HODDDUS, 2BA, dan 2 Planar (AutoEq/Crinacle). Profil tuning Dusk Target presisi dengan sub-bass bertekstur dan treble planar lapang.",
+    points: [
+      [20, 88.0], [30, 87.8], [50, 86.5], [80, 84.5], [120, 82.2],
+      [200, 80.8], [350, 79.5], [500, 79.6], [800, 79.8], [1000, 80.0],
+      [1500, 83.2], [2200, 86.8], [3000, 90.0], [4200, 86.5], [6000, 83.8],
+      [8000, 84.2], [10000, 77.5], [14000, 79.0], [18000, 75.0], [20000, 70.0]
+    ],
+  },
 ];
 
 // Target Reference Standards

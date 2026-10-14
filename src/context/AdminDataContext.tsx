@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
 import { supabase } from "@/lib/supabase";
-import { fetchProductsFromDb } from "@/lib/products-db";
+import { fetchProductsFromDb, getInstantCatalog } from "@/lib/products-db";
 
 export interface AdminUser {
   id: string;
@@ -268,6 +268,7 @@ interface AdminDataContextType {
   updateCourier: (id: string, updates: Partial<AdminCourier>) => void;
   deleteCourier: (id: string) => void;
   toggleCourierStatus: (id: string) => void;
+  resetCouriersToDefault: () => void;
 
   // Live Shipment Tracking
   shipments: AdminShipmentTracking[];
@@ -281,108 +282,12 @@ interface AdminDataContextType {
 
 const AdminDataContext = createContext<AdminDataContextType | undefined>(undefined);
 
-// Initial Seed Data
-const SEED_USERS: AdminUser[] = [
-  { id: "USR-001", name: "Valen Satya", email: "valen@tonalzone.id", role: "Super Admin", status: "Active", joined: "2024-01-01", location: "Jakarta, ID", tuningPreference: "Reference / Neutral" },
-  { id: "USR-002", name: "Alex Rivera", email: "alex.rivera@audiophile.io", role: "Buyer", status: "Active", joined: "2024-02-14", location: "Surabaya, ID", tuningPreference: "Warm & Musical" },
-  { id: "USR-003", name: "CSI-ZONE Official", email: "store@csizone.id", role: "Seller", status: "Active", joined: "2024-02-18", location: "Bandung, ID", tuningPreference: "Harman Target" },
-  { id: "USR-004", name: "Soundstage Store", email: "sales@soundstage.id", role: "Seller", status: "Active", joined: "2024-03-01", location: "Medan, ID", tuningPreference: "V-Shape Fun" },
-  { id: "USR-005", name: "Budi Santoso", email: "budi.audio@gmail.com", role: "Buyer", status: "Active", joined: "2024-03-10", location: "Yogyakarta, ID", tuningPreference: "Basshead" },
-  { id: "USR-006", name: "Suspected Bot", email: "spammer99@fake.ru", role: "Buyer", status: "Suspended", joined: "2024-03-12", location: "Unknown", tuningPreference: "Neutral" },
-];
-
-const SEED_STORES: AdminStore[] = [
-  {
-    id: "STR-101",
-    userId: "USR-003",
-    storeName: "CSI-ZONE Official Store",
-    ownerName: "Chandra S.",
-    email: "store@csizone.id",
-    brandFocus: "Moondrop, Tangzu, Sennheiser",
-    nik: "3273190809920001",
-    bankName: "BCA",
-    bankAccount: "8820192831",
-    address: "Ruko Paskal Hyper Square B-12, Bandung",
-    status: "APPROVED",
-    revisionCount: 0,
-    submittedAt: "2024-02-18",
-  },
-  {
-    id: "STR-102",
-    userId: "USR-004",
-    storeName: "Soundstage ID Authorized",
-    ownerName: "Hendra Wijaya",
-    email: "sales@soundstage.id",
-    brandFocus: "64 Audio, Chord, FatFreq",
-    nik: "3171021405880003",
-    bankName: "Mandiri",
-    bankAccount: "1310098273612",
-    address: "Plaza Glodok Lt. 2 Blok C-10, Jakarta",
-    status: "APPROVED",
-    revisionCount: 0,
-    submittedAt: "2024-03-01",
-  },
-  {
-    id: "STR-103",
-    userId: "USR-007",
-    storeName: "Audiophile Surabaya Garage",
-    ownerName: "Kevin Lie",
-    email: "kevin.surabaya@gmail.com",
-    brandFocus: "Sennheiser, Effect Audio",
-    nik: "3578012803950002",
-    bankName: "BCA",
-    bankAccount: "5120491823",
-    address: "Jl. Mayjen Sungkono No. 88, Surabaya",
-    status: "PENDING",
-    revisionCount: 0,
-    submittedAt: "2024-03-14",
-  },
-  {
-    id: "STR-104",
-    userId: "USR-008",
-    storeName: "Direct China Audio Importer",
-    ownerName: "Wang Shen",
-    email: "wang.import@china.com",
-    brandFocus: "Unverified IEMs",
-    nik: "0000000000000000",
-    bankName: "BCA",
-    bankAccount: "1111111111",
-    address: "Alamat tidak lengkap",
-    status: "REJECTED",
-    rejectionReason: "NIK palsu dan dokumen legalitas tidak terbaca.",
-    revisionCount: 2,
-    submittedAt: "2024-03-11",
-  },
-];
-
-const SEED_BRANDS: AdminBrand[] = [
-  { id: "BRD-01", name: "SENNHEISER", country: "Germany", tier: "Flagship", status: "APPROVED", productCount: 14, createdAt: "2024-01-01" },
-  { id: "BRD-02", name: "MOONDROP", country: "China", tier: "Chi-Fi", status: "APPROVED", productCount: 28, createdAt: "2024-01-01" },
-  { id: "BRD-03", name: "64 AUDIO", country: "USA", tier: "Flagship", status: "APPROVED", productCount: 9, createdAt: "2024-01-05" },
-  { id: "BRD-04", name: "CHORD AUDIO", country: "UK", tier: "Flagship", status: "APPROVED", productCount: 6, createdAt: "2024-01-10" },
-  { id: "BRD-05", name: "EFFECT AUDIO", country: "Singapore", tier: "Premium", status: "APPROVED", productCount: 12, createdAt: "2024-01-15" },
-  { id: "BRD-06", name: "FATFREQ", country: "Singapore", tier: "Custom IEM", status: "APPROVED", productCount: 7, createdAt: "2024-01-20" },
-  { id: "BRD-07", name: "TANGZU AUDIO", country: "China", tier: "Chi-Fi", status: "APPROVED", productCount: 18, createdAt: "2024-02-01" },
-  { id: "BRD-08", name: "Custom IEM Craft ID", country: "Indonesia", tier: "Custom IEM", status: "PENDING", submittedBy: "Audiophile Surabaya Garage", productCount: 0, createdAt: "2024-03-14" },
-];
-
-const SEED_PRODUCTS: AdminProduct[] = [
-  { id: "prod-1", name: "SENNHEISER IE 900", brand: "SENNHEISER", category: "In-Ear Monitors", price: 1299, stock: 8, soundSignature: "V-Shape", storeName: "CSI-ZONE Official Store", status: "APPROVED", badge: "BEST SELLER", createdAt: "2024-01-10" },
-  { id: "prod-2", name: "MOONDROP BLESSING 3", brand: "MOONDROP", category: "In-Ear Monitors", price: 319, stock: 24, soundSignature: "Neutral", storeName: "CSI-ZONE Official Store", status: "APPROVED", badge: "NEW ARRIVAL", createdAt: "2024-01-12" },
-  { id: "prod-3", name: "CHORD MOJO 2 DAC", brand: "CHORD AUDIO", category: "DAC / Amp", price: 899, stock: 5, soundSignature: "Neutral", storeName: "Soundstage ID Authorized", status: "APPROVED", badge: "TOP RATED", createdAt: "2024-01-15" },
-  { id: "prod-4", name: "EFFECT AUDIO ARES S", brand: "EFFECT AUDIO", category: "Upgrade Cables", price: 249, stock: 15, soundSignature: "Warm", storeName: "Soundstage ID Authorized", status: "APPROVED", createdAt: "2024-01-20" },
-  { id: "prod-5", name: "64 AUDIO U12T REFERENCE", brand: "64 AUDIO", category: "In-Ear Monitors", price: 2499, stock: 3, soundSignature: "Neutral", storeName: "Soundstage ID Authorized", status: "APPROVED", badge: "TOP RATED", createdAt: "2024-02-01" },
-  { id: "prod-6", name: "TANGZU WAN'ER SG 2", brand: "TANGZU AUDIO", category: "In-Ear Monitors", price: 19, stock: 120, soundSignature: "Warm", storeName: "CSI-ZONE Official Store", status: "APPROVED", badge: "BEST SELLER", createdAt: "2024-02-10" },
-  { id: "prod-7", name: "FATFREQ MAESTRO MINI", brand: "FATFREQ", category: "In-Ear Monitors", price: 450, stock: 7, soundSignature: "Basshead", storeName: "Soundstage ID Authorized", status: "APPROVED", createdAt: "2024-02-15" },
-  { id: "prod-8", name: "DIY Silver OCC Cable 8-Core", brand: "Custom IEM Craft ID", category: "Upgrade Cables", price: 85, stock: 10, soundSignature: "Bright", storeName: "Audiophile Surabaya Garage", status: "PENDING", createdAt: "2024-03-14" },
-];
-
-const SEED_ORDERS: AdminOrder[] = [
-  { id: "ord-1", orderNumber: "TZ-9921", buyerName: "Alex Rivera", buyerEmail: "alex.rivera@audiophile.io", sellerName: "CSI-ZONE Official Store", itemSummary: "Sennheiser IE 900 (3.5mm)", totalAmount: 1299, status: "PAID", courier: "Express Shipping", createdAt: "2024-03-14 10:23" },
-  { id: "ord-2", orderNumber: "TZ-9922", buyerName: "Budi Santoso", buyerEmail: "budi.audio@gmail.com", sellerName: "Soundstage ID Authorized", itemSummary: "Chord Mojo 2 DAC + Ares S", totalAmount: 1148, status: "SHIPPED", courier: "Instant Courier", trackingNumber: "JNE-88291039841", createdAt: "2024-03-13 14:15" },
-  { id: "ord-3", orderNumber: "TZ-9923", buyerName: "Valen Satya", buyerEmail: "valen@tonalzone.id", sellerName: "CSI-ZONE Official Store", itemSummary: "Tangzu Wan'er SG 2", totalAmount: 19, status: "COMPLETED", courier: "Standard Delivery", trackingNumber: "SICEPAT-991203", createdAt: "2024-03-11 09:00" },
-  { id: "ord-4", orderNumber: "TZ-9924", buyerName: "Guest Checkout", buyerEmail: "guest.buyer@yahoo.com", sellerName: "Soundstage ID Authorized", itemSummary: "64 Audio U12t Reference", totalAmount: 2499, status: "PENDING", courier: "Express Shipping", createdAt: "2024-03-14 15:40" },
-];
+// Initial Dynamic Containers (No Hardcoded Dummy Data)
+const SEED_USERS: AdminUser[] = [];
+const SEED_STORES: AdminStore[] = [];
+const SEED_BRANDS: AdminBrand[] = [];
+const SEED_PRODUCTS: AdminProduct[] = [];
+const SEED_ORDERS: AdminOrder[] = [];
 
 const SEED_CATEGORIES: AdminCategory[] = [
   { id: "cat-1", name: "In-Ear Monitors", slug: "in-ear-monitors", itemCount: 86, description: "Precision multi-driver, planar, and single dynamic driver in-ear monitors." },
@@ -452,7 +357,7 @@ const SEED_COURIERS: AdminCourier[] = [
     name: "JNE Express (Reguler & YES)",
     code: "JNE",
     type: "Domestic Express",
-    baseRateUSD: 3,
+    baseRateUSD: 0.625, // $0.625 * 16,000 = Rp 10.000
     estimatedDays: "1 - 2 Days",
     insuranceRequired: true,
     trackingApiAvailable: true,
@@ -464,7 +369,7 @@ const SEED_COURIERS: AdminCourier[] = [
     name: "SiCepat Express (BEST)",
     code: "SICEPAT",
     type: "Domestic Express",
-    baseRateUSD: 3,
+    baseRateUSD: 0.625, // $0.625 * 16,000 = Rp 10.000
     estimatedDays: "1 - 2 Days",
     insuranceRequired: true,
     trackingApiAvailable: true,
@@ -476,7 +381,7 @@ const SEED_COURIERS: AdminCourier[] = [
     name: "J&T Cargo (Heavy Tube Amps & DACs)",
     code: "JNT_CARGO",
     type: "Cargo Heavy",
-    baseRateUSD: 6,
+    baseRateUSD: 1.875, // $1.875 * 16,000 = Rp 30.000
     estimatedDays: "2 - 4 Days",
     insuranceRequired: true,
     trackingApiAvailable: true,
@@ -488,7 +393,7 @@ const SEED_COURIERS: AdminCourier[] = [
     name: "GoSend / GrabExpress Instant",
     code: "GOSEND",
     type: "Same Day / Instant",
-    baseRateUSD: 4,
+    baseRateUSD: 1.25, // $1.25 * 16,000 = Rp 20.000
     estimatedDays: "1 - 3 Hours",
     insuranceRequired: true,
     trackingApiAvailable: true,
@@ -521,108 +426,19 @@ const SEED_COURIERS: AdminCourier[] = [
   },
 ];
 
-const SEED_SHIPMENTS: AdminShipmentTracking[] = [
-  {
-    id: "SHP-8801",
-    orderId: "ord-2",
-    orderNumber: "TZ-9922",
-    trackingNumber: "JNE-88291039841",
-    courierName: "JNE Express (YES)",
-    courierCode: "JNE",
-    sellerStore: "Soundstage ID Authorized",
-    buyerName: "Budi Santoso",
-    destinationCity: "Yogyakarta, ID",
-    itemSummary: "Chord Mojo 2 DAC + Ares S",
-    currentStatus: "IN_TRANSIT",
-    escrowStatus: "HOLDING",
-    lastUpdated: "2026-08-16 07:30",
-    milestones: [
-      { stage: "ORDER_PLACED", location: "Online Marketplace", timestamp: "2026-08-13 14:15", description: "Pembayaran telah diamankan oleh Tonal Zone Escrow." },
-      { stage: "SELLER_PACKED", location: "Soundstage Store Hub, Medan", timestamp: "2026-08-13 17:00", description: "Pesanan telah dikemas dengan bubble wrap tebal dan segel keaslian." },
-      { stage: "PICKED_UP", location: "JNE Drop Point Medan", timestamp: "2026-08-13 19:30", description: "Paket telah di-pickup oleh kurir JNE." },
-      { stage: "IN_TRANSIT", location: "Sortation Gateway Hub Jakarta", timestamp: "2026-08-14 08:20", description: "Paket dalam perjalanan via jalur udara menuju Yogyakarta Transit Hub." },
-    ],
-  },
-  {
-    id: "SHP-8802",
-    orderId: "ord-3",
-    orderNumber: "TZ-9923",
-    trackingNumber: "SICEPAT-991203",
-    courierName: "SiCepat Express",
-    courierCode: "SICEPAT",
-    sellerStore: "CSI-ZONE Official Store",
-    buyerName: "Valen Satya",
-    destinationCity: "Jakarta Selatan, ID",
-    itemSummary: "Tangzu Wan'er SG 2",
-    currentStatus: "DELIVERED",
-    escrowStatus: "RELEASED",
-    lastUpdated: "2026-08-12 16:45",
-    milestones: [
-      { stage: "ORDER_PLACED", location: "Online Marketplace", timestamp: "2026-08-11 09:00", description: "Pembayaran diverifikasi ke Escrow." },
-      { stage: "SELLER_PACKED", location: "CSI Bandung Warehouse", timestamp: "2026-08-11 11:30", description: "Paket siap dikirim." },
-      { stage: "PICKED_UP", location: "SiCepat Bandung", timestamp: "2026-08-11 14:00", description: "Diambil oleh kurir SiCepat." },
-      { stage: "OUT_FOR_DELIVERY", location: "SiCepat Kebayoran Baru", timestamp: "2026-08-12 09:15", description: "Kurir mengantar ke alamat tujuan." },
-      { stage: "DELIVERED", location: "Jakarta Selatan", timestamp: "2026-08-12 13:40", description: "Paket diterima oleh Valen Satya. Inspeksi selesai & Escrow dilepas." },
-    ],
-  },
-  {
-    id: "SHP-8803",
-    orderId: "ord-1",
-    orderNumber: "TZ-9921",
-    trackingNumber: "DHL-550192384",
-    courierName: "DHL Express",
-    courierCode: "DHL",
-    sellerStore: "CSI-ZONE Official Store",
-    buyerName: "Alex Rivera",
-    destinationCity: "Surabaya, ID",
-    itemSummary: "Sennheiser IE 900 (3.5mm)",
-    currentStatus: "OUT_FOR_DELIVERY",
-    escrowStatus: "HOLDING",
-    lastUpdated: "2026-08-16 08:45",
-    milestones: [
-      { stage: "ORDER_PLACED", location: "Online Marketplace", timestamp: "2026-08-14 10:23", description: "Dana diamankan di Escrow Tonal Zone." },
-      { stage: "SELLER_PACKED", location: "CSI Bandung Warehouse", timestamp: "2026-08-14 13:00", description: "Pengepakan paket high-end IEM dengan asuransi penuh." },
-      { stage: "PICKED_UP", location: "DHL Express Service Point Bandung", timestamp: "2026-08-14 16:30", description: "Paket diproses di sistem logistik DHL." },
-      { stage: "IN_TRANSIT", location: "Juanda International Gateway", timestamp: "2026-08-15 21:00", description: "Tiba di pusat distribusi Surabaya." },
-      { stage: "OUT_FOR_DELIVERY", location: "Surabaya Hub", timestamp: "2026-08-16 08:30", description: "Kurir DHL sedang menuju lokasi penerima." },
-    ],
-  },
-  {
-    id: "SHP-8804",
-    orderId: "ord-4",
-    orderNumber: "TZ-9924",
-    trackingNumber: "JNT-440219",
-    courierName: "J&T Cargo",
-    courierCode: "JNT_CARGO",
-    sellerStore: "Soundstage ID Authorized",
-    buyerName: "Guest Checkout",
-    destinationCity: "Denpasar, Bali",
-    itemSummary: "64 Audio U12t Reference",
-    currentStatus: "DELIVERED",
-    inspectionExpiry: "2026-08-17 15:40",
-    escrowStatus: "RELEASE_ELIGIBLE",
-    lastUpdated: "2026-08-16 08:15",
-    milestones: [
-      { stage: "ORDER_PLACED", location: "Online Marketplace", timestamp: "2026-08-14 15:40", description: "Dana diamankan di Escrow." },
-      { stage: "SELLER_PACKED", location: "Soundstage Store Hub, Medan", timestamp: "2026-08-14 18:00", description: "Disiapkan dengan box pelican & segel hologram." },
-      { stage: "PICKED_UP", location: "J&T Cargo Medan", timestamp: "2026-08-14 20:00", description: "Diproses kurir kargo." },
-      { stage: "IN_TRANSIT", location: "Denpasar Gateway Hub", timestamp: "2026-08-15 22:30", description: "Tiba di Bali." },
-      { stage: "DELIVERED", location: "Denpasar, Bali", timestamp: "2026-08-16 08:15", description: "Paket diterima di pos sekuriti. Masa inspeksi 2x24 jam dimulai." },
-    ],
-  },
-];
+const SEED_SHIPMENTS: AdminShipmentTracking[] = [];
 
 export function AdminDataProvider({ children }: { children: React.ReactNode }) {
   const [systemSettings, setSystemSettings] = useState<SystemSettings>(DEFAULT_SYSTEM_SETTINGS);
   const [users, setUsers] = useState<AdminUser[]>([]);
-  const [stores, setStores] = useState<AdminStore[]>(SEED_STORES);
-  const [brands, setBrands] = useState<AdminBrand[]>(SEED_BRANDS);
-  const [products, setProducts] = useState<AdminProduct[]>(SEED_PRODUCTS);
-  const [orders, setOrders] = useState<AdminOrder[]>(SEED_ORDERS);
-  const [categories, setCategories] = useState<AdminCategory[]>([]);
+  const [stores, setStores] = useState<AdminStore[]>([]);
+  const [brands, setBrands] = useState<AdminBrand[]>([]);
+  const [products, setProducts] = useState<AdminProduct[]>([]);
+  const [orders, setOrders] = useState<AdminOrder[]>([]);
+  const [categories, setCategories] = useState<AdminCategory[]>(SEED_CATEGORIES);
   const [banners, setBanners] = useState<AdminBanner[]>(SEED_BANNERS);
   const [couriers, setCouriers] = useState<AdminCourier[]>(SEED_COURIERS);
-  const [shipments, setShipments] = useState<AdminShipmentTracking[]>(SEED_SHIPMENTS);
+  const [shipments, setShipments] = useState<AdminShipmentTracking[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -651,7 +467,32 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
       if (savedBrands) setBrands(JSON.parse(savedBrands));
 
       const savedProducts = localStorage.getItem("tonalzone_admin_products");
-      let baseProducts: AdminProduct[] = savedProducts ? JSON.parse(savedProducts) : SEED_PRODUCTS;
+      let baseProducts: AdminProduct[] = [];
+      if (savedProducts) {
+        try {
+          const parsed = JSON.parse(savedProducts);
+          if (Array.isArray(parsed) && parsed.length > 0) baseProducts = parsed;
+        } catch {}
+      }
+
+      if (baseProducts.length === 0) {
+        const catalog = getInstantCatalog();
+        baseProducts = catalog.map((p) => ({
+          id: p.id,
+          name: p.name,
+          brand: p.brand || "Moondrop",
+          category: (p.category as any) || "In-Ear Monitors",
+          price: Number((p as any).priceUSD || p.price) || 99,
+          stock: Number(p.stock) || 15,
+          soundSignature: (p.soundSignature as any) || "Neutral",
+          storeName: p.storeName || "Official Brand Store",
+          status: "APPROVED",
+          badge: p.badge,
+          createdAt: new Date().toISOString().split("T")[0],
+          image: p.image || p.images?.[0] || "/model-iem-untuk-hero.webp",
+          description: p.description,
+        }));
+      }
 
       // Merge custom seller products so admin can moderate them
       try {
@@ -689,8 +530,41 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
 
       setProducts(baseProducts);
 
+      // Dynamically derive brands from the real products
+      const uniqueBrandNames = Array.from(new Set(baseProducts.map((p) => p.brand).filter(Boolean)));
+      const derivedBrands: AdminBrand[] = uniqueBrandNames.map((bName, idx) => ({
+        id: `BRD-${idx + 1}`,
+        name: bName.toUpperCase(),
+        country: ["SENNHEISER"].includes(bName.toUpperCase())
+          ? "Germany"
+          : ["64 AUDIO"].includes(bName.toUpperCase())
+          ? "USA"
+          : ["CHORD AUDIO"].includes(bName.toUpperCase())
+          ? "UK"
+          : ["FATFREQ", "EFFECT AUDIO"].includes(bName.toUpperCase())
+          ? "Singapore"
+          : "International",
+        tier: ["64 AUDIO", "SENNHEISER", "CHORD AUDIO"].includes(bName.toUpperCase())
+          ? "Flagship"
+          : ["EFFECT AUDIO", "FATFREQ"].includes(bName.toUpperCase())
+          ? "Premium"
+          : "Chi-Fi",
+        status: "APPROVED",
+        productCount: baseProducts.filter((p) => p.brand.toLowerCase() === bName.toLowerCase()).length,
+        createdAt: new Date().toISOString().split("T")[0],
+      }));
+      setBrands(derivedBrands);
+
       const savedOrders = localStorage.getItem("tonalzone_admin_orders");
-      if (savedOrders) setOrders(JSON.parse(savedOrders));
+      if (savedOrders) {
+        try {
+          const parsed = JSON.parse(savedOrders);
+          if (Array.isArray(parsed)) {
+            const realOrders = parsed.filter((o: any) => !o.id?.startsWith("TZ-992"));
+            setOrders(realOrders);
+          }
+        } catch {}
+      }
 
       const savedCategories = localStorage.getItem("tonalzone_admin_categories");
       if (savedCategories) {
@@ -704,10 +578,38 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
       if (savedBanners) setBanners(JSON.parse(savedBanners));
 
       const savedCouriers = localStorage.getItem("tonalzone_admin_couriers");
-      if (savedCouriers) setCouriers(JSON.parse(savedCouriers));
+      if (savedCouriers) {
+        try {
+          const parsed = JSON.parse(savedCouriers);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            // Auto-migrate legacy USD 3, 4, 6 rates to Indonesian standard rates (Rp 10k, 20k, 30k)
+            const migrated = parsed.map((c: AdminCourier) => {
+              if (c.code === "JNE" && Number(c.baseRateUSD) >= 3) return { ...c, baseRateUSD: 0.625 };
+              if (c.code === "SICEPAT" && Number(c.baseRateUSD) >= 3) return { ...c, baseRateUSD: 0.625 };
+              if (c.code === "GOSEND" && Number(c.baseRateUSD) >= 4) return { ...c, baseRateUSD: 1.25 };
+              if (c.code === "JNT_CARGO" && Number(c.baseRateUSD) >= 6) return { ...c, baseRateUSD: 1.875 };
+              return c;
+            });
+            setCouriers(migrated);
+            localStorage.setItem("tonalzone_admin_couriers", JSON.stringify(migrated));
+          } else {
+            setCouriers(SEED_COURIERS);
+          }
+        } catch {
+          setCouriers(SEED_COURIERS);
+        }
+      }
 
       const savedShipments = localStorage.getItem("tonalzone_admin_shipments");
-      if (savedShipments) setShipments(JSON.parse(savedShipments));
+      if (savedShipments) {
+        try {
+          const parsed = JSON.parse(savedShipments);
+          if (Array.isArray(parsed)) {
+            const realShipments = parsed.filter((s: any) => !s.id?.startsWith("SHP-00") && !s.orderNumber?.startsWith("TZ-992"));
+            setShipments(realShipments);
+          }
+        } catch {}
+      }
     } catch (e) {
       console.error("Error loading admin data from localStorage:", e);
     } finally {
@@ -715,11 +617,17 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  const lastCustomProductsRawRef = React.useRef<string>("");
+  const prevSavedRef = React.useRef<Record<string, string>>({});
+
   // Real-time synchronization listener for seller product additions
   useEffect(() => {
     const handleSync = () => {
       try {
-        const customRaw = localStorage.getItem("tonalzone_custom_products");
+        const customRaw = localStorage.getItem("tonalzone_custom_products") || "";
+        if (customRaw === lastCustomProductsRawRef.current) return;
+        lastCustomProductsRawRef.current = customRaw;
+
         if (customRaw) {
           const customList = JSON.parse(customRaw);
           if (Array.isArray(customList)) {
@@ -758,6 +666,19 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
       } catch (e) {}
     };
 
+    const handleStorageEvent = (e: StorageEvent) => {
+      if (e.key === "tonalzone_custom_products") {
+        handleSync();
+      } else if (e.key === "tonalzone_system_settings") {
+        try {
+          const saved = localStorage.getItem("tonalzone_system_settings");
+          if (saved) {
+            setSystemSettings({ ...DEFAULT_SYSTEM_SETTINGS, ...JSON.parse(saved) });
+          }
+        } catch (e) {}
+      }
+    };
+
     window.addEventListener("productsUpdated", handleSync);
     window.addEventListener("systemSettingsUpdated", () => {
       try {
@@ -767,28 +688,36 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (e) {}
     });
-    window.addEventListener("storage", handleSync);
+    window.addEventListener("storage", handleStorageEvent);
     return () => {
       window.removeEventListener("productsUpdated", handleSync);
-      window.removeEventListener("storage", handleSync);
+      window.removeEventListener("storage", handleStorageEvent);
     };
   }, []);
 
-  // Sync state to localStorage only AFTER initial load has completed
+  // Sync state to localStorage only AFTER initial load has completed, with diff check to eliminate ping-pong storage loops
   useEffect(() => {
     if (!isLoaded) return;
-    try {
-      localStorage.setItem("tonalzone_system_settings", JSON.stringify(systemSettings));
-      localStorage.setItem("tonalzone_admin_users", JSON.stringify(users));
-      localStorage.setItem("tonalzone_admin_stores", JSON.stringify(stores));
-      localStorage.setItem("tonalzone_admin_brands", JSON.stringify(brands));
-      localStorage.setItem("tonalzone_admin_products", JSON.stringify(products));
-      localStorage.setItem("tonalzone_admin_orders", JSON.stringify(orders));
-      localStorage.setItem("tonalzone_admin_categories", JSON.stringify(categories));
-      localStorage.setItem("tonalzone_admin_banners", JSON.stringify(banners));
-      localStorage.setItem("tonalzone_admin_couriers", JSON.stringify(couriers));
-      localStorage.setItem("tonalzone_admin_shipments", JSON.stringify(shipments));
-    } catch (e) {}
+    const saveIfChanged = (key: string, val: any) => {
+      try {
+        const json = JSON.stringify(val);
+        if (prevSavedRef.current[key] !== json) {
+          prevSavedRef.current[key] = json;
+          localStorage.setItem(key, json);
+        }
+      } catch {}
+    };
+
+    saveIfChanged("tonalzone_system_settings", systemSettings);
+    saveIfChanged("tonalzone_admin_users", users);
+    saveIfChanged("tonalzone_admin_stores", stores);
+    saveIfChanged("tonalzone_admin_brands", brands);
+    saveIfChanged("tonalzone_admin_products", products);
+    saveIfChanged("tonalzone_admin_orders", orders);
+    saveIfChanged("tonalzone_admin_categories", categories);
+    saveIfChanged("tonalzone_admin_banners", banners);
+    saveIfChanged("tonalzone_admin_couriers", couriers);
+    saveIfChanged("tonalzone_admin_shipments", shipments);
   }, [systemSettings, users, stores, brands, products, orders, categories, banners, couriers, shipments, isLoaded]);
 
   const logAction = (action: string, target: string) => {
@@ -977,15 +906,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
               } catch {}
             }
 
-            setStores((prev) => {
-              const combined = [...customStores, ...liveStores];
-              prev.forEach((p) => {
-                if (!combined.some((c) => c.id === p.id)) {
-                  combined.push(p);
-                }
-              });
-              return combined;
-            });
+            setStores([...customStores, ...liveStores]);
           }
         }
       } catch (err) {
@@ -1022,15 +943,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
               createdAt: new Date(o.createdAt).toISOString().replace("T", " ").substring(0, 16),
             }));
 
-            setOrders((prev) => {
-              const combined = [...liveOrders];
-              prev.forEach((p) => {
-                if (!combined.some((c) => c.id === p.id)) {
-                  combined.push(p);
-                }
-              });
-              return combined;
-            });
+            setOrders(liveOrders);
 
             // Populate Real Live Shipments directly from Database Orders (No Dummy)
             const liveShipments: AdminShipmentTracking[] = data.orders.map((o: any) => {
@@ -1660,6 +1573,19 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
       )
     );
     logAction("Escrow Payout Released", `Funds released to seller for Order ${orderId}`);
+
+    // Persist to backend and update seller wallet
+    if (typeof window !== "undefined") {
+      fetch(`/api/orders/${encodeURIComponent(orderId)}/auto-settle`, { method: "POST" })
+        .then((res) => res.json())
+        .then(() => {
+          window.dispatchEvent(new CustomEvent("walletUpdated"));
+          window.dispatchEvent(new Event("storage"));
+        })
+        .catch((err) => {
+          console.warn("[AdminDataContext] Escrow auto-settle error:", err);
+        });
+    }
   }, []);
 
   const refundEscrowOrder = useCallback((orderId: string, reason: string) => {
@@ -1679,6 +1605,23 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
       )
     );
     logAction("Escrow Refunded", `100% refund issued to buyer for Order ${orderId} (${reason})`);
+
+    // Persist dispute / refund to backend
+    if (typeof window !== "undefined") {
+      fetch(`/api/orders/${encodeURIComponent(orderId)}/dispute`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reason: reason || "Admin refund to buyer" }),
+      })
+        .then((res) => res.json())
+        .then(() => {
+          window.dispatchEvent(new CustomEvent("walletUpdated"));
+          window.dispatchEvent(new Event("storage"));
+        })
+        .catch((err) => {
+          console.warn("[AdminDataContext] Escrow refund dispute error:", err);
+        });
+    }
   }, []);
 
   const resolveOrderDispute = useCallback((
@@ -1749,6 +1692,16 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
       return updated;
     });
     logAction("Toggled Courier Partner Status", `Courier ID ${id}`);
+  }, []);
+
+  const resetCouriersToDefault = useCallback(() => {
+    setCouriers(SEED_COURIERS);
+    try {
+      localStorage.setItem("tonalzone_admin_couriers", JSON.stringify(SEED_COURIERS));
+      window.dispatchEvent(new Event("couriersUpdated"));
+      window.dispatchEvent(new Event("storage"));
+    } catch (e) {}
+    logAction("Reset Couriers", "Restored standard Indonesian rates");
   }, []);
 
   // Live Shipment Tracking Actions (Connected to Real Escrow & DB)
@@ -1862,6 +1815,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
       updateCourier,
       deleteCourier,
       toggleCourierStatus,
+      resetCouriersToDefault,
       shipments,
       updateShipmentStatus,
       forceCompleteEscrow,
@@ -1917,6 +1871,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
       updateCourier,
       deleteCourier,
       toggleCourierStatus,
+      resetCouriersToDefault,
       shipments,
       updateShipmentStatus,
       forceCompleteEscrow,
@@ -1932,10 +1887,67 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
+const FALLBACK_ADMIN_CONTEXT: AdminDataContextType = {
+  systemSettings: DEFAULT_SYSTEM_SETTINGS,
+  updateSystemSettings: () => {},
+  users: [],
+  addUser: () => {},
+  updateUser: () => {},
+  deleteUser: () => {},
+  bulkDeleteUsers: () => {},
+  bulkUpdateUserStatus: () => {},
+  importUsers: () => {},
+  stores: SEED_STORES,
+  updateStoreStatus: () => {},
+  deleteStore: () => {},
+  bulkUpdateStoreStatus: () => {},
+  brands: SEED_BRANDS,
+  addBrand: () => {},
+  updateBrand: () => {},
+  deleteBrand: () => {},
+  bulkUpdateBrandStatus: () => {},
+  importBrands: () => {},
+  products: SEED_PRODUCTS,
+  addProduct: () => {},
+  updateProduct: () => {},
+  deleteProduct: () => {},
+  bulkUpdateProductStatus: () => {},
+  importProducts: () => {},
+  orders: SEED_ORDERS,
+  updateOrderStatus: () => {},
+  deleteOrder: () => {},
+  bulkUpdateOrderStatus: () => {},
+  importOrders: () => {},
+  releaseEscrowPayout: () => {},
+  refundEscrowOrder: () => {},
+  resolveOrderDispute: () => {},
+  categories: [],
+  addCategory: () => {},
+  updateCategory: () => {},
+  deleteCategory: () => {},
+  banners: SEED_BANNERS,
+  addBanner: () => {},
+  updateBanner: () => {},
+  deleteBanner: () => {},
+  toggleBannerStatus: () => {},
+  bulkUpdateBannerStatus: () => {},
+  couriers: SEED_COURIERS,
+  addCourier: () => {},
+  updateCourier: () => {},
+  deleteCourier: () => {},
+  toggleCourierStatus: () => {},
+  resetCouriersToDefault: () => {},
+  shipments: SEED_SHIPMENTS,
+  updateShipmentStatus: () => {},
+  forceCompleteEscrow: () => {},
+  auditLogs: [],
+  exportToCSV: () => {},
+};
+
 export function useAdminData() {
   const context = useContext(AdminDataContext);
   if (!context) {
-    throw new Error("useAdminData must be used within an AdminDataProvider");
+    return FALLBACK_ADMIN_CONTEXT;
   }
   return context;
 }

@@ -177,6 +177,7 @@ export interface RetailOffer {
   originalPrice?: number;
   discountPercent?: number;
   highlightTag?: string;
+  stock?: number;
 }
 
 export const RETAIL_SELLERS = [
@@ -319,6 +320,7 @@ export function getProductRetailOffers(product: {
       originalPrice: primaryOriginalPrice,
       discountPercent: primaryDiscount > 0 ? primaryDiscount : undefined,
       highlightTag: isPrimaryOfficial ? "Garansi Resmi Prinsipal" : "Toko Rekomendasi",
+      stock: (product as any).stock !== undefined ? Math.max(0, Number((product as any).stock) || 0) : 10,
     },
   ];
 

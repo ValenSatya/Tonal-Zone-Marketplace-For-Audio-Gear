@@ -10,6 +10,7 @@ import { useLanguage } from "@/context/LanguageContext";
 import { useLocation } from "@/context/LocationContext";
 import { MapPin, Truck, MessageSquare, FileText, ChevronRight, CheckCircle2, Package, ShieldCheck, Check } from "lucide-react";
 import { triggerAppNotification } from "@/context/NotificationContext";
+import { broadcastRealtime, subscribeRealtime } from "@/lib/realtime-bus";
 import { getStoreSlug } from "@/lib/store-utils";
 
 interface OrderTimelineStep {
@@ -129,6 +130,9 @@ export default function OrdersPage() {
         message: `Pesanan #${cancelModalOrder.id} telah dibatalkan. Dana escrow telah dikembalikan 100% ke saldo akun Anda.`,
         actionLink: "/orders",
       });
+
+      broadcastRealtime("ORDERS", { orderId: cancelModalOrder.id, status: "CANCELLED" });
+      broadcastRealtime("NOTIFICATIONS");
 
       fetchOrders(true);
     } catch (err: any) {
@@ -322,6 +326,20 @@ export default function OrdersPage() {
         hasAutoSelectedTab.current = true;
       }
     }
+
+    const unsubOrders = subscribeRealtime("ORDERS", () => {
+      fetchOrders(true);
+    });
+
+    const unsubReviews = subscribeRealtime("REVIEWS", () => {
+      fetchReviews();
+      fetchOrders(true);
+    });
+
+    return () => {
+      unsubOrders();
+      unsubReviews();
+    };
   }, []);
 
   const prevDeliveredOrdersRef = useRef<Set<string>>(new Set());
@@ -345,19 +363,6 @@ export default function OrdersPage() {
     }
   }, [orders]);
 
-  // Auto-refresh real-time saat ada paket yang sedang diproses atau dikirim (agar transisi 3 detik langsung terdeteksi)
-  useEffect(() => {
-    const hasActiveOrders = orders.some(
-      (o) => o.status === "IN_TRANSIT" || o.status === "HELD_IN_ESCROW" || o.status === "PAYMENT_PENDING"
-    );
-    if (!hasActiveOrders) return;
-
-    const interval = setInterval(() => {
-      fetchOrders(true);
-    }, 2000);
-
-    return () => clearInterval(interval);
-  }, [orders]);
 
   // Otomatis beralih ke tab "Sudah Sampai" & tampilkan toast saat paket tiba (transisi 3 detik)
   useEffect(() => {
@@ -396,6 +401,9 @@ export default function OrdersPage() {
           actionLink: "/orders?tab=COMPLETED",
           meta: { orderId },
         });
+        broadcastRealtime("ORDERS", { orderId, status: "DELIVERED" });
+        broadcastRealtime("WALLET");
+        broadcastRealtime("NOTIFICATIONS");
         fetchOrders(true);
       }
     } catch (err) {
@@ -410,6 +418,9 @@ export default function OrdersPage() {
       if (data.success) {
         triggerNotification("⚡ [Auto-Settle Sukses] Batas waktu inspeksi 48 jam berakhir, dana escrow otomatis cair ke seller!");
         setActiveTab("COMPLETED");
+        broadcastRealtime("ORDERS", { orderId, status: "DELIVERED" });
+        broadcastRealtime("WALLET");
+        broadcastRealtime("NOTIFICATIONS");
         fetchOrders(true);
       } else {
         triggerNotification(data.error || "Gagal memproses auto-settle.");
@@ -440,15 +451,20 @@ export default function OrdersPage() {
     };
 
     setReviews((prev) => [newRev, ...prev]);
+    const reviewedOrderId = reviewingOrder.id;
     setReviewingOrder(null);
     setActiveTab("reviews");
     triggerNotification("Ulasan Anda berhasil dikirim!");
     triggerAppNotification({
       type: "system",
       title: "Ulasan Produk Terkirim",
-      message: `Terima kasih! Ulasan ${ratingInput} bintang Anda untuk ${reviewingOrder.productName} telah berhasil dipublikasikan.`,
+      message: `Terima kasih! Ulasan ${ratingInput} bintang Anda untuk ${newRev.productName} telah berhasil dipublikasikan.`,
       actionLink: "/orders",
     });
+
+    broadcastRealtime("REVIEWS", { orderId: reviewedOrderId });
+    broadcastRealtime("ORDERS");
+    broadcastRealtime("CATALOG");
   };
 
   const handleSubmitDispute = async (e: React.FormEvent) => {
@@ -473,8 +489,11 @@ export default function OrdersPage() {
           actionLink: "/orders",
           meta: { orderId: disputeOrder.id },
         });
+        const disputedId = disputeOrder.id;
         setDisputeOrder(null);
         setDisputeReason("");
+        broadcastRealtime("ORDERS", { orderId: disputedId, status: "DISPUTED" });
+        broadcastRealtime("NOTIFICATIONS");
         fetchOrders(true);
       }
     } catch (err) {

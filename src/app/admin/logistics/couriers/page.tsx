@@ -8,9 +8,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { AreaChart } from "@/components/charts/area-chart";
 import { Area } from "@/components/charts/area";
 import CustomSelect from "@/components/ui/custom-select";
+import { getDynamicSparkline } from "@/lib/telemetry";
 
 export default function LogisticsCouriersPage() {
-  const { couriers, addCourier, updateCourier, deleteCourier, toggleCourierStatus, exportToCSV } = useAdminData();
+  const { couriers, addCourier, updateCourier, deleteCourier, toggleCourierStatus, resetCouriersToDefault, exportToCSV } = useAdminData();
   const { language } = useLanguage();
   const { formatPrice } = useLocation();
   const isEn = language === "English";
@@ -27,14 +28,14 @@ export default function LogisticsCouriersPage() {
     name: string;
     code: string;
     type: AdminCourier["type"];
-    baseRateUSD: number;
+    rateIDR: number;
     estimatedDays: string;
     insuranceRequired: boolean;
   }>({
     name: "",
     code: "",
     type: "Domestic Standard",
-    baseRateUSD: 2,
+    rateIDR: 10000,
     estimatedDays: "1-2 Days",
     insuranceRequired: true,
   });
@@ -44,35 +45,9 @@ export default function LogisticsCouriersPage() {
   const domesticCount = couriers.filter((c) => c.type.startsWith("Domestic") || c.type.includes("Same Day")).length;
   const intlCount = couriers.filter((c) => c.type.includes("International") || c.type.includes("Cargo")).length;
 
-  const sparklineActive = useMemo(() => [
-    { date: new Date("2026-08-10"), val: 3 },
-    { date: new Date("2026-08-11"), val: 3 },
-    { date: new Date("2026-08-12"), val: 4 },
-    { date: new Date("2026-08-13"), val: 4 },
-    { date: new Date("2026-08-14"), val: 4 },
-    { date: new Date("2026-08-15"), val: 5 },
-    { date: new Date("2026-08-16"), val: activeCount },
-  ], [activeCount]);
-
-  const sparklineDom = useMemo(() => [
-    { date: new Date("2026-08-10"), val: 2 },
-    { date: new Date("2026-08-11"), val: 2 },
-    { date: new Date("2026-08-12"), val: 3 },
-    { date: new Date("2026-08-13"), val: 3 },
-    { date: new Date("2026-08-14"), val: 3 },
-    { date: new Date("2026-08-15"), val: 3 },
-    { date: new Date("2026-08-16"), val: domesticCount },
-  ], [domesticCount]);
-
-  const sparklineIntl = useMemo(() => [
-    { date: new Date("2026-08-10"), val: 1 },
-    { date: new Date("2026-08-11"), val: 1 },
-    { date: new Date("2026-08-12"), val: 1 },
-    { date: new Date("2026-08-13"), val: 1 },
-    { date: new Date("2026-08-14"), val: 1 },
-    { date: new Date("2026-08-15"), val: 2 },
-    { date: new Date("2026-08-16"), val: intlCount },
-  ], [intlCount]);
+  const sparklineActive = useMemo(() => getDynamicSparkline(activeCount, 7), [activeCount]);
+  const sparklineDom = useMemo(() => getDynamicSparkline(domesticCount, 7), [domesticCount]);
+  const sparklineIntl = useMemo(() => getDynamicSparkline(intlCount, 7), [intlCount]);
 
   // Filtering
   const filteredCouriers = useMemo(() => {
@@ -98,7 +73,7 @@ export default function LogisticsCouriersPage() {
       name: "",
       code: "",
       type: "Domestic Standard",
-      baseRateUSD: 2,
+      rateIDR: 10000,
       estimatedDays: "1-2 Days",
       insuranceRequired: true,
     });
@@ -111,7 +86,7 @@ export default function LogisticsCouriersPage() {
       name: courier.name,
       code: courier.code,
       type: courier.type,
-      baseRateUSD: courier.baseRateUSD,
+      rateIDR: Math.round(Number(courier.baseRateUSD || 0) * 16000),
       estimatedDays: courier.estimatedDays,
       insuranceRequired: courier.insuranceRequired,
     });
@@ -120,11 +95,12 @@ export default function LogisticsCouriersPage() {
   const handleSaveAdd = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name.trim() || !formData.code.trim()) return;
+    const rateUSD = Math.max(0, formData.rateIDR / 16000);
     addCourier({
       name: formData.name.trim(),
       code: formData.code.trim().toUpperCase(),
       type: formData.type,
-      baseRateUSD: formData.baseRateUSD,
+      baseRateUSD: rateUSD,
       estimatedDays: formData.estimatedDays,
       active: true,
       insuranceRequired: formData.insuranceRequired,
@@ -136,7 +112,15 @@ export default function LogisticsCouriersPage() {
   const handleSaveEdit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingCourier) return;
-    updateCourier(editingCourier.id, formData);
+    const rateUSD = Math.max(0, formData.rateIDR / 16000);
+    updateCourier(editingCourier.id, {
+      name: formData.name,
+      code: formData.code,
+      type: formData.type,
+      baseRateUSD: rateUSD,
+      estimatedDays: formData.estimatedDays,
+      insuranceRequired: formData.insuranceRequired,
+    });
     setEditingCourier(null);
   };
 
@@ -187,6 +171,19 @@ export default function LogisticsCouriersPage() {
         </div>
 
         <div className="flex items-center gap-3">
+          <button
+            onClick={() => {
+              resetCouriersToDefault();
+            }}
+            title="Reset semua tarif kurir ke standar default Indonesia (JNE Rp 10.000, SiCepat Rp 10.000, GoSend Rp 20.000, Kargo Rp 30.000)"
+            className="flex items-center gap-2 px-4 py-2.5 bg-[#141414] hover:bg-[#202020] text-xs font-mono font-medium rounded-full text-white transition-colors cursor-pointer border border-white/10"
+          >
+            <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+            </svg>
+            {isEn ? "Reset Indo Rates" : "Reset Tarif Standar Indo"}
+          </button>
+
           <button
             onClick={handleExport}
             className="flex items-center gap-2 px-4 py-2.5 bg-[#141414] hover:bg-[#202020] text-xs font-mono font-medium rounded-full text-white transition-colors cursor-pointer"
@@ -523,17 +520,38 @@ export default function LogisticsCouriersPage() {
                     />
                   </div>
                   <div>
-                    <label className="block font-mono text-[11px] text-[#888888] uppercase tracking-wider mb-1.5">
-                      {isEn ? "Base Rate (1 kg)" : "Tarif Dasar (1 kg)"}
-                    </label>
-                    <input
-                      type="number"
-                      required
-                      min={1}
-                      value={formData.baseRateUSD}
-                      onChange={(e) => setFormData({ ...formData, baseRateUSD: parseFloat(e.target.value) || 0 })}
-                      className="w-full bg-[#141414] focus:bg-[#181818] rounded-xl px-4 py-2.5 text-white outline-none font-mono focus:ring-1 focus:ring-[#BFDD25] transition-all"
-                    />
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="block font-mono text-[11px] text-[#888888] uppercase tracking-wider">
+                        {isEn ? "Base Rate (1 kg) in Rupiah" : "Tarif Dasar (1 kg)"}
+                      </label>
+                      <span className="text-zinc-400 font-mono text-[10px]">
+                        ≈ ${(Number(formData.rateIDR || 0) / 16000).toFixed(2)} USD
+                      </span>
+                    </div>
+                    <div className="relative flex items-center">
+                      <span className="absolute left-3.5 text-xs font-mono font-bold text-zinc-400 select-none">
+                        Rp
+                      </span>
+                      <input
+                        type="number"
+                        required
+                        min={0}
+                        step={500}
+                        value={formData.rateIDR === 0 ? "" : formData.rateIDR}
+                        onChange={(e) => {
+                          const val = e.target.value === "" ? 0 : Math.max(0, parseInt(e.target.value, 10) || 0);
+                          setFormData({ ...formData, rateIDR: val });
+                        }}
+                        placeholder="10000"
+                        className="w-full bg-[#141414] focus:bg-[#181818] rounded-xl pl-11 pr-4 py-2.5 text-white outline-none font-mono focus:ring-1 focus:ring-[#BFDD25] transition-all"
+                      />
+                    </div>
+                    <div className="flex items-center justify-between text-[10px] text-zinc-500 font-mono mt-1">
+                      <span>{isEn ? "e.g., 10000 for Rp 10.000" : "Ketik nominal rupiah, cth: 10000"}</span>
+                      <span className="text-[#BFDD25] font-semibold">
+                        {formatPrice(Number(formData.rateIDR || 0) / 16000)}
+                      </span>
+                    </div>
                   </div>
                 </div>
 

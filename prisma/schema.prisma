@@ -1,0 +1,321 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id               String        @id
+  email            String        @unique
+  name             String?
+  avatar           String?
+  role             String        @default("BUYER") // "BUYER", "SELLER", "ADMIN"
+  location         String?
+  language         String?
+  tuningPreference String?
+  passwordHash     String?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  addresses        UserAddress[]
+  store            Store?
+}
+
+model UserAddress {
+  id            String   @id
+  userId        String
+  label         String?
+  recipientName String
+  phone         String
+  street        String
+  city          String
+  province      String?
+  postalCode    String
+  country       String?  @default("Indonesia")
+  isDefault     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Store {
+  id              String         @id
+  userId          String         @unique
+  storeName       String
+  description     String?
+  status          String         @default("APPROVED") // PENDING, APPROVED, REJECTED, SUSPENDED
+  address         String?
+  bankName        String?
+  bankAccount     String?
+  banner          String?
+  logo            String?
+  avatarUrl       String?
+  rating          Float          @default(5.0)
+  totalSales      Int            @default(0)
+  rejectionReason String?
+  revisionCount   Int            @default(0)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  products        Product[]
+}
+
+model Brand {
+  id        String    @id
+  name      String    @unique
+  logo      String?
+  country   String?
+  tier      String?
+  status    String    @default("APPROVED")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  products  Product[]
+}
+
+model Category {
+  id          String    @id
+  name        String    @unique
+  slug        String?
+  description String?
+  image       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  products    Product[]
+}
+
+model Product {
+  id              String      @id
+  name            String
+  storeId         String
+  brandId         String
+  categoryId      String
+  description     String?
+  price           Float
+  stock           Int         @default(0)
+  experienceLevel String      @default("INTERMEDIATE")
+  soundSignature  String      @default("NEUTRAL")
+  status          String      @default("APPROVED")
+  images          String      @default("[]") // JSON string array
+  variants        String?     // JSON string
+  colors          String?     // JSON string
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  store           Store?      @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  brand           Brand?      @relation(fields: [brandId], references: [id])
+  category        Category?   @relation(fields: [categoryId], references: [id])
+}
+
+model Order {
+  id                    String                    @id
+  parentOrderId         String?
+  buyerId               String
+  buyerName             String
+  buyerEmail            String
+  buyerPhone            String?
+  destinationAddress    String
+  destinationCity       String
+  destinationPostalCode String
+  storeId               String
+  storeName             String
+  itemsSubtotal         Float
+  shippingFee           Float                     @default(0)
+  insuranceFee          Float                     @default(0)
+  totalAmount           Float
+  courierCode           String?
+  serviceTier           String?
+  waybillNumber         String?
+  paymentMethod         String?
+  paymentStatus         String                    @default("PENDING")
+  escrowStatus          String                    @default("PAYMENT_PENDING")
+  paidAt                DateTime?
+  shippedAt             DateTime?
+  deliveredAt           DateTime?
+  inspectionExpiresAt   DateTime?
+  hasReviewed           Boolean                   @default(false)
+  cancelReason          String?
+  cancelledBy           String?
+  cancelledAt           DateTime?
+  platformCommissionFee Float?
+  netSellerPayout       Float?
+  platformFee           Float?
+  platformCommissionRate Float?
+  isInsured             Boolean                   @default(false)
+  estimatedDeliveryDays Int?                      @default(3)
+  returnId              String?
+  returnStatus          String?
+  autoSettled           Boolean                   @default(false)
+  createdAt             DateTime                  @default(now())
+  updatedAt             DateTime                  @updatedAt
+
+  items                 OrderItem[]
+  checkpoints           OrderTrackingCheckpoint[]
+}
+
+model OrderItem {
+  id              String   @id
+  orderId         String
+  productId       String
+  productName     String
+  brand           String
+  category        String?
+  price           Float
+  quantity        Int      @default(1)
+  selectedVariant String?
+  image           String?
+  itemTotal       Float
+
+  order           Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+}
+
+model OrderTrackingCheckpoint {
+  id            String   @id
+  orderId       String
+  status        String
+  title         String
+  description   String
+  location      String
+  timestamp     DateTime @default(now())
+  timeFormatted String?
+  isCompleted   Boolean  @default(false)
+
+  order         Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+}
+
+model ReturnRequest {
+  id                       String   @id
+  orderId                  String
+  buyerId                  String
+  buyerName                String
+  buyerEmail               String
+  buyerPhone               String?
+  storeId                  String
+  storeName                String
+  productId                String
+  productName              String
+  productImage             String?
+  productPrice             Float
+  quantity                 Int      @default(1)
+  selectedVariant          String?
+  reason                   String
+  description              String
+  evidenceImages           String   @default("[]") // JSON string array
+  unboxingVideoUrl         String?
+  unboxingVideoType        String?
+  refundAmount             Float?
+  requestedSolution        String?
+  status                   String   @default("REQUESTED")
+  qcStage                  String?
+  qcStatus                 String?
+  qcNotes                  String?
+  qcAcousticReport         String?  // JSON string
+  returnWaybillNumber      String?
+  returnCourier            String?
+  sellerReturnAddress      String?
+  sellerRejectReason       String?
+  replacementWaybillNumber String?
+  replacementCourier       String?
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+}
+
+model SellerPayout {
+  id            String   @id
+  storeId       String
+  amountUSD     Float
+  bankName      String
+  bankAccount   String
+  accountHolder String
+  status        String   @default("PROCESSING")
+  txHash        String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Review {
+  id           String   @id
+  orderId      String?
+  productId    String
+  productName  String
+  title        String?
+  productImage String?
+  photos       String?  // JSON string array
+  variant      String?
+  rating       Int      @default(5)
+  comment      String
+  tags         String?  // JSON string array
+  buyerName    String
+  buyerEmail   String?
+  isAnonymous  Boolean  @default(false)
+  storeId      String?
+  storeName    String?
+  createdAt    DateTime @default(now())
+}
+
+model Voucher {
+  id            String   @id
+  code          String   @unique
+  title         String
+  description   String?
+  discountType  String   @default("PERCENTAGE")
+  discountValue Float
+  minSpend      Float    @default(0)
+  maxDiscount   Float?
+  quota         Int      @default(100)
+  usedCount     Int      @default(0)
+  startDate     DateTime @default(now())
+  expiryDate    DateTime
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Notification {
+  id             String   @id
+  recipientEmail String
+  recipientRole  String?  @default("buyer")
+  storeId        String?
+  type           String   @default("order")
+  title          String
+  message        String
+  actionLink     String?
+  unread         Boolean  @default(true)
+  createdAt      DateTime @default(now())
+}
+
+model Conversation {
+  id            String        @id
+  buyerEmail    String
+  buyerName     String
+  storeId       String
+  storeName     String
+  unreadBuyer   Int           @default(0)
+  unreadSeller  Int           @default(0)
+  lastMessage   String?
+  lastMessageAt DateTime      @default(now())
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  messages      ChatMessage[]
+}
+
+model ChatMessage {
+  id             String       @id
+  conversationId String
+  senderRole     String       // "buyer" | "seller"
+  senderName     String
+  senderEmail    String
+  text           String
+  isRead         Boolean      @default(false)
+  productCard    String?      // JSON string
+  orderCard      String?      // JSON string
+  createdAt      DateTime     @default(now())
+
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+}

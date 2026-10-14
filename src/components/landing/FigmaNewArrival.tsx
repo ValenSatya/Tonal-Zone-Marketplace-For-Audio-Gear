@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
-import Image from "next/image";
-import { fetchProductsFromDb, getInstantCatalog, CatalogProduct } from "@/lib/products-db";
+import { fetchProductsFromDb, getInstantCatalog, CatalogProduct, resolveOfflineImage } from "@/lib/products-db";
+import { getInstantLandingConfig, fetchLandingConfigFromDb } from "@/lib/landing-config";
 import { useLocation } from "@/context/LocationContext";
 import { useLanguage } from "@/context/LanguageContext";
 
@@ -26,14 +26,12 @@ export default function FigmaNewArrival() {
     }
   };
 
-  const [customArrivals, setCustomArrivals] = useState<any>(null);
+  const [customArrivals, setCustomArrivals] = useState<any>(() => getInstantLandingConfig().new_arrivals || null);
 
   useEffect(() => {
     let isMounted = true;
     async function loadData() {
-      setIsLoading(true);
       try {
-        const { fetchLandingConfigFromDb } = await import("@/lib/landing-config");
         const [data, config] = await Promise.all([
           fetchProductsFromDb(),
           fetchLandingConfigFromDb(),
@@ -146,16 +144,23 @@ export default function FigmaNewArrival() {
               <Link
                 key={prod.id}
                 href={`/product/${prod.id}`}
+                prefetch={false}
                 className="w-full flex flex-col group cursor-pointer"
               >
                 {/* Taller Image */}
                 <div className="relative w-full aspect-[4/5] lg:aspect-[3/4] overflow-hidden bg-[#050505]">
-                  <Image
-                    src={prod.image}
+                  <img
+                    src={resolveOfflineImage(prod.image, prod.category, prod.name, prod.id)}
                     alt={prod.name}
-                    fill
-                    sizes="(max-width: 768px) 100vw, 33vw"
-                    className="object-cover object-center group-hover:scale-105 transition-transform duration-700"
+                    loading="lazy"
+                    decoding="async"
+                    onError={(e) => {
+                      const target = e.currentTarget;
+                      if (!target.src.includes("fallback-product.svg")) {
+                        target.src = "/images/fallback-product.svg";
+                      }
+                    }}
+                    className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700"
                   />
                   {prod.badge && (
                     <div className="absolute top-4 left-4 bg-[#2e2e2e] px-3.5 py-1.5 text-[10px] font-sans font-bold text-white rounded-full uppercase tracking-wider shadow-md leading-none">

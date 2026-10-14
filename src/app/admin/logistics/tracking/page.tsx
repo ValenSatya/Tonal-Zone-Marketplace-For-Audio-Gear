@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { AreaChart } from "@/components/charts/area-chart";
 import { Area } from "@/components/charts/area";
 import CustomSelect from "@/components/ui/custom-select";
+import { getDynamicSparkline } from "@/lib/telemetry";
 
 const PAGE_SIZE = 6;
 
@@ -31,35 +32,9 @@ export default function LogisticsTrackingPage() {
   const deliveredCount = shipments.filter((s) => s.currentStatus === "DELIVERED").length;
   const inspectionEligibleCount = shipments.filter((s) => s.escrowStatus === "RELEASE_ELIGIBLE").length;
 
-  const sparklineInTransit = useMemo(() => [
-    { date: new Date("2026-08-10"), val: 2 },
-    { date: new Date("2026-08-11"), val: 3 },
-    { date: new Date("2026-08-12"), val: 3 },
-    { date: new Date("2026-08-13"), val: 4 },
-    { date: new Date("2026-08-14"), val: 4 },
-    { date: new Date("2026-08-15"), val: 5 },
-    { date: new Date("2026-08-16"), val: inTransitCount },
-  ], [inTransitCount]);
-
-  const sparklineEligible = useMemo(() => [
-    { date: new Date("2026-08-10"), val: 1 },
-    { date: new Date("2026-08-11"), val: 1 },
-    { date: new Date("2026-08-12"), val: 2 },
-    { date: new Date("2026-08-13"), val: 2 },
-    { date: new Date("2026-08-14"), val: 3 },
-    { date: new Date("2026-08-15"), val: 3 },
-    { date: new Date("2026-08-16"), val: inspectionEligibleCount },
-  ], [inspectionEligibleCount]);
-
-  const sparklineDelivered = useMemo(() => [
-    { date: new Date("2026-08-10"), val: 4 },
-    { date: new Date("2026-08-11"), val: 5 },
-    { date: new Date("2026-08-12"), val: 6 },
-    { date: new Date("2026-08-13"), val: 6 },
-    { date: new Date("2026-08-14"), val: 7 },
-    { date: new Date("2026-08-15"), val: 7 },
-    { date: new Date("2026-08-16"), val: deliveredCount },
-  ], [deliveredCount]);
+  const sparklineInTransit = useMemo(() => getDynamicSparkline(inTransitCount, 7), [inTransitCount]);
+  const sparklineEligible = useMemo(() => getDynamicSparkline(inspectionEligibleCount, 7), [inspectionEligibleCount]);
+  const sparklineDelivered = useMemo(() => getDynamicSparkline(deliveredCount, 7), [deliveredCount]);
 
   // Filtering & Sorting
   const processedShipments = useMemo(() => {

@@ -3,15 +3,20 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { fetchProductByIdFromDb, CatalogProduct } from "@/lib/products-db";
+import { fetchProductByIdFromDb, getInstantCatalog, CatalogProduct } from "@/lib/products-db";
 import { useLocation } from "@/context/LocationContext";
-import { fetchLandingConfigFromDb, DEFAULT_LANDING_CONFIG, CollaborationConfig, sanitizeImageUrl } from "@/lib/landing-config";
+import { fetchLandingConfigFromDb, getInstantLandingConfig, DEFAULT_LANDING_CONFIG, CollaborationConfig, sanitizeImageUrl } from "@/lib/landing-config";
 import { useLanguage } from "@/context/LanguageContext";
 
 export default function FigmaCollaboration() {
   const { t } = useLanguage();
-  const [collabConfig, setCollabConfig] = useState<CollaborationConfig>(DEFAULT_LANDING_CONFIG.collaboration);
-  const [product, setProduct] = useState<CatalogProduct | null>(null);
+  const [collabConfig, setCollabConfig] = useState<CollaborationConfig>(() => getInstantLandingConfig().collaboration);
+  const [product, setProduct] = useState<CatalogProduct | null>(() => {
+    const cfg = getInstantLandingConfig();
+    const pid = cfg.collaboration?.productId || "prod-sparxie";
+    const instant = getInstantCatalog();
+    return instant.find((p) => p.id === pid) || null;
+  });
   const { formatPrice } = useLocation();
 
   useEffect(() => {
@@ -41,7 +46,7 @@ export default function FigmaCollaboration() {
     };
   }, []);
 
-  const bgImage = sanitizeImageUrl(collabConfig.bgImage, "/images/collab-hsr-moondrop-bg.png");
+  const bgImage = sanitizeImageUrl(collabConfig.bgImage, "/images/collab-hsr-moondrop-bg.webp");
   const img1 = sanitizeImageUrl(collabConfig.productImage1, "/images/collab-sparxie-case.png");
   const img2 = sanitizeImageUrl(collabConfig.productImage2, "/images/collab-sparxie-earbuds.png");
   const title = collabConfig.title || "Moondrop X HSR Sparxie TWS";
@@ -154,6 +159,7 @@ export default function FigmaCollaboration() {
           <div>
             <Link
               href={ctaLink}
+              prefetch={false}
               className="group inline-flex items-center justify-center gap-3 w-full sm:w-auto px-9 py-4 rounded-full bg-black text-white hover:bg-zinc-800 transition-all font-sans font-bold text-sm tracking-wider uppercase shadow-xl hover:scale-[1.02] active:scale-[0.98]"
             >
               <span>{t("landing.shopNow")}</span>

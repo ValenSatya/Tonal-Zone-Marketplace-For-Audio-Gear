@@ -54,7 +54,25 @@ export async function PATCH(request: Request, { params }: RouteParams) {
 
     if (body.stock !== undefined) {
       const s = Number(body.stock);
-      if (!isNaN(s) && s >= 0) updates.stock = s;
+      if (!isNaN(s) && s >= 0) {
+        updates.stock = s;
+      }
+    }
+
+    if (body.variants !== undefined) {
+      if (updates.stock === 0) {
+        updates.variants = Array.isArray(body.variants)
+          ? body.variants.map((v: any) => ({ ...v, stock: 0 }))
+          : body.variants;
+      } else {
+        updates.variants = body.variants;
+        if (Array.isArray(body.variants) && body.variants.length > 0 && body.stock === undefined) {
+          updates.stock = body.variants.reduce((sum: number, v: any) => sum + Math.max(0, parseInt(v.stock, 10) || 0), 0);
+        }
+      }
+    } else if (updates.stock === 0 && Array.isArray(existing.variants) && existing.variants.length > 0) {
+      // If stock is set to 0 and variants exist in DB, zero them out too
+      updates.variants = existing.variants.map((v: any) => ({ ...v, stock: 0 }));
     }
 
     if (body.name && typeof body.name === "string" && body.name.trim().length > 0) {

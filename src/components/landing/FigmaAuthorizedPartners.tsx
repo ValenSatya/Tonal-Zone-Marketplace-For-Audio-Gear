@@ -35,6 +35,7 @@ export default function FigmaAuthorizedPartners() {
             <Link
               key={partner}
               href={`/collection?search=${encodeURIComponent(partner)}`}
+              prefetch={false}
               className="h-[100px] border border-[#2b2b2b] hover:border-[#BFDD25] bg-[#050505] flex items-center justify-center p-6 transition-colors group cursor-pointer"
             >
               <span className="font-sans font-bold text-lg text-[#c4c7c8] group-hover:text-white transition-colors tracking-widest uppercase">

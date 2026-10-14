@@ -206,7 +206,9 @@ function SellerChatContent() {
 
   useEffect(() => {
     loadConversations();
-    const interval = setInterval(() => loadConversations(true), 4000);
+    const interval = setInterval(() => {
+      if (!document.hidden) loadConversations(true);
+    }, 8000);
     return () => clearInterval(interval);
   }, [storeId, storeName]);
 
@@ -256,7 +258,9 @@ function SellerChatContent() {
 
   useEffect(() => {
     loadActiveMessages();
-    const interval = setInterval(() => loadActiveMessages(true), 1500);
+    const interval = setInterval(() => {
+      if (!document.hidden) loadActiveMessages(true);
+    }, 4000);
     return () => clearInterval(interval);
   }, [activeConvId, isUserScrolledUp]);
 

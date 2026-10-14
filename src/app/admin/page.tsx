@@ -9,6 +9,7 @@ import { AreaChart } from "@/components/charts/area-chart";
 import { Area } from "@/components/charts/area";
 import { Grid } from "@/components/charts/grid";
 import { XAxis } from "@/components/charts/x-axis";
+import { getDynamicSparkline, getDynamicRevenueTimeline } from "@/lib/telemetry";
 
 export default function AdminDashboard() {
   const { users, stores, brands, products, orders, auditLogs } = useAdminData();
@@ -52,67 +53,15 @@ export default function AdminDashboard() {
     return counts;
   }, [orders]);
 
-  // Area Chart Time Series Data
+  // Area Chart Time Series Data (100% Dynamic based on real orders & real dates)
   const chartData = useMemo(() => {
-    if (timeRange === "7D") {
-      return [
-        { date: new Date("2026-08-10"), revenue: Math.round(totalGMV * 0.22), orders: 2 },
-        { date: new Date("2026-08-11"), revenue: Math.round(totalGMV * 0.35), orders: 4 },
-        { date: new Date("2026-08-12"), revenue: Math.round(totalGMV * 0.31), orders: 3 },
-        { date: new Date("2026-08-13"), revenue: Math.round(totalGMV * 0.58), orders: 7 },
-        { date: new Date("2026-08-14"), revenue: Math.round(totalGMV * 0.52), orders: 6 },
-        { date: new Date("2026-08-15"), revenue: Math.round(totalGMV * 0.79), orders: 9 },
-        { date: new Date("2026-08-16"), revenue: totalGMV, orders: orders.length },
-      ];
-    } else if (timeRange === "30D") {
-      return [
-        { date: new Date("2026-07-18"), revenue: Math.round(totalGMV * 0.08), orders: 1 },
-        { date: new Date("2026-07-25"), revenue: Math.round(totalGMV * 0.25), orders: 3 },
-        { date: new Date("2026-08-01"), revenue: Math.round(totalGMV * 0.44), orders: 5 },
-        { date: new Date("2026-08-08"), revenue: Math.round(totalGMV * 0.62), orders: 8 },
-        { date: new Date("2026-08-16"), revenue: totalGMV, orders: orders.length },
-      ];
-    } else {
-      return [
-        { date: new Date("2026-01-01"), revenue: 0, orders: 0 },
-        { date: new Date("2026-03-01"), revenue: Math.round(totalGMV * 0.15), orders: 2 },
-        { date: new Date("2026-05-01"), revenue: Math.round(totalGMV * 0.38), orders: 5 },
-        { date: new Date("2026-07-01"), revenue: Math.round(totalGMV * 0.72), orders: 9 },
-        { date: new Date("2026-08-16"), revenue: totalGMV, orders: orders.length },
-      ];
-    }
-  }, [totalGMV, orders.length, timeRange]);
+    return getDynamicRevenueTimeline(orders, timeRange);
+  }, [orders, timeRange]);
 
-  // Mini Sparkline Data for Bento Cards
-  const sparklineGMV = useMemo(() => [
-    { date: new Date("2026-08-10"), val: 12 },
-    { date: new Date("2026-08-11"), val: 19 },
-    { date: new Date("2026-08-12"), val: 16 },
-    { date: new Date("2026-08-13"), val: 28 },
-    { date: new Date("2026-08-14"), val: 24 },
-    { date: new Date("2026-08-15"), val: 35 },
-    { date: new Date("2026-08-16"), val: 42 },
-  ], []);
-
-  const sparklineSellers = useMemo(() => [
-    { date: new Date("2026-08-10"), val: 2 },
-    { date: new Date("2026-08-11"), val: 2 },
-    { date: new Date("2026-08-12"), val: 3 },
-    { date: new Date("2026-08-13"), val: 3 },
-    { date: new Date("2026-08-14"), val: 4 },
-    { date: new Date("2026-08-15"), val: 4 },
-    { date: new Date("2026-08-16"), val: activeSellers },
-  ], [activeSellers]);
-
-  const sparklineProducts = useMemo(() => [
-    { date: new Date("2026-08-10"), val: 5 },
-    { date: new Date("2026-08-11"), val: 5 },
-    { date: new Date("2026-08-12"), val: 6 },
-    { date: new Date("2026-08-13"), val: 7 },
-    { date: new Date("2026-08-14"), val: 7 },
-    { date: new Date("2026-08-15"), val: 8 },
-    { date: new Date("2026-08-16"), val: products.length },
-  ], [products.length]);
+  // Mini Sparkline Data for Bento Cards (100% Dynamic based on real metrics)
+  const sparklineGMV = useMemo(() => getDynamicSparkline(totalGMV), [totalGMV]);
+  const sparklineSellers = useMemo(() => getDynamicSparkline(activeSellers), [activeSellers]);
+  const sparklineProducts = useMemo(() => getDynamicSparkline(products.length), [products.length]);
 
   return (
     <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-300">

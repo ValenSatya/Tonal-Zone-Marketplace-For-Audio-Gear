@@ -14,6 +14,7 @@ import { useLocation } from "@/context/LocationContext";
 import { useCart } from "@/context/CartContext";
 import { useAdminData } from "@/context/AdminDataContext";
 import { triggerAppNotification } from "@/context/NotificationContext";
+import { broadcastRealtime } from "@/lib/realtime-bus";
 import {
   Clock,
   ShieldCheck,
@@ -192,6 +193,11 @@ function PaymentContent() {
         }).catch((e) => console.warn("Pay API warn:", e));
       }
 
+      // Broadcast real-time order status update to seller, admin, and notification bell
+      broadcastRealtime("ORDERS", { orderId, status: "PAID" });
+      broadcastRealtime("WALLET");
+      broadcastRealtime("NOTIFICATIONS");
+
       triggerAppNotification({
         type: "order",
         title: "Pembayaran Escrow Berhasil!",
@@ -218,6 +224,8 @@ function PaymentContent() {
             cancelledBy: "BUYER",
           }),
         });
+        broadcastRealtime("ORDERS", { orderId, status: "CANCELLED" });
+        broadcastRealtime("CART");
       }
 
       // Restore items back to cart so buyer can re-checkout

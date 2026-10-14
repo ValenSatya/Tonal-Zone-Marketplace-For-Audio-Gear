@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { fetchProductsFromDb, getInstantCatalog, CatalogProduct } from "@/lib/products-db";
+import { getInstantLandingConfig, fetchLandingConfigFromDb } from "@/lib/landing-config";
 import { useLocation } from "@/context/LocationContext";
 import { useLanguage } from "@/context/LanguageContext";
 
@@ -37,7 +38,7 @@ type BentoProductItem = CatalogProduct & { layout: "landscape" | "square" | "tal
 export default function FigmaStartJourney() {
   const { t } = useLanguage();
   const [allProducts, setAllProducts] = useState<CatalogProduct[]>(() => getInstantCatalog());
-  const [customJourney, setCustomJourney] = useState<typeof BEGINNER_JOURNEY_CONFIG | null>(null);
+  const [customJourney, setCustomJourney] = useState<typeof BEGINNER_JOURNEY_CONFIG | null>(() => (getInstantLandingConfig().start_journey as any) || null);
   const [isLoading, setIsLoading] = useState(false);
   const { formatPrice } = useLocation();
 
@@ -45,7 +46,6 @@ export default function FigmaStartJourney() {
     let isMounted = true;
     async function loadProducts() {
       try {
-        const { fetchLandingConfigFromDb } = await import("@/lib/landing-config");
         const [data, config] = await Promise.all([
           fetchProductsFromDb(),
           fetchLandingConfigFromDb(),
@@ -126,6 +126,7 @@ export default function FigmaStartJourney() {
 
           <Link
             href="/collection?experience=BEGINNER&maxPrice=37.5"
+            prefetch={false}
             className="group inline-flex items-center gap-2 text-white hover:text-[#BFDD25] transition-colors font-sans font-semibold text-base sm:text-lg"
           >
             <span>{t("landing.seeAll")}</span>
@@ -225,6 +226,7 @@ function BentoCard({ product, formatPrice, layout }: BentoCardProps) {
   return (
     <Link
       href={`/product/${product.id}`}
+      prefetch={false}
       className={`group relative flex flex-col justify-between p-5 sm:p-6 bg-[#161616] hover:bg-[#1a1a1a] border border-white/[0.05] hover:border-white/15 rounded-[24px] transition-all duration-300 w-full ${heightClasses} overflow-hidden shadow-lg`}
     >
       {/* Product Image Thumbnail - Seamless transparent floating display with soft depth */}

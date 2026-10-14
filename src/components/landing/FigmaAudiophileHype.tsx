@@ -121,7 +121,7 @@ export default function FigmaAudiophileHype() {
             {/* Top Showcase Banner Card */}
             <div className="relative w-full aspect-[16/10] bg-[#050505] border border-[#333333] overflow-hidden group rounded-sm">
               <Image
-                src="https://cdn.shopify.com/s/files/1/0013/3896/6076/files/1_588ae6a9-9f9c-4160-8013-ec97beac8304.jpg?v=1788923488"
+                src="/images/collab-hsr-moondrop-bg.webp"
                 alt="HONKAI: STAR RAIL × MOONDROP Sparxie TWS"
                 fill
                 sizes="(max-width: 1024px) 100vw, 665px"
@@ -142,7 +142,7 @@ export default function FigmaAudiophileHype() {
               {/* Left Photo Card */}
               <div className="relative aspect-square w-full bg-[#050505] border border-[#333333] overflow-hidden flex items-center justify-center p-4 group rounded-sm">
                 <Image
-                  src="https://cdn.shopify.com/s/files/1/0013/3896/6076/files/2_1_7b581902-261e-4cca-bd6b-46748f5aeced.jpg?v=1788923488"
+                  src="/images/collab-sparxie-case.png"
                   alt="Moondrop Sparxie Case & Earbuds"
                   fill
                   sizes="(max-width: 640px) 100vw, 325px"

@@ -287,9 +287,9 @@ export default function ProfilePage() {
               </div>
 
               <h1 className="font-heading text-3xl sm:text-4xl font-bold tracking-tight text-white">
-                {user?.name || "Alex Rivera"}
+                {user?.name || "Audiophile Member"}
               </h1>
-              <p className="font-mono text-xs text-[#888888]">{user?.email || "alex.rivera@audiophile.io"}</p>
+              <p className="font-mono text-xs text-[#888888]">{user?.email || "member@tonalzone.id"}</p>
 
               <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 text-xs font-mono pt-1">
                 <span className="px-3.5 py-1.5 bg-[#141414] rounded-full text-[#AAAAAA]">

@@ -12,6 +12,7 @@ import { useLocation } from "@/context/LocationContext";
 import { useCart } from "@/context/CartContext";
 import { KeyboardArrowRight } from "@/components/ui/keyboard-arrow";
 import { getStoreSlug } from "@/lib/store-utils";
+import { resolveOfflineImage } from "@/lib/products-db";
 
 export default function CartPage() {
   const { t } = useLanguage();
@@ -283,7 +284,7 @@ export default function CartPage() {
                             className="relative w-24 h-24 sm:w-28 sm:h-28 bg-[#141414] rounded-xl overflow-hidden shrink-0 flex items-center justify-center transition-colors"
                           >
                           <Image
-                            src={item.image || "/placeholder.svg"}
+                            src={resolveOfflineImage(item.image, undefined, item.name, item.id)}
                             alt={item.name}
                             fill
                             sizes="(max-width: 640px) 96px, 112px"

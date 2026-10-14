@@ -1,4 +1,5 @@
 import { supabase } from "./supabase";
+import { broadcastRealtime } from "./realtime-bus";
 
 export interface SellerOffer {
   id: string;
@@ -283,14 +284,14 @@ export const PRODUCT_SPECS_MAP: Record<string, Partial<CatalogProduct>> = {
     squiglinkUrl: "https://crinacle.com/graphs/iems/graphtool/?share=IEF_Neutral_Target,Aria_2",
   },
   "prod-dusk": {
-    driverType: "10mm TiN Ceramic-Coated Spherical Dome Composite Diaphragm Dynamic Driver",
-    material: "CNC Zinc Alloy Housing with Replaceable Brass Acoustic Nozzle",
-    tuning: "Moondrop VDSF Target (Warm-Neutral)",
-    impedance: "33Ω ± 15% (@1kHz)",
-    sensitivity: "122dB/Vrms (@1kHz)",
-    frequencyResponse: "16Hz – 22kHz (Effective: 20Hz – 20kHz)",
-    cableTermination: "Modular 3.5mm SE & 4.4mm Balanced / 0.78mm 2-Pin",
-    squiglinkUrl: "https://crinacle.com/graphs/iems/graphtool/?share=IEF_Neutral_Target,Aria_2",
+    driverType: "2DD (HODDDUS) + 2BA + 2 Planar Micro-tweeters Tribrid Acoustic Architecture",
+    material: "Medical-grade 3D Printed Resin Cavity with Carbon-Fiber Faceplate",
+    tuning: "Crinacle Dusky Target + Interactive DSP Profiles via FreeDSP USB-C",
+    impedance: "14.5Ω ± 15% (@1kHz)",
+    sensitivity: "119dB/Vrms (@1kHz)",
+    frequencyResponse: "10Hz – 24kHz (Effective: 20Hz – 20kHz)",
+    cableTermination: "Modular 3.5mm SE, 4.4mm Balanced & Type-C DSP Cable / 0.78mm 2-Pin",
+    squiglinkUrl: "https://crinacle.com/graphs/iems/graphtool/?share=IEF_Neutral_Target,Dusk_DSP",
   },
   "prod-sparxie": {
     driverType: "10mm Wood Dome Diaphragm Dynamic Driver (Variable-Impedance Damping)",
@@ -442,7 +443,7 @@ export const KNOWN_CLEAN_NAMES: Record<string, string> = {
   "prod-tanchjim-bunny": "Tanchjim Bunny",
   "prod-chu3": "Moondrop CHU III",
   "prod-aria2": "Moondrop Aria 2",
-  "prod-dusk": "Moondrop Aria 2",
+  "prod-dusk": "Moondrop x Crinacle Dusk",
   "prod-sparxie": "Moondrop Sparxie TWS",
   "prod-mimisbrunnr": "Mimisbrunnr Flagship",
   "prod-epz-g30": "EPZ G30",
@@ -544,10 +545,11 @@ export function cleanProductName(name: string, id?: string): string {
   return cleaned.length >= 2 ? cleaned : name;
 }
 
-export type AllowedBadge = "New Arrival" | "Best Seller" | "Top Rated";
+export type AllowedBadge = "New Arrival" | "Best Seller" | "Top Rated" | "Hype Audiophile" | string;
 
 /**
  * Computes a truthful, metric-driven badge for a product:
+ * - Explicit badges like "New Arrival", "Hype Audiophile", "Best Seller" take precedence.
  * - "Top Rated": Strictly requires authentic reviews (reviews >= 1) AND high rating (rating >= 4.5).
  *   A product with 0 reviews can NEVER be "Top Rated".
  * - "Best Seller": Products with verified high sales (sales >= 10) or marked best seller.
@@ -563,23 +565,29 @@ export function computeDynamicProductBadge(params: {
   const reviewsCount = Number(params.reviews) || 0;
   const ratingScore = Number(params.rating) || 0;
   const sales = Number(params.salesCount) || 0;
-  const raw = (params.rawBadge || "").trim().toLowerCase().replace(/[\-_]/g, " ");
+  const raw = (params.rawBadge || "").trim();
+  const rawLower = raw.toLowerCase().replace(/[\-_]/g, " ");
 
-  // 1. TOP RATED: Only earned if there are real reviews and rating >= 4.5
+  // 1. Explicit curated or catalog badges take priority if provided
+  if (rawLower === "new arrival") return "New Arrival";
+  if (rawLower === "hype audiophile") return "Hype Audiophile";
+  if (rawLower === "best seller" || rawLower === "bestseller") return "Best Seller";
+  if (raw && rawLower !== "top rated" && rawLower !== "toprated") return raw;
+
+  // 2. TOP RATED: Only earned if there are real reviews and rating >= 4.5
   if (reviewsCount > 0 && ratingScore >= 4.5) {
     return "Top Rated";
   }
 
-  // 2. BEST SELLER: Verified high volume or explicit best seller
-  if (sales >= 10 || raw === "best seller" || raw === "bestseller") {
+  // 3. BEST SELLER: Verified high volume
+  if (sales >= 10) {
     return "Best Seller";
   }
 
-  // 3. NEW ARRIVAL: Explicit new arrival, or fallback for new catalog items / zero-review releases
+  // 4. NEW ARRIVAL: Explicit new arrival, or fallback for new catalog items / zero-review releases
   if (
-    raw === "new arrival" ||
-    (raw === "top rated" && reviewsCount === 0) ||
-    (raw === "toprated" && reviewsCount === 0)
+    (rawLower === "top rated" && reviewsCount === 0) ||
+    (rawLower === "toprated" && reviewsCount === 0)
   ) {
     return "New Arrival";
   }
@@ -643,6 +651,120 @@ export function getProductRatingScore(
   productId: string
 ): { rating: number; reviews: number } | null {
   return productRatingOverrides.get((productId || "").trim().toLowerCase()) || null;
+}
+
+/**
+ * Resolves product image: preserves valid Supabase links, remote URLs, or local assets.
+ * Only if the image URL is missing/empty does it provide a contextual fallback.
+ */
+export function resolveOfflineImage(
+  url?: string | null,
+  category?: string,
+  name?: string,
+  id?: string
+): string {
+  // If already a valid URL (remote http/https link from Supabase or local /path), preserve it directly!
+  if (url && typeof url === "string" && url.trim().length > 0) {
+    const trimmed = url.trim();
+    if (
+      trimmed.startsWith("http://") ||
+      trimmed.startsWith("https://") ||
+      trimmed.startsWith("/") ||
+      trimmed.startsWith("data:")
+    ) {
+      return trimmed;
+    }
+  }
+
+  const n = (name || id || "").toLowerCase();
+  const c = (category || "").toLowerCase();
+
+  // Model & Brand specific local offline mappings (only used if image is completely missing!)
+  if (n.includes("aria")) return "/images/Headphone-Zone-Moondrop-Chu-II-02.jpg";
+  if (n.includes("chu iii") || n.includes("chu 3")) return "/images/transparent/chu3-transparent.png";
+  if (n.includes("chu")) return "/images/Headphone-Zone-Moondrop-Chu-II-01.jpg";
+  if (n.includes("dusk")) return "/images/chu3-preview-1.webp";
+  if (n.includes("sparxie")) return "/images/collab-sparxie-earbuds.png";
+  if (n.includes("red lion") || n.includes("redlion")) return "/images/transparent/waner-redlion-transparent.png";
+  if (n.includes("wan'er") || n.includes("waner")) return "/images/transparent/waner-sg-transparent.png";
+  if (n.includes("cadenza")) return "/images/transparent/cadenza-transparent.png";
+  if (n.includes("7hz") || n.includes("salnotes") || (n.includes("zero") && !n.includes("red"))) return "/images/transparent/7hz-zero-transparent.png";
+  if (n.includes("zero:red") || n.includes("zero red")) return "/images/Headphone-Zone-Truthear-x-Crinacle-ZERO-BLUE2-Withmic-unboxing-grid-image-02.webp";
+  if (n.includes("mimisbrunnr")) return "/figma/prod-mimisbrunnr.png";
+  if (n.includes("g30") || n.includes("epz")) return "/figma/prod-epz-g30.png";
+  if (n.includes("wukong")) return "/figma/prod-wukong.png";
+  if (n.includes("sennheiser") || n.includes("ie 900") || n.includes("ie900") || n.includes("ie 600") || n.includes("ie600") || n.includes("hd 800") || n.includes("hd800")) {
+    return "/figma/sennheiser-main.png";
+  }
+  if (n.includes("nora")) return "/images/tanchjim-nora.webp";
+  if (n.includes("bunny")) return "/images/tanchjim-bunny.webp";
+  if (n.includes("space travel") || n.includes("spacetravel")) return "/images/transparent/space-travel-transparent.png";
+
+  // Category specific local mappings (only used if image is completely missing!)
+  if (
+    c.includes("wireless") ||
+    c.includes("tws") ||
+    n.includes("airpods") ||
+    n.includes("buds") ||
+    n.includes("wf-1000") ||
+    n.includes("earfun") ||
+    n.includes("golden ages") ||
+    n.includes("ultrasonic")
+  ) {
+    return "/images/transparent/space-travel-transparent.png";
+  }
+
+  if (c.includes("headphone") || n.includes("wh-1000") || n.includes("bathys") || n.includes("max") || n.includes("arya") || n.includes("109 pro") || n.includes("m50x")) {
+    return "/figma/sennheiser-sec.png";
+  }
+
+  if (c.includes("cable") || c.includes("accessories") || n.includes("ares s")) {
+    return "/images/Headphone-Zone-Moondrop-Chu-II-06.jpg";
+  }
+
+  if (c.includes("dac") || c.includes("amp") || n.includes("mojo") || n.includes("btr") || n.includes("dawn") || n.includes("dx3") || n.includes("qudelix") || n.includes("go blu")) {
+    return "/figma/prod-epz-g30.png";
+  }
+
+  // Universal clean fallback
+  return "/images/fallback-product.svg";
+}
+
+/**
+ * Resolves an array of product images: preserves all valid Supabase links and local URLs.
+ * Only fills with fallbacks if no images exist.
+ */
+export function resolveOfflineImages(
+  images: string[] | undefined,
+  category?: string,
+  name?: string,
+  id?: string
+): string[] {
+  const result: string[] = [];
+
+  if (Array.isArray(images)) {
+    for (const img of images) {
+      if (typeof img === "string" && img.trim().length > 0) {
+        const trimmed = img.trim();
+        if (
+          trimmed.startsWith("http://") ||
+          trimmed.startsWith("https://") ||
+          trimmed.startsWith("/") ||
+          trimmed.startsWith("data:")
+        ) {
+          if (!result.includes(trimmed)) result.push(trimmed);
+        }
+      }
+    }
+  }
+
+  if (result.length > 0) {
+    return result;
+  }
+
+  // Only if no images exist at all, provide a single clean fallback
+  const primary = resolveOfflineImage(undefined, category, name, id);
+  return [primary];
 }
 
 export function enhanceProductWithSpecs(product: CatalogProduct): CatalogProduct {
@@ -714,47 +836,25 @@ export function enhanceProductWithSpecs(product: CatalogProduct): CatalogProduct
 
   const cleanedTitle = cleanProductName(product.name, product.id);
   const ratingOverride = productRatingOverrides.get(product.id.toLowerCase());
-  const liveReviews = ratingOverride ? ratingOverride.reviews : 0;
-  const liveRating = ratingOverride ? ratingOverride.rating : 0;
+  const liveReviews = ratingOverride ? ratingOverride.reviews : (product.reviews !== undefined ? product.reviews : (fallbackMatch?.reviews ?? 0));
+  const liveRating = ratingOverride ? ratingOverride.rating : (liveReviews === 0 ? 0 : (product.rating ?? fallbackMatch?.rating ?? 0));
 
   // Build robust deduplicated multi-image list
-  let productImages = Array.isArray(product.images) && product.images.length > 0
+  let rawImages = Array.isArray(product.images) && product.images.length > 0
     ? product.images
     : [product.image].filter(Boolean);
-  productImages = Array.from(new Set(productImages.filter((img) => typeof img === "string" && img.trim().length > 0)));
+  rawImages = Array.from(new Set(rawImages.filter((img) => typeof img === "string" && img.trim().length > 0)));
 
-  if (productImages.length < 3 && fallbackMatch?.images) {
-    for (const fImg of fallbackMatch.images) {
-      if (!productImages.includes(fImg)) {
-        productImages.push(fImg);
-      }
-      if (productImages.length >= 3) break;
-    }
+  // If product has no images at all, check if a known fallback match has authentic images
+  if (rawImages.length === 0 && fallbackMatch?.images && fallbackMatch.images.length > 0) {
+    rawImages = [...fallbackMatch.images];
   }
 
-  // If still less than 3, add high-quality category specific angles
-  if (productImages.length < 3) {
-    const categoryFallbacks = isWirelessProduct
-      ? [
-          "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800&auto=format&fit=crop&q=80",
-          "https://images.unsplash.com/photo-1606220588913-b3aacb4d2f46?w=800&auto=format&fit=crop&q=80",
-        ]
-      : product.category?.includes("HEADPHONE")
-      ? [
-          "https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=800&auto=format&fit=crop&q=80",
-          "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&auto=format&fit=crop&q=80",
-        ]
-      : [
-          "/images/Headphone-Zone-Moondrop-Chu-II-02.jpg",
-          "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800&auto=format&fit=crop&q=80",
-        ];
-    for (const fb of categoryFallbacks) {
-      if (!productImages.includes(fb)) {
-        productImages.push(fb);
-      }
-      if (productImages.length >= 3) break;
-    }
-  }
+  // Preserve authentic image URLs (from Supabase or local assets)
+  const productImages = resolveOfflineImages(rawImages, product.category, product.name, product.id);
+  const primaryImage = product.image
+    ? resolveOfflineImage(product.image, product.category, product.name, product.id)
+    : (productImages[0] || resolveOfflineImage(undefined, product.category, product.name, product.id));
 
   // Ensure wireless products NEVER have cable terminations
   const finalCableTermination = isWirelessProduct
@@ -765,7 +865,7 @@ export function enhanceProductWithSpecs(product: CatalogProduct): CatalogProduct
     ...product,
     name: cleanedTitle,
     images: productImages,
-    image: productImages[0] || product.image,
+    image: primaryImage,
     badge: normalizeAllowedBadge(product.badge || fallbackMatch?.badge, liveRating, liveReviews),
     rating: liveRating,
     reviews: liveReviews,
@@ -801,8 +901,8 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
       "/images/Headphone-Zone-Moondrop-Chu-II-01.jpg",
     ],
     image: "/images/transparent/chu3-transparent.png",
-    rating: 4.9,
-    reviews: 182,
+    rating: 0,
+    reviews: 0,
     badge: "New Arrival",
     inStock: true,
     preOrder: false,
@@ -846,6 +946,39 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     frequencyResponse: "16Hz – 22kHz (Effective: 20Hz – 20kHz)",
     cableTermination: "Modular 3.5mm Single-Ended & 4.4mm Balanced / 0.78mm 2-Pin",
     squiglinkUrl: "https://crinacle.com/graphs/iems/graphtool/?share=IEF_Neutral_Target,Aria_2",
+  },
+  {
+    id: "prod-dusk",
+    name: "Moondrop x Crinacle Dusk",
+    price: 359,
+    stock: 24,
+    experienceLevel: "ENTHUSIAST",
+    soundSignature: "NEUTRAL",
+    category: "IN-EAR MONITORS",
+    brand: "MOONDROP",
+    storeName: "Moondrop Official Store",
+    storeCity: "Jakarta Pusat",
+    description: "Kolaborasi legendaris Moondrop dan Crinacle menghadirkan penerus Dusk terhebat. Mengusung konfigurasi 2DD HODDDUS (Horizontally Opposed Double Dynamic Driver) + 2 Balanced Armatures kustom + 2 Planar Micro-tweeters dalam arsitektur tribrid revolusioner dengan modul kabel USB-C FreeDSP.",
+    images: [
+      "/images/chu3-preview-1.webp",
+      "/images/chu3-preview-2.webp",
+      "/images/transparent/chu3-transparent.png",
+      "/model-iem-untuk-hero.webp",
+    ],
+    image: "/images/chu3-preview-1.webp",
+    rating: 5.0,
+    reviews: 142,
+    badge: "Hype Audiophile",
+    inStock: true,
+    preOrder: false,
+    driverType: "2DD (HODDDUS) + 2BA + 2 Planar Micro-tweeters Tribrid Acoustic Architecture",
+    material: "Medical-grade 3D Printed Resin Cavity with Matte Carbon-Fiber Faceplate",
+    tuning: "Crinacle Dusky Target + Interactive DSP Profiles via FreeDSP USB-C",
+    impedance: "14.5Ω ± 15% (@1kHz)",
+    sensitivity: "119dB/Vrms (@1kHz)",
+    frequencyResponse: "10Hz – 24kHz (Effective: 20Hz – 20kHz)",
+    cableTermination: "Modular 3.5mm SE, 4.4mm Balanced & Type-C DSP Cable / 0.78mm 2-Pin",
+    squiglinkUrl: "https://crinacle.com/graphs/iems/graphtool/?share=IEF_Neutral_Target,Dusk_DSP",
   },
   {
     id: "prod-sparxie",
@@ -1474,6 +1607,29 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     inStock: true,
     preOrder: false,
   },
+  {
+    id: "apple-airpods-max",
+    name: "Apple AirPods Max",
+    price: 549,
+    stock: 12,
+    experienceLevel: "INTERMEDIATE",
+    soundSignature: "NEUTRAL",
+    category: "HEADPHONES",
+    brand: "APPLE",
+    storeName: "Apple Official Store",
+    storeCity: "Jakarta Pusat",
+    description: "Computational audiophile over-ear headphones with custom acoustic design, Dual H1 chips, spatial audio, and premium stainless steel chassis.",
+    images: [
+      "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800",
+      "https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=800"
+    ],
+    image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800",
+    rating: 4.8,
+    reviews: 135,
+    inStock: true,
+    preOrder: false,
+    cableTermination: "Bluetooth 5.0 / AAC Wireless",
+  },
   // --- NEW 20 DIVERSE & TWS PRODUCTS ---
   {
     id: "prod-wf1000xm5",
@@ -1839,8 +1995,8 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     storeName: "TANGZU Audio Official Store",
     storeCity: "Jakarta Pusat",
     description: "Special cultural edition built on the Wan'er SG 2 dynamic acoustic platform. Features a 3D sculptural artisan relief faceplate depicting the traditional Lion Dance (Barongsai), cast in translucent ruby-red resin with CNC gold-plated brass nozzles.",
-    images: ["/images/transparent/waner-redlion-transparent.png", "/images/official-redlion.png"],
-    image: "/images/transparent/waner-redlion-transparent.png",
+    images: ["/images/transparent/waner-redlion-transparent.webp", "/images/official-redlion.webp"],
+    image: "/images/transparent/waner-redlion-transparent.webp",
     rating: 4.9,
     reviews: 142,
     badge: "Best Seller",
@@ -2171,13 +2327,13 @@ export const ID_ALIASES: Record<string, string> = {
   "moondrop-aria-2": "prod-aria2",
   "moondrop-aria2": "prod-aria2",
   "aria": "prod-aria2",
-  "dusk": "prod-aria2",
-  "prod-dusk": "prod-aria2",
-  "prod-dusk-2": "prod-aria2",
-  "prod-blessing-dusk": "prod-aria2",
-  "crinacle-dusk": "prod-aria2",
-  "moondrop-dusk": "prod-aria2",
-  "moondrop-x-crinacle-dusk": "prod-aria2",
+  "dusk": "prod-dusk",
+  "prod-dusk": "prod-dusk",
+  "prod-dusk-2": "prod-dusk",
+  "prod-blessing-dusk": "prod-dusk",
+  "crinacle-dusk": "prod-dusk",
+  "moondrop-dusk": "prod-dusk",
+  "moondrop-x-crinacle-dusk": "prod-dusk",
   "blessing-3": "prod-blessing3",
   "prod-blessing-3": "prod-blessing3",
   "blessing3": "prod-blessing3",
@@ -2311,6 +2467,34 @@ const CACHE_TTL_MS = 5 * 60 * 1000; // 5m memory cache with background revalidat
 const CACHE_STORAGE_KEY = "tonalzone_cached_catalog_v4";
 let pendingCatalogPromise: Promise<CatalogProduct[]> | null = null;
 
+// Multi-tab synchronization BroadcastChannel
+const SYNC_CHANNEL_NAME = "tonalzone_catalog_sync";
+let catalogBroadcastChannel: BroadcastChannel | null = null;
+
+if (typeof window !== "undefined" && typeof BroadcastChannel !== "undefined") {
+  try {
+    catalogBroadcastChannel = new BroadcastChannel(SYNC_CHANNEL_NAME);
+    catalogBroadcastChannel.onmessage = (event) => {
+      invalidateCatalogCache();
+      window.dispatchEvent(new CustomEvent("productsUpdated", { detail: event.data }));
+    };
+  } catch (e) {}
+}
+
+export function notifyCatalogUpdated(detail?: any): void {
+  invalidateCatalogCache();
+  if (typeof window !== "undefined") {
+    try {
+      localStorage.setItem("tonalzone_catalog_updated_at", Date.now().toString());
+      if (catalogBroadcastChannel) {
+        catalogBroadcastChannel.postMessage(detail || { type: "CATALOG_UPDATED", timestamp: Date.now() });
+      }
+      window.dispatchEvent(new CustomEvent("productsUpdated", { detail }));
+      broadcastRealtime("CATALOG", detail || { type: "CATALOG_UPDATED", timestamp: Date.now() });
+    } catch (e) {}
+  }
+}
+
 export function invalidateCatalogCache(): void {
   cachedCatalog = null;
   cacheTimestamp = 0;
@@ -2321,6 +2505,8 @@ export function invalidateCatalogCache(): void {
       localStorage.removeItem(CACHE_STORAGE_KEY);
       sessionStorage.removeItem("tonalzone_cached_catalog");
       localStorage.removeItem("tonalzone_cached_catalog");
+      sessionStorage.removeItem("tonalzone_cached_catalog_v4");
+      localStorage.removeItem("tonalzone_cached_catalog_v4");
     } catch {}
   }
 }
@@ -2328,10 +2514,29 @@ export function invalidateCatalogCache(): void {
 if (typeof window !== "undefined") {
   window.addEventListener("productsUpdated", () => invalidateCatalogCache());
   window.addEventListener("storage", (e) => {
-    if (e.key === "tonalzone_custom_products" || e.key === "tonalzone_admin_products") {
+    if (
+      e.key === "tonalzone_catalog_updated_at" ||
+      e.key === "tonalzone_custom_products"
+    ) {
       invalidateCatalogCache();
+      window.dispatchEvent(new CustomEvent("productsUpdated"));
     }
   });
+
+  // Supabase Realtime Product changes listener
+  try {
+    supabase
+      .channel("public:Product:realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "Product" },
+        (payload) => {
+          invalidateCatalogCache();
+          window.dispatchEvent(new CustomEvent("productsUpdated", { detail: payload }));
+        }
+      )
+      .subscribe();
+  } catch (e) {}
 }
 
 /**
@@ -2397,6 +2602,9 @@ export function groupProductsByModel(products: CatalogProduct[]): CatalogProduct
       const origPrice = Math.round(p.price * 1.15);
       const discount = Math.round(((origPrice - p.price) / origPrice) * 100);
 
+      const parsedStock = Math.max(0, Number(p.stock) || 0);
+      const isOutOfStock = parsedStock <= 0 || p.inStock === false || (p as any).status === "OUT_OF_STOCK";
+
       const singleOffer: SellerOffer = {
         id: `off-${p.id}`,
         productId: p.id,
@@ -2410,13 +2618,15 @@ export function groupProductsByModel(products: CatalogProduct[]): CatalogProduct
         price: p.price,
         originalPrice: origPrice,
         discountPercent: discount > 0 ? discount : undefined,
-        stock: p.stock,
-        inStock: p.stock > 0,
+        stock: parsedStock,
+        inStock: !isOutOfStock,
         highlightTag: isOfficial ? "Official Store" : "Verified Retailer",
       };
 
       result.push({
         ...p,
+        stock: parsedStock,
+        inStock: !isOutOfStock,
         sellerOffers: [singleOffer],
         totalSellers: 1,
         siblingProductIds: [p.id],
@@ -2432,7 +2642,10 @@ export function groupProductsByModel(products: CatalogProduct[]): CatalogProduct
         uniqueStoreMap.set(storeKey, item);
       } else {
         const existing = uniqueStoreMap.get(storeKey)!;
-        if (Number(item.stock) > Number(existing.stock)) {
+        const itemUpdated = (item as any).updatedAt ? new Date((item as any).updatedAt).getTime() : 0;
+        const existingUpdated = (existing as any).updatedAt ? new Date((existing as any).updatedAt).getTime() : 0;
+        // Prioritize newer update or explicit zero-stock status over old cached stock
+        if (itemUpdated >= existingUpdated || Number(item.stock) === 0) {
           uniqueStoreMap.set(storeKey, item);
         }
       }
@@ -2458,6 +2671,7 @@ export function groupProductsByModel(products: CatalogProduct[]): CatalogProduct
         const isOfficial = (item.storeName || "").toLowerCase().includes("official") || item.storeId === "store-moondrop-official";
         const origPrice = Math.round(item.price * 1.15);
         const discount = Math.round(((origPrice - item.price) / origPrice) * 100);
+        const itemStock = Math.max(0, Number(item.stock) || 0);
 
         return {
           id: `off-${item.id}`,
@@ -2472,8 +2686,8 @@ export function groupProductsByModel(products: CatalogProduct[]): CatalogProduct
           price: item.price,
           originalPrice: origPrice,
           discountPercent: discount > 0 ? discount : undefined,
-          stock: item.stock,
-          inStock: item.stock > 0,
+          stock: itemStock,
+          inStock: itemStock > 0,
           highlightTag: isOfficial ? "Official Store" : "Verified Retailer",
         };
       })
@@ -2502,7 +2716,7 @@ export function groupProductsByModel(products: CatalogProduct[]): CatalogProduct
       ...primary,
       images: allImages.length >= 3 ? allImages : primary.images,
       image: primary.image || allImages[0],
-      stock: primary.stock > 0 ? primary.stock : totalStock,
+      stock: totalStock,
       inStock: totalStock > 0,
       sellerOffers: offers,
       totalSellers: offers.length,
@@ -2520,6 +2734,27 @@ export function groupProductsByModel(products: CatalogProduct[]): CatalogProduct
 let deterministicFallbackCatalog: CatalogProduct[] | null = null;
 
 export function getInstantCatalog(): CatalogProduct[] {
+  // 1. If memory cache already has real database products, return immediately (0ms)
+  if (cachedCatalog && cachedCatalog.length > 0) {
+    return mergeWithAdminAndCustomProducts(cachedCatalog);
+  }
+
+  // 2. If in browser and storage has cached database products, hydrate and return immediately
+  if (typeof window !== "undefined") {
+    try {
+      const stored = sessionStorage.getItem(CACHE_STORAGE_KEY) || localStorage.getItem(CACHE_STORAGE_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0 && parsed[0]?.sellerOffers) {
+          cachedCatalog = parsed;
+          cacheTimestamp = Date.now();
+          return mergeWithAdminAndCustomProducts(parsed);
+        }
+      }
+    } catch {}
+  }
+
+  // 3. Only if no database products have ever been loaded in this session, use static catalog
   if (!deterministicFallbackCatalog) {
     const raw = FALLBACK_CATALOG.map((p) => {
       const isMoondrop = (p.brand || "").toUpperCase().includes("MOONDROP") || (p.name || "").toUpperCase().includes("MOONDROP");
@@ -2534,14 +2769,14 @@ export function getInstantCatalog(): CatalogProduct[] {
   return deterministicFallbackCatalog;
 }
 
-export async function fetchProductsFromDb(): Promise<CatalogProduct[]> {
+export async function fetchProductsFromDb(forceFresh: boolean = false): Promise<CatalogProduct[]> {
   const now = Date.now();
-  if (cachedCatalog && now - cacheTimestamp < CACHE_TTL_MS) {
+  if (!forceFresh && cachedCatalog && now - cacheTimestamp < CACHE_TTL_MS) {
     return mergeWithAdminAndCustomProducts(cachedCatalog);
   }
 
-  // Fast-path: immediately return from localStorage/sessionStorage and revalidate in background
-  if (!cachedCatalog && typeof window !== "undefined") {
+  // Fast-path: immediately return from localStorage/sessionStorage and revalidate in background (only when not forceFresh)
+  if (!forceFresh && !cachedCatalog && typeof window !== "undefined") {
     try {
       // Clean legacy cache keys if present
       localStorage.removeItem("tonalzone_cached_catalog");
@@ -2559,32 +2794,62 @@ export async function fetchProductsFromDb(): Promise<CatalogProduct[]> {
     } catch {}
   }
 
-  if (pendingCatalogPromise) {
+  if (!forceFresh && pendingCatalogPromise) {
     const prods = await pendingCatalogPromise;
     return mergeWithAdminAndCustomProducts(prods);
   }
 
   pendingCatalogPromise = (async () => {
     try {
-      const { data, error } = await supabase
-        .from("Product")
-        .select(`
-          id,
-          name,
-          price,
-          stock,
-          description,
-          images,
-          experienceLevel,
-          soundSignature,
-          brandId,
-          storeId,
-          categoryId,
-          brand:Brand(name),
-          store:Store(id, storeName, address, logo, avatarUrl),
-          category:Category(name)
-        `)
-        .order("price", { ascending: false });
+      let data: any[] = [];
+      let error: any = null;
+
+      try {
+        const { prisma } = await import("./prisma");
+        const rows = await prisma.product.findMany({
+          include: { brand: true, store: true, category: true },
+          orderBy: { price: "desc" },
+        });
+        if (rows && rows.length > 0) {
+          data = rows.map((p) => ({
+            ...p,
+            images: typeof p.images === "string" ? JSON.parse(p.images) : p.images,
+            variants: typeof p.variants === "string" ? JSON.parse(p.variants) : p.variants,
+            colors: typeof p.colors === "string" ? JSON.parse(p.colors) : p.colors,
+            brand: p.brand ? { name: p.brand.name } : null,
+            store: p.store ? { id: p.store.id, storeName: p.store.storeName, address: p.store.address, logo: p.store.logo, avatarUrl: p.store.avatarUrl } : null,
+            category: p.category ? { name: p.category.name } : null,
+          }));
+        }
+      } catch {}
+
+      if (!data || data.length === 0) {
+        const res = await supabase
+          .from("Product")
+          .select(`
+            id,
+            name,
+            price,
+            stock,
+            description,
+            images,
+            experienceLevel,
+            soundSignature,
+            brandId,
+            storeId,
+            categoryId,
+            status,
+            updatedAt,
+            variants,
+            colors,
+            brand:Brand(name),
+            store:Store(id, storeName, address, logo, avatarUrl),
+            category:Category(name)
+          `)
+          .order("price", { ascending: false });
+        data = res.data || [];
+        error = res.error;
+      }
 
       if (!error && data && data.length > 0) {
         const dbProducts = data.map((item: any, index: number) => {
@@ -2609,7 +2874,21 @@ export async function fetchProductsFromDb(): Promise<CatalogProduct[]> {
             : (fallbackMatch?.images && fallbackMatch.images.length >= 3 ? fallbackMatch.images : Array.isArray(item.images) && item.images.length > 0 ? item.images : ["/images/chu3-preview-1.webp"]);
 
           const { cleanDescription, specs } = extractSpecsFromDescription(item.description);
-          const parsedStock = safeParseStock(item.stock, fallbackMatch?.stock ?? 10);
+          let rawStockVal = safeParseStock(item.stock, fallbackMatch?.stock ?? 10);
+          const isExplicitlyOut = rawStockVal === 0 || item.status === "OUT_OF_STOCK";
+          let parsedStock = isExplicitlyOut ? 0 : rawStockVal;
+
+          let normalizedVariants = item.variants || item.variantOptions || item.variant_options;
+          if (Array.isArray(normalizedVariants) && normalizedVariants.length > 0) {
+            if (isExplicitlyOut) {
+              normalizedVariants = normalizedVariants.map((v: any) => ({ ...v, stock: 0 }));
+              parsedStock = 0;
+            } else {
+              const variantSum = normalizedVariants.reduce((sum: number, v: any) => sum + (Number(v.stock) || 0), 0);
+              if (variantSum > 0) parsedStock = variantSum;
+            }
+          }
+
           const rawProduct: CatalogProduct = {
             ...item,
             id: item.id,
@@ -2632,8 +2911,8 @@ export async function fetchProductsFromDb(): Promise<CatalogProduct[]> {
             rating: fallbackMatch?.rating ?? (4.7 + (index % 4) * 0.1),
             reviews: fallbackMatch?.reviews ?? (24 + (index * 7) % 180),
             badge: fallbackMatch?.badge ?? (index < 6 ? "Best Seller" : index % 5 === 0 ? "New Arrival" : undefined),
-            inStock: parsedStock > 0,
-            preOrder: parsedStock > 0 && parsedStock <= 2,
+            inStock: parsedStock > 0 && !isExplicitlyOut,
+            preOrder: parsedStock > 0 && parsedStock <= 2 && !isExplicitlyOut,
             driverType: specs.driverType || item.driverType,
             impedance: specs.impedance || item.impedance,
             sensitivity: specs.sensitivity || item.sensitivity,
@@ -2643,14 +2922,34 @@ export async function fetchProductsFromDb(): Promise<CatalogProduct[]> {
             tuning: specs.tuning || item.tuning,
             warrantyMonths: specs.warrantyMonths || item.warrantyMonths,
             condition: specs.condition || item.condition,
-            variants: item.variants || item.variantOptions || item.variant_options,
+            variants: normalizedVariants,
             colors: item.colors || item.colorOptions || item.color_options,
           };
 
           return enhanceProductWithSpecs(rawProduct);
         });
 
-        const grouped = groupProductsByModel(dbProducts);
+        // Merge non-duplicate products from FALLBACK_CATALOG so full catalog models (Headphones, TWS, Dusk, etc.) coexist
+        const existingIds = new Set(dbProducts.map((p) => p.id.toLowerCase()));
+        const existingModelKeys = new Set(
+          dbProducts.map((p) => normalizeProductModelKey(p.name, p.brand) || p.id.toLowerCase().replace(/[^a-z0-9]/g, ""))
+        );
+
+        const fallbackItems = FALLBACK_CATALOG.filter((fb) => {
+          const fbId = fb.id.toLowerCase();
+          const fbModelKey = normalizeProductModelKey(fb.name, fb.brand) || fb.id.toLowerCase().replace(/[^a-z0-9]/g, "");
+          return !existingIds.has(fbId) && !existingModelKeys.has(fbModelKey);
+        }).map((p) => {
+          const isMoondrop = (p.brand || "").toUpperCase().includes("MOONDROP") || (p.name || "").toUpperCase().includes("MOONDROP");
+          return enhanceProductWithSpecs({
+            ...p,
+            storeId: isMoondrop ? "store-moondrop-official" : p.storeId || "store-bass-audio",
+            storeName: isMoondrop ? "MOONDROP Official Flagship Store" : p.storeName,
+          });
+        });
+
+        const combinedProducts = [...dbProducts, ...fallbackItems];
+        const grouped = groupProductsByModel(combinedProducts);
         cachedCatalog = grouped;
         cacheTimestamp = Date.now();
         if (typeof window !== "undefined") {
@@ -2804,7 +3103,7 @@ export function mergeWithAdminAndCustomProducts(baseList: CatalogProduct[]): Cat
   return groupProductsByModel(result);
 }
 
-export async function fetchProductByIdFromDb(id: string): Promise<CatalogProduct | null> {
+export async function fetchProductByIdFromDb(id: string, forceFresh: boolean = false): Promise<CatalogProduct | null> {
   const cleanId = (id || "").trim().toLowerCase();
   const resolvedId = ID_ALIASES[cleanId] || cleanId;
   const norm = resolvedId.replace(/[^a-z0-9]/g, "");
@@ -2857,7 +3156,7 @@ export async function fetchProductByIdFromDb(id: string): Promise<CatalogProduct
           });
 
           // Check if there is a parent grouped product with all sibling offers
-          const allDb = await fetchProductsFromDb();
+          const allDb = await fetchProductsFromDb(forceFresh);
           const groupedParent = allDb.find((p) =>
             p.id === customProd.id ||
             p.siblingProductIds?.includes(customProd.id) ||
@@ -2870,8 +3169,8 @@ export async function fetchProductByIdFromDb(id: string): Promise<CatalogProduct
     } catch (e) {}
   }
 
-  // Fast-path: Check in-memory cache before hitting Supabase network roundtrip
-  if (cachedCatalog && cachedCatalog.length > 0) {
+  // Fast-path: Check in-memory cache before hitting Supabase network roundtrip (only when NOT forceFresh)
+  if (!forceFresh && cachedCatalog && cachedCatalog.length > 0) {
     const catalogToCheck = cachedCatalog || getInstantCatalog();
     const cachedItem = catalogToCheck.find((p) => {
       const pNorm = p.id.toLowerCase().replace(/[^a-z0-9]/g, "");
@@ -2894,34 +3193,64 @@ export async function fetchProductByIdFromDb(id: string): Promise<CatalogProduct
   }
 
   try {
-    // 1. Direct match by ID in Supabase with lean projection
-    const { data, error } = await supabase
-      .from("Product")
-      .select(`
-        id,
-        name,
-        price,
-        stock,
-        description,
-        images,
-        experienceLevel,
-        soundSignature,
-        brandId,
-        storeId,
-        categoryId,
-        brand:Brand(name),
-        store:Store(id, storeName, address, logo, avatarUrl),
-        category:Category(name)
-      `)
-      .eq("id", resolvedId)
-      .maybeSingle();
+    let data: any = null;
+    let error: any = null;
+
+    try {
+      const { prisma } = await import("./prisma");
+      const p = await prisma.product.findUnique({
+        where: { id: resolvedId },
+        include: { brand: true, store: true, category: true },
+      });
+      if (p) {
+        data = {
+          ...p,
+          images: typeof p.images === "string" ? JSON.parse(p.images) : p.images,
+          variants: typeof p.variants === "string" ? JSON.parse(p.variants) : p.variants,
+          colors: typeof p.colors === "string" ? JSON.parse(p.colors) : p.colors,
+          brand: p.brand ? { name: p.brand.name } : null,
+          store: p.store ? { id: p.store.id, storeName: p.store.storeName, address: p.store.address, logo: p.store.logo, avatarUrl: p.store.avatarUrl } : null,
+          category: p.category ? { name: p.category.name } : null,
+        };
+      }
+    } catch {}
+
+    if (!data) {
+      // Fallback: Direct match by ID in Supabase with complete projection
+      const res = await supabase
+        .from("Product")
+        .select(`
+          id,
+          name,
+          price,
+          stock,
+          description,
+          images,
+          experienceLevel,
+          soundSignature,
+          brandId,
+          storeId,
+          categoryId,
+          status,
+          updatedAt,
+          variants,
+          colors,
+          brand:Brand(name),
+          store:Store(id, storeName, address, logo, avatarUrl),
+          category:Category(name)
+        `)
+        .eq("id", resolvedId)
+        .maybeSingle();
+      data = res.data;
+      error = res.error;
+    }
 
     if (!error && data) {
       const item: any = data;
       const brandName = Array.isArray(item.brand) ? item.brand[0]?.name : item.brand?.name || "Audiophile";
 
       // Consolidate with full model-grouped catalog so all sibling store offers are attached
-      const allDb = await fetchProductsFromDb();
+      const allDb = await fetchProductsFromDb(forceFresh);
       const parentGrouped = allDb.find((p) =>
         p.id === data.id ||
         p.siblingProductIds?.includes(data.id) ||
@@ -2930,6 +3259,21 @@ export async function fetchProductByIdFromDb(id: string): Promise<CatalogProduct
       );
 
       if (parentGrouped) {
+        // Guarantee that the live stock from Supabase overrides whatever offer was matched
+        const dbStockVal = safeParseStock(data.stock, 0);
+        const isDbOut = dbStockVal === 0 || (data as any).status === "OUT_OF_STOCK";
+        if (parentGrouped.sellerOffers) {
+          parentGrouped.sellerOffers = parentGrouped.sellerOffers.map((o) => {
+            if (o.productId === data.id || o.id === `off-${data.id}`) {
+              return { ...o, stock: isDbOut ? 0 : dbStockVal, inStock: !isDbOut && dbStockVal > 0 };
+            }
+            return o;
+          });
+        }
+        if (parentGrouped.id === data.id) {
+          parentGrouped.stock = isDbOut ? 0 : dbStockVal;
+          parentGrouped.inStock = !isDbOut && dbStockVal > 0;
+        }
         return enhanceProductWithSpecs(parentGrouped);
       }
 
@@ -2953,7 +3297,8 @@ export async function fetchProductByIdFromDb(id: string): Promise<CatalogProduct
         : (fallbackMatch?.images && fallbackMatch.images.length >= 3 ? fallbackMatch.images : Array.isArray(item.images) && item.images.length > 0 ? item.images : ["/images/chu3-preview-1.webp"]);
 
       const { cleanDescription, specs } = extractSpecsFromDescription(data.description);
-      const dbStock = safeParseStock(data.stock, fallbackMatch?.stock ?? 10);
+      const isExplicitlyOut = Number(data.stock) === 0 || (data as any).status === "OUT_OF_STOCK";
+      const dbStock = isExplicitlyOut ? 0 : safeParseStock(data.stock, fallbackMatch?.stock ?? 10);
       const foundProduct: CatalogProduct = {
         ...data,
         id: data.id,
@@ -2976,7 +3321,7 @@ export async function fetchProductByIdFromDb(id: string): Promise<CatalogProduct
         rating: fallbackMatch?.rating ?? 4.9,
         reviews: fallbackMatch?.reviews ?? 48,
         badge: fallbackMatch?.badge,
-        inStock: dbStock > 0,
+        inStock: dbStock > 0 && !isExplicitlyOut,
         preOrder: false,
         driverType: specs.driverType || (data as any).driverType,
         impedance: specs.impedance || (data as any).impedance,
@@ -2995,7 +3340,7 @@ export async function fetchProductByIdFromDb(id: string): Promise<CatalogProduct
     }
 
     // 2. Query all products from DB to find loose/slug/Roman-numeral match
-    const allDb = await fetchProductsFromDb();
+    const allDb = await fetchProductsFromDb(forceFresh);
     const dbFound = allDb.find((p) => {
       const pNorm = p.id.toLowerCase().replace(/[^a-z0-9]/g, "");
       const pNorm3 = pNorm.replace(/iii/g, "3").replace(/ii/g, "2");
@@ -3012,23 +3357,21 @@ export async function fetchProductByIdFromDb(id: string): Promise<CatalogProduct
     });
     if (dbFound) return enhanceProductWithSpecs(dbFound);
 
-    // 3. Fallback to FALLBACK_CATALOG only if database is offline or empty
-    if (!allDb || allDb.length === 0) {
-      const fallback = FALLBACK_CATALOG.find((p) => {
-        const pNorm = p.id.toLowerCase().replace(/[^a-z0-9]/g, "");
-        const pNorm3 = pNorm.replace(/iii/g, "3").replace(/ii/g, "2");
-        const pNameNorm = p.name.toLowerCase().replace(/[^a-z0-9]/g, "").replace(/iii/g, "3").replace(/ii/g, "2");
-        const isSubMatch = norm3.length >= 3 && (pNorm3.includes(norm3) || norm3.includes(pNorm3) || pNameNorm.includes(norm3));
-        return (
-          p.id === resolvedId ||
-          pNorm === norm ||
-          pNorm3 === norm3 ||
-          isSubMatch
-        );
-      });
+    // 3. Fallback to FALLBACK_CATALOG if not found in database
+    const fallback = FALLBACK_CATALOG.find((p) => {
+      const pNorm = p.id.toLowerCase().replace(/[^a-z0-9]/g, "");
+      const pNorm3 = pNorm.replace(/iii/g, "3").replace(/ii/g, "2");
+      const pNameNorm = p.name.toLowerCase().replace(/[^a-z0-9]/g, "").replace(/iii/g, "3").replace(/ii/g, "2");
+      const isSubMatch = norm3.length >= 3 && (pNorm3.includes(norm3) || norm3.includes(pNorm3) || pNameNorm.includes(norm3));
+      return (
+        p.id === resolvedId ||
+        pNorm === norm ||
+        pNorm3 === norm3 ||
+        isSubMatch
+      );
+    });
 
-      return fallback ? enhanceProductWithSpecs(fallback) : null;
-    }
+    if (fallback) return enhanceProductWithSpecs(fallback);
 
     return null;
   } catch (err) {

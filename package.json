@@ -3,15 +3,16 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "node --max-http-header-size=1048576 ./node_modules/next/dist/bin/next dev",
-    "build": "node --max-http-header-size=1048576 ./node_modules/next/dist/bin/next build",
-    "start": "node --max-http-header-size=1048576 ./node_modules/next/dist/bin/next start",
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
     "lint": "eslint",
     "db:import": "npx tsx import-csv-to-db.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
     "@number-flow/react": "^0.6.2",
+    "@prisma/client": "^6.19.3",
     "@supabase/ssr": "^0.12.4",
     "@supabase/supabase-js": "^2.112.1",
     "@types/qrcode": "^1.5.6",
@@ -52,6 +53,7 @@
     "@types/react-simple-maps": "^3.0.6",
     "eslint": "^9",
     "eslint-config-next": "16.2.11",
+    "prisma": "^6.19.3",
     "tailwindcss": "^4",
     "typescript": "^5",
     "xlsx": "^0.18.5"

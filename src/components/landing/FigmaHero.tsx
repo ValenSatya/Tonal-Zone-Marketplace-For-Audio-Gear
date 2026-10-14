@@ -3,14 +3,19 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { fetchProductByIdFromDb, CatalogProduct } from "@/lib/products-db";
-import { fetchLandingConfigFromDb, DEFAULT_LANDING_CONFIG, HeroConfig, sanitizeImageUrl } from "@/lib/landing-config";
+import { fetchProductByIdFromDb, getInstantCatalog, CatalogProduct } from "@/lib/products-db";
+import { fetchLandingConfigFromDb, getInstantLandingConfig, DEFAULT_LANDING_CONFIG, HeroConfig, sanitizeImageUrl } from "@/lib/landing-config";
 import { useLanguage } from "@/context/LanguageContext";
 
 export default function FigmaHero() {
   const { t } = useLanguage();
-  const [heroConfig, setHeroConfig] = useState<HeroConfig>(DEFAULT_LANDING_CONFIG.hero);
-  const [product, setProduct] = useState<CatalogProduct | null>(null);
+  const [heroConfig, setHeroConfig] = useState<HeroConfig>(() => getInstantLandingConfig().hero);
+  const [product, setProduct] = useState<CatalogProduct | null>(() => {
+    const cfg = getInstantLandingConfig();
+    const pid = cfg.hero?.productId || "prod-chu3";
+    const instant = getInstantCatalog();
+    return instant.find((p) => p.id === pid) || null;
+  });
 
   useEffect(() => {
     let isMounted = true;
@@ -97,6 +102,7 @@ export default function FigmaHero() {
           <div className="flex flex-col items-start lg:items-end pt-1 sm:pt-0">
             <Link
               href={heroTarget}
+              prefetch={false}
               className="relative inline-flex items-center h-[46px] sm:h-[58px] group cursor-pointer select-none"
             >
               {/* Main Button Container with generous rounded pill shape */}

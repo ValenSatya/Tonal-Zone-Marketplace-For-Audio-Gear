@@ -395,10 +395,10 @@ function MessagesContent() {
     }
 
     fetchConversationMessages(false);
-    // 1.5s responsive background polling
+    // Responsive background polling with tab-visibility check
     const pollInterval = setInterval(() => {
-      fetchConversationMessages(true);
-    }, 1500);
+      if (!document.hidden) fetchConversationMessages(true);
+    }, 4000);
 
     return () => clearInterval(pollInterval);
   }, [selectedContactId, isUserScrolledUp]);

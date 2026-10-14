@@ -9,7 +9,7 @@ import Footer from "@/components/Footer";
 import { useLocation } from "@/context/LocationContext";
 import { useCart } from "@/context/CartContext";
 import { useLanguage } from "@/context/LanguageContext";
-import { fetchProductsFromDb, fetchProductByIdFromDb, CatalogProduct, findFallbackMatch, computeDynamicProductBadge } from "@/lib/products-db";
+import { fetchProductsFromDb, fetchProductByIdFromDb, invalidateCatalogCache, CatalogProduct, findFallbackMatch, computeDynamicProductBadge, resolveOfflineImages, resolveOfflineImage } from "@/lib/products-db";
 import { supabase } from "@/lib/supabase";
 import { getAuthSession } from "@/app/actions/auth";
 import { KeyboardArrowRight } from "@/components/ui/keyboard-arrow";
@@ -17,6 +17,7 @@ import { Truck, ShieldCheck, ChevronDown, ChevronUp } from "lucide-react";
 import { getStoreSlug, getProductRetailOffers } from "@/lib/store-utils";
 import { parseProductVariants } from "@/lib/variant-utils";
 import { QrisLogo, BcaLogo, MandiriLogo, BniLogo, GopayLogo, VisaLogo, MastercardLogo } from "@/components/ui/payment-logos";
+import { broadcastRealtime, subscribeRealtime } from "@/lib/realtime-bus";
 
 interface Offer {
   id: string;
@@ -160,6 +161,8 @@ export default function ProductDetailPage() {
             setDbReviews(data.reviews);
           }
         }
+        broadcastRealtime("REVIEWS", { productId: product.id });
+        broadcastRealtime("CATALOG", { type: "REVIEW_ADDED", productId: product.id });
       } else {
         showToast("Gagal mengirim review.");
       }
@@ -273,6 +276,7 @@ export default function ProductDetailPage() {
                 setDbReviews(reloadData.reviews);
               }
             }
+            broadcastRealtime("REVIEWS", { productId: product.id, reviewId });
           }
         } else {
           showToast(data.error || "Gagal mengirim balasan.");
@@ -431,9 +435,9 @@ export default function ProductDetailPage() {
 
   useEffect(() => {
     setSelectedVariant(0);
-    async function loadProductData() {
-      setIsLoading(true);
-      const found = await fetchProductByIdFromDb(rawId);
+    async function loadProductData(force: boolean = false) {
+      if (!product) setIsLoading(true);
+      const found = await fetchProductByIdFromDb(rawId, force);
 
       // Fast-path: if product is found directly from cache/database, display it immediately
       if (found) {
@@ -442,7 +446,7 @@ export default function ProductDetailPage() {
       }
 
       // Background load related products without blocking the main product page
-      fetchProductsFromDb().then((all) => {
+      fetchProductsFromDb(force).then((all) => {
         let finalProduct = found;
         if (!finalProduct && all.length > 0) {
           const norm = rawId.toLowerCase().replace(/[^a-z0-9]/g, "");
@@ -486,6 +490,33 @@ export default function ProductDetailPage() {
       });
     }
     loadProductData();
+
+    const handleSync = () => {
+      invalidateCatalogCache();
+      loadProductData(true);
+    };
+
+    let channel: BroadcastChannel | null = null;
+    if (typeof window !== "undefined" && typeof BroadcastChannel !== "undefined") {
+      try {
+        channel = new BroadcastChannel("tonalzone_catalog_sync");
+        channel.onmessage = () => {
+          handleSync();
+        };
+      } catch (e) {}
+    }
+
+    window.addEventListener("productsUpdated", handleSync);
+    window.addEventListener("storage", handleSync);
+    return () => {
+      if (channel) {
+        try {
+          channel.close();
+        } catch (e) {}
+      }
+      window.removeEventListener("productsUpdated", handleSync);
+      window.removeEventListener("storage", handleSync);
+    };
   }, [rawId]);
 
   useEffect(() => {
@@ -508,6 +539,14 @@ export default function ProductDetailPage() {
 
     if (product?.id) {
       loadReviews(product.id);
+      const unsub = subscribeRealtime("REVIEWS", (data) => {
+        if (!data?.productId || data.productId === product.id) {
+          loadReviews(product.id);
+        }
+      });
+      return () => {
+        unsub();
+      };
     }
   }, [product?.id]);
 
@@ -736,11 +775,12 @@ export default function ProductDetailPage() {
       }
     }
 
-    // 3. Filter unik tanpa menyuntikkan aset dummy/filler apapun
+    // 3. Filter unik dan pastikan seluruh gambar ter-resolve ke aset lokal offline
     const unique = Array.from(new Set(rawImgs));
+    const resolved = resolveOfflineImages(unique, product.category, product.name, product.id);
 
     // Mendukung hingga maksimal 8 gambar asli dari database
-    return unique.slice(0, 8);
+    return resolved.slice(0, 8);
   }, [product]);
 
   const thumbnailScrollRef = useRef<HTMLDivElement>(null);
@@ -984,7 +1024,7 @@ export default function ProductDetailPage() {
                   }}
                   className="flex sm:flex-col gap-3 shrink-0 overflow-x-auto sm:overflow-y-auto max-h-[506px] sm:max-h-[560px] p-1.5 scroll-smooth overscroll-contain [scrollbar-width:thin] [scrollbar-color:rgba(255,255,255,0.2)_transparent] sm:[&::-webkit-scrollbar]:w-1 sm:[&::-webkit-scrollbar-track]:bg-transparent sm:[&::-webkit-scrollbar-thumb]:bg-white/20 sm:[&::-webkit-scrollbar-thumb]:rounded-full hover:sm:[&::-webkit-scrollbar-thumb]:bg-white/40"
                 >
-                  {galleryImages.map((imgUrl, idx) => {
+                  {galleryImages.map((imgUrl: string, idx: number) => {
                     const isSelected = selectedVariant === idx;
                     return (
                       <button
@@ -1000,6 +1040,12 @@ export default function ProductDetailPage() {
                         <img
                           src={imgUrl}
                           alt={`${product.name} view ${idx + 1}`}
+                          onError={(e) => {
+                            const target = e.currentTarget;
+                            if (!target.src.includes("fallback-product.svg")) {
+                              target.src = "/images/fallback-product.svg";
+                            }
+                          }}
                           className="w-full h-full object-cover"
                         />
                       </button>
@@ -1036,8 +1082,14 @@ export default function ProductDetailPage() {
             {/* Main Image (Zero Borders, Clean Fit) - Off-white (#F4F4F6) */}
             <div className="w-full flex-1 min-w-0 aspect-[494/506] rounded-[8px] bg-[#F4F4F6] border-0 overflow-hidden isolate relative group shadow-2xl">
               <img
-                src={galleryImages[selectedVariant] || galleryImages[0] || product.image}
+                src={galleryImages[selectedVariant] || galleryImages[0] || resolveOfflineImage(product.image, product.category, product.name, product.id)}
                 alt={product.name}
+                onError={(e) => {
+                  const target = e.currentTarget;
+                  if (!target.src.includes("fallback-product.svg")) {
+                    target.src = "/images/fallback-product.svg";
+                  }
+                }}
                 className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
               />
             </div>

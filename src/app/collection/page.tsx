@@ -164,21 +164,36 @@ export default function CollectionPage() {
   };
 
   useEffect(() => {
-    async function loadData() {
-      setIsLoading(true);
-      const data = await fetchProductsFromDb();
+    async function loadData(force: boolean = false) {
+      if (products.length === 0) setIsLoading(true);
+      const data = await fetchProductsFromDb(force);
       setProducts(data);
       setIsLoading(false);
     }
     loadData();
 
     const handleSync = () => {
-      loadData();
+      loadData(true);
     };
+
+    let channel: BroadcastChannel | null = null;
+    if (typeof window !== "undefined" && typeof BroadcastChannel !== "undefined") {
+      try {
+        channel = new BroadcastChannel("tonalzone_catalog_sync");
+        channel.onmessage = () => {
+          handleSync();
+        };
+      } catch (e) {}
+    }
 
     window.addEventListener("productsUpdated", handleSync);
     window.addEventListener("storage", handleSync);
     return () => {
+      if (channel) {
+        try {
+          channel.close();
+        } catch (e) {}
+      }
       window.removeEventListener("productsUpdated", handleSync);
       window.removeEventListener("storage", handleSync);
     };

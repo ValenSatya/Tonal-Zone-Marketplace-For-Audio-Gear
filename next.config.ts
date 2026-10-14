@@ -5,9 +5,20 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   compress: true,
   experimental: {
-    optimizePackageImports: ["lucide-react", "framer-motion", "lenis"],
+    optimizePackageImports: [
+      "lucide-react",
+      "motion",
+      "framer-motion",
+      "lenis",
+      "gsap",
+      "animejs",
+      "@base-ui/react",
+      "d3-array",
+      "d3-shape",
+    ],
   },
   images: {
+    unoptimized: true,
     dangerouslyAllowSVG: true,
     contentDispositionType: "attachment",
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",

@@ -139,22 +139,27 @@ export async function GET(request: Request) {
         image: imgs[0],
         description: cleanDescription,
         ...specs,
-        variants: [
-          {
-            id: `${p.id}-v1`,
-            name: "Standard 3.5mm SE",
-            priceUSD: Number(p.price) || 0,
-            stock: Math.ceil((Number(p.stock) || 0) / 2),
-            sku: `${p.id}-35`,
-          },
-          {
-            id: `${p.id}-v2`,
-            name: "Balanced 4.4mm Pentaconn",
-            priceUSD: Number(p.price) || 0,
-            stock: Math.floor((Number(p.stock) || 0) / 2),
-            sku: `${p.id}-44`,
-          },
-        ],
+        variants: Array.isArray(p.variants) && p.variants.length > 0
+          ? p.variants.map((v: any) => ({
+              ...v,
+              stock: Number(p.stock) === 0 ? 0 : Number(v.stock) || 0,
+            }))
+          : [
+              {
+                id: `${p.id}-v1`,
+                name: "Standard 3.5mm SE",
+                priceUSD: Number(p.price) || 0,
+                stock: Number(p.stock) === 0 ? 0 : Math.ceil((Number(p.stock) || 0) / 2),
+                sku: `${p.id}-35`,
+              },
+              {
+                id: `${p.id}-v2`,
+                name: "Balanced 4.4mm Pentaconn",
+                priceUSD: Number(p.price) || 0,
+                stock: Number(p.stock) === 0 ? 0 : Math.floor((Number(p.stock) || 0) / 2),
+                sku: `${p.id}-44`,
+              },
+            ],
       };
     });
 
@@ -231,6 +236,25 @@ export async function POST(request: Request) {
     if (!name || name.trim().length === 0) {
       return NextResponse.json(
         { success: false, error: "Nama produk wajib diisi." },
+        { status: 400 }
+      );
+    }
+
+    // Anti-Counterfeit Content Policy Check
+    const PROHIBITED_KEYWORDS = ["fake", "replica", "clone", "1:1", "bootleg", "kw super", "kw", "oem", "replika", "tiruan"];
+    const textToCheck = `${name} ${description || ""}`.toLowerCase();
+    const violation = PROHIBITED_KEYWORDS.find((keyword) => {
+      const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const regex = new RegExp(`(^|[^a-z0-9])${escaped}([^a-z0-9]|$)`, "i");
+      return regex.test(textToCheck);
+    });
+
+    if (violation) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Produk melanggar Kebijakan Anti-Counterfeit TonalZone: Mengandung kata terlarang '${violation}'. Hanya produk audiophile original yang diizinkan.`
+        },
         { status: 400 }
       );
     }

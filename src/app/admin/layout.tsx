@@ -1,16 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { ReactNode, useState, useEffect } from "react";
-import { useAdminData } from "@/context/AdminDataContext";
+import { usePathname, useRouter } from "next/navigation";
+import { ReactNode, useState, useEffect, useCallback } from "react";
+import { AdminDataProvider, useAdminData } from "@/context/AdminDataContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { useLocation } from "@/context/LocationContext";
 import { motion, AnimatePresence } from "framer-motion";
 import AdminCommandPalette from "@/components/admin/AdminCommandPalette";
+import { signOutUser } from "@/app/actions/auth";
+import { broadcastRealtime, subscribeRealtime } from "@/lib/realtime-bus";
 
-export default function AdminLayout({ children }: { children: ReactNode }) {
+function AdminLayoutInner({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const { stores, brands, products } = useAdminData();
   const { language, setLanguage } = useLanguage();
   const { currency, setCurrency } = useLocation();
@@ -18,8 +21,45 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
 
+  // Admin session & logout state
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [adminUser, setAdminUser] = useState<{
+    name: string;
+    email: string;
+    avatar?: string;
+  }>({
+    name: "Super Admin",
+    email: "admin@tonalzone.id",
+    avatar: "",
+  });
+
+  const checkAdminAuth = useCallback(() => {
+    if (typeof window === "undefined") return;
+    const stored = localStorage.getItem("tonalzone_user");
+    if (!stored) {
+      router.replace(`/login?redirect=${encodeURIComponent(pathname)}`);
+      return;
+    }
+    try {
+      const u = JSON.parse(stored);
+      setAdminUser({
+        name: u.name || "Super Admin",
+        email: u.email || "admin@tonalzone.id",
+        avatar: u.avatar || "",
+      });
+      const isElevated = u.email && (u.email.toLowerCase().includes("valenandra") || u.email.toLowerCase().includes("admin"));
+      if (u.role !== "ADMIN" && !isElevated) {
+        router.replace(`/login?redirect=${encodeURIComponent(pathname)}`);
+      }
+    } catch {
+      router.replace(`/login?redirect=${encodeURIComponent(pathname)}`);
+    }
+  }, [pathname, router]);
+
   useEffect(() => {
     setMounted(true);
+    checkAdminAuth();
 
     const handleKeyDown = (e: KeyboardEvent) => {
       // Ctrl+K or Cmd+K to open Command Palette
@@ -30,8 +70,53 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     };
 
     window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
+
+    // 1. Cross-tab logout listener via Universal Realtime Bus (< 1ms delivery)
+    const unsubAuth = subscribeRealtime("AUTH", (data) => {
+      if (data?.action === "LOGOUT") {
+        router.replace(`/login?redirect=${encodeURIComponent(pathname)}`);
+      }
+    });
+
+    // 2. Cross-tab logout listener via native storage event
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === "tonalzone_user" && !e.newValue) {
+        router.replace(`/login?redirect=${encodeURIComponent(pathname)}`);
+      }
+      if (e.key === "tonalzone_logout_timestamp") {
+        router.replace(`/login?redirect=${encodeURIComponent(pathname)}`);
+      }
+    };
+
+    window.addEventListener("storage", handleStorage);
+    window.addEventListener("userLoginChange", checkAdminAuth);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      unsubAuth();
+      window.removeEventListener("storage", handleStorage);
+      window.removeEventListener("userLoginChange", checkAdminAuth);
+    };
+  }, [checkAdminAuth, pathname, router]);
+
+  const handleConfirmLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      await signOutUser();
+    } catch (err) {
+      console.error("Sign out error:", err);
+    }
+    localStorage.removeItem("tonalzone_user");
+    localStorage.setItem("tonalzone_logout_timestamp", Date.now().toString());
+
+    // Broadcast instant logout across all other open tabs
+    broadcastRealtime("AUTH", { action: "LOGOUT", role: "admin", timestamp: Date.now() });
+
+    window.dispatchEvent(new Event("userLoginChange"));
+    setIsLoggingOut(false);
+    setIsLogoutModalOpen(false);
+    router.replace("/login");
+  };
 
   const isEn = language === "English";
   const pendingStores = mounted ? stores.filter((s) => s.status === "PENDING").length : 0;
@@ -61,8 +146,18 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       breadcrumbs.push({ label: isEn ? "User Directory" : "Daftar Pengguna", path: "/admin/users" });
     } else if (parts[1] === "transactions") {
       breadcrumbs.push({ label: isEn ? "Escrow & Settlements" : "Rekening Bersama", path: "/admin/transactions" });
+    } else if (parts[1] === "reports") {
+      breadcrumbs.push({ label: isEn ? "Financial Reports" : "Laporan Finansial", path: "/admin/reports" });
+    } else if (parts[1] === "logs") {
+      breadcrumbs.push({ label: isEn ? "Audit Trail & Logs" : "Log Aktivitas Admin", path: "/admin/logs" });
     } else if (parts[1] === "config") {
-      breadcrumbs.push({ label: isEn ? "Categories" : "Kategori Produk", path: "/admin/config/catalog" });
+      if (parts[2] === "system") {
+        breadcrumbs.push({ label: isEn ? "System Settings" : "Pengaturan Sistem", path: "/admin/config/system" });
+      } else if (parts[2] === "content") {
+        breadcrumbs.push({ label: isEn ? "Content Policy" : "Kebijakan Konten", path: "/admin/config/content" });
+      } else {
+        breadcrumbs.push({ label: isEn ? "Categories" : "Kategori Produk", path: "/admin/config/catalog" });
+      }
     } else if (parts[1] === "support") {
       breadcrumbs.push({ label: isEn ? "Customer Support" : "Layanan Pelanggan (CS)", path: "/admin/support" });
     }
@@ -253,12 +348,12 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                 {isEn ? "User Directory" : "Daftar Pengguna"}
               </span>
             </Link>
-            <Link href="/admin/config/catalog" onClick={() => setMobileMenuOpen(false)} className={getLinkClass("/admin/config/catalog")}>
+            <Link href="/admin/reports" onClick={() => setMobileMenuOpen(false)} className={getLinkClass("/admin/reports")}>
               <span className="flex items-center gap-2.5">
-                <svg className={getIconClass("/admin/config/catalog")} fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6.429 9.75L2.25 12l4.179 2.25m0-4.5l5.571 3 5.571-3m-11.142 0L2.25 7.5 12 2.25l9.75 5.25-4.179 2.25m0 0L21.75 12l-4.179 2.25m0 0l4.179 2.25L12 21.75 2.25 16.5l4.179-2.25m11.142 0l-5.571 3-5.571-3" />
+                <svg className={getIconClass("/admin/reports")} fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
                 </svg>
-                {isEn ? "Product Categories" : "Kategori Produk"}
+                {isEn ? "Financial & Export Reports" : "Laporan & Ekspor CSV"}
               </span>
             </Link>
             <Link href="/admin/support" onClick={() => setMobileMenuOpen(false)} className={getLinkClass("/admin/support")}>
@@ -271,22 +366,80 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             </Link>
           </div>
         </div>
+
+        {/* Platform & Governance */}
+        <div>
+          <h2 className="text-[9px] font-mono font-bold text-[#52525B] uppercase tracking-widest mb-1.5 px-3">
+            {isEn ? "Platform & System" : "Konfigurasi & Sistem"}
+          </h2>
+          <div className="flex flex-col space-y-1">
+            <Link href="/admin/config/system" onClick={() => setMobileMenuOpen(false)} className={getLinkClass("/admin/config/system")}>
+              <span className="flex items-center gap-2.5">
+                <svg className={getIconClass("/admin/config/system")} fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M10.343 3.94c.09-.542.56-.94 1.11-.94h1.093c.55 0 1.02.398 1.11.94l.149.894c.07.424.384.764.78.93.398.164.855.142 1.205-.108l.737-.527a1.125 1.125 0 011.45.12l.773.774c.39.389.44 1.002.12 1.45l-.527.737c-.25.35-.272.806-.107 1.204.165.397.505.71.93.78l.893.15c.543.09.94.56.94 1.109v1.094c0 .55-.397 1.02-.94 1.11l-.893.149c-.425.07-.765.383-.93.78-.165.398-.143.854.107 1.204l.527.738c.32.447.27.1.06-.12 1.45l-.774.773a1.125 1.125 0 01-1.449.12l-.738-.527c-.35-.25-.806-.272-1.203-.107-.397.165-.71.505-.781.929l-.149.894c-.09.542-.56.94-1.11.94h-1.094c-.55 0-1.019-.398-1.11-.94l-.148-.894c-.071-.424-.384-.764-.781-.93-.398-.164-.854-.142-1.204.108l-.738.527c-.447.32-1.06.27-1.45-.12l-.773-.774a1.125 1.125 0 01-.12-1.45l.527-.737c.25-.35.273-.806.108-1.204-.165-.397-.505-.71-.93-.78l-.894-.15c-.542-.09-.94-.56-.94-1.109v-1.094c0-.55.398-1.02.94-1.11l.894-.149c.424-.07.765-.383.93-.78.165-.398.143-.854-.107-1.204l-.527-.738a1.125 1.125 0 01.12-1.45l.773-.773a1.125 1.125 0 011.45-.12l.737.527c.35.25.807.272 1.204.107.397-.165.71-.505.78-.929l.15-.894z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                {isEn ? "System & Escrow Settings" : "Pengaturan Sistem & Rekber"}
+              </span>
+            </Link>
+            <Link href="/admin/config/catalog" onClick={() => setMobileMenuOpen(false)} className={getLinkClass("/admin/config/catalog")}>
+              <span className="flex items-center gap-2.5">
+                <svg className={getIconClass("/admin/config/catalog")} fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6.429 9.75L2.25 12l4.179 2.25m0-4.5l5.571 3 5.571-3m-11.142 0L2.25 7.5 12 2.25l9.75 5.25-4.179 2.25m0 0L21.75 12l-4.179 2.25m0 0l4.179 2.25L12 21.75 2.25 16.5l4.179-2.25m11.142 0l-5.571 3-5.571-3" />
+                </svg>
+                {isEn ? "Product Categories" : "Kategori Produk"}
+              </span>
+            </Link>
+            <Link href="/admin/config/content" onClick={() => setMobileMenuOpen(false)} className={getLinkClass("/admin/config/content")}>
+              <span className="flex items-center gap-2.5">
+                <svg className={getIconClass("/admin/config/content")} fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+                </svg>
+                {isEn ? "Content & Anti-KW Policy" : "Kebijakan Konten & Anti-KW"}
+              </span>
+            </Link>
+            <Link href="/admin/logs" onClick={() => setMobileMenuOpen(false)} className={getLinkClass("/admin/logs")}>
+              <span className="flex items-center gap-2.5">
+                <svg className={getIconClass("/admin/logs")} fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                {isEn ? "Audit Trail & Logs" : "Log Aktivitas Admin"}
+              </span>
+            </Link>
+          </div>
+        </div>
       </nav>
 
       {/* Admin User Footer */}
-      <div className="p-4 bg-[#060606]">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-xl bg-[#141414] text-[#FAF9F6] font-mono font-bold text-xs flex items-center justify-center shadow-sm">
-            SA
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-xs font-semibold text-[#FAF9F6] truncate">Super Admin</p>
-            <div className="flex items-center gap-1.5 mt-0.5">
-              <span className="text-[10px] font-mono text-[#71717A]">
-                {isEn ? "Full Access Level" : "Hak Akses Penuh"}
-              </span>
+      <div className="p-3 bg-[#060606] border-t border-[#141414]">
+        <div className="flex items-center justify-between p-2 rounded-xl bg-[#0A0A0A] hover:bg-[#101010] transition-colors group">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-8 h-8 rounded-xl bg-[#141414] text-[#FAF9F6] font-mono font-bold text-xs flex items-center justify-center shrink-0 border border-[#222] overflow-hidden">
+              {adminUser.avatar ? (
+                <img src={adminUser.avatar} alt="Avatar" className="w-full h-full object-cover" />
+              ) : (
+                adminUser.name.slice(0, 2).toUpperCase()
+              )}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-semibold text-[#FAF9F6] truncate">{adminUser.name}</p>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <span className="text-[10px] font-mono text-[#71717A] truncate">
+                  {adminUser.email}
+                </span>
+              </div>
             </div>
           </div>
+          <button
+            type="button"
+            onClick={() => setIsLogoutModalOpen(true)}
+            className="p-1.5 rounded-lg text-[#71717A] hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer shrink-0 ml-1.5"
+            title={isEn ? "Log Out of Admin" : "Keluar dari Dashboard Admin"}
+          >
+            <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+            </svg>
+          </button>
         </div>
       </div>
     </div>
@@ -461,8 +614,21 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
                </svg>
-               {language === "English" ? "Storefront" : "Lihat Toko"}
+               <span className="hidden sm:inline">{language === "English" ? "Storefront" : "Lihat Toko"}</span>
              </Link>
+
+             {/* Logout Button (Quick access in header) */}
+             <button 
+               type="button"
+               onClick={() => setIsLogoutModalOpen(true)}
+               className="inline-flex items-center gap-1.5 text-xs font-mono font-medium text-[#8E8E93] hover:text-rose-400 bg-[#0E0E0E] hover:bg-rose-500/10 border border-transparent hover:border-rose-500/20 transition-all px-3.5 py-1.5 rounded-full cursor-pointer"
+               title={isEn ? "Log Out of Admin" : "Keluar dari Admin"}
+             >
+               <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                 <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+               </svg>
+               <span>{isEn ? "Log Out" : "Keluar"}</span>
+             </button>
           </div>
         </header>
 
@@ -478,7 +644,84 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           isOpen={isCommandPaletteOpen} 
           onClose={() => setIsCommandPaletteOpen(false)} 
         />
+
+        {/* Logout Confirmation Modal */}
+        <AnimatePresence>
+          {isLogoutModalOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => !isLoggingOut && setIsLogoutModalOpen(false)}
+                className="fixed inset-0 bg-black/85 backdrop-blur-sm"
+              />
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                className="relative w-full max-w-sm rounded-2xl bg-[#0A0A0A] border border-[#222222] p-6 shadow-2xl z-10"
+              >
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 shrink-0">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+                    </svg>
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="text-sm font-bold text-white font-sans truncate">
+                      {isEn ? "Log Out from Admin?" : "Keluar dari Dashboard Admin?"}
+                    </h3>
+                    <p className="text-[11px] font-mono text-[#8E8E93] truncate mt-0.5">
+                      {adminUser.email}
+                    </p>
+                  </div>
+                </div>
+
+                <p className="text-xs text-[#A1A1AA] leading-relaxed mb-6 font-sans">
+                  {isEn
+                    ? "You will be signed out from your admin session. Any other open tabs will also synchronize and log out automatically."
+                    : "Sesi administrator Anda akan diakhiri. Seluruh tab lain yang sedang membuka dashboard admin di browser ini akan otomatis keluar secara bersamaan."}
+                </p>
+
+                <div className="flex items-center justify-end gap-2.5">
+                  <button
+                    type="button"
+                    disabled={isLoggingOut}
+                    onClick={() => setIsLogoutModalOpen(false)}
+                    className="px-4 py-2 rounded-xl text-xs font-mono font-medium text-[#A1A1AA] hover:text-white bg-[#141414] hover:bg-[#1E1E1E] transition-colors cursor-pointer disabled:opacity-50"
+                  >
+                    {isEn ? "Cancel" : "Batal"}
+                  </button>
+                  <button
+                    type="button"
+                    disabled={isLoggingOut}
+                    onClick={handleConfirmLogout}
+                    className="px-4 py-2 rounded-xl text-xs font-mono font-semibold text-white bg-rose-600 hover:bg-rose-500 transition-colors shadow-sm cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
+                  >
+                    {isLoggingOut ? (
+                      <>
+                        <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        <span>{isEn ? "Logging out..." : "Mengeluarkan..."}</span>
+                      </>
+                    ) : (
+                      <span>{isEn ? "Yes, Log Out" : "Ya, Keluar"}</span>
+                    )}
+                  </button>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
       </main>
     </div>
+  );
+}
+
+export default function AdminLayout({ children }: { children: ReactNode }) {
+  return (
+    <AdminDataProvider>
+      <AdminLayoutInner>{children}</AdminLayoutInner>
+    </AdminDataProvider>
   );
 }

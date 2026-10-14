@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { AreaChart } from "@/components/charts/area-chart";
 import { Area } from "@/components/charts/area";
 import CustomSelect from "@/components/ui/custom-select";
+import { getDynamicSparkline } from "@/lib/telemetry";
 
 export default function SellerApprovalsPage() {
   const { stores, updateStoreStatus, bulkUpdateStoreStatus, exportToCSV } = useAdminData();
@@ -28,36 +29,10 @@ export default function SellerApprovalsPage() {
   const approvedCount = stores.filter((s) => s.status === "APPROVED").length;
   const suspendedCount = stores.filter((s) => s.status === "SUSPENDED" || s.status === "REJECTED").length;
 
-  // Micro Sparklines
-  const sparklinePending = useMemo(() => [
-    { date: new Date("2026-08-10"), val: 1 },
-    { date: new Date("2026-08-11"), val: 1 },
-    { date: new Date("2026-08-12"), val: 2 },
-    { date: new Date("2026-08-13"), val: 2 },
-    { date: new Date("2026-08-14"), val: 3 },
-    { date: new Date("2026-08-15"), val: 3 },
-    { date: new Date("2026-08-16"), val: pendingCount },
-  ], [pendingCount]);
-
-  const sparklineApproved = useMemo(() => [
-    { date: new Date("2026-08-10"), val: 2 },
-    { date: new Date("2026-08-11"), val: 2 },
-    { date: new Date("2026-08-12"), val: 3 },
-    { date: new Date("2026-08-13"), val: 3 },
-    { date: new Date("2026-08-14"), val: 4 },
-    { date: new Date("2026-08-15"), val: 4 },
-    { date: new Date("2026-08-16"), val: approvedCount },
-  ], [approvedCount]);
-
-  const sparklineSuspended = useMemo(() => [
-    { date: new Date("2026-08-10"), val: 0 },
-    { date: new Date("2026-08-11"), val: 0 },
-    { date: new Date("2026-08-12"), val: 0 },
-    { date: new Date("2026-08-13"), val: 1 },
-    { date: new Date("2026-08-14"), val: 1 },
-    { date: new Date("2026-08-15"), val: 1 },
-    { date: new Date("2026-08-16"), val: suspendedCount },
-  ], [suspendedCount]);
+  // Micro Sparklines (100% Dynamic)
+  const sparklinePending = useMemo(() => getDynamicSparkline(pendingCount), [pendingCount]);
+  const sparklineApproved = useMemo(() => getDynamicSparkline(approvedCount), [approvedCount]);
+  const sparklineSuspended = useMemo(() => getDynamicSparkline(suspendedCount), [suspendedCount]);
 
   const processedStores = useMemo(() => {
     const filtered = stores.filter((s) => {

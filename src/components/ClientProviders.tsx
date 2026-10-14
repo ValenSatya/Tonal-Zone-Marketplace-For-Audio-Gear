@@ -3,7 +3,6 @@
 import { LanguageProvider } from "@/context/LanguageContext";
 import { LocationProvider } from "@/context/LocationContext";
 import { CartProvider } from "@/context/CartContext";
-import { AdminDataProvider } from "@/context/AdminDataContext";
 import { NotificationProvider } from "@/context/NotificationContext";
 
 export default function ClientProviders({ children }: { children: React.ReactNode }) {
@@ -12,7 +11,7 @@ export default function ClientProviders({ children }: { children: React.ReactNod
       <LanguageProvider>
         <CartProvider>
           <NotificationProvider>
-            <AdminDataProvider>{children}</AdminDataProvider>
+            {children}
           </NotificationProvider>
         </CartProvider>
       </LanguageProvider>

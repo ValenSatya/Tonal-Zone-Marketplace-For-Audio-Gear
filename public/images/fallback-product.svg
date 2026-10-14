@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#141416" />
+      <stop offset="100%" stop-color="#0a0a0c" />
+    </linearGradient>
+    <linearGradient id="neon" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#BFDD25" />
+      <stop offset="100%" stop-color="#849b10" />
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#BFDD25" stop-opacity="0.15" />
+      <stop offset="100%" stop-color="#BFDD25" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+
+  <!-- Background Base -->
+  <rect width="400" height="400" rx="16" fill="url(#bg)" />
+
+  <!-- Subtle Radial Glow Behind IEM Shell -->
+  <circle cx="200" cy="185" r="130" fill="url(#glow)" />
+
+  <!-- Elegant Acoustic IEM Shell Silhouette -->
+  <g transform="translate(130, 115) scale(0.7)" stroke="url(#neon)" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Outer IEM Shell Body -->
+    <path d="M 40 70 C 40 30, 85 20, 125 35 C 165 50, 185 85, 175 130 C 165 175, 130 195, 95 190 C 60 185, 40 150, 40 110 Z" fill="#1b1c20" fill-opacity="0.8" />
+    <!-- Faceplate Accent Accentuation -->
+    <path d="M 65 65 Q 115 50 145 95 Q 155 140 110 160" stroke="#BFDD25" stroke-opacity="0.6" stroke-width="4" />
+    <!-- Sound Bore / Nozzle Tube -->
+    <path d="M 45 145 L 20 170 C 15 175, 10 185, 18 192 C 26 199, 36 194, 42 188 L 68 162" stroke="url(#neon)" stroke-width="5" fill="#25272e" />
+    <!-- 2-Pin Cable Connector Socket -->
+    <rect x="110" y="24" width="28" height="14" rx="4" fill="#BFDD25" stroke="none" />
+    <circle cx="118" cy="31" r="2.5" fill="#0c0d10" stroke="none" />
+    <circle cx="130" cy="31" r="2.5" fill="#0c0d10" stroke="none" />
+  </g>
+
+  <!-- Brand Typography -->
+  <text x="200" y="295" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="700" letter-spacing="3" fill="#BFDD25" text-anchor="middle">TONAL ZONE</text>
+  <text x="200" y="320" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="500" letter-spacing="1.5" fill="#71717a" text-anchor="middle">HIGH-FIDELITY AUDIO</text>
+</svg>

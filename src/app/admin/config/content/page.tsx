@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 
 export default function ContentConfigPage() {
@@ -12,13 +12,27 @@ export default function ContentConfigPage() {
     requireQCForEveryListing: true,
     allowBuyerAudioSamples: true,
     maxListingPhotos: 8,
-    prohibitedKeywords: "fake, replica, clone, 1:1, bootleg, kw super",
+    prohibitedKeywords: "fake, replica, clone, 1:1, bootleg, kw super, kw, oem, replika, tiruan",
   });
 
   const [isSaved, setIsSaved] = useState(false);
 
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("tonalzone_content_policy");
+      if (saved) {
+        setPolicies((prev) => ({ ...prev, ...JSON.parse(saved) }));
+      }
+    } catch (e) {}
+  }, []);
+
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
+    try {
+      localStorage.setItem("tonalzone_content_policy", JSON.stringify(policies));
+      window.dispatchEvent(new CustomEvent("contentPolicyUpdated", { detail: policies }));
+      window.dispatchEvent(new Event("storage"));
+    } catch (e) {}
     setIsSaved(true);
     setTimeout(() => setIsSaved(false), 2500);
   };

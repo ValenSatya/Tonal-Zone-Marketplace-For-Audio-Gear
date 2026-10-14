@@ -15,6 +15,7 @@ import { getAuthSession, signOutUser } from "@/app/actions/auth";
 import { fetchProductsFromDb, CatalogProduct } from "@/lib/products-db";
 import SearchDrawer from "@/components/SearchDrawer";
 import { KeyboardArrowRight, KeyboardArrowDown } from "@/components/ui/keyboard-arrow";
+import { broadcastRealtime } from "@/lib/realtime-bus";
 
 const SEARCH_CATEGORIES = [
   "IN-EAR MONITORS",
@@ -112,7 +113,9 @@ export default function Navbar() {
       console.error("Sign out error:", err);
     }
     localStorage.removeItem("tonalzone_user");
+    localStorage.setItem("tonalzone_logout_timestamp", Date.now().toString());
     setUserSession(null);
+    broadcastRealtime("AUTH", { action: "LOGOUT", role: "user", timestamp: Date.now() });
     window.dispatchEvent(new Event("userLoginChange"));
     setIsLoggingOut(false);
     setIsLogoutModalOpen(false);
@@ -217,6 +220,7 @@ export default function Navbar() {
           <div className="relative group h-full flex items-center">
             <Link
               href="/"
+              prefetch={false}
               className={`relative text-[10px] uppercase tracking-[0.2em] font-extrabold py-1 transition-colors ${getNavClass(pathname === "/")}`}
             >
               {t("nav.home")}
@@ -289,6 +293,7 @@ export default function Navbar() {
           <div className="relative group h-full flex items-center">
             <Link
               href="/collection"
+              prefetch={false}
               className={`relative text-[10px] uppercase tracking-[0.2em] font-extrabold py-1 transition-colors ${getNavClass(pathname.startsWith("/collection"))}`}
             >
               {t("nav.collection")}
@@ -451,6 +456,7 @@ export default function Navbar() {
           <div className="relative group h-full flex items-center">
             <Link
               href="/graph"
+              prefetch={false}
               className={`relative text-[10px] uppercase tracking-[0.2em] font-extrabold py-1 transition-colors ${getNavClass(pathname.startsWith("/graph"))}`}
             >
               {t("nav.graph")}
@@ -542,6 +548,7 @@ export default function Navbar() {
           <div className="relative group h-full flex items-center">
             <Link
               href="/support"
+              prefetch={false}
               className={`relative text-[10px] uppercase tracking-[0.2em] font-extrabold py-1 transition-colors ${getNavClass(pathname.startsWith("/support"))}`}
             >
               {t("nav.support")}
@@ -905,6 +912,7 @@ export default function Navbar() {
                       {(userSession.email?.toLowerCase().includes("valenandrasatya") || userSession.role === "ADMIN" || (userSession as any).role === "admin") && (
                         <Link
                           href="/admin"
+                          prefetch={false}
                           className="flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-amber-400 hover:text-amber-300 hover:bg-[#1f1f1f] transition-all duration-150 group/item"
                         >
                           <div className="flex items-center gap-2.5">
@@ -921,6 +929,7 @@ export default function Navbar() {
                       {userSession.isSeller || userSession.sellerStatus === "APPROVED" || userSession.role === "SELLER" || (userSession as any).role === "seller" ? (
                         <Link
                           href="/seller"
+                          prefetch={false}
                           className="flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-emerald-400 hover:bg-[#1f1f1f] transition-all duration-150 group/item"
                         >
                           <div className="flex items-center gap-2.5">
@@ -932,6 +941,7 @@ export default function Navbar() {
                       ) : userSession.sellerStatus === "PENDING_APPROVAL" || userSession.sellerStatus === "PENDING" ? (
                         <Link
                           href="/seller"
+                          prefetch={false}
                           className="flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-amber-400 hover:bg-[#1f1f1f] transition-all duration-150 group/item"
                         >
                           <div className="flex items-center gap-2.5">
@@ -943,6 +953,7 @@ export default function Navbar() {
                       ) : (
                         <Link
                           href="/sell"
+                          prefetch={false}
                           className="flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-purple-400 hover:bg-[#1f1f1f] transition-all duration-150 group/item"
                         >
                           <div className="flex items-center gap-2.5">
@@ -955,6 +966,7 @@ export default function Navbar() {
 
                       <Link
                         href="/orders"
+                        prefetch={false}
                         className="flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-[#FAF9F6]/80 hover:text-white hover:bg-[#1f1f1f] transition-all duration-150 group/item"
                       >
                         <div className="flex items-center gap-2.5">

@@ -50,7 +50,7 @@ async function runPureDatabaseVerification() {
     `Orders found: ${emptyBuyerOrders.length}`
   );
 
-  const testBuyerEmail = "valen.test.buyer@audiophile.test";
+  const testBuyerEmail = "valen.test.buyer." + Date.now() + "@audiophile.test";
   const testOrderId = `ORD-TEST-${Date.now()}`;
   const createdOrder = await orderRepo.create({
     id: testOrderId,

@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { AreaChart } from "@/components/charts/area-chart";
 import { Area } from "@/components/charts/area";
 import CustomSelect from "@/components/ui/custom-select";
+import { getDynamicSparkline } from "@/lib/telemetry";
 
 const PAGE_SIZE = 10;
 
@@ -35,36 +36,10 @@ export default function ProductModerationPage() {
   const approvedCount = products.filter((p) => p.status === "APPROVED").length;
   const rejectedCount = products.filter((p) => p.status === "REJECTED").length;
 
-  // Micro Sparklines
-  const sparklinePending = useMemo(() => [
-    { date: new Date("2026-08-10"), val: 1 },
-    { date: new Date("2026-08-11"), val: 2 },
-    { date: new Date("2026-08-12"), val: 1 },
-    { date: new Date("2026-08-13"), val: 3 },
-    { date: new Date("2026-08-14"), val: 2 },
-    { date: new Date("2026-08-15"), val: 4 },
-    { date: new Date("2026-08-16"), val: pendingCount },
-  ], [pendingCount]);
-
-  const sparklineApproved = useMemo(() => [
-    { date: new Date("2026-08-10"), val: 4 },
-    { date: new Date("2026-08-11"), val: 5 },
-    { date: new Date("2026-08-12"), val: 6 },
-    { date: new Date("2026-08-13"), val: 7 },
-    { date: new Date("2026-08-14"), val: 7 },
-    { date: new Date("2026-08-15"), val: 8 },
-    { date: new Date("2026-08-16"), val: approvedCount },
-  ], [approvedCount]);
-
-  const sparklineRejected = useMemo(() => [
-    { date: new Date("2026-08-10"), val: 0 },
-    { date: new Date("2026-08-11"), val: 1 },
-    { date: new Date("2026-08-12"), val: 1 },
-    { date: new Date("2026-08-13"), val: 1 },
-    { date: new Date("2026-08-14"), val: 2 },
-    { date: new Date("2026-08-15"), val: 2 },
-    { date: new Date("2026-08-16"), val: rejectedCount },
-  ], [rejectedCount]);
+  // Micro Sparklines (100% Dynamic)
+  const sparklinePending = useMemo(() => getDynamicSparkline(pendingCount), [pendingCount]);
+  const sparklineApproved = useMemo(() => getDynamicSparkline(approvedCount), [approvedCount]);
+  const sparklineRejected = useMemo(() => getDynamicSparkline(rejectedCount), [rejectedCount]);
 
   const processedProducts = useMemo(() => {
     const query = deferredSearchQuery.trim().toLowerCase();

@@ -1,0 +1,459 @@
+{
+  "version": "31.1.9",
+  "pages": [
+    {
+      "id": "PQGxlJiEcxP6uunSfd_r",
+      "name": "Page-1",
+      "cells": [
+        {
+          "id": "1",
+          "type": "layer"
+        },
+        {
+          "id": "N8ibMAVOOQvxt0qaIHxF-4",
+          "type": "node",
+          "parent": "1",
+          "label": "Guest"
+        },
+        {
+          "id": "N8ibMAVOOQvxt0qaIHxF-6",
+          "type": "node",
+          "parent": "1"
+        },
+        {
+          "id": "N8ibMAVOOQvxt0qaIHxF-3",
+          "type": "node",
+          "parent": "1",
+          "label": "Sistem Tonal zone",
+          "html": "<font>Sistem Tonal zone</font>"
+        },
+        {
+          "id": "N8ibMAVOOQvxt0qaIHxF-8",
+          "type": "node",
+          "parent": "1",
+          "label": "Melihat katalog produk"
+        },
+        {
+          "id": "N8ibMAVOOQvxt0qaIHxF-9",
+          "type": "node",
+          "parent": "1",
+          "label": "Mendaftar akun"
+        },
+        {
+          "id": "N8ibMAVOOQvxt0qaIHxF-10",
+          "type": "node",
+          "parent": "1",
+          "label": "Mencari &amp; memfilter produk"
+        },
+        {
+          "id": "N8ibMAVOOQvxt0qaIHxF-11",
+          "type": "node",
+          "parent": "1",
+          "label": "Login"
+        },
+        {
+          "id": "N8ibMAVOOQvxt0qaIHxF-14",
+          "type": "edge",
+          "parent": "1",
+          "source": "N8ibMAVOOQvxt0qaIHxF-4",
+          "target": "N8ibMAVOOQvxt0qaIHxF-9"
+        },
+        {
+          "id": "N8ibMAVOOQvxt0qaIHxF-15",
+          "type": "edge",
+          "parent": "1",
+          "source": "N8ibMAVOOQvxt0qaIHxF-4",
+          "target": "N8ibMAVOOQvxt0qaIHxF-10"
+        },
+        {
+          "id": "N8ibMAVOOQvxt0qaIHxF-16",
+          "type": "edge",
+          "parent": "1",
+          "source": "N8ibMAVOOQvxt0qaIHxF-4",
+          "target": "N8ibMAVOOQvxt0qaIHxF-8"
+        },
+        {
+          "id": "N8ibMAVOOQvxt0qaIHxF-17",
+          "type": "node",
+          "parent": "1",
+          "label": "User",
+          "html": "User<div><br></div>"
+        },
+        {
+          "id": "N8ibMAVOOQvxt0qaIHxF-20",
+          "type": "edge",
+          "parent": "1",
+          "source": "N8ibMAVOOQvxt0qaIHxF-8",
+          "target": "N8ibMAVOOQvxt0qaIHxF-17"
+        },
+        {
+          "id": "N8ibMAVOOQvxt0qaIHxF-21",
+          "type": "edge",
+          "parent": "1",
+          "source": "N8ibMAVOOQvxt0qaIHxF-10",
+          "target": "N8ibMAVOOQvxt0qaIHxF-17"
+        },
+        {
+          "id": "N8ibMAVOOQvxt0qaIHxF-22",
+          "type": "node",
+          "parent": "1",
+          "label": "Menambah ke keranjang"
+        },
+        {
+          "id": "N8ibMAVOOQvxt0qaIHxF-23",
+          "type": "node",
+          "parent": "1",
+          "label": "Checkout &amp; membayar"
+        },
+        {
+          "id": "N8ibMAVOOQvxt0qaIHxF-24",
+          "type": "node",
+          "parent": "1",
+          "label": "Mengelola profil &amp; alamat"
+        },
+        {
+          "id": "N8ibMAVOOQvxt0qaIHxF-25",
+          "type": "node",
+          "parent": "1",
+          "label": "Melihat riwayat pesanan"
+        },
+        {
+          "id": "N8ibMAVOOQvxt0qaIHxF-26",
+          "type": "node",
+          "parent": "1",
+          "label": "Membuka toko"
+        },
+        {
+          "id": "N8ibMAVOOQvxt0qaIHxF-27",
+          "type": "edge",
+          "parent": "1",
+          "source": "N8ibMAVOOQvxt0qaIHxF-22",
+          "target": "N8ibMAVOOQvxt0qaIHxF-17"
+        },
+        {
+          "id": "N8ibMAVOOQvxt0qaIHxF-28",
+          "type": "edge",
+          "parent": "1",
+          "source": "N8ibMAVOOQvxt0qaIHxF-23",
+          "target": "N8ibMAVOOQvxt0qaIHxF-17"
+        },
+        {
+          "id": "N8ibMAVOOQvxt0qaIHxF-29",
+          "type": "edge",
+          "parent": "1",
+          "source": "N8ibMAVOOQvxt0qaIHxF-26",
+          "target": "N8ibMAVOOQvxt0qaIHxF-17"
+        },
+        {
+          "id": "N8ibMAVOOQvxt0qaIHxF-30",
+          "type": "edge",
+          "parent": "1",
+          "source": "N8ibMAVOOQvxt0qaIHxF-24",
+          "target": "N8ibMAVOOQvxt0qaIHxF-17"
+        },
+        {
+          "id": "N8ibMAVOOQvxt0qaIHxF-31",
+          "type": "edge",
+          "parent": "1",
+          "source": "N8ibMAVOOQvxt0qaIHxF-25",
+          "target": "N8ibMAVOOQvxt0qaIHxF-17"
+        },
+        {
+          "id": "N8ibMAVOOQvxt0qaIHxF-32",
+          "type": "node",
+          "parent": "1",
+          "label": "Pilih Alamat Pengiriman"
+        },
+        {
+          "id": "N8ibMAVOOQvxt0qaIHxF-33",
+          "type": "edge",
+          "parent": "1",
+          "source": "N8ibMAVOOQvxt0qaIHxF-23",
+          "target": "N8ibMAVOOQvxt0qaIHxF-32",
+          "label": "&lt;include&gt;"
+        },
+        {
+          "id": "N8ibMAVOOQvxt0qaIHxF-34",
+          "type": "node",
+          "parent": "1",
+          "label": "Isi Profil Toko"
+        },
+        {
+          "id": "N8ibMAVOOQvxt0qaIHxF-35",
+          "type": "node",
+          "parent": "1",
+          "label": "Pilih/Ajukan Brand"
+        },
+        {
+          "id": "N8ibMAVOOQvxt0qaIHxF-36",
+          "type": "edge",
+          "parent": "1",
+          "source": "N8ibMAVOOQvxt0qaIHxF-26",
+          "target": "N8ibMAVOOQvxt0qaIHxF-34",
+          "label": "&lt;include&gt;"
+        },
+        {
+          "id": "N8ibMAVOOQvxt0qaIHxF-37",
+          "type": "edge",
+          "parent": "1",
+          "source": "N8ibMAVOOQvxt0qaIHxF-26",
+          "target": "N8ibMAVOOQvxt0qaIHxF-35",
+          "label": "&lt;include&gt;"
+        },
+        {
+          "id": "N8ibMAVOOQvxt0qaIHxF-38",
+          "type": "node",
+          "parent": "1",
+          "label": "Melihat Rekomendasi Produk"
+        },
+        {
+          "id": "N8ibMAVOOQvxt0qaIHxF-39",
+          "type": "edge",
+          "parent": "1",
+          "source": "N8ibMAVOOQvxt0qaIHxF-38",
+          "target": "N8ibMAVOOQvxt0qaIHxF-10",
+          "label": "&lt;extend&gt;"
+        },
+        {
+          "id": "N8ibMAVOOQvxt0qaIHxF-40",
+          "type": "node",
+          "parent": "1",
+          "label": "Seller"
+        },
+        {
+          "id": "N8ibMAVOOQvxt0qaIHxF-41",
+          "type": "node",
+          "parent": "1",
+          "label": "Mengelola profil toko"
+        },
+        {
+          "id": "N8ibMAVOOQvxt0qaIHxF-42",
+          "type": "node",
+          "parent": "1",
+          "label": "Mengelola Produk"
+        },
+        {
+          "id": "N8ibMAVOOQvxt0qaIHxF-43",
+          "type": "node",
+          "parent": "1",
+          "label": "Mengajukan brand"
+        },
+        {
+          "id": "N8ibMAVOOQvxt0qaIHxF-44",
+          "type": "node",
+          "parent": "1",
+          "label": "Mengelola pesanan masuk"
+        },
+        {
+          "id": "N8ibMAVOOQvxt0qaIHxF-45",
+          "type": "node",
+          "parent": "1",
+          "label": "Mengatur rekening payout"
+        },
+        {
+          "id": "N8ibMAVOOQvxt0qaIHxF-46",
+          "type": "edge",
+          "parent": "1",
+          "source": "N8ibMAVOOQvxt0qaIHxF-40",
+          "target": "N8ibMAVOOQvxt0qaIHxF-41"
+        },
+        {
+          "id": "N8ibMAVOOQvxt0qaIHxF-47",
+          "type": "edge",
+          "parent": "1",
+          "source": "N8ibMAVOOQvxt0qaIHxF-40",
+          "target": "N8ibMAVOOQvxt0qaIHxF-43"
+        },
+        {
+          "id": "N8ibMAVOOQvxt0qaIHxF-48",
+          "type": "edge",
+          "parent": "1",
+          "source": "N8ibMAVOOQvxt0qaIHxF-40",
+          "target": "N8ibMAVOOQvxt0qaIHxF-42"
+        },
+        {
+          "id": "N8ibMAVOOQvxt0qaIHxF-49",
+          "type": "edge",
+          "parent": "1",
+          "source": "N8ibMAVOOQvxt0qaIHxF-40",
+          "target": "N8ibMAVOOQvxt0qaIHxF-44"
+        },
+        {
+          "id": "N8ibMAVOOQvxt0qaIHxF-50",
+          "type": "edge",
+          "parent": "1",
+          "source": "N8ibMAVOOQvxt0qaIHxF-40",
+          "target": "N8ibMAVOOQvxt0qaIHxF-45"
+        },
+        {
+          "id": "N8ibMAVOOQvxt0qaIHxF-52",
+          "type": "node",
+          "parent": "1",
+          "label": "Update Status Pesanan"
+        },
+        {
+          "id": "N8ibMAVOOQvxt0qaIHxF-53",
+          "type": "edge",
+          "parent": "1",
+          "source": "N8ibMAVOOQvxt0qaIHxF-52",
+          "target": "N8ibMAVOOQvxt0qaIHxF-44",
+          "label": "&lt;extend&gt;"
+        },
+        {
+          "id": "N8ibMAVOOQvxt0qaIHxF-55",
+          "type": "node",
+          "parent": "1",
+          "label": "Admin"
+        },
+        {
+          "id": "N8ibMAVOOQvxt0qaIHxF-56",
+          "type": "node",
+          "parent": "1",
+          "label": "Menyetujui/menolak brand"
+        },
+        {
+          "id": "N8ibMAVOOQvxt0qaIHxF-57",
+          "type": "node",
+          "parent": "1",
+          "label": "Memoderasi produk"
+        },
+        {
+          "id": "N8ibMAVOOQvxt0qaIHxF-58",
+          "type": "node",
+          "parent": "1",
+          "label": "Menyetujui/menolak seller"
+        },
+        {
+          "id": "N8ibMAVOOQvxt0qaIHxF-59",
+          "type": "node",
+          "parent": "1",
+          "label": "Mengelola kategori &amp; atribut"
+        },
+        {
+          "id": "N8ibMAVOOQvxt0qaIHxF-60",
+          "type": "node",
+          "parent": "1",
+          "label": "Mengelola konten homepage"
+        },
+        {
+          "id": "N8ibMAVOOQvxt0qaIHxF-61",
+          "type": "edge",
+          "parent": "1",
+          "source": "N8ibMAVOOQvxt0qaIHxF-55",
+          "target": "N8ibMAVOOQvxt0qaIHxF-56"
+        },
+        {
+          "id": "N8ibMAVOOQvxt0qaIHxF-62",
+          "type": "edge",
+          "parent": "1",
+          "source": "N8ibMAVOOQvxt0qaIHxF-55",
+          "target": "N8ibMAVOOQvxt0qaIHxF-58"
+        },
+        {
+          "id": "N8ibMAVOOQvxt0qaIHxF-63",
+          "type": "edge",
+          "parent": "1",
+          "source": "N8ibMAVOOQvxt0qaIHxF-55",
+          "target": "N8ibMAVOOQvxt0qaIHxF-57"
+        },
+        {
+          "id": "N8ibMAVOOQvxt0qaIHxF-64",
+          "type": "edge",
+          "parent": "1",
+          "source": "N8ibMAVOOQvxt0qaIHxF-55",
+          "target": "N8ibMAVOOQvxt0qaIHxF-59"
+        },
+        {
+          "id": "N8ibMAVOOQvxt0qaIHxF-65",
+          "type": "edge",
+          "parent": "1",
+          "source": "N8ibMAVOOQvxt0qaIHxF-55",
+          "target": "N8ibMAVOOQvxt0qaIHxF-60"
+        },
+        {
+          "id": "N8ibMAVOOQvxt0qaIHxF-74",
+          "type": "node",
+          "parent": "1",
+          "label": "Memantau transaksi"
+        },
+        {
+          "id": "N8ibMAVOOQvxt0qaIHxF-75",
+          "type": "node",
+          "parent": "1",
+          "label": "Melihat log aktivitas"
+        },
+        {
+          "id": "N8ibMAVOOQvxt0qaIHxF-76",
+          "type": "edge",
+          "parent": "1",
+          "source": "N8ibMAVOOQvxt0qaIHxF-55",
+          "target": "N8ibMAVOOQvxt0qaIHxF-75"
+        },
+        {
+          "id": "N8ibMAVOOQvxt0qaIHxF-77",
+          "type": "edge",
+          "parent": "1",
+          "source": "N8ibMAVOOQvxt0qaIHxF-55",
+          "target": "N8ibMAVOOQvxt0qaIHxF-74"
+        },
+        {
+          "id": "N8ibMAVOOQvxt0qaIHxF-78",
+          "type": "node",
+          "parent": "1",
+          "label": "Verifikasi Legalitas Distributor"
+        },
+        {
+          "id": "N8ibMAVOOQvxt0qaIHxF-79",
+          "type": "node",
+          "parent": "1",
+          "label": "Verifikasi Data Toko"
+        },
+        {
+          "id": "N8ibMAVOOQvxt0qaIHxF-80",
+          "type": "edge",
+          "parent": "1",
+          "source": "N8ibMAVOOQvxt0qaIHxF-58",
+          "target": "N8ibMAVOOQvxt0qaIHxF-79",
+          "label": "&lt;include&gt;"
+        },
+        {
+          "id": "N8ibMAVOOQvxt0qaIHxF-81",
+          "type": "edge",
+          "parent": "1",
+          "source": "N8ibMAVOOQvxt0qaIHxF-56",
+          "target": "N8ibMAVOOQvxt0qaIHxF-78",
+          "label": "&lt;include&gt;"
+        },
+        {
+          "id": "N8ibMAVOOQvxt0qaIHxF-82",
+          "type": "node",
+          "parent": "1",
+          "label": " Tolak dengan Alasan"
+        },
+        {
+          "id": "N8ibMAVOOQvxt0qaIHxF-83",
+          "type": "edge",
+          "parent": "1",
+          "source": "N8ibMAVOOQvxt0qaIHxF-82",
+          "target": "N8ibMAVOOQvxt0qaIHxF-56",
+          "label": "&lt;extend&gt;"
+        },
+        {
+          "id": "N8ibMAVOOQvxt0qaIHxF-84",
+          "type": "edge",
+          "parent": "1",
+          "source": "N8ibMAVOOQvxt0qaIHxF-82",
+          "target": "N8ibMAVOOQvxt0qaIHxF-58",
+          "label": "&lt;extend&gt;"
+        },
+        {
+          "id": "FdaogheMz3DWTKGfnJQn-1",
+          "type": "edge",
+          "parent": "1",
+          "source": "N8ibMAVOOQvxt0qaIHxF-17",
+          "target": "N8ibMAVOOQvxt0qaIHxF-11"
+        }
+      ]
+    }
+  ]
+}

@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { AreaChart } from "@/components/charts/area-chart";
 import { Area } from "@/components/charts/area";
 import CustomSelect from "@/components/ui/custom-select";
+import { getDynamicSparkline } from "@/lib/telemetry";
 
 const PAGE_SIZE = 10;
 
@@ -322,15 +323,7 @@ export default function UsersPage() {
             </div>
             <div className="w-20 h-10 shrink-0 opacity-80">
               <AreaChart
-                data={[
-                  { date: new Date("2026-08-10"), val: 8 },
-                  { date: new Date("2026-08-11"), val: 9 },
-                  { date: new Date("2026-08-12"), val: 9 },
-                  { date: new Date("2026-08-13"), val: 11 },
-                  { date: new Date("2026-08-14"), val: 11 },
-                  { date: new Date("2026-08-15"), val: 12 },
-                  { date: new Date("2026-08-16"), val: users.filter((u) => u.status === "Active").length },
-                ]}
+                data={getDynamicSparkline(users.filter((u) => u.status === "Active").length)}
                 aspectRatio="2 / 1"
                 className="w-full h-full"
               >
@@ -356,15 +349,7 @@ export default function UsersPage() {
             </div>
             <div className="w-20 h-10 shrink-0 opacity-70">
               <AreaChart
-                data={[
-                  { date: new Date("2026-08-10"), val: 3 },
-                  { date: new Date("2026-08-11"), val: 3 },
-                  { date: new Date("2026-08-12"), val: 4 },
-                  { date: new Date("2026-08-13"), val: 4 },
-                  { date: new Date("2026-08-14"), val: 5 },
-                  { date: new Date("2026-08-15"), val: 5 },
-                  { date: new Date("2026-08-16"), val: users.filter((u) => u.role === "Seller").length },
-                ]}
+                data={getDynamicSparkline(users.filter((u) => u.role === "Seller").length)}
                 aspectRatio="2 / 1"
                 className="w-full h-full"
               >
@@ -391,15 +376,7 @@ export default function UsersPage() {
             </div>
             <div className="w-20 h-10 shrink-0 opacity-70">
               <AreaChart
-                data={[
-                  { date: new Date("2026-08-10"), val: 0 },
-                  { date: new Date("2026-08-11"), val: 1 },
-                  { date: new Date("2026-08-12"), val: 1 },
-                  { date: new Date("2026-08-13"), val: 1 },
-                  { date: new Date("2026-08-14"), val: 2 },
-                  { date: new Date("2026-08-15"), val: 2 },
-                  { date: new Date("2026-08-16"), val: users.filter((u) => u.status === "Suspended").length },
-                ]}
+                data={getDynamicSparkline(users.filter((u) => u.status === "Suspended").length)}
                 aspectRatio="2 / 1"
                 className="w-full h-full"
               >

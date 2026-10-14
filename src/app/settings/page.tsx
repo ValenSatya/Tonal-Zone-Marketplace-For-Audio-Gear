@@ -67,13 +67,13 @@ export default function SettingsPage() {
   const avatarInputRef = useRef<HTMLInputElement>(null);
 
   // 0. PROFIL AKUN
-  const [name, setName] = useState("Alex Rivera");
+  const [name, setName] = useState("");
   const [avatar, setAvatar] = useState("/placeholder.svg");
   const [gear, setGear] = useState("Dedicated DAC/AMP");
   const [roleBadge, setRoleBadge] = useState("BUYER");
 
   // 1. KEAMANAN & AKUN
-  const [email, setEmail] = useState("alex.rivera@audiophile.io");
+  const [email, setEmail] = useState("");
   const [isEmailVerified, setIsEmailVerified] = useState(true);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -101,8 +101,8 @@ export default function SettingsPage() {
 
   // 5. SETTINGS SELLER
   const [bankName, setBankName] = useState("BCA (Bank Central Asia)");
-  const [accountNumber, setAccountNumber] = useState("8765432109");
-  const [accountHolder, setAccountHolder] = useState("ALEX RIVERA");
+  const [accountNumber, setAccountNumber] = useState("");
+  const [accountHolder, setAccountHolder] = useState("");
   const [sellerNotifNewOrder, setSellerNotifNewOrder] = useState(true);
   const [sellerNotifShippingDeadline, setSellerNotifShippingDeadline] = useState(true);
   const [sellerNotifPayout, setSellerNotifPayout] = useState(true);
@@ -645,7 +645,7 @@ export default function SettingsPage() {
                           onChange={(e) => setName(e.target.value)}
                           required
                           className="w-full bg-[#161616] hover:bg-[#1A1A1A] focus:bg-[#1C1C1C] ring-1 ring-white/10 hover:ring-white/20 focus:ring-1 focus:ring-[#BFDD25] shadow-inner text-white px-4 py-3 rounded-xl text-xs outline-none transition-all placeholder:text-[#666]"
-                          placeholder="e.g. Alex Rivera"
+                          placeholder="e.g. Nama Lengkap Anda"
                         />
                       </div>
 
@@ -1349,7 +1349,7 @@ export default function SettingsPage() {
                     <input
                       type="text"
                       required
-                      placeholder="e.g. Alex Rivera"
+                      placeholder="e.g. Nama Penerima Paket"
                       value={newAddrReceiver}
                       onChange={(e) => setNewAddrReceiver(e.target.value)}
                       className="w-full bg-[#161616] hover:bg-[#1A1A1A] focus:bg-[#1C1C1C] ring-1 ring-white/10 hover:ring-white/20 focus:ring-1 focus:ring-[#BFDD25] shadow-inner rounded-xl px-4 py-3 text-sm text-white outline-none transition-all placeholder:text-[#666]"

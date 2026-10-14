@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { broadcastRealtime, subscribeRealtime } from "@/lib/realtime-bus";
 
 export interface CartItem {
   id: string; // unique identifier (e.g. `${productId}-${offerId}-${variant}`)
@@ -86,9 +87,21 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const currentOwnerRef = useRef<string | null>(null);
+  const isMountedRef = useRef(true);
+  const isSyncingRef = useRef(false);
+  const lastItemsJsonRef = useRef("");
+  const lastSelectedJsonRef = useRef("");
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   // Load cart for a specific user identifier
   const loadCartForOwner = useCallback((ownerId: string | null) => {
+    if (!isMountedRef.current) return;
     try {
       const { cartKey, selectedKey } = getCartStorageKeys(ownerId);
 
@@ -106,17 +119,24 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         } catch {}
       }
 
-      const stored = localStorage.getItem(cartKey);
-      const parsedItems: CartItem[] = stored ? JSON.parse(stored) : [];
-      setItems(parsedItems);
+      const stored = localStorage.getItem(cartKey) || "[]";
+      if (stored !== lastItemsJsonRef.current) {
+        lastItemsJsonRef.current = stored;
+        const parsedItems: CartItem[] = JSON.parse(stored);
+        isSyncingRef.current = true;
+        setItems(parsedItems);
 
-      const storedSelected = localStorage.getItem(selectedKey);
-      if (storedSelected) {
-        const parsedSelected: string[] = JSON.parse(storedSelected);
-        const validSelected = parsedSelected.filter((id) => parsedItems.some((i) => i.id === id));
-        setSelectedItemIds(validSelected);
-      } else {
-        setSelectedItemIds(parsedItems.map((i) => i.id));
+        const storedSelected = localStorage.getItem(selectedKey);
+        if (storedSelected) {
+          const parsedSelected: string[] = JSON.parse(storedSelected);
+          const validSelected = parsedSelected.filter((id) => parsedItems.some((i) => i.id === id));
+          lastSelectedJsonRef.current = JSON.stringify(validSelected);
+          setSelectedItemIds(validSelected);
+        } else {
+          const allIds = parsedItems.map((i) => i.id);
+          lastSelectedJsonRef.current = JSON.stringify(allIds);
+          setSelectedItemIds(allIds);
+        }
       }
       currentOwnerRef.current = ownerId;
     } catch (e) {
@@ -128,12 +148,15 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const ownerId = getCurrentUserIdentifier();
     loadCartForOwner(ownerId);
-    setIsLoaded(true);
+    if (isMountedRef.current) {
+      setIsLoaded(true);
+    }
   }, [loadCartForOwner]);
 
   // Handle User Login/Logout switching (Shopee / Tokopedia style cart isolation)
   useEffect(() => {
     const handleUserSwitch = () => {
+      if (!isMountedRef.current) return;
       const newOwnerId = getCurrentUserIdentifier();
       const prevOwnerId = currentOwnerRef.current;
 
@@ -184,12 +207,32 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     };
   }, [loadCartForOwner]);
 
+  // Real-time instant cross-tab synchronization
+  useEffect(() => {
+    const unsubscribe = subscribeRealtime("CART", (payload) => {
+      if (!isMountedRef.current) return;
+      const currentOwner = getCurrentUserIdentifier();
+      if (!payload?.ownerId || payload.ownerId === currentOwner) {
+        loadCartForOwner(currentOwner);
+      }
+    });
+    return unsubscribe;
+  }, [loadCartForOwner]);
+
   // Save cart to user-isolated localStorage key whenever items change
   useEffect(() => {
-    if (!isLoaded) return;
+    if (!isLoaded || !isMountedRef.current) return;
+    if (isSyncingRef.current) {
+      isSyncingRef.current = false;
+      return;
+    }
     try {
+      const currentJson = JSON.stringify(items);
+      if (currentJson === lastItemsJsonRef.current) return;
+      lastItemsJsonRef.current = currentJson;
       const { cartKey } = getCartStorageKeys(currentOwnerRef.current);
-      localStorage.setItem(cartKey, JSON.stringify(items));
+      localStorage.setItem(cartKey, currentJson);
+      broadcastRealtime("CART", { ownerId: currentOwnerRef.current });
     } catch (e) {
       console.error("Failed to save user cart to storage", e);
     }
@@ -197,10 +240,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   // Save selection to user-isolated localStorage key whenever selectedItemIds change
   useEffect(() => {
-    if (!isLoaded) return;
+    if (!isLoaded || !isMountedRef.current) return;
     try {
+      const currentJson = JSON.stringify(selectedItemIds);
+      if (currentJson === lastSelectedJsonRef.current) return;
+      lastSelectedJsonRef.current = currentJson;
       const { selectedKey } = getCartStorageKeys(currentOwnerRef.current);
-      localStorage.setItem(selectedKey, JSON.stringify(selectedItemIds));
+      localStorage.setItem(selectedKey, currentJson);
     } catch (e) {
       console.error("Failed to save selection to storage", e);
     }

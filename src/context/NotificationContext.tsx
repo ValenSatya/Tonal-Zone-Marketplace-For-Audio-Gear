@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { broadcastRealtime, subscribeRealtime } from "@/lib/realtime-bus";
 
 export interface NotificationItem {
   id: string;
@@ -124,15 +125,21 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     };
 
     window.addEventListener("tonalzone_notifications_external_trigger", handleExternalUpdate);
-    window.addEventListener("storage", (e) => {
+    const handleStorage = (e: StorageEvent) => {
       if (e.key === "tonalzone_user" || e.key === STORAGE_KEY) {
         refreshNotifications();
       }
+    };
+    window.addEventListener("storage", handleStorage);
+
+    const unsubRealtime = subscribeRealtime("NOTIFICATIONS", () => {
+      refreshNotifications();
     });
 
     return () => {
       window.removeEventListener("tonalzone_notifications_external_trigger", handleExternalUpdate);
-      window.removeEventListener("storage", handleExternalUpdate);
+      window.removeEventListener("storage", handleStorage);
+      unsubRealtime();
     };
   }, [refreshNotifications]);
 
@@ -195,6 +202,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     setNotifications((prev) =>
       prev.map((n) => (n.id === id ? { ...n, unread: false } : n))
     );
+    broadcastRealtime("NOTIFICATIONS", { action: "READ", id });
 
     fetch("/api/notifications", {
       method: "PATCH",
@@ -205,6 +213,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 
   const markAllAsRead = useCallback(() => {
     setNotifications((prev) => prev.map((n) => ({ ...n, unread: false })));
+    broadcastRealtime("NOTIFICATIONS", { action: "READ_ALL" });
 
     let email = "all";
     let storeId: string | undefined = undefined;
@@ -228,6 +237,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 
   const deleteNotification = useCallback((id: string) => {
     setNotifications((prev) => prev.filter((n) => n.id !== id));
+    broadcastRealtime("NOTIFICATIONS", { action: "DELETE", id });
 
     fetch(`/api/notifications?id=${encodeURIComponent(id)}&action=delete`, {
       method: "DELETE",
@@ -236,6 +246,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 
   const clearAllNotifications = useCallback(() => {
     setNotifications([]);
+    broadcastRealtime("NOTIFICATIONS", { action: "CLEAR_ALL" });
 
     let email = "all";
     let storeId: string | undefined = undefined;
@@ -328,6 +339,7 @@ export async function triggerAppNotification(
             detail: data.notification,
           })
         );
+        broadcastRealtime("NOTIFICATIONS", data.notification);
         return data.notification.id;
       }
     }
@@ -349,6 +361,7 @@ export async function triggerAppNotification(
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify([newNotif, ...list]));
     window.dispatchEvent(new Event("tonalzone_notifications_external_trigger"));
+    broadcastRealtime("NOTIFICATIONS", newNotif);
   } catch {}
   return id;
 }

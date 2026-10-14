@@ -563,13 +563,13 @@ export default function LandingAndBannersCMSPage() {
                     collaboration: { ...prev.collaboration, bgImage: cleaned },
                   }));
                 }}
-                placeholder="/images/collab-hsr-moondrop-bg.png"
+                placeholder="/images/collab-hsr-moondrop-bg.webp"
                 className="w-full bg-[#121212] rounded-xl px-4 py-3 text-xs font-mono text-white outline-none border border-white/5 focus:border-[#BFDD25] transition-colors"
               />
               <div className="flex flex-wrap gap-2 mt-2">
                 <span className="text-[10px] font-mono text-[#666] self-center">Preset Cepat:</span>
                 {[
-                  { label: "Moondrop x HSR Sparxie Official", url: "/images/collab-hsr-moondrop-bg.png" },
+                  { label: "Moondrop x HSR Sparxie Official", url: "/images/collab-hsr-moondrop-bg.webp" },
                   { label: "Chu III Banner", url: "/images/Headphone-Zone-Moondrop-Chu-III-Homepage-Desktop-Banner-02.webp" },
                 ].map((item) => (
                   <button
@@ -753,7 +753,7 @@ export default function LandingAndBannersCMSPage() {
                   alt="Background"
                   className="w-full h-full object-cover opacity-35"
                   onError={(e) => {
-                    (e.target as any).src = "/images/collab-hsr-moondrop-bg.png";
+                    (e.target as any).src = "/images/collab-hsr-moondrop-bg.webp";
                   }}
                 />
                 <div className="absolute inset-0 bg-black/60" />

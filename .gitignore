@@ -66,5 +66,5 @@ supabase_schema.json
 skills-lock.json
 *.csv
 *.xlsx
-
-
+*.db-shm
+*.db-wal

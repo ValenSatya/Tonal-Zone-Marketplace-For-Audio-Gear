@@ -170,8 +170,8 @@ function LoginContent() {
           gear: "Topping DX7 Pro+",
         }
       : {
-          name: "Alex Rivera",
-          email: "alex.rivera@audiophile.io",
+          name: "Audiophile Member",
+          email: "member@tonalzone.id",
           avatar: "/placeholder.svg",
           role: "VIP AUDIOPHILE",
           isSeller: false,

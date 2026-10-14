@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { splitOrderForCheckout, createMidtransSnapTransaction, CartItemCheckoutInput, PaymentMethod } from "@/lib/escrow";
 import { orderRepo, productRepo, voucherRepo } from "@/lib/supabase-db";
+import { serverBroadcastRealtime } from "@/lib/server-realtime";
 
 export async function POST(request: Request) {
   try {
@@ -63,8 +64,12 @@ export async function POST(request: Request) {
           await productRepo.restoreStock(prev.productId, prev.quantity);
         }
         return NextResponse.json(
-          { success: false, error: deductRes.error || "Gagal mengalokasikan stok barang." },
-          { status: 400 }
+          {
+            success: false,
+            error: deductRes.error || "Gagal mengalokasikan stok barang.",
+            code: "STOCK_INSUFFICIENT",
+          },
+          { status: 409 }
         );
       }
       deductedItems.push({ productId: pId, quantity: requestedQty });
@@ -146,6 +151,19 @@ export async function POST(request: Request) {
     const snapResult = await createMidtransSnapTransaction(parentOrder);
     parentOrder.midtransSnapToken = snapResult.snapToken;
     parentOrder.midtransRedirectUrl = snapResult.redirectUrl;
+    // Broadcast order created event to all connected browsers & devices via SSE
+    try {
+      serverBroadcastRealtime("ORDERS", {
+        orderId: parentOrder.id,
+        status: "PENDING",
+      });
+      serverBroadcastRealtime("NOTIFICATIONS", {
+        type: "order",
+        title: "Pesanan Baru Masuk",
+        message: `Pesanan #${parentOrder.id} (${parentOrder.subOrders.length} paket toko) telah dibuat.`,
+        actionLink: "/orders",
+      });
+    } catch {}
 
     return NextResponse.json({
       success: true,
