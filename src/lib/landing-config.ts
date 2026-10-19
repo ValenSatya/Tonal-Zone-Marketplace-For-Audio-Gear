@@ -173,15 +173,6 @@ const LANDING_CONFIG_KEY = "tonalzone_landing_config_cache";
 
 export function getInstantLandingConfig(): LandingConfig {
   if (cachedLandingConfig) return cachedLandingConfig;
-  if (typeof window !== "undefined") {
-    try {
-      const stored = sessionStorage.getItem(LANDING_CONFIG_KEY) || localStorage.getItem(LANDING_CONFIG_KEY);
-      if (stored) {
-        cachedLandingConfig = JSON.parse(stored);
-        return cachedLandingConfig!;
-      }
-    } catch {}
-  }
   return DEFAULT_LANDING_CONFIG;
 }
 

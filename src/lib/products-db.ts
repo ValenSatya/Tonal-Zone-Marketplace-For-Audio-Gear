@@ -1027,8 +1027,8 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     storeName: "CSI Zone",
     storeCity: "Surabaya",
     description: "Ultra-high-end flagship acoustic monitor named after the mythical well of wisdom. Multi-driver electrostatic hybrid architecture in an artisan resin cavity for transcendent resolution, expansive 3D stage depth, and sublime tonal neutrality.",
-    images: ["https://kineraaudio.com/cdn/shop/files/DSCF4788_grande.png?v=1734680879", "/figma/prod-mimisbrunnr.png"],
-    image: "https://kineraaudio.com/cdn/shop/files/DSCF4788_grande.png?v=1734680879",
+    images: ["https://kineraaudio.com/cdn/shop/files/DSCF4788_shopify.jpg?v=1784182557&width=1400", "https://kineraaudio.com/cdn/shop/files/DSCF4788_grande.png?v=1734680879", "/figma/prod-mimisbrunnr.png"],
+    image: "https://kineraaudio.com/cdn/shop/files/DSCF4788_shopify.jpg?v=1784182557&width=1400",
     rating: 5.0,
     reviews: 34,
     badge: "New Arrival",
@@ -1055,10 +1055,11 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     storeName: "EPZ Official Store",
     storeCity: "Surabaya",
     description: "Engineered specifically for competitive esports positioning and high-impact dynamic audio with dual-cavity composite dynamic driver and balanced armature setup for pinpoint tactical soundscapes.",
-    images: ["/figma/prod-epz-g30.png"],
-    image: "/figma/prod-epz-g30.png",
+    images: ["https://epzaudio.com/cdn/shop/files/G30-2.png?v=1772096974&width=2000", "/figma/prod-epz-g30.png"],
+    image: "https://epzaudio.com/cdn/shop/files/G30-2.png?v=1772096974&width=2000",
     rating: 4.8,
-    reviews: 86,
+    reviews: 86,
+    badge: "Best Seller",
     inStock: true,
     preOrder: false,
     driverType: "10mm Dual-Cavity Dynamic + 1 Custom Balanced Armature",
@@ -1082,10 +1083,11 @@ export const FALLBACK_CATALOG: CatalogProduct[] = [
     storeName: "TANGZU Audio Official Store",
     storeCity: "Yogyakarta",
     description: "Tangzu's pinnacle acoustic creation inspired by the legendary Sun Wukong. 1DD + 6BA + 2EST tribrid architecture in hand-carved gold-leaf artisan housing, offering regal midrange richness and effortless treble extension.",
-    images: ["/figma/prod-wukong.png"],
-    image: "/figma/prod-wukong.png",
+    images: ["https://cdn.shopify.com/s/files/1/0983/2235/0396/files/8-Tangzu-The-King-Wukong.jpg?v=1737358784", "/figma/prod-wukong.png"],
+    image: "https://cdn.shopify.com/s/files/1/0983/2235/0396/files/8-Tangzu-The-King-Wukong.jpg?v=1737358784",
     rating: 5.0,
-    reviews: 29,
+    reviews: 29,
+    badge: "Best Seller",
     inStock: true,
     preOrder: false,
     driverType: "1 LCP Dynamic Subwoofer + 6 Knowles/Sonion BA + 2 Sonion EST",
@@ -2734,25 +2736,12 @@ export function groupProductsByModel(products: CatalogProduct[]): CatalogProduct
 let deterministicFallbackCatalog: CatalogProduct[] | null = null;
 
 export function getInstantCatalog(): CatalogProduct[] {
-  // 1. If memory cache already has real database products, return immediately (0ms)
+  // 1. If memory cache already has real database products (from current session navigation), return immediately
   if (cachedCatalog && cachedCatalog.length > 0) {
     return mergeWithAdminAndCustomProducts(cachedCatalog);
   }
 
-  // 2. If in browser and storage has cached database products, hydrate and return immediately
-  if (typeof window !== "undefined") {
-    try {
-      const stored = sessionStorage.getItem(CACHE_STORAGE_KEY) || localStorage.getItem(CACHE_STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed) && parsed.length > 0 && parsed[0]?.sellerOffers) {
-          cachedCatalog = parsed;
-          cacheTimestamp = Date.now();
-          return mergeWithAdminAndCustomProducts(parsed);
-        }
-      }
-    } catch {}
-  }
+  // 2. Initial SSR and hydration render: use deterministic static catalog (ensures 0ms match with zero hydration error)
 
   // 3. Only if no database products have ever been loaded in this session, use static catalog
   if (!deterministicFallbackCatalog) {
@@ -2801,55 +2790,29 @@ export async function fetchProductsFromDb(forceFresh: boolean = false): Promise<
 
   pendingCatalogPromise = (async () => {
     try {
-      let data: any[] = [];
-      let error: any = null;
-
-      try {
-        const { prisma } = await import("./prisma");
-        const rows = await prisma.product.findMany({
-          include: { brand: true, store: true, category: true },
-          orderBy: { price: "desc" },
-        });
-        if (rows && rows.length > 0) {
-          data = rows.map((p) => ({
-            ...p,
-            images: typeof p.images === "string" ? JSON.parse(p.images) : p.images,
-            variants: typeof p.variants === "string" ? JSON.parse(p.variants) : p.variants,
-            colors: typeof p.colors === "string" ? JSON.parse(p.colors) : p.colors,
-            brand: p.brand ? { name: p.brand.name } : null,
-            store: p.store ? { id: p.store.id, storeName: p.store.storeName, address: p.store.address, logo: p.store.logo, avatarUrl: p.store.avatarUrl } : null,
-            category: p.category ? { name: p.category.name } : null,
-          }));
-        }
-      } catch {}
-
-      if (!data || data.length === 0) {
-        const res = await supabase
-          .from("Product")
-          .select(`
-            id,
-            name,
-            price,
-            stock,
-            description,
-            images,
-            experienceLevel,
-            soundSignature,
-            brandId,
-            storeId,
-            categoryId,
-            status,
-            updatedAt,
-            variants,
-            colors,
-            brand:Brand(name),
-            store:Store(id, storeName, address, logo, avatarUrl),
-            category:Category(name)
-          `)
-          .order("price", { ascending: false });
-        data = res.data || [];
-        error = res.error;
-      }
+      const { data, error } = await supabase
+        .from("Product")
+        .select(`
+          id,
+          name,
+          price,
+          stock,
+          description,
+          images,
+          experienceLevel,
+          soundSignature,
+          brandId,
+          storeId,
+          categoryId,
+          status,
+          updatedAt,
+          variants,
+          colors,
+          brand:Brand(name),
+          store:Store(id, storeName, address, logo, avatarUrl),
+          category:Category(name)
+        `)
+        .order("price", { ascending: false });
 
       if (!error && data && data.length > 0) {
         const dbProducts = data.map((item: any, index: number) => {
